@@ -191,6 +191,9 @@ export const NETWORK_UNAVAILABLE_REPLY =
   "Passing along is not available. Take their details and say the office will call to schedule.";
 export const URGENT_NO_BOOK_REPLY =
   "This is an emergency: do not offer or book a time. Say \"I'm marking this urgent so the team calls you right back.\" Then take their name, callback number and address if you don't have them.";
+/** The owner chose "alert me first": nothing goes on the schedule from a call. */
+export const OWNER_SETS_TIMES_REPLY =
+  "This business sets every time itself. Do not offer or hold a time. Take their name, callback number and what they need, then say \"The team will call you to set a time.\"";
 export const BAD_SLOT_REPLY = "That slot id is not valid. Call check_availability again and use a slot id it returns.";
 export const NO_ALT_NOTE = "Nothing is open at the time they asked for. Say so, then offer these instead. ";
 

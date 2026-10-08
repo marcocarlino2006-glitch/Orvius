@@ -38,6 +38,7 @@ export function buildBusinessAssistantConfig(business: Business) {
     trade: (business.trade as Trade | null) ?? null,
     canTransfer: Boolean(transferPhone),
     canBook: true,
+    offerTimes: business.bookingMode !== "alert",
     rulesJson: business.receptionistRulesJson,
   });
   return buildVapiAssistantConfig({

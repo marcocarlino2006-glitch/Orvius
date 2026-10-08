@@ -69,7 +69,7 @@ export function OsShell({
   const offHours = business?.signals.afterHoursNow ?? false;
   const onSettings = pathname.startsWith("/dashboard/settings");
   /* Shown only when the line is not simply answering; a normal day needs no banner. */
-  const lineAlert = businessLoading || (business?.sample && !business.line)
+  const lineAlert = businessLoading || business?.testMode || (business?.sample && !business.line)
     ? null
     : business?.line
       ? offHours
@@ -139,6 +139,13 @@ export function OsShell({
             <>
               <span className="os-ring-status-dot" aria-hidden />
               {displayPhone(business.line)}
+            </>
+          ) : business?.testMode ? (
+            <>
+              Test mode ·{" "}
+              <Link href="/dashboard/onboarding?step=live" className="os-sidebar-inline-link">
+                Go live
+              </Link>
             </>
           ) : business?.sample ? (
             "Demo — calls are simulated"
@@ -289,6 +296,16 @@ export function OsShell({
           </div>
         </header>
 
+        {business?.testMode ? (
+          <div className="os-test-banner font-sans" role="status">
+            <span>
+              <strong>Test mode.</strong> What you see here came from your test call. Calls and texts are simulated; nothing reaches a real person.
+            </span>
+            <Link href="/dashboard/onboarding?step=live" className="os-test-banner-cta">
+              Go live
+            </Link>
+          </div>
+        ) : null}
         <main className="os-content os-content-pro">{children}</main>
         <OsTabBar tabs={tabs} moreOpen={navOpen} onMore={() => setNavOpen((v) => !v)} />
         {showAskDock ? <OsAskDock /> : null}

@@ -105,6 +105,7 @@ export function ShopOperateBanner() {
         attentionCount: attention.length,
         proofStale,
         economicsReady,
+        testMode: Boolean(ring?.business?.testMode),
       }),
     );
   }, [ring]);

@@ -32,6 +32,8 @@ export type BusinessSnapshot = {
   ownerPhone: string | null;
   /** Demo or reference workspace: calls are simulated, so no line is owed. */
   sample?: boolean;
+  /** Still in setup: nothing answers real callers until the owner goes live. */
+  testMode?: boolean;
   metrics: BusinessMetrics;
   signals: BusinessSignals;
 };

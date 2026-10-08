@@ -90,6 +90,8 @@ export function ownerAlertContextLine(context: OwnerAlertContext): string | null
     line = "Outside your service area · not booked";
   } else if (skipReason === "missing_address") {
     line = "No address yet · call back to finish booking";
+  } else if (skipReason === "owner_first") {
+    line = "Waiting on you · call back to set a time";
   } else if (skipReason === "info_only") {
     line = "Question about the shop, not a service request · nothing booked";
   } else if (skipReason === "capacity_unavailable") {

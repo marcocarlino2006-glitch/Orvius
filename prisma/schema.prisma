@@ -15,6 +15,10 @@ model Business {
   environment          String   @default("production")
   /** Orvius sends confirmations and assigns clear-cut jobs itself; the owner can turn this off. */
   autopilot            Boolean  @default(true)
+  /** "book": callers are offered open times and qualified calls are booked. "alert": nothing is booked; every request waits for the owner. */
+  bookingMode          String   @default("book")
+  /** Setup progress and choices while the shop is still in test mode: { sandbox, step, goal, testedAt, liveAt }. */
+  setupJson            String   @default("{}")
   /** Texting callers who did not book: "off", "ask" (owner taps send) or "auto". */
   followUpMode         String   @default("ask")
   /** Bumped when the owner resets their calendar feed link; old links stop working. */

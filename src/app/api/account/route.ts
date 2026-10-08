@@ -72,6 +72,7 @@ const patchSchema = z.object({
   depositEnabled: z.boolean().optional(),
   autopilot: z.boolean().optional(),
   followUpMode: z.enum(["off", "ask", "auto"]).optional(),
+  bookingMode: z.enum(["book", "alert"]).optional(),
   reviewUrl: z.string().max(500).nullable().optional(),
   reviewRequestsOn: z.boolean().optional(),
   bookingPageOn: z.boolean().optional(),
@@ -160,6 +161,7 @@ export async function GET(request: Request) {
         depositEnabled: businessRecord.depositEnabled,
         autopilot: businessRecord.autopilot,
         followUpMode: businessRecord.followUpMode,
+        bookingMode: businessRecord.bookingMode,
         reviewUrl: businessRecord.reviewUrl,
         reviewRequestsOn: businessRecord.reviewRequestsOn,
         bookingPageOn: businessRecord.bookingPageOn,
@@ -277,6 +279,7 @@ const SETTING_LABELS: Record<string, { label: string; value?: false }> = {
   depositAmountCents: { label: "deposit amount" },
   autopilot: { label: "routine work handling" },
   followUpMode: { label: "follow-up texts" },
+  bookingMode: { label: "booking on calls" },
   reviewUrl: { label: "review link" },
   reviewRequestsOn: { label: "review requests" },
   bookingPageOn: { label: "online booking" },
@@ -305,7 +308,7 @@ function networkZip3For(address: string | null, serviceZipsJson: string | null) 
   }
 }
 
-const ASSISTANT_FIELDS = ["name", "trade", "greeting", "transferPhone", "voiceId", "hoursJson", "servicesJson"] as const;
+const ASSISTANT_FIELDS = ["name", "trade", "greeting", "transferPhone", "voiceId", "hoursJson", "servicesJson", "bookingMode"] as const;
 
 export async function PATCH(request: Request) {
   const session = await auth();
@@ -491,6 +494,7 @@ export async function PATCH(request: Request) {
           : {}),
         ...(body.autopilot !== undefined ? { autopilot: body.autopilot } : {}),
         ...(body.followUpMode !== undefined ? { followUpMode: body.followUpMode } : {}),
+        ...(body.bookingMode !== undefined ? { bookingMode: body.bookingMode } : {}),
         ...(reviewUrl !== undefined ? { reviewUrl } : {}),
         ...(body.reviewRequestsOn !== undefined ? { reviewRequestsOn: body.reviewRequestsOn } : {}),
         ...(body.bookingPageOn !== undefined ? { bookingPageOn: body.bookingPageOn } : {}),
@@ -570,6 +574,7 @@ export async function PATCH(request: Request) {
         depositEnabled: saved.depositEnabled,
         autopilot: saved.autopilot,
         followUpMode: saved.followUpMode,
+        bookingMode: saved.bookingMode,
         reviewUrl: saved.reviewUrl,
         reviewRequestsOn: saved.reviewRequestsOn,
         bookingPageOn: saved.bookingPageOn,

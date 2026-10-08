@@ -44,6 +44,8 @@ export type Ring1Data = {
     billingStatus?: string | null;
     depositEnabled?: boolean;
     referenceImplementation?: boolean;
+    /** Still in setup: settings saved, no line, every text simulated. */
+    testMode?: boolean;
   } | null;
   metrics: BusinessMetrics;
   outcomes?: ShopOutcomes;
@@ -148,6 +150,7 @@ function toBusiness(data: Ring1Data | null): BusinessSnapshot | null {
     line: data.business.line ?? null,
     ownerPhone: data.business.ownerPhone ?? null,
     sample: Boolean(data.business.referenceImplementation),
+    testMode: Boolean(data.business.testMode),
     metrics: data.metrics,
     signals: {
       unassignedJobs: data.dispatchToday?.unassigned ?? 0,

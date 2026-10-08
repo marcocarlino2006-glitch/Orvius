@@ -44,6 +44,7 @@ export type Account = {
     serviceZipsJson?: string | null;
     billingStatus?: string;
     autopilot?: boolean;
+    bookingMode?: "book" | "alert";
     followUpMode?: "off" | "ask" | "auto";
     reviewUrl?: string | null;
     reviewRequestsOn?: boolean;

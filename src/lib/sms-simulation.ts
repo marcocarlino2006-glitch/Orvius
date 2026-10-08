@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { normalizePhone } from "@/lib/customer";
 import { prisma } from "@/lib/prisma";
+import { isSetupSandbox } from "@/lib/setup-flow";
 import { isFictionalPhone } from "@/lib/workspace-hygiene";
 
 /**
@@ -22,14 +23,17 @@ export class SimulatedCarrierRejection extends Error {
   }
 }
 
-/** A demo shop wired to a real line (the public demo number) still texts for real. */
+/**
+ * A demo shop wired to a real line (the public demo number) still texts for
+ * real. A test-mode shop has no line until it goes live, so it never does.
+ */
 export async function isSimulatedWorkspace(businessId: string | null | undefined): Promise<boolean> {
   if (!businessId) return false;
   const shop = await prisma.business.findUnique({
     where: { id: businessId },
-    select: { environment: true, vapiPhoneNumber: true, twilioPhone: true },
+    select: { environment: true, vapiPhoneNumber: true, twilioPhone: true, setupJson: true },
   });
-  if (shop?.environment !== "demo") return false;
+  if (!shop || (shop.environment !== "demo" && !isSetupSandbox(shop))) return false;
   const line = shop.vapiPhoneNumber ?? shop.twilioPhone;
   return !line || isFictionalPhone(line);
 }

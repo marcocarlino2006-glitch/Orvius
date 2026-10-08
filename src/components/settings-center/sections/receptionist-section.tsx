@@ -56,6 +56,20 @@ export function ReceptionistSection({
           />
         </ScRow>
         <ScRow
+          label="Booking on calls"
+          hint="Offer open times: callers pick one of your real open times and it goes on your schedule. Alert me first: Orvius takes the request and tells you, and you set every time."
+        >
+          <select
+            className="sc-input"
+            aria-label="Booking on calls"
+            value={b.bookingMode ?? "book"}
+            onChange={(e) => void patch({ bookingMode: e.target.value as "book" | "alert" })}
+          >
+            <option value="book">Offer open times</option>
+            <option value="alert">Alert me first</option>
+          </select>
+        </ScRow>
+        <ScRow
           label="Handle routine work"
           hint="Confirms upcoming appointments by text and assigns a job when one technician is clearly the right fit. Ties, emergencies, and safety calls still come to you."
         >

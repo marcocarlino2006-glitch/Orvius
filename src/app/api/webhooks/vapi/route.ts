@@ -200,6 +200,7 @@ export async function POST(request: NextRequest) {
           networkOn: true,
           networkZip3: true,
           address: true,
+          bookingMode: true,
         },
       }),
     ]);

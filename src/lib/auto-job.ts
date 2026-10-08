@@ -57,6 +57,7 @@ export type AutoBookSkipReason =
   | "out_of_area"
   | "safety_escalation"
   | "missing_address"
+  | "owner_first"
   | "existing_job"
   | "follow_up"
   | "complaint"
@@ -135,6 +136,7 @@ async function loadLeadForBooking(leadId: string) {
         name: true,
         hoursJson: true,
         timezone: true,
+        bookingMode: true,
       },
     }),
   ]);
@@ -404,6 +406,13 @@ export async function maybeAutoBookLead(
     inArea === true ? "Address is inside the service area" : "No service area set — accepted",
     { inArea },
   );
+
+  if (lead.business.bookingMode === "alert") {
+    await decide("lead.held", "Held for you — you chose to decide every booking yourself, so Orvius did not book it", {
+      bookingMode: "alert",
+    });
+    return { jobId: null, created: false, qualified: true, skipReason: "owner_first", classification, intent };
+  }
 
   const held = call?.heldSlotAt && call.heldSlotAt.getTime() > Date.now() ? call.heldSlotAt : null;
   /*

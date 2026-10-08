@@ -295,6 +295,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
             onRetry={() => void retry()}
             billingStatus={data?.business?.billingStatus}
             referenceImplementation={data?.business?.referenceImplementation}
+            testMode={data?.business?.testMode}
           />
         </aside>
       </section>

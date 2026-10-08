@@ -9,6 +9,7 @@ import { isProductionDeployment } from "@/lib/stripe-mode";
 import { parseAcquisition } from "@/lib/acquisition";
 import { attachAcquisition, creditReferralOnPayment } from "@/lib/referrals";
 import { TRADES } from "@/lib/trades";
+import { isSetupSandbox } from "@/lib/setup-flow";
 
 /*
   The owner types their shop once, before paying. The details ride on the
@@ -109,7 +110,8 @@ export async function provisionFromCheckout(params: {
 }): Promise<CheckoutShopResult> {
   const email = params.email.toLowerCase().trim();
   const existing = await findBusinessForOwner(email);
-  if (existing) return { status: "exists", business: existing };
+  // A test-mode shop is the one this checkout turns on; anything else already exists.
+  if (existing && !isSetupSandbox(existing)) return { status: "exists", business: existing };
 
   const stripe = params.stripe ?? getStripe();
   let session: Stripe.Checkout.Session;
@@ -143,6 +145,7 @@ export async function provisionFromCheckout(params: {
         phoneNumber: draft.phoneNumber ?? null,
       },
       billing,
+      ...(existing ? { promoteBusinessId: existing.id } : {}),
     });
     await linkPaidCheckoutToBusiness(billing, business.id).catch((error: unknown) => {
       logWarn("checkout_shop.link_failed", { error: error instanceof Error ? error.message : "unknown" });
@@ -165,7 +168,7 @@ export async function provisionFromCheckout(params: {
   } catch (error) {
     if (error instanceof ProvisionBusyError) return { status: "busy" };
     const raced = await findBusinessForOwner(email);
-    if (raced) return { status: "exists", business: raced };
+    if (raced && !isSetupSandbox(raced)) return { status: "exists", business: raced };
     throw error;
   }
 }

@@ -1,0 +1,762 @@
+/*
+  Turning Orvius on: full screen, black and white, one decision per screen.
+  Colour only ever means state (live, needs approval); everything else is ink on paper.
+*/
+.ton {
+  --ton-bg: #000;
+  --ton-ink: #fff;
+  --ton-ink-2: rgb(255 255 255 / 0.66);
+  --ton-ink-3: rgb(255 255 255 / 0.44);
+  --ton-line: rgb(255 255 255 / 0.12);
+  --ton-line-strong: rgb(255 255 255 / 0.28);
+  --ton-fill: rgb(255 255 255 / 0.04);
+  --ton-fill-2: rgb(255 255 255 / 0.08);
+  --ton-radius: 0.875rem;
+  --ton-dur: var(--ox-dur-fast, 120ms);
+  min-height: 100dvh;
+  background: var(--ton-bg);
+  color: var(--ton-ink);
+  font-family: var(--font-sans, Inter, system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  display: flex;
+  flex-direction: column;
+}
+
+.ton .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.ton-top {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: rgb(0 0 0 / 0.88);
+  backdrop-filter: blur(12px);
+  padding: 1rem 1.5rem 0;
+}
+
+.ton-top-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1rem;
+  max-width: 45rem;
+  margin: 0 auto;
+}
+
+.ton-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.ton-back {
+  justify-self: start;
+  background: none;
+  border: 0;
+  color: var(--ton-ink-2);
+  font: inherit;
+  font-size: 0.875rem;
+  padding: 0.375rem 0;
+  cursor: pointer;
+  transition: color var(--ton-dur) ease;
+}
+
+.ton-back:hover {
+  color: var(--ton-ink);
+}
+
+.ton-count {
+  font-size: 0.8125rem;
+  color: var(--ton-ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.ton-pill {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  height: 1.5rem;
+  padding: 0 0.625rem;
+  border: 1px solid var(--ton-line-strong);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--ton-ink);
+}
+
+.ton-progress {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.25rem;
+  max-width: 45rem;
+  margin: 1rem auto 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ton-progress li {
+  height: 2px;
+  border-radius: 2px;
+  background: var(--ton-line);
+  transition: background var(--ton-dur) ease;
+}
+
+.ton-progress li.is-done {
+  background: var(--ton-ink);
+}
+
+.ton-stage {
+  width: 100%;
+  max-width: 45rem;
+  margin: 0 auto;
+  padding: 3.5rem 1.5rem 5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  animation: ton-in 280ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes ton-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.ton-head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ton-title {
+  margin: 0;
+  font-size: 1.875rem;
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.ton-lead {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--ton-ink-2);
+  max-width: 36rem;
+}
+
+.ton-group {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ton-group-title {
+  padding: 0;
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--ton-ink);
+}
+
+.ton-optional {
+  margin-left: 0.375rem;
+  font-weight: 400;
+  color: var(--ton-ink-3);
+}
+
+.ton-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.ton-chip {
+  min-height: 2.75rem;
+  padding: 0 1.125rem;
+  border: 1px solid var(--ton-line-strong);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ton-ink);
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background var(--ton-dur) ease, color var(--ton-dur) ease, border-color var(--ton-dur) ease;
+}
+
+.ton-chip:hover {
+  background: var(--ton-fill-2);
+}
+
+.ton-chip.is-on {
+  background: var(--ton-ink);
+  border-color: var(--ton-ink);
+  color: var(--ton-bg);
+}
+
+.ton-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.ton-cards--stack {
+  grid-template-columns: 1fr;
+}
+
+.ton-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.375rem;
+  padding: 1.125rem 1.25rem;
+  min-height: 6.5rem;
+  text-align: left;
+  border: 1px solid var(--ton-line-strong);
+  border-radius: var(--ton-radius);
+  background: var(--ton-fill);
+  color: var(--ton-ink);
+  font: inherit;
+  cursor: pointer;
+  transition: background var(--ton-dur) ease, border-color var(--ton-dur) ease, color var(--ton-dur) ease;
+}
+
+.ton-cards--stack .ton-card {
+  min-height: 0;
+}
+
+.ton-card:hover {
+  border-color: var(--ton-ink-2);
+}
+
+.ton-card.is-on {
+  background: var(--ton-ink);
+  border-color: var(--ton-ink);
+  color: var(--ton-bg);
+}
+
+.ton-card.is-on .ton-card-line {
+  color: rgb(0 0 0 / 0.66);
+}
+
+.ton-card.is-fixed {
+  cursor: default;
+  border-style: dashed;
+}
+
+.ton-card-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.ton-card-line {
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--ton-ink-2);
+}
+
+.ton-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 1.25rem;
+  padding: 0 0.5rem;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  font-size: 0.75rem;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.ton-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ton-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.ton-input {
+  width: 100%;
+  min-height: 3rem;
+  padding: 0 1rem;
+  border: 1px solid var(--ton-line-strong);
+  border-radius: 0.625rem;
+  background: transparent;
+  color: var(--ton-ink);
+  font: inherit;
+  font-size: 1rem;
+  transition: border-color var(--ton-dur) ease;
+}
+
+.ton-input::placeholder {
+  color: var(--ton-ink-3);
+}
+
+.ton-input:focus {
+  outline: none;
+  border-color: var(--ton-ink);
+}
+
+.ton-input--short {
+  max-width: 8rem;
+}
+
+.ton-inline {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.ton-crew {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.ton-note,
+.ton-fine {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--ton-ink-3);
+}
+
+.ton-fine {
+  text-align: center;
+}
+
+.ton-note a,
+.ton-check a,
+.ton-fine a {
+  color: var(--ton-ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.ton-ok {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--ton-ink);
+}
+
+.ton-error {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgb(255 255 255 / 0.4);
+  border-radius: 0.625rem;
+  font-size: 0.875rem;
+  color: var(--ton-ink);
+}
+
+.ton-actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.ton-actions--split {
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.ton-primary,
+.ton-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0 1.5rem;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity var(--ton-dur) ease, background var(--ton-dur) ease;
+}
+
+.ton-primary {
+  min-width: 10rem;
+  border: 1px solid var(--ton-ink);
+  background: var(--ton-ink);
+  color: var(--ton-bg);
+}
+
+.ton-primary:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.ton-primary:disabled {
+  opacity: 0.28;
+  cursor: not-allowed;
+}
+
+.ton-secondary {
+  border: 1px solid var(--ton-line-strong);
+  background: transparent;
+  color: var(--ton-ink);
+  white-space: nowrap;
+}
+
+.ton-secondary:hover:not(:disabled) {
+  background: var(--ton-fill-2);
+}
+
+.ton-secondary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ton-link {
+  align-self: flex-start;
+  background: none;
+  border: 0;
+  padding: 0.25rem 0;
+  color: var(--ton-ink);
+  font: inherit;
+  font-size: 0.875rem;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.ton-check {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  cursor: pointer;
+}
+
+.ton-check input {
+  flex: none;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin-top: 0.125rem;
+  accent-color: #fff;
+}
+
+.ton-consent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.ton-person {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding: 1.25rem;
+  border: 1px solid var(--ton-line);
+  border-radius: var(--ton-radius);
+  background: var(--ton-fill);
+}
+
+.ton-person-title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.ton-person ul {
+  margin: 0;
+  padding-left: 1.125rem;
+  list-style: disc;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--ton-ink-2);
+}
+
+.ton-result {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  border: 1px solid var(--ton-line-strong);
+  border-radius: 1rem;
+  background: var(--ton-fill);
+}
+
+.ton-result-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.ton-result-head .ton-pill {
+  justify-self: auto;
+}
+
+.ton-result-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.ton-transcript {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ton-transcript li {
+  align-self: flex-end;
+  max-width: 85%;
+  padding: 0.625rem 0.875rem;
+  border-radius: 0.875rem 0.875rem 0.25rem 0.875rem;
+  background: var(--ton-ink);
+  color: var(--ton-bg);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.ton-transcript li.is-ai {
+  align-self: flex-start;
+  border-radius: 0.875rem 0.875rem 0.875rem 0.25rem;
+  background: var(--ton-fill-2);
+  color: var(--ton-ink);
+}
+
+.ton-facts {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.ton-facts section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--ton-line);
+}
+
+.ton-fact-title {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--ton-ink-3);
+}
+
+.ton-facts dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 5rem 1fr;
+  gap: 0.375rem 1rem;
+  font-size: 0.875rem;
+}
+
+.ton-facts dt {
+  color: var(--ton-ink-3);
+}
+
+.ton-facts dd {
+  margin: 0;
+}
+
+.ton-decision {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.ton-exception {
+  margin: 0;
+  padding: 0.625rem 0.875rem;
+  border-left: 2px solid var(--ton-ink);
+  font-size: 0.875rem;
+  color: var(--ton-ink-2);
+}
+
+.ton-trail summary {
+  cursor: pointer;
+  font-size: 0.8125rem;
+  color: var(--ton-ink-2);
+}
+
+.ton-trail ol {
+  margin: 0.625rem 0 0;
+  padding-left: 1.125rem;
+  list-style: decimal;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--ton-ink-2);
+}
+
+.ton-messages {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ton-messages li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.ton-message-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--ton-ink-2);
+}
+
+.ton-message-body {
+  padding: 0.75rem 0.875rem;
+  border: 1px solid var(--ton-line);
+  border-radius: 0.625rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.ton-checklist {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--ton-line-strong);
+  border-radius: var(--ton-radius);
+}
+
+.ton-checklist li {
+  display: grid;
+  grid-template-columns: 8.5rem 1fr;
+  gap: 0.25rem 1rem;
+  padding: 0.875rem 1.125rem;
+  border-top: 1px solid var(--ton-line);
+}
+
+.ton-checklist li:first-child {
+  border-top: 0;
+}
+
+.ton-check-state {
+  grid-row: span 2;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--ton-ink-3);
+}
+
+.ton-checklist li.is-live .ton-check-state {
+  color: var(--ton-ink);
+}
+
+.ton-checklist li.is-live .ton-check-state::before {
+  content: "";
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-right: 0.5rem;
+  border-radius: 50%;
+  background: var(--ton-ink);
+}
+
+.ton-checklist li.is-needs_approval .ton-check-state {
+  color: var(--ton-ink-2);
+}
+
+.ton-check-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.ton-check-detail {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--ton-ink-2);
+}
+
+.ton-quote {
+  margin: 0;
+  padding: 1rem 1.125rem;
+  border-left: 2px solid var(--ton-ink);
+  background: var(--ton-fill);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 40rem) {
+  .ton-stage {
+    padding: 2.25rem 1.25rem 4rem;
+    gap: 1.5rem;
+  }
+
+  .ton-title {
+    font-size: 1.5rem;
+  }
+
+  .ton-lead {
+    font-size: 1rem;
+  }
+
+  .ton-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .ton-card {
+    min-height: 0;
+  }
+
+  .ton-inline {
+    flex-direction: column;
+  }
+
+  .ton-input--short {
+    max-width: none;
+  }
+
+  .ton-checklist li {
+    grid-template-columns: 1fr;
+  }
+
+  .ton-check-state {
+    grid-row: auto;
+  }
+
+  .ton-primary {
+    width: 100%;
+  }
+
+  .ton-actions--split > * {
+    flex: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ton *,
+  .ton-stage {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+}
