@@ -42,7 +42,7 @@ export default function PilotForwardPage() {
             <li>
               Catch calls on your public number <strong>unless you forward</strong>
             </li>
-            <li>Quote prices, arrival times, or technician names</li>
+            <li>Quote a price you haven&apos;t listed, or promise an arrival time that didn&apos;t come from your schedule</li>
             <li>
               Take card money into your shop bank until you finish{" "}
               <Link href="/dashboard/billing#payouts" className="underline underline-offset-2">
@@ -50,7 +50,7 @@ export default function PilotForwardPage() {
               </Link>{" "}
               (Stripe Connect)
             </li>
-            <li>Sync Jobber / ServiceTitan</li>
+            <li>Sync with ServiceTitan or other field-service suites. Jobber is supported: requests from your calls go into Jobber.</li>
             <li>Guarantee “zero missed jobs” or 100% answer rate</li>
           </ul>
 

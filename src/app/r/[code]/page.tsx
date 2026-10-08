@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
 import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
 import { findReferrer } from "@/lib/referrals";
+import { SIGNUP_HREF } from "@/lib/signup-href";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +28,7 @@ export default async function ReferralPage({ params }: { params: Promise<{ code:
             description={`It picks up when you can't, books the job on your calendar, and texts you what happened. Call ${DEMO_LINE_DISPLAY} to hear it answer first.${discount ? " Your discount from this link is applied at checkout." : ""}`}
           />
           <div className="shop-preview-actions" style={{ marginTop: "1.5rem" }}>
-            <Link href="/signup?callbackUrl=/dashboard/onboarding" className="ov-btn ov-btn--solid">
+            <Link href={SIGNUP_HREF} className="ov-btn ov-btn--solid">
               Get your line
             </Link>
             <a href={demoLineHref()} className="ov-btn ov-btn--quiet">

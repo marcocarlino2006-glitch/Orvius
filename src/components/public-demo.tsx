@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRef, useState } from "react";
+import { SIGNUP_HREF } from "@/lib/signup-href";
 
 type Scenario = { id: string; label: string; expect: string; caller: string; transcript: string[] };
 type TraceEvent = { id: string; at: string; source: string; actor: string; title: string; tone: "ok" | "failed" | "held" | "info"; simulated?: boolean };
@@ -153,7 +154,7 @@ export function PublicDemo({ scenarios }: { scenarios: Scenario[] }) {
 
       <div className="pd-foot">
         <p>Texts are simulated and the numbers are fictional. The booking, schedule check, alerts and audit trail run the same code your shop would.</p>
-        <Link href="/signin?mode=signup" className="ov-btn ov-btn--solid">
+        <Link href={SIGNUP_HREF} className="ov-btn ov-btn--solid">
           Set this up for my shop
         </Link>
       </div>
