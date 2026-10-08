@@ -164,6 +164,7 @@ async function main() {
 
     await step("Inbox lists the caller", async () => {
       await open("/dashboard/inbox");
+      await page.getByRole("tab", { name: /^Resolved/ }).first().click();
       await page.getByText(caller.name).first().waitFor();
       return caller.name;
     });
@@ -171,7 +172,7 @@ async function main() {
     await step("Calls shows the call with a review", async () => {
       await open("/dashboard/calls");
       await page.getByText(caller.name).first().waitFor();
-      await page.getByText("Answered", { exact: true }).first().waitFor();
+      await page.getByText(/^(Booked|Held for review|Safety escalation)$/).first().waitFor();
       return "graded";
     });
 
