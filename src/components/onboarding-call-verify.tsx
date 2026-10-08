@@ -1,5 +1,6 @@
 "use client";
 
+import { ActivationChecklist } from "@/components/activation-checklist";
 import { displayLine, telHref } from "@/lib/demo-line";
 import { markFirstNightPending } from "@/components/first-night-handoff";
 import { ownerSetupHref } from "@/lib/owner-setup-state";
@@ -124,7 +125,7 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
           </h1>
           <p className="onboarding-lead font-sans">
             {verified
-              ? `${leadName ? `It caught a lead from ${leadName}. ` : ""}Your customers still call your main number, so forward it here (or put this number on your trucks) before you count on it.`
+              ? `${leadName ? `It caught a lead from ${leadName}. ` : ""}Here is what's on now, and what's left before you count on it.`
               : `Tap Call. Orvius answers as ${shopName} and texts you. Stay on this screen — we watch for the call.`}
           </p>
         </div>
@@ -162,6 +163,8 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
         </p>
       ) : null}
 
+      {verified ? <ActivationChecklist /> : null}
+
       <div className="onboarding-actions">
         {verified ? (
           <>
@@ -171,7 +174,7 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
               disabled={entering}
               onClick={() => void enterCommand(ownerSetupHref("capture"))}
             >
-              {entering ? "Opening…" : "Forward my main number"}
+              {entering ? "Opening…" : "Connect my business number"}
             </button>
             <button
               type="button"

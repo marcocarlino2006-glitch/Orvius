@@ -40,8 +40,9 @@ test("Command shows the forwarding step instead of 'covered' until capture is co
 test("the line-proved screen says forwarding is next, and offers it first", () => {
   const verify = read("src/components/onboarding-call-verify.tsx");
   assert.doesNotMatch(verify, /You’re in\./);
-  assert.match(verify, /still call your main number/);
-  assert.ok(verify.indexOf("Forward my main number") < verify.lastIndexOf("Enter Command"));
+  assert.match(verify, /what's left before you count on it/);
+  assert.match(verify, /<ActivationChecklist \/>/);
+  assert.ok(verify.indexOf("Connect my business number") < verify.lastIndexOf("Enter Command"));
 });
 
 test("an owner who paid and left resumes from their paid checkout, not 'Pay first'", () => {

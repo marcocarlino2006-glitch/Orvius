@@ -34,6 +34,7 @@ import { ACTIVE_SHOP_COOKIE } from "@/lib/workspace-access";
 import { NOT_YET_TRADE } from "@/lib/trades";
 import type { Business } from "@prisma/client";
 import type { Trade } from "@/lib/trades";
+import { standardServiceNames } from "@/lib/provision-business";
 
 const tradeSchema = z.string().refine(isSetupTrade, NOT_YET_TRADE);
 const goalIds = SETUP_GOALS.map((g) => g.id) as [string, ...string[]];
@@ -50,6 +51,7 @@ const bodySchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal("day"),
     hours: z.enum(hoursIds),
+    services: z.array(z.string().trim().min(1).max(60)).max(12).optional(),
     zips: z.array(z.string().regex(/^\d{5}$/)).max(60).optional(),
     team: z.enum(["solo", "crew"]).optional(),
     crew: z
@@ -61,6 +63,18 @@ const bodySchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("test"), scenario: z.enum(["routine", "exception"]) }),
   z.object({ action: z.literal("step"), step: z.enum(SETUP_STEPS) }),
 ]);
+
+function serviceChoices(business: Business, trade: Trade | null) {
+  let current: string[] = [];
+  try {
+    const parsed = JSON.parse(business.servicesJson || "[]");
+    current = Array.isArray(parsed) ? parsed.map((s) => (typeof s?.name === "string" ? s.name : "")).filter(Boolean) : [];
+  } catch {
+    current = [];
+  }
+  const standard = trade ? standardServiceNames(trade) : [];
+  return { options: [...new Set([...standard, ...current])], chosen: current };
+}
 
 async function view(business: Business | null) {
   if (!business) return { sandbox: null };
@@ -88,6 +102,7 @@ async function view(business: Business | null) {
       team: setup.team ?? null,
       crew,
       hours: hoursPresetFor(business.hoursJson),
+      services: serviceChoices(business, trade),
       zips,
       needsServiceArea: needsServiceArea(trade),
       calendar: business.busyCalendarUrl ? busyCalendarHost(business.busyCalendarUrl) : null,
@@ -151,6 +166,7 @@ export async function POST(request: Request) {
       case "day":
         business = await saveSetupDay(email, {
           hours: body.hours as (typeof HOURS_PRESETS)[number]["id"],
+          services: body.services,
           zips: body.zips,
           team: body.team,
           crew: body.crew,

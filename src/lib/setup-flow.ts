@@ -333,7 +333,7 @@ export function buildGoLiveChecklist(input: {
       state: input.overflowForwardConfirmedAt ? "live" : "not_connected",
       detail: input.overflowForwardConfirmedAt
         ? "Forwarding to Orvius."
-        : "Forward missed or after-hours calls to Orvius, or put the Orvius number on your website.",
+        : "Connected right after you go live. You keep your number and choose which calls Orvius takes.",
     },
     {
       id: "messaging",
