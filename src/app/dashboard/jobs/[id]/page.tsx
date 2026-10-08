@@ -1,6 +1,8 @@
 "use client";
 
 import { JobBillSection, type JobBill } from "@/components/job-bill-section";
+import { RecordFetchError, recordFailureFrom } from "@/lib/dashboard-fetch";
+import { RecordLoadFailure } from "@/components/record-load-failure";
 import { JobFieldPanel } from "@/components/job-field-panel";
 import { JobMoneyPanel } from "@/components/job-money-panel";
 import { OsShell } from "@/components/os-shell";
@@ -108,6 +110,7 @@ export default function JobDetailPage() {
   const [bill, setBill] = useState<JobBill | null>(null);
   const [crew, setCrew] = useState<Tech[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [failure, setFailure] = useState<ReturnType<typeof recordFailureFrom> | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [scheduleDraft, setScheduleDraft] = useState("");
@@ -122,10 +125,12 @@ export default function JobDetailPage() {
     if (!jobId) return;
     Promise.all([
       fetch(`/api/jobs/${jobId}`).then(async (res) => {
-        if (!res.ok) throw new Error("Job not found");
+        if (!res.ok) throw new RecordFetchError(res.status);
         return res.json();
       }),
-      fetch("/api/technicians").then((res) => res.json()),
+      fetch("/api/technicians")
+        .then((res) => (res.ok ? res.json() : { technicians: [] }))
+        .catch(() => ({ technicians: [] })),
     ])
       .then(([jobData, techData]) => {
         setJob(jobData.job);
@@ -139,8 +144,9 @@ export default function JobDetailPage() {
         setCrew(techData.technicians ?? []);
         setScheduleDraft(shopWallInput(jobData.job?.scheduledAt, jobData.job?.business?.timezone));
         setConfirmMsg(null);
+        setFailure(null);
       })
-      .catch((err) => setError(err.message))
+      .catch((err) => setFailure(recordFailureFrom("job", err)))
       .finally(() => setLoading(false));
   }, [jobId]);
 
@@ -179,11 +185,16 @@ export default function JobDetailPage() {
 
   if (!job) {
     return (
-      <OsShell title="Job" subtitle="Not found">
-        <ShellAlert tone="error">{error ?? "Not found"}</ShellAlert>
-        <Link href="/dashboard/jobs" className="customer-timeline-link mt-4 inline-block font-sans">
-          ← Jobs
-        </Link>
+      <OsShell title="Job" subtitle={failure?.status === 404 ? "Not on this account" : "Couldn't load"}>
+        <RecordLoadFailure
+          failure={failure ?? recordFailureFrom("job", null)}
+          backHref="/dashboard/jobs"
+          backLabel="Jobs"
+          onRetry={() => {
+            setLoading(true);
+            load();
+          }}
+        />
       </OsShell>
     );
   }

@@ -84,3 +84,40 @@ export async function readDashboardError(
   }
   return describeDashboardFailure(surface, res.status, raw);
 }
+
+/** One record (a job, a call, a customer, a request) failed to open. Not found and "couldn't load" are different problems. */
+export function describeRecordFailure(noun: string, status: number | null): DashboardLoadFailure & { retry: boolean } {
+  if (status === 404) {
+    return {
+      status,
+      title: `This ${noun} isn't on this account`,
+      cause: `It may have been deleted or merged, or it belongs to another shop.`,
+      impact: "Nothing else is affected.",
+      recovery: "Go back to the list, or switch shops from the account menu.",
+      retry: false,
+    };
+  }
+  if (status === 401 || status === 402 || status === 403) {
+    return { ...describeDashboardFailure(noun.charAt(0).toUpperCase() + noun.slice(1), status), retry: false };
+  }
+  return {
+    status,
+    title: `This ${noun} couldn't load`,
+    cause: status ? "The server had a problem reading it." : "The connection dropped.",
+    impact: "Nothing was changed. Your line still answers calls.",
+    recovery: "Try again. If it keeps failing, go back and open it from the list.",
+    retry: true,
+  };
+}
+
+export class RecordFetchError extends Error {
+  readonly status: number | null;
+  constructor(status: number | null) {
+    super(`record fetch failed: ${status ?? "network"}`);
+    this.status = status;
+  }
+}
+
+export function recordFailureFrom(noun: string, error: unknown) {
+  return describeRecordFailure(noun, error instanceof RecordFetchError ? error.status : null);
+}

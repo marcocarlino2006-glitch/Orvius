@@ -1,6 +1,8 @@
 "use client";
 
 import { CallPlayer } from "@/components/call-player";
+import { RecordFetchError, recordFailureFrom } from "@/lib/dashboard-fetch";
+import { RecordLoadFailure } from "@/components/record-load-failure";
 import { CorrectReceptionist } from "@/components/correct-receptionist";
 import { TranscriptCinema } from "@/components/transcript-cinema";
 import { OsShell } from "@/components/os-shell";
@@ -85,24 +87,26 @@ export default function CallDetailPage() {
   const callId = params.id;
   const [call, setCall] = useState<CallDetail | null>(null);
   const [situation, setSituation] = useState<Situation | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [failure, setFailure] = useState<ReturnType<typeof recordFailureFrom> | null>(null);
   const [loading, setLoading] = useState(true);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     if (!callId) return;
 
     fetch(`/api/calls/${callId}`)
       .then(async (res) => {
-        if (!res.ok) throw new Error("Call not found");
+        if (!res.ok) throw new RecordFetchError(res.status);
         return res.json();
       })
       .then((data) => {
         setCall(data.call);
         setSituation(data.situation ?? null);
+        setFailure(null);
       })
-      .catch((err) => setError(err.message))
+      .catch((err) => setFailure(recordFailureFrom("call", err)))
       .finally(() => setLoading(false));
-  }, [callId]);
+  }, [callId, attempt]);
 
   if (loading) {
     return (
@@ -112,13 +116,18 @@ export default function CallDetailPage() {
     );
   }
 
-  if (error || !call) {
+  if (failure || !call) {
     return (
-      <OsShell title="Call" subtitle="Not found">
-        <ShellAlert tone="error">{error ?? "Not found"}</ShellAlert>
-        <Link href="/dashboard/calls" className="customer-timeline-link mt-4 inline-block font-sans">
-          ← Calls
-        </Link>
+      <OsShell title="Call" subtitle={failure?.status === 404 ? "Not on this account" : "Couldn't load"}>
+        <RecordLoadFailure
+          failure={failure ?? recordFailureFrom("call", null)}
+          backHref="/dashboard/calls"
+          backLabel="Calls"
+          onRetry={() => {
+            setLoading(true);
+            setAttempt((n) => n + 1);
+          }}
+        />
       </OsShell>
     );
   }
