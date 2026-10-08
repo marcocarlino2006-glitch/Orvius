@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requirePermission } from "@/lib/tenant";
 import { getAppBaseUrl, getStripe } from "@/lib/stripe";
+import { logError } from "@/lib/logger";
 
 export async function POST(_request: NextRequest) {
   try {
@@ -26,7 +27,10 @@ export async function POST(_request: NextRequest) {
 
     return NextResponse.json({ url: portalSession.url });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Portal unavailable";
-    return NextResponse.json({ error: message }, { status: 400 });
+    logError("billing.portal_failed", { error: error instanceof Error ? error.message : String(error) });
+    return NextResponse.json(
+      { error: "Stripe didn't open your billing page. Nothing was changed. Try again, or email support and we'll cancel or update it for you." },
+      { status: 502 },
+    );
   }
 }

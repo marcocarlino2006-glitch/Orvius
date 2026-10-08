@@ -1,5 +1,7 @@
 import { LegalDocument, LegalSection } from "@/components/legal-document";
+import { PAST_DUE_GRACE_DAYS, PAST_DUE_LINE_DAYS } from "@/lib/billing-entitlement";
 import { company } from "@/lib/company";
+import { LINE_RETENTION_DAYS } from "@/lib/usage-limits";
 import { OVERAGE_CENTS_PER_CALL, annualChargeDollars, getPaidPlans, getPlanById } from "@/lib/pricing-plans";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -58,18 +60,23 @@ export default function RefundsPage() {
 
       <LegalSection title="3. Cancellation">
         <p>
-          You may cancel at any time by contacting {company.supportEmail} or through your Stripe
-          customer portal when available. Cancellation stops future renewals; access continues
-          through the end of the paid period unless otherwise stated.
+          You may cancel at any time from Settings → Billing → Manage, which opens your Stripe
+          customer portal, or by emailing {company.supportEmail}. Cancellation stops future renewals;
+          access continues through the end of the paid period. After that your Orvius line stops
+          answering, and your number is held for {LINE_RETENTION_DAYS} days in case you return. You can
+          download your shop data at any time, including after cancellation.
         </p>
       </LegalSection>
 
       <LegalSection title="4. Refunds">
         <p>
-          Fees are generally non-refundable except where required by law or where we agree in
-          writing (for example, a documented billing error or prolonged Service outage caused by
-          us). If you believe you were charged in error, contact {company.supportEmail} within
-          fourteen (14) days of the charge.
+          Plans are not refunded for unused time, except where required by law or where we agree in
+          writing. If we charged you in error, or an outage caused by us cost you calls, contact{" "}
+          {company.supportEmail} within fourteen (14) days of the charge and we will refund it.
+        </p>
+        <p>
+          If a payment fails, Stripe retries the card. You keep the full workspace for{" "}
+          {PAST_DUE_GRACE_DAYS} days and your line keeps answering for {PAST_DUE_LINE_DAYS} days.
         </p>
       </LegalSection>
 

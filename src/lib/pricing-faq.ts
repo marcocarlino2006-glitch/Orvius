@@ -1,3 +1,6 @@
+import { PILOT_DAYS } from "@/lib/billing-entitlement";
+import { platformFeePercentLabel } from "@/lib/commercial-terms";
+import { LINE_RETENTION_DAYS } from "@/lib/usage-limits";
 import { OVERAGE_CENTS_PER_CALL, annualChargeDollars, getPlanById, type PaidPlanId } from "@/lib/pricing-plans";
 
 const calls = (id: PaidPlanId) => (getPlanById(id).includedCalls ?? 0).toLocaleString("en-US");
@@ -35,13 +38,13 @@ export const pricingFaq: readonly PricingFaqItem[] = [
     id: "payments-fee",
     question: "Do you take a cut of deposits and payments?",
     answer:
-      "1% of each deposit or final bill a customer pays by card through Orvius, on top of Stripe's standard processing on your own Stripe account. The money settles to your bank, never to us. Cash and checks you record by hand carry no fee.",
+      `${platformFeePercentLabel()} of each deposit, invoice or service-plan payment a customer makes by card through Orvius, on top of Stripe's standard processing on your own Stripe account. That is separate from your Orvius plan: the money settles to your bank, never to us. Cash, checks and bank transfers you record by hand carry no fee.`,
   },
   {
     id: "cancel",
     question: "Can I cancel anytime?",
     answer:
-      "Yes. All paid plans are month-to-month or annual with no long-term contract. Cancel from Dashboard → Billing. See our Refunds & Cancellation policy for details.",
+      `Yes. No plan has a contract. Settings → Billing → Manage opens Stripe, where you cancel; you keep everything until the end of the period you paid for. Then the line stops answering, your number is held ${LINE_RETENTION_DAYS} days in case you come back, and your records stay downloadable. Plans aren't refunded for unused time; billing errors are, within 14 days.`,
   },
   {
     id: "one-job",
@@ -59,6 +62,6 @@ export const pricingFaq: readonly PricingFaqItem[] = [
     id: "launch",
     question: "What happens before my line goes live?",
     answer:
-      "We verify your shop name, services, hours, escalation number, and one real test call. Early accounts get guided setup while these checks are automated. Your selected paid plan begins through Stripe checkout; there is no advertised free-trial period.",
+      `We verify your shop name, services, hours, escalation number, and one real test call. Card signup starts the paid plan you pick through Stripe checkout; there is no advertised free-trial period. A guided Pilot, booked through a call audit, runs ${PILOT_DAYS} days at no charge.`,
   },
 ] as const;

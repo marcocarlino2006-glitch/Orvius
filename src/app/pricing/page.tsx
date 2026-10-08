@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
 import { PricingPagePlans } from "@/components/pricing-page-plans";
+import { PricingTerms } from "@/components/pricing-terms";
 import { demoLineHref } from "@/lib/demo-line";
 import { getLowestPaidPrice } from "@/lib/company";
 import { getPaidPlans, OVERAGE_CENTS_PER_CALL, perCallCents } from "@/lib/pricing-plans";
@@ -51,7 +52,7 @@ export default function PricingPage() {
       </section>
 
       <section className="tier1-story">
-        <PricingPagePlans selfServeReady={selfServeReady} />
+        <PricingPagePlans selfServeReady={selfServeReady} terms={<PricingTerms />} />
       </section>
 
       <section className="tier1-close">

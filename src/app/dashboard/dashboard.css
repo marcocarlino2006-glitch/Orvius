@@ -5728,6 +5728,15 @@
   max-width: 14rem;
 }
 
+.billing-split-note {
+  margin: 1.5rem 0 0.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line, rgba(0, 0, 0, 0.08));
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--ash, #6b6b6b);
+}
+
 .billing-value-line {
   margin: 0.75rem 0 0;
   font-size: 0.875rem;

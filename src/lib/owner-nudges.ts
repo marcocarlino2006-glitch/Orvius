@@ -6,6 +6,7 @@ import { getAppUrl } from "@/lib/env";
 import { logInfo } from "@/lib/logger";
 import { enqueueOwnerAlert } from "@/lib/notification-queue";
 import { pageFounderForShop } from "@/lib/platform-pager";
+import { OVERAGE_CENTS_PER_CALL } from "@/lib/pricing-plans";
 import { prisma } from "@/lib/prisma";
 
 /*
@@ -166,7 +167,7 @@ async function usageAlerts(now: Date) {
       shop,
       `usage:${shop.id}:${period}:${crossed * 100}`,
       crossed >= 1
-        ? `Orvius: ${shop.name} has used all ${included} included calls this month. Every call is still answered; extra calls bill at the overage rate. Plans: ${link("/dashboard?settings=billing")}`
+        ? `Orvius: ${shop.name} has used all ${included} included calls this month. Every call is still answered; each extra call is ${OVERAGE_CENTS_PER_CALL}¢, invoiced once after the month ends. Plans: ${link("/dashboard?settings=billing")}`
         : `Orvius: ${shop.name} has used ${used} of ${included} included calls this month. Every call is still answered either way. Plans: ${link("/dashboard?settings=billing")}`,
     );
     if (result.queued.length) queued += 1;
