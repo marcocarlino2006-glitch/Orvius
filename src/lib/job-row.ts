@@ -1,4 +1,5 @@
 import { formatCents } from "@/lib/money";
+import { claimedCents, collectedCents } from "@/lib/payment-math";
 
 export type JobRowInput = {
   status: string;
@@ -9,12 +10,15 @@ export type JobRowInput = {
   finalAmountCents?: number | null;
   technician?: { name: string } | null;
   business?: { avgTicketCents: number | null; autopilot?: boolean } | null;
+  /** The job's own bill, newest first. Wins over the estimate's invoice when both exist. */
+  invoices?: Array<{ amountCents: number; status: string; sentAt?: string | null; payments?: { amountCents: number; status: string }[] }>;
   estimate?: {
     amountCents: number;
     status: string;
     invoice: {
       amountCents: number;
       status: string;
+      sentAt?: string | null;
       payments?: { amountCents: number; status: string }[];
     } | null;
   } | null;
@@ -23,7 +27,7 @@ export type JobRowInput = {
 export type JobRowFacts = {
   owner: { label: string; missing: boolean };
   timing: { label: string; tone: "neutral" | "attention" | "risk" };
-  money: { label: string; kind: "paid" | "due" | "estimate" | "final" | "expected" | "none"; cents: number | null };
+  money: { label: string; kind: "paid" | "due" | "claimed" | "unsent" | "estimate" | "final" | "expected" | "none"; cents: number | null };
   /** Why this row needs the owner, if it does. Drives ordering. */
   attention: { reason: string; weight: number } | null;
 };
@@ -58,13 +62,18 @@ export function jobRowFacts(job: JobRowInput, now = Date.now()): JobRowFacts {
   } else if (at >= now) timing = { label: `In ${span(at - now)}`, tone: at - now < 2 * HOUR ? "attention" : "neutral" };
   else timing = { label: `Started ${span(now - at)} ago`, tone: "neutral" };
 
-  const invoice = job.estimate?.invoice ?? null;
-  const paid = (invoice?.payments ?? [])
-    .filter((p) => p.status !== "failed" && p.status !== "refunded")
-    .reduce((sum, p) => sum + p.amountCents, 0);
+  const invoice = job.invoices?.find((i) => i.status !== "void") ?? job.estimate?.invoice ?? null;
+  const paid = collectedCents(invoice?.payments);
+  const claimed = claimedCents(invoice?.payments);
   let money: JobRowFacts["money"];
-  if (invoice && paid >= invoice.amountCents && invoice.amountCents > 0) {
-    money = { label: `${formatCents(paid)} paid`, kind: "paid", cents: paid };
+  if (invoice && (invoice.status === "paid" || (paid >= invoice.amountCents && invoice.amountCents > 0))) {
+    money = { label: `${formatCents(Math.max(paid, invoice.amountCents))} collected`, kind: "paid", cents: Math.max(paid, invoice.amountCents) };
+  } else if (invoice && claimed > 0) {
+    const due = invoice.amountCents - paid;
+    money = { label: `${formatCents(due)} · customer says paid`, kind: "claimed", cents: due };
+  } else if (invoice && invoice.sentAt === null) {
+    const due = invoice.amountCents - paid;
+    money = { label: `${formatCents(due)} billed · not sent`, kind: "unsent", cents: due };
   } else if (invoice) {
     const due = invoice.amountCents - paid;
     money = { label: `${formatCents(due)} due`, kind: "due", cents: due };
@@ -90,6 +99,8 @@ export function jobRowFacts(job: JobRowInput, now = Date.now()): JobRowFacts {
       weight: job.urgency === "emergency" ? 6 : 4,
     };
   } else if (at == null && open) attention = { reason: "No appointment time yet.", weight: 3 };
+  else if (money.kind === "claimed") attention = { reason: "Customer says they paid. Confirm the money arrived.", weight: 2 };
+  else if (money.kind === "unsent") attention = { reason: "Bill created but never sent to the customer.", weight: 2 };
   else if (money.kind === "due") attention = { reason: "Invoice is waiting on payment.", weight: 2 };
   else if (job.status === "completed" && !job.finalAmountCents && !invoice) {
     attention = { reason: "Completed without a final amount.", weight: 1 };

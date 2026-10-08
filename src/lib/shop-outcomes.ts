@@ -1,4 +1,5 @@
 import { isAfterHours } from "@/lib/business";
+import { COLLECTED_STATUSES } from "@/lib/payment-math";
 import { estimatedRevenueCents, formatCentsExact } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
 
@@ -172,7 +173,7 @@ export async function getShopOutcomes(
       where: {
         businessId,
         createdAt: { gte: since },
-        status: { in: ["recorded", "paid", "succeeded"] },
+        status: { in: COLLECTED_STATUSES },
       },
       select: { amountCents: true },
     }),

@@ -21,7 +21,7 @@ type PublicEstimate = {
   shopName: string;
   jobTitle: string;
   jobAddress: string | null;
-  invoice: { id: string; status: string; paid: boolean } | null;
+  invoice: { id: string; status: string; paid: boolean; claimed?: boolean } | null;
   cardPayAvailable?: boolean;
 };
 
@@ -101,7 +101,7 @@ export function PublicEstimateClient({ token }: { token: string }) {
       setNote(
         action === "accept"
           ? "Estimate accepted. Thank you. The shop has it."
-          : "Payment recorded. The shop has been notified.",
+          : "Thanks. We told the shop you paid them directly. They'll mark the bill paid once the money arrives.",
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Action failed");
@@ -123,6 +123,7 @@ export function PublicEstimateClient({ token }: { token: string }) {
   }
 
   const paid = estimate.invoice?.paid || estimate.invoice?.status === "paid";
+  const claimed = !paid && Boolean(estimate.invoice?.claimed);
   const accepted = estimate.status === "accepted" || Boolean(estimate.invoice);
   const cardReady = Boolean(estimate.cardPayAvailable);
   const options = estimate.options ?? [];
@@ -209,14 +210,20 @@ export function PublicEstimateClient({ token }: { token: string }) {
                 {busy ? "Opening checkout…" : "Pay by card"}
               </button>
             ) : null}
-            <button
-              type="button"
-              className="btn btn-secondary"
-              disabled={busy}
-              onClick={() => void run("pay_manual")}
-            >
-              {busy ? "Working…" : "I paid (cash / check / Venmo)"}
-            </button>
+            {claimed ? (
+              <p className="public-money-muted">
+                You told the shop you paid them directly. The bill stays open until they confirm the money arrived.
+              </p>
+            ) : (
+              <button
+                type="button"
+                className="btn btn-secondary"
+                disabled={busy}
+                onClick={() => void run("pay_manual")}
+              >
+                {busy ? "Working…" : "I already paid the shop directly"}
+              </button>
+            )}
           </>
         ) : null}
 

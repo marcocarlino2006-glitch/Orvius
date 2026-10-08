@@ -72,6 +72,11 @@ async function closeBookingMoneyLoop(params: {
 
 export const JOB_INCLUDE = {
   business: { select: { id: true, name: true, timezone: true, avgTicketCents: true, autopilot: true } },
+  invoices: {
+    orderBy: { createdAt: "desc" },
+    take: 1,
+    select: { id: true, amountCents: true, status: true, sentAt: true, payments: { select: { amountCents: true, status: true } } },
+  },
   customer: {
     select: { id: true, name: true, phone: true, address: true, interactionCount: true },
   },
@@ -92,7 +97,8 @@ export const JOB_INCLUDE = {
           id: true,
           amountCents: true,
           status: true,
-          payments: { select: { id: true, amountCents: true, status: true } },
+          sentAt: true,
+          payments: { select: { id: true, amountCents: true, status: true, method: true } },
         },
       },
     },

@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import { COLLECTED_STATUSES } from "@/lib/payment-math";
 import { formatCents } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
 import type { MemoryHit } from "@/lib/shop-memory";
@@ -30,7 +31,7 @@ async function paidCents(businessId: string, job: Prisma.JobWhereInput) {
   const sum = await prisma.payment.aggregate({
     where: {
       businessId,
-      status: { notIn: ["failed", "refunded"] },
+      status: { in: COLLECTED_STATUSES },
       invoice: { OR: [{ job }, { estimate: { job } }] },
     },
     _sum: { amountCents: true },

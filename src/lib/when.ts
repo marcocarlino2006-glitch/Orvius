@@ -72,5 +72,7 @@ export function paymentMethodLabel(method: string | null | undefined): string {
   if (!m) return "Recorded payment";
   if (m.startsWith("stripe") || m === "card") return "Paid by card";
   if (m === "ach" || m === "bank") return "Paid by bank transfer";
+  if (m === "customer_said") return "Customer says they paid the shop directly — not confirmed yet";
+  if (m === "customer_attested") return "Customer said they paid the shop directly";
   return `Paid by ${m.replace(/[_-]+/g, " ")}`;
 }

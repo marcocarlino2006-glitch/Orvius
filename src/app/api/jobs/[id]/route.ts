@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { depositPayUrl, getDepositReadiness } from "@/lib/booking-deposit";
 import { invoiceCompletedJob, invoicePayUrl } from "@/lib/invoice-pay";
+import { claimedCents, collectedCents, collectedHow } from "@/lib/payment-record";
 import { getConnectStatus } from "@/lib/stripe-connect";
 import { personActor, recordAudit } from "@/lib/audit";
 import { shopWallInputToUtc } from "@/lib/availability";
@@ -53,6 +54,7 @@ export async function GET(_request: Request, { params }: Params) {
   const invoice = await prisma.invoice.findFirst({
     where: { businessId: business.id, jobId: job.id },
     orderBy: { createdAt: "desc" },
+    include: { payments: { select: { amountCents: true, status: true, method: true } } },
   });
 
   return NextResponse.json({
@@ -79,6 +81,9 @@ export async function GET(_request: Request, { params }: Params) {
           payUrl: invoice.publicToken ? invoicePayUrl(invoice.publicToken) : null,
           sentAt: invoice.sentAt?.toISOString() ?? null,
           paidAt: invoice.paidAt?.toISOString() ?? null,
+          collectedCents: collectedCents(invoice.payments),
+          claimedCents: claimedCents(invoice.payments),
+          collectedHow: collectedHow(invoice.payments),
         }
       : null,
     finalAmountCents: job.finalAmountCents,

@@ -1,4 +1,5 @@
 import { listAuditFor } from "@/lib/audit";
+import { COLLECTED_STATUSES } from "@/lib/payment-math";
 import { prisma } from "@/lib/prisma";
 import { leadNextAction } from "@/lib/lead-next-action";
 import { telHref } from "@/lib/demo-line";
@@ -153,7 +154,7 @@ async function moneyForJob(businessId: string, jobId: string) {
         amountCents: true,
         status: true,
         createdAt: true,
-        payments: { select: { amountCents: true, createdAt: true } },
+        payments: { where: { status: { in: COLLECTED_STATUSES } }, select: { amountCents: true, createdAt: true } },
       },
     }),
   ]);

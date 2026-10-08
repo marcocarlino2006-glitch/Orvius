@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import { COLLECTED_STATUSES } from "@/lib/payment-math";
 import { prisma } from "@/lib/prisma";
 import { listShopAccess, type ShopRole } from "@/lib/workspace-access";
 
@@ -62,7 +63,7 @@ export async function getPortfolio(email: string, days: number, now = new Date()
         prisma.deposit.groupBy({ by: ["businessId"], where: { ...inShops, status: "paid", paidAt: { gte: since } }, _sum: { amountCents: true } }),
         prisma.payment.groupBy({
           by: ["businessId"],
-          where: { ...inShops, createdAt: { gte: since }, status: { in: ["recorded", "paid", "succeeded"] } },
+          where: { ...inShops, createdAt: { gte: since }, status: { in: COLLECTED_STATUSES } },
           _sum: { amountCents: true },
         }),
         prisma.lead.groupBy({ by: ["businessId"], where: { ...inShops, status: "new" }, _count: { _all: true } }),

@@ -1,4 +1,5 @@
 import { recordAudit } from "@/lib/audit";
+import { COLLECTED_STATUSES } from "@/lib/payment-math";
 import { safeTimezone, shopDayBounds, formatShopTime } from "@/lib/availability";
 import { firstName } from "@/lib/customer-confirm";
 import { sendCustomerSms } from "@/lib/customer-sms";
@@ -212,7 +213,7 @@ async function money(tech: TechSession, job: { id: string; finalAmountCents: num
   const invoice = await prisma.invoice.findFirst({
     where: { businessId: tech.businessId, jobId: job.id },
     orderBy: { createdAt: "desc" },
-    select: { id: true, status: true, amountCents: true, publicToken: true, sentAt: true, paidAt: true, payments: { select: { amountCents: true, method: true } } },
+    select: { id: true, status: true, amountCents: true, publicToken: true, sentAt: true, paidAt: true, payments: { where: { status: { in: COLLECTED_STATUSES } }, select: { amountCents: true, method: true } } },
   });
   const { depositPaidCents, balanceCents } = await balanceDueForJob({ businessId: tech.businessId, jobId: job.id, totalCents: totalCents ?? 0 });
   const paidCents = invoice?.payments.reduce((sum, p) => sum + p.amountCents, 0) ?? 0;
@@ -376,9 +377,10 @@ export async function techCollect(tech: TechSession, jobId: string, method: unkn
     if (!sms.sent) throw new FieldError("The text didn't go through. Open the pay page on your phone instead.", 502);
     await recordAudit({ businessId: tech.businessId, entityType: "job", entityId: job.id, jobId: job.id, action: "invoice.sent", actor: "technician", summary: `${tech.name} texted the ${formatCentsExact(invoice.amountCents)} pay link` });
   } else if (method === "cash" || method === "check") {
-    const paid = await prisma.payment.aggregate({ where: { invoiceId: invoice.id }, _sum: { amountCents: true } });
+    const paid = await prisma.payment.aggregate({ where: { invoiceId: invoice.id, status: { in: COLLECTED_STATUSES } }, _sum: { amountCents: true } });
     const owed = Math.max(0, invoice.amountCents - (paid._sum.amountCents ?? 0));
     await prisma.$transaction([
+      prisma.payment.updateMany({ where: { invoiceId: invoice.id, status: "claimed" }, data: { status: "superseded" } }),
       ...(owed > 0 ? [prisma.payment.create({ data: { businessId: tech.businessId, invoiceId: invoice.id, amountCents: owed, status: "recorded", method } })] : []),
       prisma.invoice.update({ where: { id: invoice.id }, data: { status: "paid", paidAt: new Date() } }),
     ]);
