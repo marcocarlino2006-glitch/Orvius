@@ -5,6 +5,8 @@ import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { prisma } from "@/lib/prisma";
 import type { VapiWebhookMessage } from "@/lib/vapi";
 import { captureEndOfCallReport, finishCallReport } from "@/lib/call-ingest";
+import { phonesEqual } from "@/lib/owner-alerts";
+import { recordForwardTestArrival } from "@/lib/forward-test";
 import { linkTouchToCustomer } from "@/lib/customer";
 import { logError, logInfo, logWarn } from "@/lib/logger";
 import { isProduction } from "@/lib/runtime";
@@ -168,6 +170,13 @@ export async function POST(request: NextRequest) {
       { ok: false, error: "business not found for call" },
       { status: 503 },
     );
+  }
+
+  // Orvius's own connection test dials the shop's number from this line; when forwarding works it comes straight back here.
+  if (inboundNumber && phonesEqual(message.call?.customer?.number ?? null, inboundNumber)) {
+    if (await recordForwardTestArrival(business.id)) {
+      return NextResponse.json({ ok: true, forwardTest: true });
+    }
   }
 
   if (type === "tool-calls") {

@@ -99,6 +99,8 @@ model Business {
   captureMode          String?  @default("forward")
   /** Carrier guide last used when captureMode is forward. */
   forwardCarrier       String?
+  /** missed | all | after_hours | main — what the owner chose to send to Orvius. */
+  forwardCoverage      String?
   /** When forward/publish steps were texted to the owner (overflow proof trail). */
   forwardGuideSentAt   DateTime?
   /**
@@ -139,6 +141,7 @@ model Business {
   outboundSms        OutboundSms[]
   texting            ShopTexting?
   portRequest        PortRequest?
+  forwardTests       ForwardTest[]
   /// First touch before signup (ref, utm, referring site, landing page), as JSON.
   acquisitionJson    String?
   /// Orvius Network: passes jobs it can't take to nearby shops in its trade and receives theirs.
@@ -203,6 +206,24 @@ model Referral {
 
 /// A shop asking to move its existing number onto Orvius. Orvius files it with
 /// the carriers; the owner fills one form instead of emailing a bill and a PIN.
+/// One "does my number reach Orvius?" test: Orvius dials the business number
+/// from its own line and watches for that call to arrive back at the line.
+model ForwardTest {
+  id             String    @id @default(cuid())
+  businessId     String
+  business       Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  businessNumber String
+  coverage       String
+  outboundSid    String?
+  /// calling | reached | not_reached | answered_elsewhere | busy | failed
+  state          String    @default("calling")
+  title          String?
+  startedAt      DateTime  @default(now())
+  finishedAt     DateTime?
+
+  @@index([businessId, startedAt])
+}
+
 model PortRequest {
   id             String    @id @default(cuid())
   businessId     String    @unique

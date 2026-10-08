@@ -153,7 +153,7 @@ test("voice gate runs on receptionist changes and says loudly when it was skippe
 });
 
 test("porting steps ask for what a carrier needs and promise no date", () => {
-  assert.match(readFileSync("src/components/capture-setup-panel.tsx", "utf8"), /<PortRequestForm \/>/);
+  assert.match(readFileSync("src/components/connect-number.tsx", "utf8"), /<PortRequestForm \/>/);
   const panel = readFileSync("src/components/port-request-form.tsx", "utf8");
   assert.match(panel, /port-out PIN/i);
   assert.match(panel, /latest bill/);

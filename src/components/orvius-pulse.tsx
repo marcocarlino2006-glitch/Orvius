@@ -98,8 +98,9 @@ export function OrviusPulse({
               }
             />
           ) : (
+          <>
           <PulseRow
-            label="Phone line"
+            label="Orvius line"
             value={health.line ? displayPhone(health.line) : referenceImplementation ? "Simulated" : "No line yet"}
             detail={
               !health.line
@@ -108,8 +109,8 @@ export function OrviusPulse({
                   : "Calls cannot reach Orvius until a line exists."
                 : health.lineVerified
                   ? health.lastCallAt
-                    ? `Verified · last call ${formatAge(health.lastCallAt, now)} ago`
-                    : "Verified"
+                    ? `Answers · last call ${formatAge(health.lastCallAt, now)} ago`
+                    : "Answers when called"
                   : "Place one test call to verify."
             }
             tone={!health.line ? (referenceImplementation ? "attention" : "risk") : health.lineVerified ? "ok" : "attention"}
@@ -121,6 +122,28 @@ export function OrviusPulse({
               ) : null
             }
           />
+          {health.connection && health.line && !referenceImplementation ? (
+            <PulseRow
+              label="Your calls"
+              value={health.connection.label}
+              detail={health.connection.detail}
+              tone={
+                health.connection.state === "proven"
+                  ? "ok"
+                  : health.connection.state === "test_failed"
+                    ? "risk"
+                    : "attention"
+              }
+              action={
+                health.connection.state !== "proven" ? (
+                  <Link href="/dashboard?settings=phone" className="ox-btn ox-btn--quiet ox-btn--sm">
+                    Test
+                  </Link>
+                ) : null
+              }
+            />
+          ) : null}
+          </>
           )}
           <PulseRow
             label="Alert delivery"

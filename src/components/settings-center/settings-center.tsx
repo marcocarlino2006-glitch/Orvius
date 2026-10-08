@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BillingContent } from "@/components/billing-content";
-import { CaptureSetupPanel } from "@/components/capture-setup-panel";
+import { ConnectNumber } from "@/components/connect-number";
 import { OperatingMetricsPanel } from "@/components/operating-metrics-panel";
 import { ProEconomicsPanel } from "@/components/pro-economics-panel";
 import { fetchAccount, invalidateAccount } from "@/lib/account-client";
@@ -292,39 +292,7 @@ export function SettingsCenter({
       case "phone":
         return (
           <div id="overflow-forward">
-            <ScGroup>
-              <ScRow
-                label="Your Orvius line"
-                hint={`Forward missed calls here, or publish it as your main shop number. ${
-                  b.lineVerifiedAt ? "Verified with a test call." : "Not verified with a test call yet."
-                }`}
-              >
-                <span className="sc-value sc-mono">{line ? displayPhone(line) : "Not connected"}</span>
-              </ScRow>
-            </ScGroup>
-            <ScGroup title="Forwarding">
-              <div className="sc-embed">
-                <CaptureSetupPanel
-                  line={line}
-                  overflowConfirmed={Boolean(b.overflowForwardConfirmedAt)}
-                  overflowProvedAt={Boolean(b.overflowProvedAt)}
-                  forwardGuideSent={Boolean(b.forwardGuideSentAt)}
-                  lineVerified={Boolean(b.lineVerifiedAt)}
-                  saving={saveState === "saving"}
-                  initialMode={b.captureMode ?? "forward"}
-                  initialCarrier={b.forwardCarrier ?? "verizon"}
-                  onConfirmOverflow={(next) => saveOverflow(next)}
-                  onCapturePathChange={(next) => saveCapturePath(next)}
-                  onForwardGuideSent={() =>
-                    setAccount((prev) =>
-                      prev && prev.business
-                        ? { ...prev, business: { ...prev.business, forwardGuideSentAt: new Date().toISOString() } }
-                        : prev,
-                    )
-                  }
-                />
-              </div>
-            </ScGroup>
+            <ConnectNumber onConfirmManually={(next) => saveOverflow(next)} />
           </div>
         );
 

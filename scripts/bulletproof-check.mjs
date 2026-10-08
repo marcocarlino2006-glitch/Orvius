@@ -103,12 +103,12 @@ if (confirmLib && confirmApi && confirmPage) {
   );
 }
 
-// Settings mounts CaptureSetupPanel — truth lives on the panel, not page chrome.
+// Settings mounts ConnectNumber: guided forwarding, a real test call, and how to undo it.
 const overflowUi =
-  fileHas("src/components/settings-center/settings-center.tsx", "CaptureSetupPanel") &&
+  fileHas("src/components/settings-center/settings-center.tsx", "ConnectNumber") &&
   fileHas("src/components/settings-center/settings-center.tsx", "overflow-forward") &&
-  fileHas("src/components/capture-setup-panel.tsx", "Copy number") &&
-  fileHas("src/components/capture-setup-panel.tsx", "/pilot/forward");
+  fileHas("src/components/connect-number.tsx", "Call my business number") &&
+  fileHas("src/components/connect-number.tsx", "Turn it off or move your number");
 const overflowPage = existsSync(join(root, "src/app/pilot/forward/page.tsx"));
 const overflowSheet = existsSync(join(root, "docs/SHOP-FORWARD-ONEPAGER.md"));
 if (overflowUi && overflowPage && overflowSheet) {

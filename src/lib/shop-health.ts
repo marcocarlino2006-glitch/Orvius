@@ -7,6 +7,9 @@ import {
   getShopLines,
   ownerPhoneConflictsWithShopLine,
 } from "@/lib/owner-alerts";
+import { latestForwardTest } from "@/lib/forward-test";
+import { connectionHealth, type ConnectionHealth } from "@/lib/number-connection";
+import { isSetupSandbox } from "@/lib/setup-flow";
 
 export type ShopHealthStatus = "healthy" | "attention" | "critical";
 
@@ -40,6 +43,8 @@ export type ShopHealth = {
     error: string | null;
     createdAt: string;
   }>;
+  /** Whether the shop's own calls are proven to reach the line, not just that a line exists. */
+  connection?: ConnectionHealth;
 };
 
 export async function getShopHealth(businessId: string): Promise<ShopHealth> {
@@ -54,6 +59,9 @@ export async function getShopHealth(businessId: string): Promise<ShopHealth> {
       vapiPhoneNumber: true,
       twilioPhone: true,
       lineVerifiedAt: true,
+      overflowProvedAt: true,
+      environment: true,
+      setupJson: true,
       createdAt: true,
     },
   });
@@ -70,7 +78,7 @@ export async function getShopHealth(businessId: string): Promise<ShopHealth> {
 
   const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-  const [lastCall, lastLead, failedRows, lastSuccess, alertMetrics] =
+  const [lastCall, lastLead, failedRows, lastSuccess, alertMetrics, lastTest] =
     await Promise.all([
       prisma.call.findFirst({
         where: { businessId, status: "completed" },
@@ -94,6 +102,7 @@ export async function getShopHealth(businessId: string): Promise<ShopHealth> {
         select: { createdAt: true, channel: true },
       }),
       getAlertMetrics(businessId),
+      latestForwardTest(businessId),
     ]);
 
   const unreached = await failuresThatReachedNoOne(businessId, failedRows);
@@ -154,7 +163,7 @@ export async function getShopHealth(businessId: string): Promise<ShopHealth> {
       label: "SMS alerts",
       ok: !smsEnabled || (ownerPhoneOk && !ownerPhoneConflict),
       detail: !smsEnabled
-        ? "SMS not enabled on platform"
+        ? "Texts aren't switched on yet"
         : ownerPhoneConflict
           ? "Fix owner mobile — cannot match shop line"
           : ownerPhoneOk
@@ -168,9 +177,9 @@ export async function getShopHealth(businessId: string): Promise<ShopHealth> {
       detail: emailReady
         ? ownerEmailOk
           ? "Ready"
-          : "Resend configured — add owner email in Settings"
+          : "Add your email in Settings"
         : ownerEmailOk
-          ? "Add RESEND_API_KEY for email backup"
+          ? "Email backup isn't switched on yet"
           : "Optional",
     },
     {
@@ -228,6 +237,12 @@ export async function getShopHealth(businessId: string): Promise<ShopHealth> {
     alertLatencyP50Sec: alertMetrics.alertLatencyP50Sec,
     alertLatencyP95Sec: alertMetrics.alertLatencyP95Sec,
     alertSpeedOk,
+    connection: connectionHealth({
+      testMode: isSetupSandbox(business),
+      line: dedicatedLine ? line : null,
+      provenAt: business.overflowProvedAt,
+      lastTest: lastTest ? { state: lastTest.state, title: lastTest.title ?? "", at: lastTest.startedAt } : null,
+    }),
     recentFailures: recentFailures.map((item) => ({
       channel: item.channel,
       error: item.error,

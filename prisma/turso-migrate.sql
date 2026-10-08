@@ -884,3 +884,17 @@ ALTER TABLE "Customer" ADD COLUMN "equipmentJson" TEXT NOT NULL DEFAULT '[]';
 ALTER TABLE "Business" ADD COLUMN "bookingMode" TEXT NOT NULL DEFAULT 'book';
 ALTER TABLE "Business" ADD COLUMN "setupJson" TEXT NOT NULL DEFAULT '{}';
 ALTER TABLE "Call" ADD COLUMN "endedReason" TEXT;
+ALTER TABLE "Business" ADD COLUMN "forwardCoverage" TEXT;
+CREATE TABLE IF NOT EXISTS "ForwardTest" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "businessNumber" TEXT NOT NULL,
+    "coverage" TEXT NOT NULL,
+    "outboundSid" TEXT,
+    "state" TEXT NOT NULL DEFAULT 'calling',
+    "title" TEXT,
+    "startedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "finishedAt" DATETIME,
+    CONSTRAINT "ForwardTest_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE INDEX IF NOT EXISTS "ForwardTest_businessId_startedAt_idx" ON "ForwardTest"("businessId", "startedAt");
