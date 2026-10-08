@@ -2,6 +2,11 @@ import { logInfo, logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { getTwilioClient } from "@/lib/twilio-client";
 import { deleteVapiCall } from "@/lib/vapi";
+import {
+  CALL_CONTENT_RETENTION_MONTHS,
+  OWNER_NOTIFICATION_RETENTION_DAYS,
+  WEBHOOK_EVENT_RETENTION_DAYS,
+} from "@/lib/usage-limits";
 
 /*
   Call recordings and transcripts are kept 24 months, then deleted — ours and
@@ -14,7 +19,7 @@ import { deleteVapiCall } from "@/lib/vapi";
   leaving a recording behind that we have told the customer is deleted.
 */
 
-export const CALL_CONTENT_RETENTION_MONTHS = 24;
+export { CALL_CONTENT_RETENTION_MONTHS, OWNER_NOTIFICATION_RETENTION_DAYS, WEBHOOK_EVENT_RETENTION_DAYS };
 const BATCH = 200;
 const REMOTE_CONCURRENCY = 8;
 const RECORDING_SID = /\/Recordings\/(RE[0-9a-f]{32})/gi;
@@ -175,8 +180,6 @@ export async function purgeExpiredCallContent(
   test-alert:* would un-prove the shop's alert path in the readiness check.
   AuditEvent is the shop's record of what was decided and is not pruned.
 */
-export const WEBHOOK_EVENT_RETENTION_DAYS = 90;
-export const OWNER_NOTIFICATION_RETENTION_DAYS = 180;
 const PRUNE_CHUNK = 1000;
 const DAY_MS = 86_400_000;
 
