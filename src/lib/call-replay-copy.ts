@@ -6,7 +6,7 @@
 
 export type ReplayTurn = { who: "ai" | "caller"; text: string; at: number | null };
 
-export type ReplayCapture = { serviceType?: string; urgency?: string; firstName?: string };
+export type ReplayCapture = { serviceType?: string; urgency?: string; firstName?: string; outcome?: string };
 
 export type Replay = {
   id: string;
@@ -14,6 +14,8 @@ export type Replay = {
   trade: string;
   turns: ReplayTurn[];
   capture: ReplayCapture | null;
+  /** "shop" is a real customer's call shared on the gallery; otherwise an owner's preview call. */
+  kind?: "preview" | "shop";
 };
 
 const MAX_TURNS = 40;
@@ -67,4 +69,28 @@ export function shareableTurns(turns: ReplayTurn[]): ReplayTurn[] {
 /** Enough of a call to be worth watching: Orvius answered and the caller spoke. */
 export function isReplayable(turns: ReplayTurn[]) {
   return turns.some((t) => t.who === "ai") && turns.some((t) => t.who === "caller") && turns.length >= 3;
+}
+
+const STREET =
+  /\b\d{1,6}\s+(?:[A-Za-z0-9.'-]+\s+){0,4}(?:street|st|avenue|ave|road|rd|drive|dr|lane|ln|way|court|ct|boulevard|blvd|place|pl|circle|cir|parkway|pkwy|highway|hwy|trail|trl|terrace|ter)\b\.?/gi;
+const ZIP = /\b\d{5}(?:-\d{4})?\b/g;
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/**
+ * A real customer's call, ready for strangers: numbers, emails, street
+ * addresses, ZIPs and every word of the caller's known name and address hidden.
+ */
+export function maskCustomerCall(text: string, known: Array<string | null | undefined>): string {
+  let out = maskForShare(text).replace(STREET, "•••").replace(ZIP, "•••");
+  const words = new Set<string>();
+  for (const value of known) {
+    for (const word of (value ?? "").split(/[\s,]+/)) {
+      const w = word.replace(/[^\p{L}\p{N}'-]/gu, "");
+      if (w.length >= 2) words.add(w);
+    }
+  }
+  for (const w of [...words].sort((a, b) => b.length - a.length)) {
+    out = out.replace(new RegExp(`(?<![\\p{L}\\p{N}])${escapeRe(w)}(?![\\p{L}\\p{N}])`, "giu"), "•••");
+  }
+  return out.replace(/•••(?:[\s,]*•••)+/g, "•••");
 }

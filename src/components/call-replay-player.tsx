@@ -42,15 +42,18 @@ export function CallReplayPlayer({ replay }: { replay: Replay }) {
 
   const tryHref = `/try?utm_source=replay&utm_medium=share&utm_campaign=${encodeURIComponent(replay.id)}`;
   const capture = replay.capture;
-  const captured = capture && (capture.serviceType || capture.urgency || capture.firstName);
+  const shop = replay.kind === "shop";
+  const captured = capture && (capture.serviceType || capture.urgency || capture.firstName || capture.outcome);
 
   return (
     <div className="rp">
       <header className="rp-head">
-        <p className="rp-kicker">Call Replay</p>
+        <p className="rp-kicker">{shop ? `Real call · ${replay.trade}` : "Call Replay"}</p>
         <h1 className="rp-title">Orvius answered the phone as {replay.shopName}.</h1>
         <p className="rp-sub">
-          The owner called their own line to try it. This is the call as it happened. Numbers and emails are hidden.
+          {shop
+            ? "A real customer call. The shop's owner shared it after the caller agreed. The words are as transcribed; the caller's name, number and address are hidden."
+            : "The owner called their own line to try it. This is the call as it happened. Numbers and emails are hidden."}
         </p>
       </header>
 
@@ -64,11 +67,12 @@ export function CallReplayPlayer({ replay }: { replay: Replay }) {
         {!done ? <p className="rp-typing" aria-hidden>…</p> : null}
         {done && captured ? (
           <div className="rp-card">
-            <p className="rp-card-kicker">Texted to the owner when the call ended</p>
+            <p className="rp-card-kicker">{shop ? "What the shop got when the call ended" : "Texted to the owner when the call ended"}</p>
             <p className="rp-card-line">
               {[capture.urgency, capture.serviceType].filter(Boolean).join(" · ") || "New call"}
             </p>
-            {capture.firstName ? <p className="rp-card-meta">{capture.firstName}</p> : null}
+            {shop && capture.outcome ? <p className="rp-card-meta">{capture.outcome}</p> : null}
+            {!shop && capture.firstName ? <p className="rp-card-meta">{capture.firstName}</p> : null}
           </div>
         ) : null}
         <div ref={endRef} />
