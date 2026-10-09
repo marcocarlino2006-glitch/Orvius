@@ -32,7 +32,7 @@ const nextConfig: NextConfig = {
         ],
       },
       // Talk-in-the-browser demo pages need the microphone; the last matching header wins.
-      ...["/", "/(try|launch)"].map((source) => ({
+      ...["/", "/(try|launch|h)"].map((source) => ({
         source,
         headers: [{ key: "Permissions-Policy", value: "camera=(), microphone=(self), geolocation=(), interest-cohort=()" }],
       })),
