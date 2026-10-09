@@ -1,5 +1,6 @@
 import { unitEconomicsSince, type UnitEconomics } from "@/lib/call-cost";
 import { COLLECTED_STATUSES } from "@/lib/payment-math";
+import { revenueLines, valueLines, type Revenue } from "@/lib/revenue-lines";
 import { unitCostLines } from "@/lib/unit-cost-lines";
 import { company } from "@/lib/company";
 import { isEmailConfigured, sendOwnerEmail } from "@/lib/email";
@@ -7,6 +8,7 @@ import { getAppUrl } from "@/lib/env";
 import { logInfo, logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { countChannels, signupChannelText } from "@/lib/acquisition";
+import { payingShopValue, planMonthlyCents, type ValueVerdict } from "@/lib/value-check";
 import { densityClusters, densityText, networkReadyAreas, zip3FromAddress, type DensityCluster } from "@/lib/network-density";
 
 /**
@@ -37,6 +39,8 @@ export type ScoreboardWeek = {
   collectedCents: number;
 };
 
+export type { Revenue };
+
 export type CompanyScoreboard = {
   generatedAt: string;
   payingShops: number;
@@ -55,7 +59,26 @@ export type CompanyScoreboard = {
   networkReadyAreas: number;
   /** Jobs passed between shops and taken, last 30 days. */
   networkJobs30d: number;
+  revenue: Revenue;
+  /** Paying shops getting less than they pay for, or no calls at all, last 30 days. */
+  valueAtRisk: ValueVerdict[];
 };
+
+
+export function revenueFrom(input: {
+  byPlan: Array<{ planId: string | null; shops: number }>;
+  calls30d: number;
+  unitCost: UnitEconomics | null;
+}): Revenue {
+  const byPlan = input.byPlan
+    .filter((p) => p.planId)
+    .map((p) => ({ planId: p.planId!, shops: p.shops, mrrCents: p.shops * planMonthlyCents(p.planId) }));
+  const mrrCents = byPlan.reduce((n, p) => n + p.mrrCents, 0);
+  if (!input.unitCost) return { mrrCents, byPlan, costCents: null, grossMarginPct: null };
+  const fixed = byPlan.reduce((n, p) => n + p.shops * (input.unitCost!.plans.find((u) => u.id === p.planId)?.fixedCents ?? 0), 0);
+  const costCents = Math.round(input.calls30d * input.unitCost.costPerCallCents + fixed);
+  return { mrrCents, byPlan, costCents, grossMarginPct: mrrCents > 0 ? Math.round(((mrrCents - costCents) / mrrCents) * 100) : null };
+}
 
 const pct = (part: number, whole: number) => (whole > 0 ? Math.round((part / whole) * 100) : null);
 
@@ -129,6 +152,20 @@ export async function getCompanyScoreboard(now = new Date()): Promise<CompanySco
     }),
     prisma.networkHandoff.count({ where: { status: "taken", takenAt: { gte: new Date(now.getTime() - 30 * DAY_MS) } } }),
   ]);
+  const [plans, calls30d, value] = await Promise.all([
+    prisma.business.groupBy({
+      by: ["billingPlan"],
+      where: { ...realShop, isActive: true, billingStatus: { in: ["active", "past_due"] } },
+      _count: { _all: true },
+    }),
+    prisma.call.count({ where: { business: realShop, createdAt: { gte: new Date(now.getTime() - 30 * DAY_MS) } } }),
+    payingShopValue(now),
+  ]);
+  const revenue = revenueFrom({
+    byPlan: plans.map((p) => ({ planId: p.billingPlan, shops: p._count._all })),
+    calls30d,
+    unitCost,
+  });
   const density = densityClusters(
     located.map((shop) => ({
       trade: shop.trade,
@@ -154,6 +191,8 @@ export async function getCompanyScoreboard(now = new Date()): Promise<CompanySco
     density,
     networkReadyAreas: networkReadyAreas(density),
     networkJobs30d,
+    revenue,
+    valueAtRisk: value.filter((v) => v.verdict === "short" || v.verdict === "idle"),
   };
 }
 
@@ -182,6 +221,8 @@ export function scoreboardLines(board: CompanyScoreboard): string[] {
     `Densest areas: ${densityText(board.density ?? [])}`,
     `Network: ${board.networkReadyAreas ?? 0} area(s) where a pass can land · ${board.networkJobs30d ?? 0} job(s) passed and taken, 30 days`,
     ...unitCostLines(board.unitCost),
+    ...revenueLines(board.revenue),
+    ...valueLines(board.valueAtRisk ?? []),
   ];
 }
 
@@ -208,7 +249,7 @@ function isoWeek(date: Date) {
   return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, "0")}`;
 }
 
-function founderRecipients() {
+export function founderRecipients() {
   return (process.env.ORVIUS_FOUNDER_EMAILS ?? "")
     .split(",")
     .map((email) => email.trim().toLowerCase())
