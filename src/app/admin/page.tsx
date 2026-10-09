@@ -8,6 +8,7 @@ import {
   fillOutreachTemplate,
   outreachTemplates,
 } from "@/lib/outreach-templates";
+import { hearLink } from "@/lib/hear-link";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { CompanyScoreboard, ScoreboardWeek } from "@/lib/company-scoreboard";
@@ -568,6 +569,7 @@ export default function AdminPage() {
                         {
                           name: p.businessName?.split(" ")[0],
                           business: p.businessName ?? undefined,
+                          link: p.businessName ? hearLink({ business: p.businessName, trade: p.trade, city: p.city, ref: "admin" }) : undefined,
                         },
                       );
                       try {

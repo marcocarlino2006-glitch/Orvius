@@ -66,11 +66,21 @@ function endTicket(ticketId: string) {
  * Talk to the demo receptionist from the browser. Visitors wait in a real line
  * for one of a few slots; each call is three minutes at most.
  */
-export function TalkInBrowser({ phoneHref, phoneDisplay, personal = false }: { phoneHref: string; phoneDisplay: string; personal?: boolean }) {
+export function TalkInBrowser({
+  phoneHref,
+  phoneDisplay,
+  personal = false,
+  initial,
+}: {
+  phoneHref: string;
+  phoneDisplay: string;
+  personal?: boolean;
+  initial?: { name?: string; trade?: string | null; city?: string };
+}) {
   const [view, setView] = useState<View>({ state: "checking" });
-  const [shopName, setShopName] = useState("");
-  const [trade, setTrade] = useState<string>("HVAC");
-  const [city, setCity] = useState("");
+  const [shopName, setShopName] = useState(initial?.name ?? "");
+  const [trade, setTrade] = useState<string>(initial?.trade ?? "HVAC");
+  const [city, setCity] = useState(initial?.city ?? "");
   const [answeringAs, setAnsweringAs] = useState<string | null>(null);
   const [previewToken, setPreviewToken] = useState<string | null>(null);
   const [capture, setCapture] = useState<Capture | null>(null);

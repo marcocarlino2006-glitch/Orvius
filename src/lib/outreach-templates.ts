@@ -26,25 +26,22 @@ We built the night-shift line for HVAC and plumbing shops — answers missed and
     id: "cold_dm",
     label: "Text / DM",
     channel: "SMS / DM",
-    body: `Hey [Name] — saw [Business] on Google. Curious: how many calls do you miss after hours or while you're on a job?
-
-We're piloting Orvius — answers on a dedicated line (or forwarded missed/after-hours), proposes the job window, texts you the lead. Free for 30 days; I set it up for the first 10 shops.
-
-2-min demo → orvius.im/demo`,
+    body: `Hi [Name], I set up a demo of [Business]'s phone being answered by Orvius. Tap it and talk like one of your customers would: it answers as [Business], takes down the job, and shows you the text you'd get after the call. 20 seconds, no signup: [Link]`,
   },
   {
     id: "follow_up",
     label: "Follow-up",
     channel: "Any",
-    body: `Quick follow-up — one saved emergency job usually covers months of Orvius. Still open to a free pilot this week? I can walk you through the demo in 10 minutes → orvius.im/demo`,
+    body: `Did you get a chance to hear [Business] answer? Here's the link again: [Link]. If it sounds right, I can have it answering your missed calls today.`,
   },
 ] as const;
 
 export function fillOutreachTemplate(
   body: string,
-  vars: { name?: string; business?: string; you?: string },
+  vars: { name?: string; business?: string; you?: string; link?: string },
 ): string {
   return body
+    .replaceAll("[Link]", vars.link?.trim() || "orvius.im/try")
     .replaceAll("[Name]", vars.name?.trim() || "[Name]")
     .replaceAll("[Business]", vars.business?.trim() || "[Business]")
     .replaceAll("[You]", vars.you?.trim() || "[You]");
