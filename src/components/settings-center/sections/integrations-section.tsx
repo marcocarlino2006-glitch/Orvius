@@ -5,7 +5,7 @@ import { displayPhone } from "@/lib/customer";
 import type { SettingsSectionId } from "@/lib/settings-center";
 import { BusyCalendarGroup } from "../busy-calendar-group";
 import { CopyLinkButton } from "../settings-controls";
-import type { Account, BusyCalendar, JobberLink } from "../settings-model";
+import type { Account, BusyCalendar, JobberLink, QuickBooksLink } from "../settings-model";
 import { ScGroup, ScStatus } from "../settings-primitives";
 import { SettingsIcon, type SettingsIconName } from "../settings-icons";
 
@@ -27,6 +27,38 @@ export function IntegrationsSection({
   const [jobber, setJobber] = useState<JobberLink>(account.jobber ?? null);
   const [jobberBusy, setJobberBusy] = useState(false);
   const [jobberNote, setJobberNote] = useState<string | null>(null);
+
+  const [quickbooks, setQuickbooks] = useState<QuickBooksLink>(account.quickbooks ?? null);
+  const [qbBusy, setQbBusy] = useState(false);
+  const [qbNote, setQbNote] = useState<string | null>(null);
+
+  useEffect(() => {
+    const outcome = new URLSearchParams(window.location.search).get("quickbooks");
+    const notes: Record<string, string> = {
+      connected: "QuickBooks connected. Payments you collect from now on go there as sales receipts.",
+      cancelled: "QuickBooks was not connected.",
+      expired: "That QuickBooks link expired. Connect again.",
+      failed: "QuickBooks did not finish connecting. Try again.",
+      unavailable: "QuickBooks is not live yet.",
+    };
+    if (outcome && notes[outcome]) setQbNote(notes[outcome]);
+  }, []);
+
+  async function disconnectQuickBooks() {
+    if (!window.confirm("Disconnect QuickBooks? New payments stop going to QuickBooks. Receipts already there stay.")) return;
+    setQbBusy(true);
+    setQbNote(null);
+    try {
+      const res = await fetch("/api/integrations/quickbooks/disconnect", { method: "POST" });
+      if (!res.ok) throw new Error("Could not disconnect. Try again.");
+      setQuickbooks((prev) => (prev ? { ...prev, status: "disconnected", companyName: null } : prev));
+      setQbNote("QuickBooks disconnected.");
+    } catch (error) {
+      setQbNote(error instanceof Error ? error.message : "Could not disconnect. Try again.");
+    } finally {
+      setQbBusy(false);
+    }
+  }
 
   useEffect(() => {
     const outcome = new URLSearchParams(window.location.search).get("jobber");
@@ -84,7 +116,7 @@ export function IntegrationsSection({
     copy?: string;
     reset?: boolean;
     href?: { label: string; url: string };
-    disconnect?: boolean;
+    disconnect?: "jobber" | "quickbooks";
   }> = [
     {
       name: "Phone line",
@@ -132,6 +164,7 @@ export function IntegrationsSection({
       reset: Boolean(feedUrl),
     },
     jobberRow(jobber, jobberNote),
+    quickbooksRow(quickbooks, qbNote),
   ];
   return (
     <>
@@ -155,9 +188,14 @@ export function IntegrationsSection({
                 {feedBusy ? "Resetting…" : "Reset link"}
               </button>
             ) : null}
-            {row.disconnect ? (
+            {row.disconnect === "jobber" ? (
               <button type="button" className="sc-btn" disabled={jobberBusy} onClick={() => void disconnectJobber()}>
                 {jobberBusy ? "Disconnecting…" : "Disconnect"}
+              </button>
+            ) : null}
+            {row.disconnect === "quickbooks" ? (
+              <button type="button" className="sc-btn" disabled={qbBusy} onClick={() => void disconnectQuickBooks()}>
+                {qbBusy ? "Disconnecting…" : "Disconnect"}
               </button>
             ) : null}
             {row.href ? (
@@ -196,7 +234,7 @@ function jobberRow(jobber: JobberLink, note: string | null) {
       ...base,
       on: true,
       detail: note ?? `New calls land in ${jobber.accountName ?? "Jobber"} as requests. ${sent} sent in 30 days.${attention}`,
-      disconnect: true,
+      disconnect: "jobber" as const,
     };
   }
   if (jobber?.status === "reconnect") {
@@ -206,4 +244,35 @@ function jobberRow(jobber: JobberLink, note: string | null) {
     return { ...base, on: false, detail: note ?? "", hidden: !note };
   }
   return { ...base, on: false, detail: note ?? "Send every call to Jobber as a request, matched to the client by phone.", href: connect };
+}
+
+function quickbooksRow(qb: QuickBooksLink, note: string | null) {
+  const base = { name: "QuickBooks", mark: "billing" as const };
+  const connect = { label: "Connect", url: "/api/integrations/quickbooks/connect" };
+  if (qb?.status === "active") {
+    const sent = qb.sentLast30Days === 1 ? "1 payment" : `${qb.sentLast30Days} payments`;
+    const attention = qb.needsAttention
+      ? ` ${qb.needsAttention} did not go through; enter ${qb.needsAttention === 1 ? "it" : "them"} by hand.`
+      : "";
+    return {
+      ...base,
+      on: true,
+      detail:
+        note ??
+        `Paid invoices and deposits land in ${qb.companyName ?? "QuickBooks"} as sales receipts, usually within 30 minutes. Refunds aren't sent. ${sent} sent in 30 days.${attention}`,
+      disconnect: "quickbooks" as const,
+    };
+  }
+  if (qb?.status === "reconnect") {
+    return { ...base, on: false, detail: note ?? "QuickBooks stopped accepting Orvius. Reconnect to keep payments flowing there.", href: { ...connect, label: "Reconnect" } };
+  }
+  if (!qb?.available) {
+    return { ...base, on: false, detail: note ?? "", hidden: !note };
+  }
+  return {
+    ...base,
+    on: false,
+    detail: note ?? "Send every payment you collect to QuickBooks Online as a sales receipt, matched to the customer. Only payments from after you connect.",
+    href: connect,
+  };
 }

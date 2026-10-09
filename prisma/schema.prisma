@@ -127,6 +127,7 @@ model Business {
   customers        Customer[]
   jobs             Job[]
   jobberConnection JobberConnection?
+  quickbooksConnection QuickBooksConnection?
   technicians      Technician[]
   estimates        Estimate[]
   invoices         Invoice[]
@@ -403,6 +404,8 @@ model Customer {
   phoneNormalized   String
   /** The same person in the shop's Jobber, once Orvius has matched or created them. */
   jobberClientId    String?
+  /** The same person in the shop's QuickBooks, once Orvius has matched or created them. */
+  quickbooksCustomerId String?
   email             String?
   address           String?
   /** Extra places this customer is served, JSON [{label, line}]. The primary address stays on `address`. */
@@ -1115,6 +1118,55 @@ model JobberConnection {
   updatedAt       DateTime  @updatedAt
 
   @@index([accountId])
+}
+
+/** A shop's QuickBooks Online company. Tokens are sealed with ORVIUS_TOKEN_KEY, like Jobber's. */
+model QuickBooksConnection {
+  id              String    @id @default(cuid())
+  businessId      String    @unique
+  business        Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  realmId         String
+  companyName     String?
+  accessTokenEnc  String?
+  refreshTokenEnc String?
+  accessExpiresAt DateTime?
+  /** Held while one worker refreshes: Intuit rotates refresh tokens, so two refreshes at once would disconnect the shop. */
+  refreshClaimAt  DateTime?
+  /** The service item every receipt line is booked against, found or created once. */
+  itemId          String?
+  /** active | disconnected | reconnect (Intuit refused our tokens) */
+  status          String    @default("active")
+  lastError       String?
+  connectedAt     DateTime  @default(now())
+  disconnectedAt  DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([realmId])
+}
+
+/** One payment collected in Orvius on its way into QuickBooks as a sales receipt. At most one per payment. */
+model QuickBooksSync {
+  id            String    @id @default(cuid())
+  businessId    String
+  /** invoice | deposit */
+  sourceType    String
+  sourceId      String
+  amountCents   Int
+  /** pending | done | skipped | failed */
+  status        String    @default("pending")
+  attempts      Int       @default(0)
+  nextAttemptAt DateTime  @default(now())
+  claimedAt     DateTime?
+  qbCustomerId  String?
+  qbReceiptId   String?
+  lastError     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([sourceType, sourceId])
+  @@index([status, nextAttemptAt])
+  @@index([businessId, createdAt])
 }
 
 /** One lead on its way into the shop's Jobber as a request. At most one per lead, and never sent twice. */

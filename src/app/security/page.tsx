@@ -45,7 +45,7 @@ export default function SecurityPage() {
             Technicians get a private link per person, not a sign-in, and sending a new link retires the old one.
           </li>
           <li>
-            <strong>Credentials.</strong> Connected-app tokens (such as Jobber) are encrypted before they are stored.
+            <strong>Credentials.</strong> Connected-app tokens (Jobber, QuickBooks) are encrypted before they are stored.
             Passwords are stored only as salted hashes. Provider keys live outside the source code.
           </li>
           <li>
