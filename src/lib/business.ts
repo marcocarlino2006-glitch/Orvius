@@ -159,6 +159,7 @@ LISTED PRICES
 }
 
 import { formatRulesForPrompt } from "@/lib/receptionist-rules";
+import { scopePromptBlock } from "@/lib/trade-scope";
 import {
   industryKind,
   inferTradeFromBusiness,
@@ -197,7 +198,7 @@ export function buildAssistantSystemPrompt(business: AssistantPromptInput): stri
   }
   const inferred = stored ? null : inferTradeFromBusiness(business);
   const trade = stored ?? (inferred && industryKind(inferred) === "field" ? inferred : null);
-  const tradeBlock = trade ? `\n\n${tradePromptPack(trade)}` : "";
+  const tradeBlock = trade ? `\n\n${tradePromptPack(trade)}${scopePromptBlock(trade)}` : "";
   const offersTimes = Boolean(business.canBook) && business.offerTimes !== false;
 
   return `You are the AI receptionist for ${business.name} ONLY. You represent this shop and no other company.

@@ -54,12 +54,34 @@ export default async function TradePage({ params }: Props) {
 
       <section className="tier1-story">
         <div className="editorial-wrap">
-          <h2 className="tier1-section-title type-headline">Calls it handles</h2>
+          <h2 className="tier1-section-title type-headline">Jobs it books</h2>
+          <p className="tier1-section-lead font-sans">
+            For homes and small residential properties. Each of these is checked by an automated test before every release.
+          </p>
           <ul className="tier1-plan-list font-sans">
-            {page.commonCalls.map((c) => (
-              <li key={c}>{c[0].toUpperCase() + c.slice(1)}</li>
+            {page.workflows.map((w) => (
+              <li key={w}>{w}</li>
             ))}
           </ul>
+
+          {page.notCovered.length ? (
+            <>
+              <h2 className="tier1-section-title type-headline mt-10">Not covered yet</h2>
+              <p className="tier1-section-lead font-sans">
+                Orvius takes a message and texts you to call back. It doesn&apos;t book these or guess at an answer.
+              </p>
+              <ul className="tier1-plan-list font-sans">
+                {page.notCovered.map((n) => (
+                  <li key={n}>{n}</li>
+                ))}
+              </ul>
+              <p className="tier1-section-lead font-sans">
+                <Link href="/trades" className="customer-timeline-link">
+                  See every trade and how each is checked →
+                </Link>
+              </p>
+            </>
+          ) : null}
 
           {page.urgentSignals.length ? (
             <>

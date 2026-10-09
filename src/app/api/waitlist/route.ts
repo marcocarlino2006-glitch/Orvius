@@ -23,7 +23,7 @@ const waitlistSchema = z.object({
   phone: z.string().trim().max(40).optional(),
   trade: z.string().trim().max(60).optional(),
   city: z.string().trim().max(120).optional(),
-  plan: z.enum(["pilot", "pro"]).optional(),
+  plan: z.enum(["pilot", "pro", "interest"]).optional(),
   website: z.string().max(200).optional(),
 });
 
@@ -214,7 +214,7 @@ export async function POST(request: NextRequest) {
           ownerPhone: notifyPhone,
           businessName: "Orvius",
           message: [
-            "New waitlist signup",
+            body.plan === "interest" ? "New trade interest-list signup" : "New waitlist signup",
             body.businessName ? `Business: ${body.businessName}` : null,
             `Email: ${body.email}`,
             body.phone ? `Phone: ${body.phone}` : null,

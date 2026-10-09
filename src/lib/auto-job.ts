@@ -3,6 +3,7 @@ import { recordAudit, type AuditQueue } from "@/lib/audit";
 import { detectCallIntent, type CallIntent } from "@/lib/call-intent";
 import { createJobFromLead, findOpenSlots, RepeatCallerError, SlotTakenError } from "@/lib/job";
 import { classifyRequest, normalizeUrgency, type RequestClassification } from "@/lib/trade-playbooks";
+import { outsideScope } from "@/lib/trade-scope";
 import { callerWords } from "@/lib/transcript";
 import { getEffectivePlanId } from "@/lib/plan-features";
 import { prisma } from "@/lib/prisma";
@@ -56,6 +57,7 @@ export type AutoBookSkipReason =
   | "plan_blocked"
   | "out_of_area"
   | "safety_escalation"
+  | "outside_scope"
   | "missing_address"
   | "owner_first"
   | "existing_job"
@@ -295,6 +297,16 @@ export async function maybeAutoBookLead(
       { intent },
     );
     return { jobId: null, created: false, qualified: true, skipReason: "follow_up", classification, intent };
+  }
+
+  const outside = outsideScope(classification.trade, [lead.serviceType, lead.notes].filter(Boolean).join(" \n "));
+  if (outside) {
+    await decide(
+      "lead.held",
+      `Held for the owner — ${outside.label.toLowerCase()} isn't work Orvius books for ${classification.trade} shops yet`,
+      { scope: outside.key },
+    );
+    return { jobId: null, created: false, qualified: true, skipReason: "outside_scope", classification, intent };
   }
 
   if (
