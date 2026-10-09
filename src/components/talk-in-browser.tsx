@@ -13,7 +13,7 @@ type View =
   | { state: "hidden" }
   | { state: "idle" }
   | { state: "joining" }
-  | { state: "waiting"; ticketId: string; position: number; talkingNow: number; waitSeconds: number }
+  | { state: "waiting"; ticketId: string; position: number; talkingNow: number; waitSeconds: number; pollSeconds?: number }
   | { state: "ready"; ticketId: string }
   | { state: "connecting"; ticketId: string }
   | { state: "live"; ticketId: string; startedAt: number }
@@ -23,7 +23,7 @@ type View =
 
 type ServerView =
   | { state: "open" }
-  | { state: "waiting"; ticketId: string; position: number; talkingNow: number; waitSeconds: number }
+  | { state: "waiting"; ticketId: string; position: number; talkingNow: number; waitSeconds: number; pollSeconds?: number }
   | { state: "ready" | "live" | "done"; ticketId: string }
   | { state: "closed"; reason: "daily" | "limit" | "off" };
 
@@ -97,6 +97,7 @@ export function TalkInBrowser({ phoneHref, phoneDisplay }: { phoneHref: string; 
   }, [apply]);
 
   const waitingTicket = view.state === "waiting" ? view.ticketId : null;
+  const pollMs = view.state === "waiting" && view.pollSeconds ? view.pollSeconds * 1000 : POLL_MS;
   useEffect(() => {
     if (!waitingTicket) return;
     const id = window.setInterval(() => {
@@ -104,9 +105,9 @@ export function TalkInBrowser({ phoneHref, phoneDisplay }: { phoneHref: string; 
         .then((res) => (res.ok ? res.json() : null))
         .then((data: ServerView | null) => data && apply(data))
         .catch(() => undefined);
-    }, POLL_MS);
+    }, pollMs);
     return () => window.clearInterval(id);
-  }, [waitingTicket, apply]);
+  }, [waitingTicket, pollMs, apply]);
 
   const isLive = view.state === "live";
   useEffect(() => {

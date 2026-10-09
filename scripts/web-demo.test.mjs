@@ -29,6 +29,7 @@ const fakeCreate = async (body) => {
 
 async function fresh(cap = 2, daily = 2000) {
   await prisma.demoTicket.deleteMany({});
+  await prisma.demoSlot.updateMany({ data: { ticketId: null, heldUntil: new Date(0) } });
   process.env.ORVIUS_DEMO_WEB_MAX_LIVE = String(cap);
   process.env.ORVIUS_DEMO_WEB_DAILY_CEILING = String(daily);
 }
@@ -60,6 +61,20 @@ test("visitors past the cap wait in order and move up when a call ends", async (
   assert.equal((await checkTicket(c.ticketId)).state, "ready");
 });
 
+test("a rush of visitors polling at once never gets more turns than the cap", async () => {
+  await fresh(3);
+  const joined = await Promise.all(Array.from({ length: 40 }, () => joinLine(ip())));
+  for (let round = 0; round < 3; round++) {
+    await Promise.all(joined.flatMap((t) => [checkTicket(t.ticketId), checkTicket(t.ticketId)]));
+  }
+  const granted = await prisma.demoTicket.count({ where: { status: "granted" } });
+  const held = await prisma.demoSlot.count({ where: { id: { lt: 3 }, heldUntil: { gt: new Date() } } });
+  assert.equal(granted, 3);
+  assert.equal(held, 3, "each turn holds exactly one slot");
+  const holders = await prisma.demoSlot.findMany({ where: { heldUntil: { gt: new Date() } } });
+  assert.equal(new Set(holders.map((h) => h.ticketId)).size, holders.length, "no ticket holds two slots");
+});
+
 test("a visitor who closed the tab stops holding up the line", async () => {
   await fresh(1);
   const a = await joinLine(ip());
@@ -77,10 +92,11 @@ test("an unused turn is handed back after its window", async () => {
   const a = await joinLine(ip());
   const b = await joinLine(ip());
   assert.equal(b.state, "waiting");
-  await prisma.demoTicket.update({ where: { id: a.ticketId }, data: { grantedAt: new Date(Date.now() - 5 * 60_000) } });
-  assert.equal((await checkTicket(b.ticketId)).state, "ready");
-  await assert.rejects(startWebDemo(a.ticketId, fakeCreate), WebDemoRefused);
-  assert.equal((await checkTicket(a.ticketId)).state, "done");
+  const later = new Date(Date.now() + 2 * 60_000);
+  await prisma.demoTicket.update({ where: { id: b.ticketId }, data: { lastSeenAt: later } });
+  assert.equal((await checkTicket(b.ticketId, later)).state, "ready");
+  await assert.rejects(startWebDemo(a.ticketId, fakeCreate, later), WebDemoRefused);
+  assert.equal((await checkTicket(a.ticketId, later)).state, "done");
 });
 
 test("one visitor keeps their place on refresh and can't take the line all hour", async () => {

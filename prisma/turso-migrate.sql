@@ -994,3 +994,9 @@ CREATE TABLE IF NOT EXISTS "GalleryCall" (
 CREATE UNIQUE INDEX IF NOT EXISTS "GalleryCall_callId_key" ON "GalleryCall"("callId");
 CREATE INDEX IF NOT EXISTS "GalleryCall_status_createdAt_idx" ON "GalleryCall"("status", "createdAt");
 CREATE INDEX IF NOT EXISTS "GalleryCall_businessId_idx" ON "GalleryCall"("businessId");
+CREATE INDEX IF NOT EXISTS "DemoTicket_startedAt_idx" ON "DemoTicket"("startedAt");
+CREATE TABLE IF NOT EXISTS "DemoSlot" (
+  "id" INTEGER NOT NULL PRIMARY KEY,
+  "ticketId" TEXT,
+  "heldUntil" DATETIME NOT NULL
+);

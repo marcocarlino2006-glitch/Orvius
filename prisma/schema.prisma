@@ -674,6 +674,16 @@ model DemoTicket {
 
   @@index([status, createdAt])
   @@index([ipHash, createdAt])
+  @@index([startedAt])
+}
+
+/// One row per browser-demo call the Vapi account can carry. A visitor's turn
+/// is a claim on one row, made by a single conditional update, so the line can
+/// never hand out more turns than there are rows under the cap.
+model DemoSlot {
+  id        Int      @id
+  ticketId  String?
+  heldUntil DateTime
 }
 
 /** The customer's sign-off on the work and total, drawn on the technician's phone. */

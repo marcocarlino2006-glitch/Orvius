@@ -18,6 +18,8 @@ export const DEFAULT_WEB_DEMO_DAILY = 2000;
 const TICKETS_PER_IP_PER_HOUR = 4;
 /* A visitor whose page stopped polling has left the line. */
 const HEARTBEAT_MS = 30_000;
+/* Polls closer together than this don't rewrite the heartbeat. */
+const HEARTBEAT_WRITE_MS = 10_000;
 /* A slot handed out but not used is given to the next visitor. */
 const GRANT_MS = 90_000;
 /* The call ends itself at 3 minutes; anything older lost its end report. */
@@ -38,19 +40,39 @@ export function hashVisitor(ip: string) {
 }
 
 export type TicketView =
-  | { state: "waiting"; ticketId: string; position: number; talkingNow: number; waitSeconds: number }
+  | { state: "waiting"; ticketId: string; position: number; talkingNow: number; waitSeconds: number; pollSeconds: number }
   | { state: "ready"; ticketId: string }
   | { state: "live"; ticketId: string }
   | { state: "done"; ticketId: string }
   | { state: "closed"; reason: "daily" | "limit" | "off" };
 
-function occupied(now: Date) {
-  return {
-    OR: [
-      { status: "granted", grantedAt: { gte: new Date(now.getTime() - GRANT_MS) } },
-      { status: "live", startedAt: { gte: new Date(now.getTime() - LIVE_MS) } },
-    ],
-  };
+let seededCap = 0;
+async function ensureSlots(cap: number) {
+  if (seededCap >= cap) return;
+  const have = new Set((await prisma.demoSlot.findMany({ where: { id: { lt: cap } }, select: { id: true } })).map((r) => r.id));
+  for (let id = 0; id < cap; id++) {
+    if (!have.has(id)) await prisma.demoSlot.create({ data: { id, heldUntil: new Date(0) } }).catch(() => null);
+  }
+  seededCap = cap;
+}
+
+async function slotsInUse(cap: number, now: Date) {
+  return prisma.demoSlot.count({ where: { id: { lt: cap }, heldUntil: { gt: now } } });
+}
+
+/** Take one free row for this ticket; null when every slot under the cap is held. */
+async function claimSlot(ticketId: string, cap: number, now: Date, holdMs: number) {
+  await ensureSlots(cap);
+  const free = await prisma.demoSlot.findMany({ where: { id: { lt: cap }, heldUntil: { lte: now } }, select: { id: true }, orderBy: { id: "asc" } });
+  for (const { id } of free) {
+    const won = await prisma.demoSlot.updateMany({ where: { id, heldUntil: { lte: now } }, data: { ticketId, heldUntil: new Date(now.getTime() + holdMs) } });
+    if (won.count) return id;
+  }
+  return null;
+}
+
+async function releaseSlot(ticketId: string, now: Date) {
+  await prisma.demoSlot.updateMany({ where: { ticketId }, data: { ticketId: null, heldUntil: now } });
 }
 
 async function startedToday(now: Date) {
@@ -69,19 +91,26 @@ export async function checkTicket(ticketId: string, now = new Date()): Promise<T
     return { state: "done", ticketId };
   }
 
-  await prisma.demoTicket.update({ where: { id: ticketId }, data: { lastSeenAt: now } });
+  if (now.getTime() - ticket.lastSeenAt.getTime() > HEARTBEAT_WRITE_MS) {
+    await prisma.demoTicket.update({ where: { id: ticketId }, data: { lastSeenAt: now } });
+  }
   if ((await startedToday(now)) >= webDemoDaily()) return { state: "closed", reason: "daily" };
+  const cap = webDemoCap();
+  await ensureSlots(cap);
   const [talkingNow, ahead] = await Promise.all([
-    prisma.demoTicket.count({ where: occupied(now) }),
+    slotsInUse(cap, now),
     prisma.demoTicket.count({ where: { status: "waiting", lastSeenAt: { gte: new Date(now.getTime() - HEARTBEAT_MS) }, createdAt: { lt: ticket.createdAt } } }),
   ]);
-  const cap = webDemoCap();
-  if (ahead < cap - talkingNow) {
+  const slot = ahead < cap - talkingNow ? await claimSlot(ticketId, cap, now, GRANT_MS) : null;
+  if (slot != null) {
     const granted = await prisma.demoTicket.updateMany({ where: { id: ticketId, status: "waiting" }, data: { status: "granted", grantedAt: now } });
     if (granted.count) return { state: "ready", ticketId };
+    await prisma.demoSlot.updateMany({ where: { id: slot, ticketId }, data: { ticketId: null, heldUntil: now } });
+    return checkTicket(ticketId, now);
   }
   const position = ahead + 1;
-  return { state: "waiting", ticketId, position, talkingNow, waitSeconds: Math.max(15, Math.ceil(position / cap) * AVG_CALL_SEC) };
+  const pollSeconds = position <= cap * 2 ? 3 : 8;
+  return { state: "waiting", ticketId, position, talkingNow, waitSeconds: Math.max(15, Math.ceil(position / cap) * AVG_CALL_SEC), pollSeconds };
 }
 
 /** Join the line, or pick up the place this visitor already holds. */
@@ -122,6 +151,11 @@ export async function startWebDemo(ticketId: string, create: CreateWebCall, now 
     data: { status: "live", startedAt: now },
   });
   if (!claimed.count) throw new WebDemoRefused("Your turn timed out. Join the line again.");
+  const held = await prisma.demoSlot.updateMany({ where: { ticketId, heldUntil: { gt: now } }, data: { heldUntil: new Date(now.getTime() + LIVE_MS) } });
+  if (!held.count) {
+    await prisma.demoTicket.update({ where: { id: ticketId }, data: { status: "done", endedAt: now } });
+    throw new WebDemoRefused("Your turn timed out. Join the line again.");
+  }
   try {
     const assistantId = await demoAssistantId();
     if (!assistantId) throw new Error("demo assistant missing");
@@ -131,16 +165,20 @@ export async function startWebDemo(ticketId: string, create: CreateWebCall, now 
     return { id: call.id, webCallUrl: call.webCallUrl, transport: call.transport, assistant: { voice: { provider: call.assistant?.voice?.provider } }, artifactPlan: { videoRecordingEnabled: false } };
   } catch (error) {
     await prisma.demoTicket.update({ where: { id: ticketId }, data: { status: "done", endedAt: new Date() } });
+    await releaseSlot(ticketId, new Date());
     throw error;
   }
 }
 
 export async function endWebDemo(where: { ticketId?: string; vapiCallId?: string }, now = new Date()) {
   if (!where.ticketId && !where.vapiCallId) return;
-  await prisma.demoTicket.updateMany({
-    where: { ...(where.ticketId ? { id: where.ticketId } : { vapiCallId: where.vapiCallId }), status: { not: "done" } },
-    data: { status: "done", endedAt: now },
-  });
+  const ticketId = where.ticketId ?? (await prisma.demoTicket.findUnique({ where: { vapiCallId: where.vapiCallId }, select: { id: true } }))?.id;
+  if (!ticketId) return;
+  await prisma.demoTicket.updateMany({ where: { id: ticketId, status: { not: "done" } }, data: { status: "done", endedAt: now } });
+  await releaseSlot(ticketId, now);
+  if (Math.random() < 0.01) {
+    void prisma.demoTicket.deleteMany({ where: { createdAt: { lt: new Date(now.getTime() - 3 * 86_400_000) } } }).catch(() => null);
+  }
 }
 
 /** A web call reaching the demo assistant that didn't come through the line is ended. */

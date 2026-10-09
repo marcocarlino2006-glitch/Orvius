@@ -11,7 +11,8 @@ import { getPublicLaunchReadiness } from "@/lib/public-launch-readiness";
 import { SIGNUP_HREF } from "@/lib/signup-href";
 import "../p/[id]/replay.css";
 
-export const dynamic = "force-dynamic";
+/* A launch post sends everyone here at once; rebuild at most once a minute. */
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Orvius: the phone answered, the job booked",
