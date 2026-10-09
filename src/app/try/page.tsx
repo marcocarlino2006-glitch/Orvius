@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
 import { ShopPreviewForm } from "@/components/shop-preview-form";
+import { DemoLineBusy } from "@/components/demo-line-busy";
 import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
 import { isPreviewLive } from "@/lib/preview-live";
 import type { Metadata } from "next";
@@ -39,6 +40,7 @@ export default function TryPage() {
                 <Link href={SIGNUP_HREF} className="ov-btn ov-btn--quiet">
                   Get started
                 </Link>
+                <DemoLineBusy />
               </div>
             )}
           </div>

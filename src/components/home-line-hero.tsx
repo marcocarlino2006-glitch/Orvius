@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { HomeLiveCall } from "@/components/home-live-call";
+import { DemoLineBusy } from "@/components/demo-line-busy";
 import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
 import { SIGNUP_HREF } from "@/lib/signup-href";
 
@@ -102,6 +103,7 @@ export function HomeLineHero({ signupOpen = false }: { signupOpen?: boolean }) {
             </span>
             <LiveLineDigits display={DEMO_LINE_DISPLAY} />
           </a>
+          <DemoLineBusy />
         </div>
 
         <div className="ov-hero-stage ov-hero-stage--art">

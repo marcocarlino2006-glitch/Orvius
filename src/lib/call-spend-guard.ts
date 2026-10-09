@@ -1,4 +1,5 @@
 import { normalizePhone } from "@/lib/customer";
+import { DEMO_OVERFLOW_SAY, demoVerdict, readDemoLoad } from "@/lib/demo-load";
 import { logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { CALLER_HOURLY_LIMIT, DEFAULT_SHOP_DAILY_CEILING } from "@/lib/usage-limits";
@@ -22,11 +23,13 @@ export function shopDailyCallCeiling() {
   return Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : DEFAULT_SHOP_DAILY_CEILING;
 }
 
-export type SpendCut = { reason: "caller_repeat" | "shop_ceiling"; say: string };
+export type SpendCut = { reason: "caller_repeat" | "shop_ceiling" | "demo_live_cap" | "demo_daily_ceiling"; say: string };
 
 export async function callSpendCut(params: {
   shop: { id: string; name: string; ownerPhone: string | null; transferPhone: string | null };
   callerPhone: string | null;
+  /** The public demo line: held to its own live-call cap and daily budget. */
+  demo?: boolean;
   now?: Date;
 }): Promise<SpendCut | null> {
   const now = params.now ?? new Date();
@@ -48,6 +51,13 @@ export async function callSpendCut(params: {
         say: `We've had several calls from this number in the last hour. The team at ${params.shop.name} has your number and will get back to you. Goodbye.`,
       };
     }
+  }
+
+  if (params.demo) {
+    const verdict = demoVerdict(await readDemoLoad(params.shop.id, now));
+    if (!verdict.busy) return null;
+    logWarn("call.spend_cut", { businessId: params.shop.id, reason: verdict.reason });
+    return { reason: verdict.reason, say: DEMO_OVERFLOW_SAY };
   }
 
   const dayStart = new Date(now.getTime() - 24 * 60 * 60_000);
