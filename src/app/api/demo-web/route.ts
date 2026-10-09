@@ -16,11 +16,16 @@ async function limited(request: Request) {
 
 /** Where this visitor stands in line. Polled every few seconds while they wait. */
 export async function GET(request: Request) {
+  const ticketId = new URL(request.url).searchParams.get("ticket") ?? "";
+  if (!ticketId) {
+    /* Asked on every homepage view; answered from the CDN, no database. */
+    return NextResponse.json(configured() ? { state: "open" } : { state: "closed", reason: "off" }, {
+      headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" },
+    });
+  }
   const tooMany = await limited(request);
   if (tooMany) return tooMany;
-  const ticketId = new URL(request.url).searchParams.get("ticket") ?? "";
   if (!configured()) return NextResponse.json({ state: "closed", reason: "off" }, { headers: noStore });
-  if (!ticketId) return NextResponse.json({ state: "open" }, { headers: noStore });
   return NextResponse.json(await checkTicket(ticketId), { headers: noStore });
 }
 
