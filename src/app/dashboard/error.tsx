@@ -4,7 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { captureClientException } from "@/lib/sentry-report";
-import { supportEmail, supportMailto } from "@/lib/support";
+import { supportEmail, supportMailto, supportPhone } from "@/lib/support";
+
+const phone = supportPhone();
 
 /*
   What a shop owner saw when the dashboard threw: the default Next.js error
@@ -98,6 +100,7 @@ export default function DashboardError({
             alone — people screenshot errors, they do not always click.
           */}
           <p className="os-error-meta">
+            {phone ? `Call or text ${phone.display} · ` : ""}
             {supportEmail}
             {error.digest ? ` · reference ${error.digest}` : ""}
           </p>

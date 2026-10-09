@@ -2,7 +2,10 @@
 
 import { useEffect } from "react";
 import { company } from "@/lib/company";
+import { supportPhone } from "@/lib/support";
 import { captureClientException } from "@/lib/sentry-report";
+
+const phone = supportPhone();
 
 /*
   The last resort: the root layout itself failed, so there is no app shell to
@@ -97,6 +100,7 @@ export default function GlobalError({
             </a>
           </div>
           <p style={{ margin: "1rem 0 0", fontSize: "0.75rem", color: "#a09f9e" }}>
+            {phone ? `Call or text ${phone.display} · ` : ""}
             {company.supportEmail}
             {error.digest ? ` · reference ${error.digest}` : ""}
           </p>

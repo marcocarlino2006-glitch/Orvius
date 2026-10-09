@@ -1,3 +1,4 @@
+import { SupportContact } from "@/components/support-contact";
 import { LegalDocument, LegalSection } from "@/components/legal-document";
 import { company } from "@/lib/company";
 import { prisma } from "@/lib/prisma";
@@ -80,10 +81,7 @@ export default async function StatusPage() {
           saying &ldquo;no issues&rdquo; does not prove your line is answering — your dashboard
           shows when your own line last took a call.
         </p>
-        <p>
-          If something here is wrong or you are seeing a problem we are not, email{" "}
-          <a href={`mailto:${company.supportEmail}`}>{company.supportEmail}</a>.
-        </p>
+        <SupportContact lead="If something here is wrong or you are seeing a problem we are not:" subject="Status" path="/status" />
       </LegalSection>
     </LegalDocument>
   );

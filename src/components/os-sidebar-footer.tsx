@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { useEffect, useId, useRef, useState } from "react";
 import { pricing } from "@/lib/company";
-import { supportMailto } from "@/lib/support";
+import { supportMailto, supportPhone } from "@/lib/support";
 import { fetchAccount, invalidateAccount } from "@/lib/account-client";
 import { ROLE_LABELS, type ShopRole, type ShopSummary } from "@/lib/workspace-access-labels";
 
@@ -69,6 +69,8 @@ const moreLinks: MenuItem[] = [
   { href: "help", label: "Get help", icon: "help", mail: true },
   { href: "/resources", label: "Docs", icon: "docs" },
 ];
+
+const phone = supportPhone();
 
 function mark(name: string | null | undefined) {
   const letter = name?.trim()?.[0];
@@ -323,6 +325,12 @@ export function OsSidebarFooter({ newLeads = 0 }: { newLeads?: number }) {
                 </Link>
               ),
             )}
+            {phone ? (
+              <a href={`tel:${phone.tel}`} role="menuitem" className="mx-link" onClick={close}>
+                <MenuIcon name="help" />
+                <span>Call support · {phone.display}</span>
+              </a>
+            ) : null}
           </div>
 
           <div className="mx-group mx-group--rule">

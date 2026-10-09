@@ -1,4 +1,5 @@
 import { company } from "@/lib/company";
+import { DEMO_LINE_TEL } from "@/lib/demo-line";
 
 /**
  * One place that builds a "get me a human" link.
@@ -46,3 +47,19 @@ export function supportMailto(context?: {
 }
 
 export const supportEmail = company.supportEmail;
+
+export const SUPPORT_RESPONSE = "A person answers, normally within one business day.";
+
+/*
+  A number a person picks up, set per deploy. Never the demo line: that number
+  is answered by the AI receptionist, so a stuck owner calling it for help gets
+  a sales demo. Inlined at build, so it works in client components too.
+*/
+export function supportPhone(raw = process.env.NEXT_PUBLIC_ORVIUS_SUPPORT_PHONE): { display: string; tel: string } | null {
+  const digits = (raw ?? "").replace(/\D/g, "");
+  const national = digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : digits;
+  if (national.length !== 10) return null;
+  const tel = `+1${national}`;
+  if (tel === DEMO_LINE_TEL) return null;
+  return { tel, display: `+1 ${national.slice(0, 3)} ${national.slice(3, 6)} ${national.slice(6)}` };
+}
