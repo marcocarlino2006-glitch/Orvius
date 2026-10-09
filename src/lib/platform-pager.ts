@@ -11,7 +11,7 @@ import { sendSms } from "@/lib/twilio-sms";
   Sentry is only a third copy: with no DSN set it was the only one.
 */
 
-export type PlatformFailure = "vapi_unreachable" | "vapi_billing" | "db_unreachable" | "twilio_account" | "spend_ceiling";
+export type PlatformFailure = "vapi_unreachable" | "vapi_billing" | "db_unreachable" | "twilio_account" | "spend_ceiling" | "demo_overflow";
 
 const HEADLINE: Record<PlatformFailure, string> = {
   vapi_unreachable: "Vapi is not answering calls. Shop lines are going to the backup voicemail.",
@@ -19,6 +19,7 @@ const HEADLINE: Record<PlatformFailure, string> = {
   db_unreachable: "The database is unreachable from the call path.",
   twilio_account: "Twilio rejected a send at the account level (suspended or bad credentials). Owner alerts are not going out.",
   spend_ceiling: "A shop passed its daily call ceiling; new calls on that line are being ended to cap the Vapi bill. Check for a robodialer or a call loop.",
+  demo_overflow: "The demo line is full; new callers are told to try again or watch a call online. Raise ORVIUS_DEMO_MAX_LIVE_CALLS only if Vapi concurrency allows it.",
 };
 
 /** One page per failure kind per quarter hour, however many calls hit it. */

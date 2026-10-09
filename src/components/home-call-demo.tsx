@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { DemoLineBusy } from "@/components/demo-line-busy";
 import {
   DEMO_LINE_BUSINESS,
   DEMO_LINE_DISPLAY,
@@ -45,6 +46,8 @@ export function HomeCallDemo({ showHint = true }: HomeCallDemoProps) {
           {copied ? "Copied" : "Copy number"}
         </button>
       </div>
+
+      <DemoLineBusy />
 
       {showHint ? (
         <p className="call-demo-hint type-caption">

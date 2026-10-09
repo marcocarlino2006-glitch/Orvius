@@ -27,6 +27,7 @@ import { loadCallerContextNote, sendCallerContext } from "@/lib/caller-context";
 import { backstopLateSweeps } from "@/lib/cron-backstop";
 import { isVapiBillingRefusal, pagePlatform } from "@/lib/platform-pager";
 import { callSpendCut, endCallWith } from "@/lib/call-spend-guard";
+import { isDemoPlatformLine } from "@/lib/demo-business";
 import { isLineEntitled } from "@/lib/billing-entitlement";
 
 /* Room for a made-up line-watch run after the response (cron-backstop.ts). */
@@ -273,10 +274,13 @@ export async function POST(request: NextRequest) {
           data: { callerContextSentAt: new Date() },
         });
         if (!claimed.count) return;
-        const cut = await callSpendCut({ shop: business, callerPhone });
+        const cut = await callSpendCut({ shop: business, callerPhone, demo: isDemoPlatformLine(inboundNumber ?? business.vapiPhoneNumber ?? business.twilioPhone) });
         if (cut) {
           await endCallWith(controlUrl, cut.say);
           if (cut.reason === "shop_ceiling") await pagePlatform("spend_ceiling", { businessId: business.id, vapiCallId });
+          if (cut.reason === "demo_live_cap" || cut.reason === "demo_daily_ceiling") {
+            await pagePlatform("demo_overflow", { reason: cut.reason, vapiCallId });
+          }
           return;
         }
         if (!callerPhone) return;

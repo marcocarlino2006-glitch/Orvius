@@ -23,6 +23,7 @@ const PUBLIC = [
   "src/app/api/auth/",
   "src/app/api/public/",
   "src/app/api/public-demo/",
+  "src/app/api/demo-line/",
   "src/app/api/preview/",
   "src/app/api/status/",
   "src/app/api/health/",
