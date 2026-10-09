@@ -1,6 +1,7 @@
 import type { Business } from "@prisma/client";
 import type Stripe from "stripe";
 
+import { financingMethodsFromAccount } from "@/lib/financing";
 import { logWarn } from "@/lib/logger";
 import { applyPaymentsDefault } from "@/lib/payments-default";
 import { prisma } from "@/lib/prisma";
@@ -193,6 +194,7 @@ export async function syncConnectAccount(
       stripeConnectPayoutsEnabled: account.payouts_enabled ?? false,
       stripeConnectDetailsSubmitted: account.details_submitted ?? false,
       stripeConnectUpdatedAt: new Date(),
+      financingMethods: financingMethodsFromAccount(account).join(",") || null,
     },
   });
 

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { financingFor, financingLine } from "@/lib/financing";
 import {
   createEstimateCheckoutSession,
   ensureInvoiceForEstimate,
@@ -25,6 +26,8 @@ const BUSINESS_SELECT = {
   stripeConnectChargesEnabled: true,
   stripeConnectPayoutsEnabled: true,
   stripeConnectDetailsSubmitted: true,
+  financingEnabled: true,
+  financingMethods: true,
 } as const;
 
 async function loadEstimate(token: string) {
@@ -69,6 +72,7 @@ function serializePublic(estimate: NonNullable<Awaited<ReturnType<typeof loadEst
         }
       : null,
     cardPayAvailable: isEstimateCardPayReady(estimate.business),
+    financing: isEstimateCardPayReady(estimate.business) ? financingLine(financingFor(estimate.business, estimate.amountCents)) : null,
   };
 }
 

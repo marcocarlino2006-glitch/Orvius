@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { financingFor, financingLine } from "@/lib/financing";
 import { z } from "zod";
 
 import {
@@ -28,6 +29,10 @@ function serializePublic(invoice: LoadedInvoice) {
     paid: invoice.status === "paid",
     cardPayAvailable:
       getConnectStatus(invoice.business).canAcceptPayments && isChargeableAmount(invoice.amountCents),
+    financing:
+      getConnectStatus(invoice.business).canAcceptPayments && invoice.status !== "paid"
+        ? financingLine(financingFor(invoice.business, invoice.amountCents))
+        : null,
     paidAt: invoice.paidAt?.toISOString() ?? null,
   };
 }

@@ -23,6 +23,7 @@ type PublicEstimate = {
   jobAddress: string | null;
   invoice: { id: string; status: string; paid: boolean; claimed?: boolean } | null;
   cardPayAvailable?: boolean;
+  financing?: string | null;
 };
 
 export function PublicEstimateClient({ token }: { token: string }) {
@@ -207,9 +208,10 @@ export function PublicEstimateClient({ token }: { token: string }) {
                 disabled={busy}
                 onClick={() => void run("pay_card")}
               >
-                {busy ? "Opening checkout…" : "Pay by card"}
+                {busy ? "Opening checkout…" : estimate.financing ? "Pay by card or over time" : "Pay by card"}
               </button>
             ) : null}
+            {cardReady && estimate.financing ? <p className="public-money-muted">{estimate.financing}</p> : null}
             {claimed ? (
               <p className="public-money-muted">
                 You told the shop you paid them directly. The bill stays open until they confirm the money arrived.
