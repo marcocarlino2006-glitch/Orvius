@@ -1,0 +1,44 @@
+name: Sweep heartbeat
+
+# GitHub runs short schedules on this repo hours late (a */5 job ran every 4-6
+# hours), so owner-alert retries on a quiet line waited half a day. Instead of
+# one short job per tick, each run stays up for almost six hours and calls the
+# sweeps itself on time. The hourly schedule only has to land once in six hours
+# for coverage to be continuous; the concurrency group keeps one run going and
+# one queued behind it, never two at once.
+on:
+  schedule:
+    - cron: "7 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: sweep-heartbeat
+  cancel-in-progress: false
+
+jobs:
+  beat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    env:
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+      APP_URL: ${{ secrets.LINE_WATCH_URL || 'https://api.orvius.im' }}
+    steps:
+      - name: Keep the sweeps on time
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::error::CRON_SECRET is not set in repo secrets; owner-alert retries and line watch on quiet lines do not run."
+            exit 1
+          fi
+          call() {
+            curl -fsS --max-time "$2" -H "Authorization: Bearer $CRON_SECRET" "$APP_URL/api/cron/$1" >/tmp/out 2>&1 \
+              && echo "$(date -u +%H:%M) $1 ok" \
+              || echo "::warning::$(date -u +%H:%M) $1 failed: $(head -c 300 /tmp/out)"
+          }
+          end=$(( $(date +%s) + 345 * 60 ))
+          tick=0
+          while [ "$(date +%s)" -lt "$end" ]; do
+            call alert-drain 60
+            if [ $(( tick % 6 )) -eq 0 ]; then call line-watch 240; fi
+            tick=$(( tick + 1 ))
+            sleep 290
+          done

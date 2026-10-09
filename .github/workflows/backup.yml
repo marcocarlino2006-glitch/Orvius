@@ -27,17 +27,44 @@ jobs:
       DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
       TURSO_AUTH_TOKEN: ${{ secrets.BACKUP_TURSO_AUTH_TOKEN }}
       BACKUP_ENCRYPTION_KEY: ${{ secrets.BACKUP_ENCRYPTION_KEY }}
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+      APP_URL: ${{ secrets.LINE_WATCH_URL || 'https://api.orvius.im' }}
     steps:
       - name: Check secrets
         id: gate
         run: |
           if [ -n "$DATABASE_URL" ] && [ -n "$BACKUP_ENCRYPTION_KEY" ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
+          elif [ -n "$CRON_SECRET" ]; then
+            # The app already holds the database credentials: it takes the backup,
+            # restore-drills the encrypted bytes, and hands back only those bytes.
+            echo "server=true" >> "$GITHUB_OUTPUT"
           else
             # A green run with no backup is how a shop's data is lost without anyone knowing: fail and open the issue.
-            echo "::error::No backup taken — set BACKUP_DATABASE_URL, BACKUP_TURSO_AUTH_TOKEN and BACKUP_ENCRYPTION_KEY in repo secrets."
+            echo "::error::No backup taken — set CRON_SECRET (or BACKUP_DATABASE_URL, BACKUP_TURSO_AUTH_TOKEN and BACKUP_ENCRYPTION_KEY) in repo secrets."
             exit 1
           fi
+      - if: steps.gate.outputs.server == 'true'
+        name: Back up through the app
+        run: |
+          mkdir -p encrypted
+          out="encrypted/orvius-$(date -u +%Y-%m-%dT%H-%M).json.enc"
+          code=$(curl -sS --max-time 90 -D /tmp/headers -o "$out" -w "%{http_code}" \
+            -H "Authorization: Bearer $CRON_SECRET" "$APP_URL/api/cron/backup")
+          if [ "$code" != "200" ]; then
+            echo "::error::Backup endpoint returned $code: $(head -c 400 "$out")"
+            exit 1
+          fi
+          drill=$(grep -i '^x-orvius-backup:' /tmp/headers | tr -d '\r')
+          echo "$drill" | grep -q 'restored=ok' || { echo "::error::No restore-drill result on the backup"; exit 1; }
+          echo "Encrypted backup $(wc -c < "$out") bytes; $drill" | tee -a "$GITHUB_STEP_SUMMARY"
+      - if: steps.gate.outputs.server == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: orvius-backup-encrypted
+          path: encrypted/*.json.enc
+          if-no-files-found: error
+          retention-days: 30
       - if: steps.gate.outputs.run == 'true'
         uses: actions/checkout@v4
       - if: steps.gate.outputs.run == 'true'
@@ -76,7 +103,7 @@ jobs:
           fi
 
       - name: Close the backup issue on recovery
-        if: success() && steps.gate.outputs.run == 'true'
+        if: success() && (steps.gate.outputs.run == 'true' || steps.gate.outputs.server == 'true')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
