@@ -16,6 +16,9 @@ on:
       - src/lib/spelled-name.ts
       - scripts/voice-sim.mjs
       - scripts/voice-scenarios.mjs
+      - src/lib/trade-scope.ts
+      - src/lib/trade-playbooks.ts
+      - src/lib/voice-sim-tools.ts
   workflow_dispatch:
 
 jobs:
@@ -47,15 +50,20 @@ jobs:
         run: npm ci
       - if: steps.gate.outputs.run == 'true'
         name: Run gate scenarios
-        run: npm run sim:gate -- --json voice-gate.json --report voice-gate.md
+        run: |
+          status=0
+          for trade in HVAC Plumbing Electrical; do
+            npm run sim:gate -- --trade "$trade" --json "voice-gate-$trade.json" --report "voice-gate-$trade.md" || status=1
+          done
+          exit $status
       - if: always() && steps.gate.outputs.run == 'true'
-        run: cat voice-gate.md >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
+        run: cat voice-gate-*.md >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
       - if: always() && steps.gate.outputs.run == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: voice-gate
           path: |
-            voice-gate.json
-            voice-gate.md
+            voice-gate-*.json
+            voice-gate-*.md
           if-no-files-found: ignore
           retention-days: 30

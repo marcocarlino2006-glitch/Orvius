@@ -8,6 +8,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
   const body = (await request.json().catch(() => null)) as { message?: Parameters<typeof readToolCalls>[0] } | null;
-  const transferring = new URL(request.url).searchParams.get("transfer") === "1";
-  return NextResponse.json({ results: answerVoiceSimToolCalls(readToolCalls(body?.message ?? {}), { transferring, callerWords: callerWordsSoFar(body?.message) }) });
+  const params = new URL(request.url).searchParams;
+  const transferring = params.get("transfer") === "1";
+  return NextResponse.json({
+    results: answerVoiceSimToolCalls(readToolCalls(body?.message ?? {}), {
+      transferring,
+      callerWords: callerWordsSoFar(body?.message),
+      trade: params.get("trade"),
+    }),
+  });
 }

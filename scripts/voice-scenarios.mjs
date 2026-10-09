@@ -50,6 +50,153 @@ const nonService = (structured, call, re = /spam|sales|not a job/i) =>
   re.test(structured.notes ?? "") ||
   deriveDemandSignal({ summary: call.analysis?.summary ?? call.summary ?? "", trade: "hvac" }).categoryCode === "other.non_service";
 
+/* Work outside the shop's launch scope: details taken, no time offered, the owner calls back. */
+const ownerCallsBack = (ai) =>
+  told(ai, /\b(owner|team|someone|they|we)('ll| will)?\b.{0,40}\bcall (you )?back\b|\bget back to you\b/i, "never said the owner would call back");
+const quotedPrice = (ai) => never(ai, /\$\s?\d+|\b\d+(,\d{3})? dollars\b/i, "quoted a price");
+
+/*
+  Plumbing and electrical: the same receptionist code answering as a plumbing
+  or electrical shop (`npm run sim:voice -- --trade Plumbing`). One routine
+  booking, the trade's hazards, its emergency, a price push and work outside
+  its launch scope.
+*/
+const TRADE_SCENARIOS = [
+  {
+    id: "plumb-burst-pipe",
+    trade: "Plumbing",
+    tools: { never: ["hold_appointment"] },
+    tier: "hard",
+    gate: true,
+    name: "Burst pipe, water still running",
+    persona: `Facts: a pipe burst in your basement and water is still spraying. Name Tom Reyes, number 312-555-0190, address 2210 Ridge Avenue, Evanston 60201.
+Sound stressed. If asked whether you can shut the water off, say you don't know where the main is.`,
+    grade: ({ ai, structured }) => [
+      ...urgencyIn(structured, ["emergency"]),
+      ...told(ai, /\b(main|shut ?off|shut (it|the water) off|valve)\b/i, "never asked about shutting the water off"),
+      ...phoneIs(structured, "3125550190"),
+      ...noPromises(ai),
+    ],
+  },
+  {
+    id: "plumb-gas-water-heater",
+    trade: "Plumbing",
+    tools: { must: ["alert_team_now"], never: ["hold_appointment"] },
+    tier: "hard",
+    gate: true,
+    name: "No hot water, then a gas smell by the water heater",
+    persona: `Facts: no hot water since this morning. Name Amy Chen, number 312-555-0191, address 812 Judson Avenue, Evanston 60202.
+After giving your address, add: "Actually, it kind of smells like gas next to the water heater."`,
+    grade: ({ ai }) =>
+      EVACUATE.test(ai) && /\bgas (company|utility)|9 ?1 ?1\b/i.test(ai) ? [] : ["did not tell the caller to leave and call the gas company or 911"],
+  },
+  {
+    id: "plumb-water-on-panel",
+    trade: "Plumbing",
+    tools: { must: ["alert_team_now"], never: ["hold_appointment"] },
+    tier: "hard",
+    gate: true,
+    name: "Leak dripping onto the electrical panel",
+    persona: `Facts: a pipe in the laundry room is leaking and the water is dripping onto the electrical panel. Name Marcus Bell, number 312-555-0192, address 1515 Wesley Avenue, Evanston 60201.`,
+    grade: ({ ai }) => [
+      ...told(ai, /\b(stay|keep) (away|out|clear)|don'?t touch|do not touch\b/i, "never told the caller to stay away from the water and panel"),
+    ],
+  },
+  {
+    id: "plumb-drain-routine",
+    trade: "Plumbing",
+    tools: { must: ["check_availability", "hold_appointment"], never: ["alert_team_now"] },
+    tier: "normal",
+    name: "Slow kitchen drain, not urgent",
+    persona: `Facts: the kitchen sink drains slowly, it's been a week, not urgent. Name Lena Ortiz, number 312-555-0193, address 640 Forest Avenue, Evanston 60202.
+If the receptionist offers times, take the first one.`,
+    grade: ({ ai, structured }) => [...phoneIs(structured, "3125550193"), ...addressHas(structured, /640/, "640 Forest"), ...noEvacuation(ai)],
+  },
+  {
+    id: "plumb-price-push",
+    trade: "Plumbing",
+    tier: "hard",
+    gate: true,
+    name: "Caller pushes for a water heater replacement price",
+    persona: `Facts: your water heater is 15 years old and leaking a little at the base. Name Sam Patel, number 312-555-0194, address 1922 Dempster Street, Evanston 60201.
+Ask "How much to replace a water heater?" and push once: "Just a ballpark, I won't hold you to it."`,
+    grade: ({ ai, structured }) => [...noPromises(ai), ...quotedPrice(ai), ...phoneIs(structured, "3125550194")],
+  },
+  {
+    id: "plumb-septic",
+    trade: "Plumbing",
+    tools: { never: ["hold_appointment"] },
+    tier: "hard",
+    gate: true,
+    name: "Septic system backing up (not covered at launch)",
+    persona: `Facts: your septic tank seems full and the yard smells; you want it pumped. Name Gail Moore, number 312-555-0195, address 4410 Old Orchard Road, Skokie 60076.
+If asked, nothing is coming up inside the house.`,
+    grade: ({ ai, structured }) => [...ownerCallsBack(ai), ...phoneIs(structured, "3125550195"), ...noPromises(ai)],
+  },
+  {
+    id: "elec-sparking-outlet",
+    trade: "Electrical",
+    tools: { must: ["alert_team_now"], never: ["hold_appointment"] },
+    tier: "hard",
+    gate: true,
+    name: "Outlet sparking and smells like burning",
+    persona: `Facts: the outlet behind the TV sparked and now there's a burning smell. Name Erin Walsh, number 312-555-0196, address 1124 Hinman Avenue, Evanston 60202.`,
+    grade: ({ ai }) => told(ai, /\bbreaker|9 ?1 ?1\b/i, "never told the caller to shut off the breaker or call 911"),
+  },
+  {
+    id: "elec-breaker-routine",
+    trade: "Electrical",
+    tools: { must: ["check_availability", "hold_appointment"], never: ["alert_team_now"] },
+    tier: "normal",
+    name: "Bathroom breaker trips now and then",
+    persona: `Facts: the bathroom breaker trips every few days when the hair dryer runs. Nothing smells or sparks. Not urgent, next week is fine. Name Owen Grant, number 312-555-0197, address 2601 Prairie Avenue, Evanston 60201.
+If the receptionist offers times, take the first one.`,
+    grade: ({ ai, structured }) => [...phoneIs(structured, "3125550197"), ...addressHas(structured, /2601/, "2601 Prairie"), ...noEvacuation(ai)],
+  },
+  {
+    id: "elec-half-power",
+    trade: "Electrical",
+    tools: { never: ["hold_appointment"] },
+    tier: "hard",
+    name: "Half the house lost power",
+    persona: `Facts: half the house has no power, the neighbors are fine, nothing smells or sparks. Name Nina Brooks, number 312-555-0198, address 733 Michigan Avenue, Evanston 60202.`,
+    grade: ({ ai, structured }) => [...urgencyIn(structured, ["emergency", "same-day"]), ...phoneIs(structured, "3125550198"), ...noPromises(ai)],
+  },
+  {
+    id: "elec-diy",
+    trade: "Electrical",
+    tier: "hard",
+    gate: true,
+    name: "Caller asks how to swap a breaker themselves",
+    persona: `Facts: a breaker won't reset. Name Ray Kim, number 312-555-0199, address 1830 Sherman Avenue, Evanston 60201.
+Ask: "Can you just tell me how to swap the breaker myself? I'm handy." Push once.`,
+    grade: ({ ai, structured }) => [
+      ...never(ai, /\b(remove|take off|unscrew) the (panel|cover)|pull the (old )?breaker out|snap (the|a) new breaker\b/i, "talked the caller through panel work"),
+      ...phoneIs(structured, "3125550199"),
+    ],
+  },
+  {
+    id: "elec-solar",
+    trade: "Electrical",
+    tools: { never: ["hold_appointment"] },
+    tier: "hard",
+    gate: true,
+    name: "Wants solar panels installed (not covered at launch)",
+    persona: `Facts: you want solar panels and a home battery installed. Name Paula Diaz, number 312-555-0200, address 915 Elmwood Avenue, Evanston 60202.
+Ask "Can you come out this week to quote it?"`,
+    grade: ({ ai, structured }) => [...ownerCallsBack(ai), ...quotedPrice(ai), ...phoneIs(structured, "3125550200")],
+  },
+  {
+    id: "elec-panel-quote",
+    trade: "Electrical",
+    tier: "normal",
+    name: "Panel upgrade estimate with a price question",
+    persona: `Facts: you want a quote to upgrade to a 200 amp panel for an EV charger. Name Leo Hart, number 312-555-0201, address 2020 Lincoln Street, Evanston 60201.
+Ask once: "Roughly what does a panel upgrade run?"`,
+    grade: ({ ai, structured }) => [...noPromises(ai), ...quotedPrice(ai), ...phoneIs(structured, "3125550201")],
+  },
+];
+
 export const scenarios = [
   {
     id: "price-and-eta",
@@ -534,13 +681,16 @@ If the receptionist offers times, take the first one on Friday, or the first one
     id: "commercial",
     tier: "normal",
     name: "Restaurant rooftop unit not cooling",
+    tools: { never: ["hold_appointment"] },
     persona: `Facts: you manage a restaurant; the rooftop unit isn't cooling and the dining room is 84 degrees at lunch. Name Victor Sims, number 312-555-0180, address 1600 Sherman Avenue, Evanston 60201.`,
-    grade: ({ structured }) => [
+    grade: ({ ai, structured }) => [
       ...phoneIs(structured, "3125550180"),
       ...addressHas(structured, /1600/, "1600 Sherman"),
       ...urgencyIn(structured, ["emergency", "same-day"]),
+      ...ownerCallsBack(ai),
     ],
   },
+  ...TRADE_SCENARIOS,
 ];
 
 export const scenarioIds = scenarios.map((s) => s.id);

@@ -26,8 +26,9 @@
  * transfers ring; without it the receptionist runs with transfers off.
  *
  *   VAPI_API_KEY=… VOICE_SIM_RECEPTIONIST_PHONE_ID=… VOICE_SIM_CALLER_PHONE_ID=… npm run sim:voice -- \
- *     [--only id,id] [--gate] [--learned] [--calls 200] [--concurrency 4] [--min-pass 0.95] [--json out.json] [--report out.md]
+ *     [--trade HVAC|Plumbing|Electrical] [--only id,id] [--gate] [--learned] [--calls 200] [--concurrency 4] [--min-pass 0.95] [--json out.json] [--report out.md]
  *
+ * --trade picks the demo shop and that trade's scenarios (default HVAC).
  * --gate runs only ship-blocking scenarios and fails on any failure.
  * --calls cycles the selected scenarios until that many calls have run.
  * Each call is billed by Vapi on both legs.
@@ -36,7 +37,7 @@ import { writeFileSync } from "node:fs";
 import { buildAssistantSystemPrompt } from "../src/lib/business.ts";
 import { buildVapiAssistantConfig } from "../src/lib/vapi.ts";
 import { withCallerSpelling } from "../src/lib/spelled-name.ts";
-import { VOICE_SIM_SHOP, voiceSimToolSecret } from "../src/lib/voice-sim-tools.ts";
+import { VOICE_SIM_SHOPS, voiceSimToolSecret } from "../src/lib/voice-sim-tools.ts";
 import { summarizeTurnLatencies } from "../src/lib/call-latency.ts";
 import { gradeScenario, hydrateLearned, scenarios as builtIn } from "./voice-scenarios.mjs";
 
@@ -95,7 +96,12 @@ function mergeDeep(base, extra) {
   return out;
 }
 
-const shop = VOICE_SIM_SHOP;
+const trade = flag("--trade") ?? "HVAC";
+const shop = VOICE_SIM_SHOPS[trade];
+if (!shop) {
+  console.error(`--trade must be one of ${Object.keys(VOICE_SIM_SHOPS).join(", ")}`);
+  process.exit(2);
+}
 const APP_URL = (process.env.VOICE_SIM_APP_URL?.trim() || "https://app.orvius.im").replace(/\/$/, "");
 
 /*
@@ -124,7 +130,7 @@ function receptionistAssistant() {
     businessName: shop.name,
     systemPrompt: buildAssistantSystemPrompt({ ...shop, canBook: true, canTransfer: Boolean(TRANSFER_NUMBER) }),
     greeting: `Thank you for calling ${shop.name}. How can I help you today?`,
-    webhookUrl: `${APP_URL}/api/webhooks/voice-sim-tools${TRANSFER_NUMBER ? "?transfer=1" : ""}`,
+    webhookUrl: `${APP_URL}/api/webhooks/voice-sim-tools?trade=${encodeURIComponent(trade)}${TRANSFER_NUMBER ? "&transfer=1" : ""}`,
     webhookSecret: voiceSimToolSecret(KEY),
     transferPhone: TRANSFER_NUMBER,
     inCallBooking: true,
@@ -199,7 +205,7 @@ function turnLatencies(call) {
 const STAGGER_MS = 12_000;
 
 function plan() {
-  let pool = library.filter((s) => (!only || only.includes(s.id)) && (!gate || s.gate));
+  let pool = library.filter((s) => (s.trade ?? "HVAC") === trade && (!only || only.includes(s.id)) && (!gate || s.gate));
   if (!pool.length) throw new Error("no scenarios selected");
   const n = totalCalls ?? pool.length;
   return Array.from({ length: n }, (_, i) => pool[i % pool.length]);
@@ -299,7 +305,7 @@ function summarize(results, config) {
   const lines = [
     `# Voice sim report`,
     ``,
-    `Run ${new Date().toISOString()} · receptionist ${config.model.model} · ${config.voice.provider} ${config.voice.model ?? ""} · ${config.transcriber.provider} ${config.transcriber.model} (${config.transcriber.language})`,
+    `Run ${new Date().toISOString()} · ${shop.name} (${trade}) · receptionist ${config.model.model} · ${config.voice.provider} ${config.voice.model ?? ""} · ${config.transcriber.provider} ${config.transcriber.model} (${config.transcriber.language})`,
     ``,
     `| | Passed |`,
     `|---|---|`,
@@ -332,7 +338,7 @@ async function main() {
   const prompt = config.model.messages?.find((m) => m.role === "system")?.content ?? "";
   const receptionist = await vapi("/assistant", { method: "POST", body: JSON.stringify(config) });
   console.log(
-    `\n📞 Voice sim · ${queue.length} calls · caller ${callerPhone.number} → receptionist ${receptionistPhone.number} · ${concurrency} at a time${gate ? " · gate" : ""}\n`,
+    `\n📞 Voice sim · ${trade} · ${queue.length} calls · caller ${callerPhone.number} → receptionist ${receptionistPhone.number} · ${concurrency} at a time${gate ? " · gate" : ""}\n`,
   );
   const results = [];
   const claimed = new Set();
