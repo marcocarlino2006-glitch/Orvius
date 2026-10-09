@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { afterResponse } from "@/lib/after-response";
+import { scheduleBackstop } from "@/lib/cron-backstop";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { linkTouchToCustomer, normalizePhone } from "@/lib/customer";
 import { inferExplicitUrgency, maybeAutoBookLead } from "@/lib/auto-job";
@@ -371,6 +372,7 @@ export async function POST(request: NextRequest) {
   });
 
   await afterResponse(() => drainOwnerAlerts({ at: "twilio.sms", messageSid, businessId: business.id }));
+  scheduleBackstop("twilio.sms");
 
   const safetyReply =
     autoBook.skipReason === "safety_escalation" ||

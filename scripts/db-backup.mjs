@@ -7,6 +7,9 @@
  *   node scripts/db-backup.mjs drill                        # backup, then drill it
  *   … --encrypt                                             # gzip + AES-256-GCM with BACKUP_ENCRYPTION_KEY
  *
+ * Backups the app took (/api/cron/backup) decrypt with BACKUP_ENCRYPTION_KEY if
+ * Vercel has one, otherwise with AUTH_SECRET and CRON_SECRET both set here.
+ *
  * `backup` writes every table's schema and rows from DATABASE_URL (local
  * SQLite or Turso) to one JSON file. `restore-drill` rebuilds that file into a
  * fresh temporary SQLite database and checks every table's row count matches —
@@ -19,7 +22,7 @@
  * only ever stores the --encrypt form.
  */
 import { createClient } from "@libsql/client";
-import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from "node:crypto";
+import { createCipheriv, createDecipheriv, createHash, randomBytes, scryptSync } from "node:crypto";
 import { gunzipSync, gzipSync } from "node:zlib";
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -76,7 +79,17 @@ export function decryptDump(buf, passphrase) {
   return JSON.parse(gunzipSync(Buffer.concat([decipher.update(buf.subarray(o)), decipher.final()])).toString("utf8"));
 }
 
-export function readDump(file, passphrase = process.env.BACKUP_ENCRYPTION_KEY) {
+/** Same as src/lib/db-backup.ts: the key for backups the app took, from AUTH_SECRET and CRON_SECRET. */
+export function backupPassphrase(env = process.env) {
+  const explicit = env.BACKUP_ENCRYPTION_KEY?.trim();
+  if (explicit) return explicit;
+  const auth = env.AUTH_SECRET?.trim();
+  const cron = env.CRON_SECRET?.trim();
+  if (!auth || !cron) return undefined;
+  return createHash("sha256").update(`orvius-backup/1\n${auth}\n${cron}`).digest("hex");
+}
+
+export function readDump(file, passphrase = backupPassphrase()) {
   const buf = readFileSync(file);
   return isEncrypted(buf) ? decryptDump(buf, passphrase) : JSON.parse(buf.toString("utf8"));
 }

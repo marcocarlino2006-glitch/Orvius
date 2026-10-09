@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
+import { scheduleBackstop } from "@/lib/cron-backstop";
 import { lateCrons } from "@/lib/cron-runs";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
+/* Room for a late sweep picked up after the response (cron-backstop.ts). */
+export const maxDuration = 60;
 
 export type PublicStatus = {
   status: "operational" | "degraded";
@@ -67,6 +70,8 @@ export async function GET() {
         .then((late) => (late.length ? "late" : "on_time"))
         .catch(() => "unknown" as const)
     : "unknown";
+
+  if (sweeps === "late") scheduleBackstop("status");
 
   const status = databaseUp ? "operational" : "degraded";
   const body: PublicStatus = {
