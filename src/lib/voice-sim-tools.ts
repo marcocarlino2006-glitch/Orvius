@@ -8,6 +8,7 @@ import {
   heldReply,
   NO_ALT_NOTE,
   NO_SLOTS_REPLY,
+  outsideScopeReply,
   URGENT_NO_BOOK_REPLY,
   PASSED_TO_NETWORK_REPLY,
   NETWORK_NOT_A_YES_REPLY,
@@ -20,6 +21,7 @@ import {
   type ToolCall,
 } from "@/lib/in-call-tool-defs";
 import { classifyRequest } from "@/lib/trade-playbooks";
+import { outsideScope } from "@/lib/trade-scope";
 
 /*
   The voice sim's receptionist carries the same booking, alert and transfer
@@ -33,21 +35,35 @@ import { classifyRequest } from "@/lib/trade-playbooks";
   without that key.
 */
 
-export const VOICE_SIM_SHOP = {
-  name: "Summit HVAC",
+const WEEKDAYS = JSON.stringify(
+  Object.fromEntries(["monday", "tuesday", "wednesday", "thursday", "friday"].map((d) => [d, { open: "08:00", close: "18:00" }])),
+);
+const SERVICES = JSON.stringify([
+  { name: "Emergency repair", description: "Same-day urgent service" },
+  { name: "Maintenance", description: "Scheduled maintenance visit" },
+]);
+const simShop = (name: string, trade: "HVAC" | "Plumbing" | "Electrical") => ({
+  name,
   greeting: null,
-  trade: "HVAC",
+  trade,
   timezone: "America/Chicago",
-  hoursJson: JSON.stringify(
-    Object.fromEntries(
-      ["monday", "tuesday", "wednesday", "thursday", "friday"].map((d) => [d, { open: "08:00", close: "18:00" }]),
-    ),
-  ),
-  servicesJson: JSON.stringify([
-    { name: "Emergency repair", description: "Same-day urgent service" },
-    { name: "Maintenance", description: "Scheduled maintenance visit" },
-  ]),
+  hoursJson: WEEKDAYS,
+  servicesJson: SERVICES,
+});
+
+/** One demo shop per launched trade; each sim run answers as one of them. */
+export const VOICE_SIM_SHOPS = {
+  HVAC: simShop("Summit HVAC", "HVAC"),
+  Plumbing: simShop("Summit Plumbing", "Plumbing"),
+  Electrical: simShop("Summit Electric", "Electrical"),
 };
+export type VoiceSimTrade = keyof typeof VOICE_SIM_SHOPS;
+export const VOICE_SIM_SHOP = VOICE_SIM_SHOPS.HVAC;
+
+export function voiceSimShop(trade: string | null | undefined) {
+  return VOICE_SIM_SHOPS[(trade ?? "HVAC") as VoiceSimTrade] ?? VOICE_SIM_SHOP;
+}
+type SimShop = typeof VOICE_SIM_SHOP;
 
 export function voiceSimToolSecret(vapiApiKey: string) {
   return createHash("sha256").update(`orvius-voice-sim-tools:${vapiApiKey}`).digest("hex");
@@ -62,22 +78,24 @@ export function voiceSimSecretMatches(presented: string | null, vapiApiKey: stri
 
 const str = (value: unknown) => (typeof value === "string" && value.trim() ? value.trim() : null);
 
-function shape(serviceType: string | null, urgency: string | null, callerWords?: string | null) {
-  const playbook = classifyRequest({ business: VOICE_SIM_SHOP, serviceType, urgency });
-  const heard = callerWords ? classifyRequest({ business: VOICE_SIM_SHOP, serviceType, urgency, callerWords }) : playbook;
+function shape(shop: SimShop, serviceType: string | null, urgency: string | null, callerWords?: string | null) {
+  const playbook = classifyRequest({ business: shop, serviceType, urgency });
+  const heard = callerWords ? classifyRequest({ business: shop, serviceType, urgency, callerWords }) : playbook;
   return { playbook: { ...playbook, safety: playbook.safety ?? heard.safety, urgency: heard.urgency }, durationMin: playbook.service.durationMin };
 }
 
-function answer(call: ToolCall, now: Date, transferring: boolean, callerWords: string | null) {
-  const tz = VOICE_SIM_SHOP.timezone;
+function answer(shop: SimShop, call: ToolCall, now: Date, transferring: boolean, callerWords: string | null) {
+  const tz = shop.timezone;
   if (call.name === "check_availability") {
-    const { playbook, durationMin } = shape(str(call.args.serviceType), str(call.args.urgency), callerWords);
+    const { playbook, durationMin } = shape(shop, str(call.args.serviceType), str(call.args.urgency), callerWords);
     if (playbook.safety) return dangerRefusal(playbook.safety.instruction);
+    const outside = outsideScope(shop.trade, str(call.args.serviceType));
+    if (outside) return outsideScopeReply(outside.label);
     if (playbook.urgency === "emergency") return URGENT_NO_BOOK_REPLY;
     const base = {
       now,
       urgency: (playbook.urgency ?? str(call.args.urgency) ?? undefined) as Parameters<typeof findAvailableSchedules>[0]["urgency"],
-      hoursJson: VOICE_SIM_SHOP.hoursJson,
+      hoursJson: shop.hoursJson,
       timezone: tz,
       existing: [],
       capacity: 1,
@@ -96,11 +114,13 @@ function answer(call: ToolCall, now: Date, transferring: boolean, callerWords: s
     const raw = str(call.args.slot);
     const at = raw ? new Date(raw) : null;
     if (!at || Number.isNaN(at.getTime())) return BAD_SLOT_REPLY;
-    const { playbook, durationMin } = shape(str(call.args.serviceType), null, callerWords);
+    const { playbook, durationMin } = shape(shop, str(call.args.serviceType), null, callerWords);
     if (playbook.safety) return dangerRefusal(playbook.safety.instruction);
+    const outside = call.name === "hold_appointment" ? outsideScope(shop.trade, str(call.args.serviceType)) : null;
+    if (outside) return outsideScopeReply(outside.label);
     if (playbook.urgency === "emergency" && call.name === "hold_appointment") return URGENT_NO_BOOK_REPLY;
     const open = findAvailableSchedules(
-      { now, hoursJson: VOICE_SIM_SHOP.hoursJson, timezone: tz, existing: [], capacity: 1, durationMin },
+      { now, hoursJson: shop.hoursJson, timezone: tz, existing: [], capacity: 1, durationMin },
       { count: 1, onlyAt: at },
     );
     if (!open.length) return SLOT_TAKEN_REPLY;
@@ -115,8 +135,9 @@ function answer(call: ToolCall, now: Date, transferring: boolean, callerWords: s
 
 export function answerVoiceSimToolCalls(
   toolCalls: ToolCall[],
-  options: { now?: Date; transferring?: boolean; callerWords?: string | null } = {},
+  options: { now?: Date; transferring?: boolean; callerWords?: string | null; trade?: string | null } = {},
 ) {
   const now = options.now ?? new Date();
-  return toolCalls.map((call) => ({ toolCallId: call.id, result: answer(call, now, Boolean(options.transferring), options.callerWords ?? null) }));
+  const shop = voiceSimShop(options.trade);
+  return toolCalls.map((call) => ({ toolCallId: call.id, result: answer(shop, call, now, Boolean(options.transferring), options.callerWords ?? null) }));
 }

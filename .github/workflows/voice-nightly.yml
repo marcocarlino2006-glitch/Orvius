@@ -42,9 +42,15 @@ jobs:
         run: npm ci
       - if: steps.gate.outputs.run == 'true'
         name: Run voice simulator
-        run: npm run sim:voice -- --learned --min-pass 0.9 --json voice-results.json --report voice-report.md
+        # Every launched trade, one receptionist each; a trade that fails still lets the others run.
+        run: |
+          status=0
+          npm run sim:voice -- --trade HVAC --learned --min-pass 0.9 --json voice-results-hvac.json --report voice-report-hvac.md || status=1
+          npm run sim:voice -- --trade Plumbing --min-pass 0.9 --json voice-results-plumbing.json --report voice-report-plumbing.md || status=1
+          npm run sim:voice -- --trade Electrical --min-pass 0.9 --json voice-results-electrical.json --report voice-report-electrical.md || status=1
+          exit $status
       - if: always() && steps.gate.outputs.run == 'true'
-        run: cat voice-report.md >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
+        run: cat voice-report-*.md >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
       # Results hold synthetic callers only — the receptionist's tools answer
       # from the app's database-free sandbox and call reports go nowhere, so no
       # shop or customer data is ever in these transcripts.
@@ -53,7 +59,7 @@ jobs:
         with:
           name: voice-results
           path: |
-            voice-results.json
-            voice-report.md
+            voice-results-*.json
+            voice-report-*.md
           if-no-files-found: ignore
           retention-days: 30

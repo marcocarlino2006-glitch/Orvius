@@ -140,7 +140,7 @@ test("nightly voice run skips honestly without secrets and never uploads shop da
   assert.match(wf, /schedule:/);
   assert.match(wf, /VOICE_SIM_RECEPTIONIST_PHONE_ID/);
   assert.match(wf, /run=false/);
-  assert.match(wf, /sim:voice -- .*--json voice-results\.json/);
+  assert.match(wf, /sim:voice -- --trade HVAC .*--json voice-results-hvac\.json/);
   assert.doesNotMatch(wf, /backups\/|db-backup/);
 });
 
