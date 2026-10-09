@@ -33,6 +33,7 @@ export const osWorkspaceNav: OsNavItem[] = [
   { href: "/dashboard/settings", label: "Settings", icon: "settings" },
   { href: "/dashboard/price-book", label: "Price book", icon: "billing" },
   { href: "/dashboard/profile", label: "Profile", icon: "profile" },
+  { href: "/dashboard/reports", label: "Reports", icon: "billing" },
   { href: "/dashboard/billing", label: "Billing", icon: "billing" },
 ];
 

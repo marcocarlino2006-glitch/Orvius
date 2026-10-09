@@ -8,7 +8,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { pricing } from "@/lib/company";
 import { supportMailto, supportPhone } from "@/lib/support";
 import { fetchAccount, invalidateAccount } from "@/lib/account-client";
-import { ROLE_LABELS, type ShopRole, type ShopSummary } from "@/lib/workspace-access-labels";
+import { ROLE_LABELS, can, type ShopRole, type ShopSummary } from "@/lib/workspace-access-labels";
 
 type AccountData = {
   business: {
@@ -48,7 +48,8 @@ type IconName =
   | "phone"
   | "bell"
   | "back"
-  | "check";
+  | "check"
+  | "reports";
 
 type MenuItem = {
   href: string;
@@ -61,6 +62,7 @@ const accountLinks: MenuItem[] = [
   { href: "/dashboard?settings=account", label: "Account", icon: "account" },
   { href: "/dashboard?settings=receptionist", label: "Receptionist", icon: "personalization" },
   { href: "/dashboard/price-book", label: "Price book", icon: "pricebook" },
+  { href: "/dashboard/reports", label: "Reports", icon: "reports" },
   { href: "/dashboard?settings=general", label: "Settings", icon: "settings" },
 ];
 
@@ -295,7 +297,7 @@ export function OsSidebarFooter({ newLeads = 0 }: { newLeads?: number }) {
           </div>
 
           <div className="mx-group">
-            {accountLinks.map((item) => (
+            {accountLinks.filter((item) => item.href !== "/dashboard/reports" || !account?.role || can(account.role, "reports.view")).map((item) => (
               <Link key={item.label} href={item.href} role="menuitem" className="mx-link" onClick={close}>
                 <MenuIcon name={item.icon} />
                 <span>{item.label}</span>
@@ -381,6 +383,7 @@ export function OsSidebarFooter({ newLeads = 0 }: { newLeads?: number }) {
 }
 
 const MENU_PATHS: Record<IconName, string[]> = {
+  reports: ["M5 19.5V11M10 19.5V5M15 19.5v-6M20 19.5V8", "M3.5 19.5h17"],
   account: ["M12 11.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z", "M5 20a7 7 0 0 1 14 0"],
   personalization: [
     "M4.5 5.5a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1v-3Z",
