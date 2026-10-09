@@ -1,3 +1,4 @@
+import { SupportContact } from "@/components/support-contact";
 import type { Metadata } from "next";
 import { HelpSearch } from "@/components/help-search";
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
@@ -33,10 +34,7 @@ export default function HelpPage() {
               keywords,
             }))}
           />
-          <p className="help-contact">
-            Can’t find it? Email <a href={`mailto:${company.supportEmail}`}>{company.supportEmail}</a> or call{" "}
-            <a href="tel:+18446439170">+1 844 643 9170</a>.
-          </p>
+          <SupportContact className="help-contact" lead="Can’t find it?" subject="Help" path="/help" />
         </div>
       </section>
     </MarketingShell>

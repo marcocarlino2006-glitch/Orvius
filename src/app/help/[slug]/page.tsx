@@ -1,3 +1,4 @@
+import { SupportContact } from "@/components/support-contact";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -47,8 +48,8 @@ export default async function HelpArticlePage({ params }: { params: Promise<{ sl
               </ul>
             </aside>
           ) : null}
+          <SupportContact className="help-contact" lead="Still stuck?" subject="Help" path={`/help/${article.slug}`} />
           <p className="help-contact">
-            Still stuck? Email <a href={`mailto:${company.supportEmail}`}>{company.supportEmail}</a>.{" "}
             <Link href="/help">All help articles</Link>
           </p>
         </div>

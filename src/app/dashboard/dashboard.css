@@ -4299,6 +4299,19 @@
   color: var(--void);
 }
 
+.billing-lock-support {
+  margin: 0.9rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--ash);
+}
+
+.billing-lock-support a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
 .os-sidebar-footer {
   margin-top: auto;
   padding-top: 1rem;

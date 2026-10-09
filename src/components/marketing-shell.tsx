@@ -4,6 +4,10 @@ import { OrviusLogo } from "@/components/orvius-logo";
 import { I18nRuntime } from "@/components/i18n-runtime";
 import { PremiumNav } from "@/components/premium-nav";
 import { UtilityDock } from "@/components/utility-dock";
+import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
+import { supportEmail, supportMailto, supportPhone } from "@/lib/support";
+
+const phone = supportPhone();
 
 type MarketingShellProps = {
   children: React.ReactNode;
@@ -65,8 +69,9 @@ export function MarketingShell({ children }: MarketingShellProps) {
             </nav>
             <nav className="mkt-footer-col" aria-label="Connect">
               <p className="mkt-footer-heading font-sans">Connect</p>
-              <a href="tel:+18446439170">+1 844 643 9170</a>
-              <a href="mailto:hello@orvius.im">hello@orvius.im</a>
+              <a href={supportMailto({ subject: "Support" })}>Support · {supportEmail}</a>
+              {phone ? <a href={`tel:${phone.tel}`}>Call support · {phone.display}</a> : null}
+              <a href={demoLineHref()}>Hear the AI · {DEMO_LINE_DISPLAY}</a>
               <Link href="/status">Status</Link>
             </nav>
           </div>

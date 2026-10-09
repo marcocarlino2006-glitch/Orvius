@@ -326,6 +326,17 @@ try {
   fail("/api/billing/checkout", `unreachable: ${error.message}`);
 }
 
+try {
+  const { text } = await get("/help");
+  if (/Call or text <a href="tel:/.test(text)) {
+    pass("Support", "a phone number a person answers is on the help center");
+  } else {
+    warn("Support", "email only — set NEXT_PUBLIC_ORVIUS_SUPPORT_PHONE in Vercel to a number a person answers, then redeploy");
+  }
+} catch (error) {
+  warn("Support", `could not read /help: ${error.message}`);
+}
+
 /* ── 4. Privileged callers still get what they need ── */
 
 if (ADMIN_KEY) {

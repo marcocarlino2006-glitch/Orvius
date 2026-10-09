@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { BillingPortalButton } from "@/components/billing-portal-button";
 import { CheckoutButton } from "@/components/checkout-button";
+import { SupportContact } from "@/components/support-contact";
 import { company } from "@/lib/company";
 import { pricing } from "@/lib/pricing-plans";
 import type { PayPromptTone } from "@/lib/pay-prompt";
@@ -79,6 +80,7 @@ export function BillingLockScreen({
             Download my data
           </a>
         </div>
+        <SupportContact className="billing-lock-support font-sans" subject="Billing locked" path="/dashboard/billing" />
       </div>
     </div>
   );
