@@ -670,6 +670,8 @@ model DemoTicket {
   startedAt  DateTime?
   endedAt    DateTime?
   vapiCallId String?   @unique
+  /// Set when the visitor typed their own business: the call answers as it.
+  previewId  String?
   createdAt  DateTime  @default(now())
 
   @@index([status, createdAt])

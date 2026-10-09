@@ -1000,3 +1000,4 @@ CREATE TABLE IF NOT EXISTS "DemoSlot" (
   "ticketId" TEXT,
   "heldUntil" DATETIME NOT NULL
 );
+ALTER TABLE "DemoTicket" ADD COLUMN "previewId" TEXT;

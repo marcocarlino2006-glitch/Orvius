@@ -15,7 +15,8 @@ mock.module(new URL("../src/lib/resolve-shop-line.ts", import.meta.url).href, {
   namedExports: { resolveBusinessByInboundPhone: async () => (assistant.id ? { vapiAssistantId: assistant.id } : null) },
 });
 
-const { checkTicket, endWebDemo, isLineWebCall, joinLine, startWebDemo, WebDemoRefused } = await import("../src/lib/web-demo.ts");
+const { checkTicket, endWebDemo, hashVisitor, isLineWebCall, joinLine, startWebDemo, WebDemoRefused } = await import("../src/lib/web-demo.ts");
+const { createWebPreview } = await import("../src/lib/shop-preview.ts");
 
 const prisma = new PrismaClient();
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
@@ -150,6 +151,37 @@ test("the slot is claimed before the call is made, and given back if Vapi refuse
   assert.equal((await checkTicket(waiting.ticketId)).state, "done");
 });
 
+test("a visitor's own business answers in the browser, with the same two free calls", async () => {
+  await fresh(5);
+  calls.length = 0;
+  const me = ip();
+  const made = await createWebPreview({ shopName: "Ruiz Plumbing & Drain", trade: "Plumbing", serviceArea: "Tucson", visitorKey: hashVisitor(me) });
+  assert.equal(made.ok, true);
+  const preview = await prisma.shopPreview.findUnique({ where: { token: made.token } });
+  assert.equal(preview.ownerPhone, "", "no phone number is asked for or stored");
+  const again = await createWebPreview({ shopName: "Ruiz Plumbing", trade: "Plumbing", visitorKey: hashVisitor(me) });
+  assert.equal(again.token, made.token, "one visitor keeps one preview");
+
+  for (let n = 1; n <= 2; n++) {
+    const t = await joinLine(me, new Date(), preview.id);
+    assert.equal(t.state, "ready");
+    const call = await startWebDemo(t.ticketId, fakeCreate);
+    const body = calls.at(-1);
+    assert.equal(body.assistantId, undefined, "answers as the visitor's business, not the demo shop");
+    assert.match(JSON.stringify(body.assistant), /Ruiz Plumbing/);
+    assert.equal(body.assistant.maxDurationSeconds, 180);
+    assert.equal(body.assistant.metadata.demoTicketId, t.ticketId);
+    const row = await prisma.shopPreview.findUnique({ where: { id: preview.id } });
+    assert.equal(row.callsUsed, n);
+    assert.equal(row.lastVapiCallId, call.id, "the end-of-call report finds this preview");
+    await endWebDemo({ vapiCallId: call.id });
+  }
+  const third = await joinLine(me, new Date(), preview.id);
+  await assert.rejects(startWebDemo(third.ticketId, fakeCreate), /used its free calls/);
+  assert.equal((await prisma.demoSlot.count({ where: { ticketId: third.ticketId, heldUntil: { gt: new Date() } } })), 0, "the refused turn frees its slot");
+  await prisma.shopPreview.delete({ where: { id: preview.id } });
+});
+
 test("web calls stay off the phone line's count, and web calls that skipped the line hang up", () => {
   const hook = read("src/app/api/webhooks/vapi/route.ts");
   assert.match(hook, /type === "webCall"/);
@@ -157,6 +189,8 @@ test("web calls stay off the phone line's count, and web calls that skipped the 
   assert.match(hook, /isLineWebCall\(/, "a web call to the demo assistant must come through the line");
   assert.match(hook, /endWebDemo\(\{ vapiCallId/, "the end-of-call report frees the slot");
   assert.match(read("src/lib/demo-load.ts"), /channel: \{ not: "web_demo" \}/);
+  assert.match(hook, /recordPreviewOutcome\(preview, message\);\s*if \(message\.call\?\.type === "webCall"\) after\(\(\) => endWebDemo/, "a browser preview frees its slot when it ends");
+  assert.match(read("src/lib/shop-preview.ts"), /!preview\.ownerPhone\) return;/, "a browser preview never tries to text anyone");
 });
 
 test("the browser never holds a key and errors read as plain words", () => {

@@ -3,6 +3,10 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { SIGNUP_HREF } from "@/lib/signup-href";
+import { isHipaaTrade, TRADES } from "@/lib/trades";
+
+const TRADE_CHOICES = TRADES.filter((t) => !isHipaaTrade(t));
+type Capture = { name?: string; phone?: string; serviceType?: string; urgency?: string; address?: string };
 
 const MAX_SECONDS = 180;
 const POLL_MS = 3000;
@@ -62,8 +66,17 @@ function endTicket(ticketId: string) {
  * Talk to the demo receptionist from the browser. Visitors wait in a real line
  * for one of a few slots; each call is three minutes at most.
  */
-export function TalkInBrowser({ phoneHref, phoneDisplay }: { phoneHref: string; phoneDisplay: string }) {
+export function TalkInBrowser({ phoneHref, phoneDisplay, personal = false }: { phoneHref: string; phoneDisplay: string; personal?: boolean }) {
   const [view, setView] = useState<View>({ state: "checking" });
+  const [shopName, setShopName] = useState("");
+  const [trade, setTrade] = useState<string>("HVAC");
+  const [city, setCity] = useState("");
+  const [answeringAs, setAnsweringAs] = useState<string | null>(null);
+  const [previewToken, setPreviewToken] = useState<string | null>(null);
+  const [capture, setCapture] = useState<Capture | null>(null);
+  const [replayReady, setReplayReady] = useState(false);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [shareNote, setShareNote] = useState<string | null>(null);
   const [lines, setLines] = useState<Line[]>([]);
   const [muted, setMuted] = useState(false);
   const [speaking, setSpeaking] = useState(false);
@@ -180,8 +193,18 @@ export function TalkInBrowser({ phoneHref, phoneDisplay }: { phoneHref: string; 
 
   const join = useCallback(async () => {
     setView({ state: "joining" });
+    setCapture(null);
+    setReplayReady(false);
+    setShareUrl(null);
+    setShareNote(null);
+    const name = shopName.trim();
+    const asShop = personal && name.length >= 2;
+    setAnsweringAs(asShop ? name : null);
     try {
-      const data = (await api({ action: "join" })) as ServerView;
+      const data = (await api(
+        asShop ? { action: "join", business: { name, trade, city: city.trim() || undefined } } : { action: "join" },
+      )) as ServerView & { previewToken?: string };
+      setPreviewToken(data.previewToken ?? null);
       if (data.state === "ready") {
         ticketRef.current = data.ticketId;
         return void start(data.ticketId);
@@ -190,7 +213,50 @@ export function TalkInBrowser({ phoneHref, phoneDisplay }: { phoneHref: string; 
     } catch (error) {
       setView({ state: "error", message: error instanceof Error ? error.message : "Something went wrong." });
     }
-  }, [apply, start]);
+  }, [apply, start, personal, shopName, trade, city]);
+
+  const isDone = view.state === "done";
+  useEffect(() => {
+    if (!isDone || !previewToken) return;
+    let tries = 0;
+    let stop = false;
+    const tick = () => {
+      fetch(`/api/preview/${previewToken}`, { cache: "no-store" })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data: { capture?: Capture | null; replayable?: boolean } | null) => {
+          if (stop || !data) return;
+          if (data.capture) setCapture(data.capture);
+          if (data.replayable) setReplayReady(true);
+          if ((!data.capture || !data.replayable) && ++tries < 15) window.setTimeout(tick, 2000);
+        })
+        .catch(() => undefined);
+    };
+    const first = window.setTimeout(tick, 1500);
+    return () => {
+      stop = true;
+      window.clearTimeout(first);
+    };
+  }, [isDone, previewToken]);
+
+  const share = useCallback(async () => {
+    if (!previewToken) return;
+    setShareNote(null);
+    try {
+      const res = await fetch(`/api/preview/${previewToken}/share`, { method: "POST" });
+      const data = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
+      if (!res.ok || !data.url) throw new Error(data.error ?? "Couldn't make the link. Try again.");
+      setShareUrl(data.url);
+      const text = `Orvius answered the phone as ${answeringAs ?? "my business"}.`;
+      if (navigator.share) {
+        await navigator.share({ title: text, text, url: data.url }).catch(() => undefined);
+      } else {
+        await navigator.clipboard?.writeText(data.url).catch(() => undefined);
+        setShareNote("Link copied.");
+      }
+    } catch (e) {
+      setShareNote(e instanceof Error ? e.message : "Couldn't make the link. Try again.");
+    }
+  }, [previewToken, answeringAs]);
 
   const hangUp = useCallback(() => {
     void vapiRef.current?.stop().catch(() => undefined);
@@ -213,12 +279,52 @@ export function TalkInBrowser({ phoneHref, phoneDisplay }: { phoneHref: string; 
   return (
     <section className="tib" aria-label="Talk to Orvius in your browser" aria-live="polite">
       {view.state === "idle" && (
-        <>
-          <button type="button" className="ov-btn ov-btn--solid tib-go" onClick={join}>
-            <span className="tib-mic" aria-hidden /> Talk to it in your browser
+        <form
+          className={personal ? "tib-form" : undefined}
+          onSubmit={(e) => {
+            e.preventDefault();
+            void join();
+          }}
+        >
+          {personal ? (
+            <div className="tib-fields">
+              <input
+                className="tib-input font-sans"
+                value={shopName}
+                onChange={(e) => setShopName(e.target.value)}
+                placeholder="Your business name"
+                aria-label="Your business name"
+                maxLength={80}
+                autoComplete="organization"
+              />
+              <select className="tib-input tib-select font-sans" value={trade} onChange={(e) => setTrade(e.target.value)} aria-label="What you do">
+                {TRADE_CHOICES.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+              <input
+                className="tib-input font-sans"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="City (optional)"
+                aria-label="City you serve"
+                maxLength={80}
+                autoComplete="address-level2"
+              />
+            </div>
+          ) : null}
+          <button type="submit" className="ov-btn ov-btn--solid tib-go">
+            <span className="tib-mic" aria-hidden />{" "}
+            {personal && shopName.trim().length >= 2 ? `Hear it answer as ${shopName.trim()}` : "Talk to it in your browser"}
           </button>
-          <p className="tib-note font-sans">Uses your microphone. You talk to a demo HVAC shop; calls end after 3 minutes.</p>
-        </>
+          <p className="tib-note font-sans">
+            {personal
+              ? "Talk to it like a customer, in your browser. Uses your microphone, no account. Calls end after 3 minutes."
+              : "Uses your microphone. You talk to a demo HVAC shop; calls end after 3 minutes."}
+          </p>
+        </form>
       )}
 
       {view.state === "joining" && <p className="tib-status font-sans">Getting you a place in line…</p>}
@@ -255,15 +361,17 @@ export function TalkInBrowser({ phoneHref, phoneDisplay }: { phoneHref: string; 
         <div className="tib-card tib-card--live">
           <div className="tib-live-head font-sans">
             <span className={speaking ? "tib-dot tib-dot--talking" : "tib-dot"} aria-hidden />
-            <span>{speaking ? "Orvius is talking" : "Listening"}</span>
+            <span>{speaking ? (answeringAs ? `${answeringAs} is talking` : "Orvius is talking") : "Listening"}</span>
             <span className="tib-timer">{minutes(Math.max(0, MAX_SECONDS - Math.floor((now - view.startedAt) / 1000)))} left</span>
           </div>
-          <p className="tib-note font-sans">Try: &ldquo;My AC stopped blowing cold, can someone come today?&rdquo;</p>
+          <p className="tib-note font-sans">
+            {answeringAs ? `You're the customer calling ${answeringAs}. Say what you need, like a real caller would.` : "Try: \u201cMy AC stopped blowing cold, can someone come today?\u201d"}
+          </p>
           {lines.length > 0 && (
             <ol className="tib-transcript font-sans">
               {lines.map((line, i) => (
                 <li key={i} className={`tib-line tib-line--${line.role}`}>
-                  <span className="tib-who">{line.role === "user" ? "You" : "Orvius"}</span> {line.text}
+                  <span className="tib-who">{line.role === "user" ? "You" : (answeringAs ?? "Orvius")}</span> {line.text}
                 </li>
               ))}
             </ol>
@@ -287,7 +395,46 @@ export function TalkInBrowser({ phoneHref, phoneDisplay }: { phoneHref: string; 
         </div>
       )}
 
-      {view.state === "done" && (
+      {view.state === "done" && answeringAs && (
+        <div className="tib-card">
+          <p className="tib-status font-sans">
+            <strong>That&apos;s how {answeringAs} would answer.</strong> On your real line this lands as a job and a text to you while you&apos;re on the roof.
+          </p>
+          {capture && (capture.serviceType || capture.urgency || capture.name) ? (
+            <div className="tib-capture font-sans">
+              <span className="tib-capture-kicker">The text you&apos;d get after this call</span>
+              <span>{[capture.urgency, capture.serviceType].filter(Boolean).join(" · ") || "New call"}</span>
+              {capture.name ? <span>{capture.name}</span> : null}
+              {capture.address ? <span>{capture.address}</span> : null}
+            </div>
+          ) : (
+            <p className="tib-note font-sans">Writing up the call…</p>
+          )}
+          <div className="tib-controls">
+            <Link href={SIGNUP_HREF} className="ov-btn ov-btn--solid">
+              Put it on my real line
+            </Link>
+            {replayReady ? (
+              <button type="button" className="ov-btn ov-btn--quiet" onClick={share}>
+                Share this call
+              </button>
+            ) : null}
+            <button type="button" className="ov-btn ov-btn--quiet" onClick={() => setView({ state: "idle" })}>
+              Call again
+            </button>
+          </div>
+          {shareUrl ? (
+            <p className="tib-note font-sans">
+              <a href={shareUrl} target="_blank" rel="noreferrer">{shareUrl.replace(/^https?:\/\//, "")}</a>
+              {shareNote ? ` · ${shareNote}` : ""}
+            </p>
+          ) : shareNote ? (
+            <p className="tib-note font-sans" role="alert">{shareNote}</p>
+          ) : null}
+        </div>
+      )}
+
+      {view.state === "done" && !answeringAs && (
         <div className="tib-card">
           <p className="tib-status font-sans">
             <strong>That&apos;s the call your customers get.</strong> In a real shop the job, the text to the customer and the alert to you happen while you&apos;re still on the roof.
