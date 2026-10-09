@@ -1649,3 +1649,32 @@ a.cmd-feed-text:hover {
 .jf-warn {
   color: var(--ox-amber, #9a6200);
 }
+
+.cgs {
+  display: grid;
+  gap: 0.75rem;
+}
+.cgs-turns {
+  margin: 0;
+  padding: 0.75rem;
+  list-style: none;
+  display: grid;
+  gap: 0.4rem;
+  max-height: 16rem;
+  overflow-y: auto;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  border: 1px solid var(--os-line, rgb(0 0 0 / 0.1));
+  border-radius: 10px;
+}
+.cgs-agree {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  font-size: 0.875rem;
+}
+.cgs-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}

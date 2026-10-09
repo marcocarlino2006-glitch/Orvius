@@ -15,4 +15,5 @@ test("next.config sends the security headers on every path", () => {
   assert.match(config, /frame-ancestors 'none'/);
   assert.match(config, /"Referrer-Policy", value: "strict-origin-when-cross-origin"/);
   assert.match(config, /camera=\(\), microphone=\(\), geolocation=\(\)/);
+  assert.match(config, /\["\/", "\/\(try\|launch\)"\][\s\S]*?microphone=\(self\)/, "only the browser demo pages may ask for the microphone");
 });

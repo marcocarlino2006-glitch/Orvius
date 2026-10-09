@@ -4300,3 +4300,107 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
   flex-wrap: wrap;
   gap: 0.5rem;
 }
+
+/* Gallery of real calls */
+.gal-empty {
+  margin: 1.5rem 0 0;
+  padding: 1rem 1.1rem;
+  border: 1px dashed color-mix(in srgb, currentColor 25%, transparent);
+  border-radius: 14px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  opacity: 0.8;
+}
+.gal-grid {
+  list-style: none;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+}
+.gal-card {
+  display: grid;
+  gap: 0.45rem;
+  height: 100%;
+  padding: 1rem 1.1rem;
+  border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+  border-radius: 14px;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+}
+.gal-card:hover {
+  border-color: color-mix(in srgb, currentColor 40%, transparent);
+}
+.gal-meta {
+  font-size: 0.75rem;
+  opacity: 0.65;
+}
+.gal-shop {
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+.gal-quote {
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+.gal-open {
+  margin-top: auto;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Launch page */
+.lx-wrap {
+  max-width: 46rem;
+}
+.lx-title {
+  margin: 0.5rem 0 0;
+  font-size: clamp(2.2rem, 6vw, 3.6rem);
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+}
+.lx-lead {
+  margin: 1rem 0 0;
+  max-width: 38rem;
+  font-size: 1.1rem;
+  line-height: 1.55;
+  opacity: 0.85;
+}
+.lx-video {
+  position: relative;
+  margin: 1.75rem 0 0;
+  aspect-ratio: 16 / 9;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #000;
+}
+.lx-video video,
+.lx-video iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+.lx-alt {
+  margin: 1rem 0 0;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+.lx-alt a {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.lx-steps {
+  margin: 1rem 0 0;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 0.5rem;
+  line-height: 1.55;
+}

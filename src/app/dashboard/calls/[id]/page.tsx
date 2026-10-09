@@ -4,6 +4,7 @@ import { CallPlayer } from "@/components/call-player";
 import { RecordFetchError, recordFailureFrom } from "@/lib/dashboard-fetch";
 import { RecordLoadFailure } from "@/components/record-load-failure";
 import { CorrectReceptionist } from "@/components/correct-receptionist";
+import { CallGalleryShare } from "@/components/call-gallery-share";
 import { TranscriptCinema } from "@/components/transcript-cinema";
 import { OsShell } from "@/components/os-shell";
 import {
@@ -312,6 +313,8 @@ export default function CallDetailPage() {
               <CorrectReceptionist callId={call.id} />
             </ShellPanel>
           )}
+
+          {call.transcript ? <CallGalleryShare callId={call.id} /> : null}
         </div>
       </div>
     </OsShell>

@@ -974,3 +974,23 @@ CREATE TABLE IF NOT EXISTS "DemoTicket" (
 CREATE UNIQUE INDEX IF NOT EXISTS "DemoTicket_vapiCallId_key" ON "DemoTicket"("vapiCallId");
 CREATE INDEX IF NOT EXISTS "DemoTicket_status_createdAt_idx" ON "DemoTicket"("status", "createdAt");
 CREATE INDEX IF NOT EXISTS "DemoTicket_ipHash_createdAt_idx" ON "DemoTicket"("ipHash", "createdAt");
+CREATE TABLE IF NOT EXISTS "GalleryCall" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "businessId" TEXT NOT NULL,
+  "callId" TEXT NOT NULL,
+  "shopName" TEXT NOT NULL,
+  "trade" TEXT NOT NULL,
+  "turnsJson" TEXT NOT NULL,
+  "captureJson" TEXT,
+  "status" TEXT NOT NULL DEFAULT 'pending',
+  "callerConsentAt" DATETIME NOT NULL,
+  "sharedByEmail" TEXT NOT NULL,
+  "reviewedAt" DATETIME,
+  "views" INTEGER NOT NULL DEFAULT 0,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" DATETIME NOT NULL,
+  CONSTRAINT "GalleryCall_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "GalleryCall_callId_key" ON "GalleryCall"("callId");
+CREATE INDEX IF NOT EXISTS "GalleryCall_status_createdAt_idx" ON "GalleryCall"("status", "createdAt");
+CREATE INDEX IF NOT EXISTS "GalleryCall_businessId_idx" ON "GalleryCall"("businessId");

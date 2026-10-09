@@ -164,6 +164,7 @@ model Business {
   memberships        Membership[]
   jobPhotos          JobPhoto[]
   jobSignatures      JobSignature[]
+  galleryCalls       GalleryCall[]
   jobNotes           JobNote[]
   jobLineItems       JobLineItem[]
   priceBookItems     PriceBookItem[]
@@ -1287,4 +1288,29 @@ model CronRun {
   name        String    @id
   lastRunAt   DateTime?
   lastClaimAt DateTime?
+}
+
+/// A real customer call a shop shares on the public gallery. Only the masked
+/// transcript is copied here; it is listed after the owner confirms the caller
+/// agreed and an Orvius admin reviews it.
+model GalleryCall {
+  id              String    @id
+  businessId      String
+  business        Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  callId          String    @unique
+  shopName        String
+  trade           String
+  turnsJson       String
+  captureJson     String?
+  /** pending | listed | removed | withdrawn */
+  status          String    @default("pending")
+  callerConsentAt DateTime
+  sharedByEmail   String
+  reviewedAt      DateTime?
+  views           Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([status, createdAt])
+  @@index([businessId])
 }
