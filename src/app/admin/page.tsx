@@ -12,6 +12,7 @@ import { hearLink } from "@/lib/hear-link";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { CompanyScoreboard, ScoreboardWeek } from "@/lib/company-scoreboard";
+import { revenueLines, valueLines } from "@/lib/revenue-lines";
 import { signupChannelText } from "@/lib/acquisition";
 import { unitCostLines } from "@/lib/unit-cost-lines";
 
@@ -894,6 +895,13 @@ function ScoreboardCard({ board }: { board: CompanyScoreboard }) {
         ) : (
           <p className="py-0.5">No located shops yet.</p>
         )}
+      </div>
+      <div className="mt-4 border-t border-black/5 pt-3 font-sans text-xs text-ash" aria-label="Revenue and value">
+        {[...revenueLines(board.revenue), ...valueLines(board.valueAtRisk ?? [])].map((line) => (
+          <p key={line} className="py-0.5">
+            {line}
+          </p>
+        ))}
       </div>
       <div className="mt-4 border-t border-black/5 pt-3 font-sans text-xs text-ash" aria-label="Unit cost">
         {unitCostLines(board.unitCost ?? null).map((line) => (

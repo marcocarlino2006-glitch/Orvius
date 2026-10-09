@@ -9,6 +9,7 @@ import { getBearerToken, secretsMatch, verifyAdminRequest } from "@/lib/env";
 import { releaseLapsedLines, suspendUnpaidLines } from "@/lib/line-lifecycle";
 import { watchAllLines } from "@/lib/line-watch";
 import { sendDueWeeklyReports } from "@/lib/weekly-report";
+import { runBillingReconcile } from "@/lib/billing-reconcile";
 import { sendFounderScoreboard } from "@/lib/company-scoreboard";
 import { logError, logInfo } from "@/lib/logger";
 import { processNotificationQueue } from "@/lib/notifications";
@@ -125,6 +126,7 @@ export async function GET(request: NextRequest) {
   const stalledPorts = await step("stalled_ports", () => pageStalledPorts());
   const weeklyReports = await step("weekly_reports", () => sendDueWeeklyReports());
   const founderScoreboard = await step("founder_scoreboard", () => sendFounderScoreboard());
+  const billingReconcile = await step("billing_reconcile", () => runBillingReconcile());
   const retention = await step("call_content_retention", () => purgeExpiredCallContent({ budgetMs: 10_000 }));
   const prunedLogs = await step("log_retention", () => pruneOperationalLogs({ budgetMs: 5_000 }));
   const visitorShops = await step("visitor_demo_purge", () => purgeStaleVisitorShops());
@@ -175,6 +177,7 @@ export async function GET(request: NextRequest) {
     lines,
     weeklyReports,
     founderScoreboard,
+    billingMismatches: billingReconcile?.checked ? billingReconcile.mismatches.length : null,
     stalledPorts,
     overage,
     customerConfirmations,
