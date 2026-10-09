@@ -348,7 +348,8 @@ export const DEMAND_CATEGORIES = [
     label: "Lighting",
     patterns: [
       "light fixture",
-      "flickering",
+      "flicker",
+      "lights dim",
       "recessed light",
       "can light",
       "ceiling fan",

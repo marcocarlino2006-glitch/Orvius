@@ -191,6 +191,9 @@ export const NETWORK_UNAVAILABLE_REPLY =
   "Passing along is not available. Take their details and say the office will call to schedule.";
 export const URGENT_NO_BOOK_REPLY =
   "This is an emergency: do not offer or book a time. Say \"I'm marking this urgent so the team calls you right back.\" Then take their name, callback number and address if you don't have them.";
+export function outsideScopeReply(label: string) {
+  return `Do not book this. ${label} isn't work this shop books through you. Take their name, callback number and address, say "I'll have the owner call you back about that," and do not offer a time.`;
+}
 /** The owner chose "alert me first": nothing goes on the schedule from a call. */
 export const OWNER_SETS_TIMES_REPLY =
   "This business sets every time itself. Do not offer or hold a time. Take their name, callback number and what they need, then say \"The team will call you to set a time.\"";

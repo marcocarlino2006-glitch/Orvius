@@ -81,6 +81,7 @@ const HVAC: TradePlaybook = {
     /\b(ac|a\/c|air conditioner|air conditioning)\b.{0,20}\b(died|dead|out|quit|stopped|not working|broke)/,
     /\b(9[0-9]|1[01][0-9])\s*(degrees|in here|inside|in the house)\b/,
     /sin aire( acondicionado)?/,
+    /\b(not|isn'?t|stopped|won'?t) cool(ing)?\b/, /blowing (warm|hot) air/,
     /\bno (heat|cooling|ac|a\/c)\b/, /\basap\b/, /\btoday\b/, /\burgent\b/, /(sin|no (tengo|hay)) calefacci[oó]n/, /\burgente\b/, /\bhoy\b/],
 };
 
@@ -88,11 +89,12 @@ const PLUMBING: TradePlaybook = {
   trade: "Plumbing",
   services: [
     { key: "active_leak", label: "Active leak / burst pipe", durationMin: 90, skill: "leaks", keywords: [/burst/, /\bleak(ing)?\b/, /flood/, /water everywhere/] },
+    // Before drains: "the main sewer line is clogged" is a three-hour sewer job, not a one-hour clog.
+    { key: "sewer", label: "Sewer line", durationMin: 180, skill: "sewer", keywords: [/sewer/, /main line/, /sewage/] },
     { key: "drain_clog", label: "Clogged drain", durationMin: 60, skill: "drains", keywords: [/clog/, /drain/, /backed up/, /slow (drain|sink|tub)/] },
     { key: "water_heater", label: "Water heater", durationMin: 120, skill: "water_heaters", keywords: [/water heater/, /no hot water/, /tankless/] },
     { key: "toilet", label: "Toilet repair", durationMin: 60, skill: "fixtures", keywords: [/toilet/] },
     { key: "fixture", label: "Faucet / fixture", durationMin: 60, skill: "fixtures", keywords: [/faucet/, /sink/, /shower/, /disposal/] },
-    { key: "sewer", label: "Sewer line", durationMin: 180, skill: "sewer", keywords: [/sewer/, /main line/, /sewage/] },
   ],
   fallback: { key: "plumbing_diagnostic", label: "Plumbing diagnostic", durationMin: 90, skill: "general", keywords: [] },
   safety: [
@@ -156,16 +158,16 @@ const general = (key: string, label: string, durationMin: number): PlaybookServi
 const ROOFING: TradePlaybook = {
   trade: "Roofing",
   services: [
-    { key: "roof_leak", label: "Roof leak", durationMin: 90, skill: "repair", keywords: [/leak/, /water (coming|dripping) (in|through)/, /ceiling (stain|drip)/] },
+    { key: "roof_leak", label: "Roof leak", durationMin: 90, skill: "repair", keywords: [/leak/, /water (is )?(coming|dripping|pouring) (in|through)/, /ceiling (stain|drip)/] },
     { key: "storm_damage", label: "Storm damage inspection", durationMin: 90, skill: "inspection", keywords: [/storm/, /hail/, /wind/, /tree (fell|on)/, /missing shingles?/] },
     { key: "gutters", label: "Gutters", durationMin: 60, skill: "gutters", keywords: [/gutter/] },
     { key: "roof_quote", label: "Roof replacement estimate", durationMin: 60, skill: "sales", keywords: [/new roof/, /replace(ment)?/, /quote/, /estimate/] },
   ],
   fallback: general("roof_inspection", "Roof inspection", 60),
   safety: [
-    { key: "roof_collapse", label: "Ceiling sagging or something through the roof", instruction: "Tell the caller to keep everyone out of that room. Call them back now.", keywords: [/ceiling (is )?(sagging|falling|caving|collaps)/, /(tree|branch|limb) (through|in) the (roof|ceiling)/] },
+    { key: "roof_collapse", label: "Ceiling sagging or something through the roof", instruction: "Tell the caller to keep everyone out of that room. Call them back now.", keywords: [/ceiling (is )?(sagging|falling|caving|collaps)/, /(tree|branch|limb).{0,20}(through|in) the (roof|ceiling)/] },
   ],
-  emergency: [/water (coming|pouring|dripping) (in|through)/, /through the (roof|ceiling)/],
+  emergency: [/water (is )?(coming|pouring|dripping) (in|through)/, /through the (roof|ceiling)/],
   sameDay: [/\bleak/, /storm/, /\basap\b/, /\btoday\b/, /\burgent\b/],
 };
 
@@ -180,7 +182,7 @@ const PEST_CONTROL: TradePlaybook = {
   ],
   fallback: general("pest_inspection", "Pest inspection", 60),
   safety: [
-    { key: "allergic_sting", label: "Someone stung with an allergic reaction", instruction: "The caller was told to call 911 if there's swelling or trouble breathing. Call them back now.", keywords: [/(allergic|swelling).{0,30}sting|sting.{0,30}(allergic|swelling)/] },
+    { key: "allergic_sting", label: "Someone stung with an allergic reaction", instruction: "The caller was told to call 911 if there's swelling or trouble breathing. Call them back now.", keywords: [/(allergic|swelling).{0,40}(sting|stung)|(sting|stung).{0,40}(allergic|swelling)/] },
   ],
   emergency: [/swarm/, /\b(in|inside) the (house|bedroom|living room)\b.{0,30}(snake|raccoon|bat)/],
   sameDay: [/wasp/, /hornet/, /\basap\b/, /\btoday\b/, /\burgent\b/],

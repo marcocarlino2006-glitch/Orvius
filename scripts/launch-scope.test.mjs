@@ -18,7 +18,7 @@ test("signup offers only the trades with a tested playbook", () => {
   const shown = setupTradeGroups().flatMap((g) => g.trades);
   assert.deepEqual(shown.sort(), [...LAUNCH_TRADES].sort());
   assert.ok(setupTradeGroups().every((g) => g.trades.length > 0), "no empty trade group");
-  assert.match(NOT_YET_TRADE, /waitlist/);
+  assert.match(NOT_YET_TRADE, /interest list/);
 });
 
 test("public trade pages exist only for launch trades", () => {

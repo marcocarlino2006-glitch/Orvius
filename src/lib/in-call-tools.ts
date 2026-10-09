@@ -9,6 +9,7 @@ import { enqueueOwnerAlert } from "@/lib/notification-queue";
 import { findNetworkPartners, zip3From } from "@/lib/orvius-network";
 import { prisma } from "@/lib/prisma";
 import { classifyRequest } from "@/lib/trade-playbooks";
+import { outsideScope } from "@/lib/trade-scope";
 import {
   availabilityReply,
   BAD_SLOT_REPLY,
@@ -20,6 +21,7 @@ import {
   NO_ALT_NOTE,
   NO_SLOTS_REPLY,
   OWNER_SETS_TIMES_REPLY,
+  outsideScopeReply,
   URGENT_NO_BOOK_REPLY,
   OFFER_GAP_MIN,
   OFFERED_SLOTS,
@@ -68,6 +70,8 @@ async function checkAvailability(shop: ShopForTools, callId: string, args: Recor
   if (playbook.safety) {
     return dangerRefusal(playbook.safety.instruction);
   }
+  const outside = outsideScope(shop.trade, serviceType);
+  if (outside) return outsideScopeReply(outside.label);
   if (playbook.urgency === "emergency") return URGENT_NO_BOOK_REPLY;
   if (shop.bookingMode === "alert") return OWNER_SETS_TIMES_REPLY;
   const base = {
@@ -137,6 +141,8 @@ async function holdAppointment(
   if (playbook.safety) {
     return dangerRefusal(playbook.safety.instruction);
   }
+  const outside = intent === "new" ? outsideScope(shop.trade, str(args.serviceType)) : null;
+  if (outside) return outsideScopeReply(outside.label);
   if (playbook.urgency === "emergency" && intent === "new") return URGENT_NO_BOOK_REPLY;
   if (shop.bookingMode === "alert") return OWNER_SETS_TIMES_REPLY;
   const slot = {

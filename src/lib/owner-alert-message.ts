@@ -86,6 +86,8 @@ export function ownerAlertContextLine(context: OwnerAlertContext): string | null
   } else if (skipReason === "follow_up") {
     const verb = intent === "cancel" ? "cancel" : intent === "reschedule" ? "reschedule" : "check on";
     line = `Wants to ${verb} an appointment, but no open job matches this number — call back.`;
+  } else if (skipReason === "outside_scope") {
+    line = "Not work Orvius books for your trade yet · call them back — not booked";
   } else if (skipReason === "out_of_area") {
     line = "Outside your service area · not booked";
   } else if (skipReason === "missing_address") {

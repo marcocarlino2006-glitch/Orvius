@@ -1,5 +1,6 @@
 import { parseJson, type ServiceOffering } from "@/lib/business";
 import { servicesForTrade } from "@/lib/provision-business";
+import { tradeScope } from "@/lib/trade-scope";
 import { tradePromptPack, type Trade } from "@/lib/trades";
 
 /*
@@ -35,5 +36,7 @@ export function tradePage(slug: string) {
     commonCalls: packLine(pack, "Common calls"),
     urgentSignals: packLine(pack, "Emergency signals"),
     services: parseJson<ServiceOffering[]>(servicesForTrade(entry.trade), []).map((s) => s.name),
+    workflows: tradeScope(entry.trade)?.workflows.map((w) => w.label) ?? [],
+    notCovered: tradeScope(entry.trade)?.notCovered.map((n) => n.label) ?? [],
   };
 }

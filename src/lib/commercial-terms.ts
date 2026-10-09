@@ -110,7 +110,7 @@ export function commercialTerms(): readonly TermGroup[] {
       title: "What it works with",
       lead: "Supported today. If it isn't on this list, we don't claim it.",
       rows: [
-        { id: "trades", label: "Trades", detail: `${LAUNCH_SCOPE_LINE}.` },
+        { id: "trades", label: "Trades", detail: `${LAUNCH_SCOPE_LINE}, for residential service and repair. The exact jobs, and what goes to you instead, are listed at orvius.im/trades.` },
         {
           id: "phones",
           label: "Phone",

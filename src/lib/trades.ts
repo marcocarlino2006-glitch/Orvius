@@ -31,10 +31,11 @@ export function isHipaaTrade(trade: string | null | undefined): boolean {
 }
 
 /*
-  The launch scope: the trades with their own playbook — safety rules (gas,
-  carbon monoxide, sparking, flooding), emergency detection and services —
-  not the general template. Shops already on another trade keep working; new
-  ones join the waitlist until their trade gets the same depth.
+  The launch scope: exactly the trades that pass the launch gate in
+  src/lib/launch-verification.ts (`npm run launch:verify`), each for the named
+  workflows in src/lib/trade-scope.ts. The test suite fails if this list and
+  the passing trades disagree. Shops already on another trade keep working;
+  new ones go on the interest list until their trade passes.
 */
 export const LAUNCH_TRADES: readonly Trade[] = ["HVAC", "Plumbing", "Electrical"];
 
@@ -48,7 +49,7 @@ export function isLaunchTrade(trade: string | null | undefined): boolean {
 export const LAUNCH_SCOPE_LINE = "Heating & cooling, plumbing and electrical";
 
 export const NOT_YET_TRADE =
-  "Orvius launches for heating & cooling, plumbing and electrical businesses. Other businesses can join the waitlist and we'll tell you when yours is ready.";
+  "Orvius is open to residential heating & cooling, plumbing and electrical shops. Other trades go on the interest list at orvius.im/trades, and we'll tell you when yours passes the same checks.";
 
 export const HIPAA_TRADE_REFUSAL =
   "Orvius isn't set up for patient calls yet (no HIPAA agreement), so dental and medical offices can't sign up.";
