@@ -959,3 +959,18 @@ CREATE UNIQUE INDEX IF NOT EXISTS "JobSignature_jobId_key" ON "JobSignature"("jo
 CREATE INDEX IF NOT EXISTS "JobSignature_businessId_signedAt_idx" ON "JobSignature"("businessId", "signedAt");
 ALTER TABLE "Business" ADD COLUMN "financingEnabled" BOOLEAN NOT NULL DEFAULT false;
 ALTER TABLE "Business" ADD COLUMN "financingMethods" TEXT;
+ALTER TABLE "Call" ADD COLUMN "channel" TEXT;
+CREATE TABLE IF NOT EXISTS "DemoTicket" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "ipHash" TEXT NOT NULL,
+  "status" TEXT NOT NULL DEFAULT 'waiting',
+  "lastSeenAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "grantedAt" DATETIME,
+  "startedAt" DATETIME,
+  "endedAt" DATETIME,
+  "vapiCallId" TEXT,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "DemoTicket_vapiCallId_key" ON "DemoTicket"("vapiCallId");
+CREATE INDEX IF NOT EXISTS "DemoTicket_status_createdAt_idx" ON "DemoTicket"("status", "createdAt");
+CREATE INDEX IF NOT EXISTS "DemoTicket_ipHash_createdAt_idx" ON "DemoTicket"("ipHash", "createdAt");

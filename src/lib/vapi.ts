@@ -427,6 +427,8 @@ export type VapiWebhookMessage = {
     type: string;
     call?: {
       id: string;
+      /** "inboundPhoneCall", "outboundPhoneCall" or "webCall". */
+      type?: string;
       assistantId?: string;
       customer?: { number?: string };
       phoneNumber?: { number?: string };
