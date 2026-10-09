@@ -40,12 +40,15 @@ export function demoVerdict(load: DemoLoad, limits = { cap: demoLiveCallCap(), c
   return { busy: false };
 }
 
+/* Browser demo calls wait in their own line (web-demo.ts) and don't use the phone line's slots. */
+const PHONE_ONLY = { OR: [{ channel: null }, { channel: { not: "web_demo" } }] };
+
 export async function readDemoLoad(businessId: string, now = new Date()): Promise<DemoLoad> {
   const [live, today] = await Promise.all([
     prisma.call.count({
-      where: { businessId, status: "in-progress", createdAt: { gte: new Date(now.getTime() - LIVE_WINDOW_MS) } },
+      where: { businessId, status: "in-progress", createdAt: { gte: new Date(now.getTime() - LIVE_WINDOW_MS) }, ...PHONE_ONLY },
     }),
-    prisma.call.count({ where: { businessId, createdAt: { gte: new Date(now.getTime() - 24 * 60 * 60_000) } } }),
+    prisma.call.count({ where: { businessId, createdAt: { gte: new Date(now.getTime() - 24 * 60 * 60_000) }, ...PHONE_ONLY } }),
   ]);
   return { live, today };
 }

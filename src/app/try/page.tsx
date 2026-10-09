@@ -2,6 +2,7 @@ import Link from "next/link";
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
 import { ShopPreviewForm } from "@/components/shop-preview-form";
 import { DemoLineBusy } from "@/components/demo-line-busy";
+import { TalkInBrowser } from "@/components/talk-in-browser";
 import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
 import { isPreviewLive } from "@/lib/preview-live";
 import type { Metadata } from "next";
@@ -29,6 +30,7 @@ export default function TryPage() {
                 : `Personal previews aren't open yet. Call ${DEMO_LINE_DISPLAY} to hear Orvius answer for a demo business, or set up your own line now.`
             }
           />
+          <TalkInBrowser phoneHref={demoLineHref()} phoneDisplay={DEMO_LINE_DISPLAY} />
           <div className="tier1-form-slot" style={{ marginTop: "1.5rem" }}>
             {live ? (
               <ShopPreviewForm />

@@ -445,6 +445,8 @@ model Call {
   customer     Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
   vapiCallId   String?   @unique
   callerPhone  String?
+  /** "web_demo" for the website's talk-in-the-browser demo; null for phone calls. */
+  channel      String?
   direction    String    @default("inbound")
   status       String    @default("in-progress")
   durationSec  Int?
@@ -655,6 +657,24 @@ model Technician {
 }
 
 /** A photo taken on a job. Resized on the phone before upload, so a row stays well under a megabyte. */
+/** A website visitor's place in line for the in-browser demo, and the call it became. */
+model DemoTicket {
+  id         String    @id @default(cuid())
+  /** Salted hash of the visitor's IP: enough to hold one place per visitor, never the address. */
+  ipHash     String
+  /** waiting | granted | live | done */
+  status     String    @default("waiting")
+  lastSeenAt DateTime  @default(now())
+  grantedAt  DateTime?
+  startedAt  DateTime?
+  endedAt    DateTime?
+  vapiCallId String?   @unique
+  createdAt  DateTime  @default(now())
+
+  @@index([status, createdAt])
+  @@index([ipHash, createdAt])
+}
+
 /** The customer's sign-off on the work and total, drawn on the technician's phone. */
 model JobSignature {
   id           String   @id @default(cuid())

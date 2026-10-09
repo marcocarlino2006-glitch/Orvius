@@ -28,6 +28,7 @@ import { backstopLateSweeps } from "@/lib/cron-backstop";
 import { isVapiBillingRefusal, pagePlatform } from "@/lib/platform-pager";
 import { callSpendCut, endCallWith } from "@/lib/call-spend-guard";
 import { isDemoPlatformLine } from "@/lib/demo-business";
+import { endWebDemo, isLineWebCall, WEB_DEMO_CHANNEL } from "@/lib/web-demo";
 import { isLineEntitled } from "@/lib/billing-entitlement";
 
 /* Room for a made-up line-watch run after the response (cron-backstop.ts). */
@@ -231,6 +232,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ results });
   }
 
+  const webCall = message.call?.type === "webCall";
+
   if (type === "call-started" || type === "status-update") {
     const callerPhone = message.call?.customer?.number ?? null;
     const call = await prisma.call.upsert({
@@ -240,6 +243,7 @@ export async function POST(request: NextRequest) {
         vapiCallId,
         callerPhone,
         status: "in-progress",
+        ...(webCall ? { channel: WEB_DEMO_CHANNEL } : {}),
       },
       update: {
         callerPhone: callerPhone ?? undefined,
@@ -274,6 +278,10 @@ export async function POST(request: NextRequest) {
           data: { callerContextSentAt: new Date() },
         });
         if (!claimed.count) return;
+        if (webCall && isDemoPlatformLine(business.vapiPhoneNumber ?? business.twilioPhone)) {
+          if (!(await isLineWebCall(vapiCallId))) await endCallWith(controlUrl, "This demo starts from the Orvius website. Goodbye.");
+          return;
+        }
         const cut = await callSpendCut({ shop: business, callerPhone, demo: isDemoPlatformLine(inboundNumber ?? business.vapiPhoneNumber ?? business.twilioPhone) });
         if (cut) {
           await endCallWith(controlUrl, cut.say);
@@ -308,6 +316,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: true, duplicate: true });
     }
     after(() => backstopLateSweeps("vapi.end_of_call"));
+    if (webCall) after(() => endWebDemo({ vapiCallId }));
     if (isVapiBillingRefusal(message.endedReason)) {
       after(() => pagePlatform("vapi_billing", { vapiCallId, businessId: business.id, endedReason: message.endedReason }));
     }

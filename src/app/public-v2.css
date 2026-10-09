@@ -4170,3 +4170,133 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+
+/* Talk to it in the browser */
+.tib {
+  margin: 1.25rem 0 0;
+  max-width: 30rem;
+}
+.ov-hero--center .tib {
+  margin-inline: auto;
+}
+.ov-hero--atmosphere .tib {
+  color: #edecec;
+}
+.tib-go {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.tib-mic {
+  width: 0.55rem;
+  height: 0.85rem;
+  border: 2px solid currentColor;
+  border-radius: 999px;
+  position: relative;
+}
+.tib-mic::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -0.4rem;
+  width: 2px;
+  height: 0.3rem;
+  background: currentColor;
+  transform: translateX(-50%);
+}
+.tib-card {
+  display: grid;
+  gap: 0.6rem;
+  justify-items: start;
+  padding: 1rem 1.1rem;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, currentColor 5%, transparent);
+  backdrop-filter: blur(8px);
+  text-align: left;
+}
+.tib-card--live {
+  border-color: color-mix(in srgb, var(--ov-copper, #f54e00) 55%, transparent);
+}
+.tib-status {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: inherit;
+}
+.tib-note,
+.tib-fallback {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: inherit;
+  opacity: 0.72;
+}
+.tib-card .tib-note,
+.tib-card .tib-fallback {
+  margin: 0;
+}
+.tib-fallback a {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.tib-live-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  font-size: 0.9rem;
+}
+.tib-timer {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.72;
+}
+.tib-dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 999px;
+  background: var(--ov-green, #6ee7a8);
+}
+.tib-dot--talking {
+  background: var(--ov-copper, #f54e00);
+  animation: tib-pulse 1s ease-in-out infinite;
+}
+@keyframes tib-pulse {
+  50% {
+    transform: scale(1.35);
+    opacity: 0.7;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tib-dot--talking {
+    animation: none;
+  }
+}
+.tib-transcript {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.35rem;
+  width: 100%;
+  max-height: 11rem;
+  overflow-y: auto;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+.tib-who {
+  font-weight: 600;
+  opacity: 0.72;
+}
+.tib-line--assistant .tib-who {
+  color: var(--ov-copper, #f54e00);
+  opacity: 1;
+}
+.tib-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
