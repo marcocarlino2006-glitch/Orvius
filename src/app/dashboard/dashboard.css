@@ -5728,6 +5728,45 @@
   max-width: 14rem;
 }
 
+.money-back {
+  margin: 1rem 0 0;
+  padding: 1rem 1.125rem;
+  border: 1px solid var(--line, rgba(0, 0, 0, 0.08));
+  border-radius: 12px;
+}
+.money-back-title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+.money-back-body {
+  margin: 0.375rem 0 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--ash, #6b6b6b);
+}
+.money-back-body a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.money-back-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.money-back .sc-btn--danger {
+  color: #b42318;
+  border-color: rgba(180, 35, 24, 0.35);
+}
+.money-back-error {
+  margin: 0.625rem 0 0;
+  font-size: 0.875rem;
+  color: #b42318;
+}
+.money-back--done {
+  border-color: rgba(18, 128, 74, 0.35);
+}
+
 .billing-split-note {
   margin: 1.5rem 0 0.75rem;
   padding-top: 1.25rem;

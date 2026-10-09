@@ -1,6 +1,7 @@
 import { LegalDocument, LegalSection } from "@/components/legal-document";
 import { PAST_DUE_GRACE_DAYS, PAST_DUE_LINE_DAYS } from "@/lib/billing-entitlement";
 import { company } from "@/lib/company";
+import { MONEY_BACK_DAYS } from "@/lib/money-back";
 import { LINE_RETENTION_DAYS } from "@/lib/usage-limits";
 import { OVERAGE_CENTS_PER_CALL, annualChargeDollars, getPaidPlans, getPlanById } from "@/lib/pricing-plans";
 import type { Metadata } from "next";
@@ -70,7 +71,14 @@ export default function RefundsPage() {
 
       <LegalSection title="4. Refunds">
         <p>
-          Plans are not refunded for unused time, except where required by law or where we agree in
+          <strong>First {MONEY_BACK_DAYS} days.</strong> For the first {MONEY_BACK_DAYS} days of your
+          shop&apos;s first paid plan, you can choose Cancel and refund in Settings → Billing. That
+          cancels the plan at once and refunds every payment made on it so far, including an annual
+          payment, to the card that paid. No reason is required. It can be used once per shop, and your
+          line stops answering when the plan ends.
+        </p>
+        <p>
+          After that, plans are not refunded for unused time, except where required by law or where we agree in
           writing. If we charged you in error, or an outage caused by us cost you calls, contact{" "}
           {company.supportEmail} within fourteen (14) days of the charge and we will refund it.
         </p>

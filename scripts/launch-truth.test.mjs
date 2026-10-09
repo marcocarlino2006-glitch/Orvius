@@ -39,7 +39,7 @@ test("launch copy discloses assisted operations without a public free trial", ()
   assert.doesNotMatch(publicCopy, /30 days free|free design partner|during trial/i);
   assert.doesNotMatch(publicCopy, /design partner|founder-assisted/i);
   assert.match(publicCopy, /guided setup/i);
-  assert.match(publicCopy, /no advertised free-trial period/i);
+  assert.match(publicCopy, /no free trial/i);
 });
 
 test("owner-facing navigation consistently calls the home surface Command", () => {

@@ -1,6 +1,7 @@
 import { PAST_DUE_GRACE_DAYS, PAST_DUE_LINE_DAYS, PILOT_DAYS, PILOT_LINE_GRACE_DAYS } from "@/lib/billing-entitlement";
 import { getPlatformFeeBps } from "@/lib/platform-fee";
 import { OVERAGE_CENTS_PER_CALL, getPaidPlans } from "@/lib/pricing-plans";
+import { MONEY_BACK_DAYS } from "@/lib/money-back";
 import { LAUNCH_SCOPE_LINE } from "@/lib/trades";
 import {
   CALLER_HOURLY_LIMIT,
@@ -85,7 +86,7 @@ export function commercialTerms(): readonly TermGroup[] {
         {
           id: "trial",
           label: "Trial",
-          detail: `Card signup starts the paid plan you pick. There is no free trial on it. A guided Pilot, booked through a call audit, runs ${PILOT_DAYS} days at no charge with no card. When it ends, your line keeps answering for ${PILOT_LINE_GRACE_DAYS} more days while you decide.`,
+          detail: `Card signup starts the paid plan you pick. There is no free trial; instead your first ${MONEY_BACK_DAYS} days are money back (see Refunds). A guided Pilot, booked through a call audit, runs ${PILOT_DAYS} days at no charge with no card. When it ends, your line keeps answering for ${PILOT_LINE_GRACE_DAYS} more days while you decide.`,
         },
         {
           id: "cancel",
@@ -95,8 +96,7 @@ export function commercialTerms(): readonly TermGroup[] {
         {
           id: "refunds",
           label: "Refunds",
-          detail:
-            "Plans aren't refunded for unused time. If we charged you in error, or an outage on our side cost you calls, email us within 14 days of the charge and we'll refund it.",
+          detail: `First ${MONEY_BACK_DAYS} days on your first plan: if it isn't working for your shop, Billing → Cancel and refund cancels the plan and returns every payment made so far, with no call and no questions. Once per shop. After that, plans aren't refunded for unused time. If we charged you in error, or an outage on our side cost you calls, email us within 14 days of the charge and we'll refund it.`,
         },
         {
           id: "late",
