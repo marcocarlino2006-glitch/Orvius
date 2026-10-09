@@ -4,6 +4,7 @@ import { BillingPortalButton } from "@/components/billing-portal-button";
 import { CheckoutButton } from "@/components/checkout-button";
 import { ConnectPayoutsPanel } from "@/components/connect-payouts-panel";
 import { DepositSettingsPanel } from "@/components/deposit-settings-panel";
+import { MoneyBackDone, MoneyBackPanel } from "@/components/money-back-panel";
 import { ShellLoading, ShellPanel } from "@/components/shell-primitives";
 import {
   company,
@@ -17,6 +18,7 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { fetchAccount } from "@/lib/account-client";
 import { callUsageLine, type CallUsage } from "@/lib/call-usage";
+import { MONEY_BACK_DAYS } from "@/lib/money-back";
 import { OVERAGE_CENTS_PER_CALL } from "@/lib/pricing-plans";
 
 type BillingChecklistItem = {
@@ -93,6 +95,7 @@ export function BillingContent() {
     "loading",
   );
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [refundedCents, setRefundedCents] = useState<number | null>(null);
 
   async function loadAccount() {
     setLoadState("loading");
@@ -162,6 +165,7 @@ export function BillingContent() {
         </div>
       ) : (
         <div className="billing-settings">
+          {refundedCents != null ? <MoneyBackDone cents={refundedCents} /> : null}
           {loading ? (
             <ShellLoading />
           ) : (
@@ -208,6 +212,12 @@ export function BillingContent() {
                 </div>
               ) : null}
               {account?.billing.valueLine ? <p className="billing-value-line font-sans">{account.billing.valueLine}</p> : null}
+              {status === "active" && hasStripeCustomer ? <MoneyBackPanel
+                  onRefunded={(cents) => {
+                    setRefundedCents(cents);
+                    void loadAccount();
+                  }}
+                /> : null}
             </section>
           )}
 
@@ -225,7 +235,7 @@ export function BillingContent() {
                     <span>/mo</span>
                   </p>
                   <p className="account-billing-plan-detail">
-                    {featuredPlan.tagline}. One tap opens Stripe Checkout — cancel anytime.
+                    {featuredPlan.tagline}. One tap opens Stripe Checkout. Cancel anytime, and your first {MONEY_BACK_DAYS} days are money back.
                   </p>
                   <CheckoutButton
                     planId={featuredId}

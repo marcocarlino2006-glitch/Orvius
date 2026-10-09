@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
+import { MONEY_BACK_DAYS } from "@/lib/money-back";
 import { PricingBillingToggle } from "@/components/pricing-billing-toggle";
 import { PricingFAQ } from "@/components/pricing-faq";
 import { PricingFeatureMatrix } from "@/components/pricing-feature-matrix";
@@ -38,6 +39,7 @@ export function PricingPagePlans({ selfServeReady = true, terms }: { selfServeRe
           {interval === "year"
             ? "Annual prices are shown per month and charged once a year."
             : "Monthly prices, charged each month. Cancel any time."}{" "}
+          First {MONEY_BACK_DAYS} days money back, once per shop.{" "}
           Included calls reset on the 1st; each call past the allowance is {OVERAGE_CENTS_PER_CALL}¢, invoiced after the month ends.
         </p>
       </div>

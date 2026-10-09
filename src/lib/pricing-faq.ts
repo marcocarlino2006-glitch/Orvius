@@ -1,5 +1,6 @@
 import { PILOT_DAYS } from "@/lib/billing-entitlement";
 import { platformFeePercentLabel } from "@/lib/commercial-terms";
+import { MONEY_BACK_DAYS } from "@/lib/money-back";
 import { LINE_RETENTION_DAYS } from "@/lib/usage-limits";
 import { OVERAGE_CENTS_PER_CALL, annualChargeDollars, getPlanById, type PaidPlanId } from "@/lib/pricing-plans";
 
@@ -44,7 +45,7 @@ export const pricingFaq: readonly PricingFaqItem[] = [
     id: "cancel",
     question: "Can I cancel anytime?",
     answer:
-      `Yes. No plan has a contract. Settings → Billing → Manage opens Stripe, where you cancel; you keep everything until the end of the period you paid for. Then the line stops answering, your number is held ${LINE_RETENTION_DAYS} days in case you come back, and your records stay downloadable. Plans aren't refunded for unused time; billing errors are, within 14 days.`,
+      `Yes. No plan has a contract. Settings → Billing → Manage opens Stripe, where you cancel; you keep everything until the end of the period you paid for. Then the line stops answering, your number is held ${LINE_RETENTION_DAYS} days in case you come back, and your records stay downloadable. In your first ${MONEY_BACK_DAYS} days on your first plan, Billing → Cancel and refund also gives back every payment so far, once per shop. After that, plans aren't refunded for unused time; billing errors are, within 14 days.`,
   },
   {
     id: "one-job",
@@ -62,6 +63,6 @@ export const pricingFaq: readonly PricingFaqItem[] = [
     id: "launch",
     question: "What happens before my line goes live?",
     answer:
-      `We verify your shop name, services, hours, escalation number, and one real test call. Card signup starts the paid plan you pick through Stripe checkout; there is no advertised free-trial period. A guided Pilot, booked through a call audit, runs ${PILOT_DAYS} days at no charge.`,
+      `We verify your shop name, services, hours, escalation number, and one real test call. Card signup starts the paid plan you pick through Stripe checkout; there is no free trial, but your first ${MONEY_BACK_DAYS} days are money back. A guided Pilot, booked through a call audit, runs ${PILOT_DAYS} days at no charge.`,
   },
 ] as const;
