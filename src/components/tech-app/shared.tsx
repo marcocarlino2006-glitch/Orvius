@@ -1,5 +1,7 @@
 "use client";
 
+import { NO_SIGNAL } from "@/components/tech-app/offline";
+
 export const STATUS_WORD: Record<string, string> = {
   scheduled: "Scheduled",
   confirmed: "Confirmed",
@@ -48,8 +50,42 @@ export function directionsUrl(address: string) {
 }
 
 export async function techFetch<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, init);
+  const res = await fetch(url, init).catch(() => {
+    throw new Error(NO_SIGNAL);
+  });
   const data = (await res.json().catch(() => ({}))) as T & { error?: string };
   if (!res.ok) throw new Error(data.error ?? "Something went wrong. Try again.");
   return data;
+}
+
+/** Signal state, what's waiting to send, and anything that was turned down once it did. */
+export function SyncBar({ online, savedAt, queued, failed, timeZone, onDismiss }: { online: boolean; savedAt: string | null; queued: number; failed: Array<{ id: string; label: string; error: string }>; timeZone: string; onDismiss: () => void }) {
+  const offline = !online || Boolean(savedAt);
+  if (!offline && !queued && !failed.length) return null;
+  return (
+    <div className="ta-sync" role="status">
+      {offline ? (
+        <p className="ta-sync-line">
+          <strong>No signal.</strong> {savedAt ? `Showing what was saved on this phone at ${timeLabel(savedAt, timeZone)}.` : "Showing what's on screen."}
+        </p>
+      ) : null}
+      {queued ? (
+        <p className="ta-sync-line">
+          {queued} change{queued === 1 ? "" : "s"} saved on this phone{offline ? ". They send when you have bars." : ", sending now…"}
+        </p>
+      ) : null}
+      {failed.length ? (
+        <div className="ta-sync-failed" role="alert">
+          {failed.map((f) => (
+            <p key={f.id}>
+              {f.label} didn&apos;t go through: {f.error}
+            </p>
+          ))}
+          <button type="button" className="ta-link" onClick={onDismiss}>
+            Got it
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
 }

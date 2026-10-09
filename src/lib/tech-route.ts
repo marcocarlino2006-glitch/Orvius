@@ -24,7 +24,7 @@ export async function withTech(request: Request, token: string, run: (tech: Tech
   } catch (error) {
     if (error instanceof FieldError) return NextResponse.json({ error: error.message }, { status: error.status });
     logWarn("tech_app.failed", { technicianId: tech.id, error: error instanceof Error ? error.message : String(error) });
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Something went wrong" }, { status: 400 });
+    return NextResponse.json({ error: "That didn't save on our side. Try again in a minute; if it keeps happening, call the office." }, { status: 500 });
   }
 }
 

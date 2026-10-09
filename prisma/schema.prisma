@@ -159,6 +159,7 @@ model Business {
   auditEvents        AuditEvent[]
   memberships        Membership[]
   jobPhotos          JobPhoto[]
+  jobSignatures      JobSignature[]
   jobNotes           JobNote[]
   jobLineItems       JobLineItem[]
   priceBookItems     PriceBookItem[]
@@ -584,6 +585,8 @@ model Job {
   /** Actual total reported at completion; separate from estimate/invoice. */
   finalAmountCents Int?
   outcomeCapturedAt DateTime?
+  /** The field checklist for this visit: the template it started from and what the technician ticked or read. */
+  checklistJson String?
   /** Magic-link token for tech field page (/t/[token]). */
   techToken     String?     @unique
   /** Free-text ETA from tech (e.g. "25 min"). */
@@ -598,6 +601,7 @@ model Job {
   estimate Estimate?
   deposits Deposit[]
   invoices Invoice[]
+  signature JobSignature?
   photos   JobPhoto[]
   fieldNotes JobNote[]
   lineItems JobLineItem[]
@@ -647,6 +651,26 @@ model Technician {
 }
 
 /** A photo taken on a job. Resized on the phone before upload, so a row stays well under a megabyte. */
+/** The customer's sign-off on the work and total, drawn on the technician's phone. */
+model JobSignature {
+  id           String   @id @default(cuid())
+  businessId   String
+  business     Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  jobId        String   @unique
+  job          Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  signerName   String
+  /** PNG drawn on the phone; sniffed and size-capped before it is stored. */
+  png          Bytes
+  sizeBytes    Int
+  /** The total the customer saw when signing, and the exact words they agreed to. */
+  agreedCents  Int?
+  statement    String
+  technicianId String?
+  signedAt     DateTime @default(now())
+
+  @@index([businessId, signedAt])
+}
+
 model JobPhoto {
   id           String   @id @default(cuid())
   businessId   String

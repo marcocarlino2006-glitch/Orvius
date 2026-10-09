@@ -1606,3 +1606,46 @@ a.cmd-feed-text:hover {
     grid-column: 1 / -1;
   }
 }
+
+.jf-checklist {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.875rem;
+  color: var(--ox-mute);
+}
+
+.jf-checklist li {
+  display: grid;
+  grid-template-columns: 1rem 1fr;
+  gap: 0.5rem;
+}
+
+.jf-checklist li.is-done {
+  color: var(--ox-text);
+}
+
+.jf-signature {
+  display: grid;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--ox-text);
+}
+
+.jf-signature img {
+  max-width: 320px;
+  width: 100%;
+  border-radius: var(--ox-radius-sm);
+  background: #fff;
+  border: 1px solid var(--ox-line, rgba(0, 0, 0, 0.08));
+}
+
+.jf-signature p {
+  margin: 0;
+}
+
+.jf-warn {
+  color: var(--ox-amber, #9a6200);
+}

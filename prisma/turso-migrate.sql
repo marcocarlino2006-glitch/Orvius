@@ -940,3 +940,20 @@ CREATE TABLE IF NOT EXISTS "QuickBooksSync" (
 CREATE UNIQUE INDEX IF NOT EXISTS "QuickBooksSync_sourceType_sourceId_key" ON "QuickBooksSync"("sourceType", "sourceId");
 CREATE INDEX IF NOT EXISTS "QuickBooksSync_status_nextAttemptAt_idx" ON "QuickBooksSync"("status", "nextAttemptAt");
 CREATE INDEX IF NOT EXISTS "QuickBooksSync_businessId_createdAt_idx" ON "QuickBooksSync"("businessId", "createdAt");
+ALTER TABLE "Job" ADD COLUMN "checklistJson" TEXT;
+CREATE TABLE IF NOT EXISTS "JobSignature" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "businessId" TEXT NOT NULL,
+  "jobId" TEXT NOT NULL,
+  "signerName" TEXT NOT NULL,
+  "png" BLOB NOT NULL,
+  "sizeBytes" INTEGER NOT NULL,
+  "agreedCents" INTEGER,
+  "statement" TEXT NOT NULL,
+  "technicianId" TEXT,
+  "signedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "JobSignature_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT "JobSignature_jobId_fkey" FOREIGN KEY ("jobId") REFERENCES "Job" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "JobSignature_jobId_key" ON "JobSignature"("jobId");
+CREATE INDEX IF NOT EXISTS "JobSignature_businessId_signedAt_idx" ON "JobSignature"("businessId", "signedAt");

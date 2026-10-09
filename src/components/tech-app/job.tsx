@@ -3,12 +3,17 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { JOB_OUTCOMES, jobOutcomeLabel } from "@/lib/job-outcome";
-import { directionsUrl, money, phoneLabel, StatusPill, techFetch, whenLabel } from "@/components/tech-app/shared";
+import { forgetEverything, cachedGet, isGone, rememberGet, sendOrQueue, useFieldSync, useTechShell, type Queued } from "@/components/tech-app/offline";
+import { directionsUrl, money, phoneLabel, StatusPill, SyncBar, techFetch, whenLabel } from "@/components/tech-app/shared";
 import { shrinkPhoto } from "@/components/tech-app/photo";
+import { signatureStatement } from "@/lib/job-signature-text";
 
 type Line = { id?: string; name: string; kind: string; quantity: number; unitCents: number; totalCents?: number; priceBookItemId: string | null };
 type Photo = { id: string; kind: "before" | "after" | "other"; caption: string | null; takenBy: string | null; createdAt: string };
-type Note = { id: string; authorKind: "technician" | "person"; authorName: string; body: string; createdAt: string };
+type Note = { id: string; authorKind: "technician" | "person"; authorName: string; body: string; createdAt: string; pending?: boolean };
+type CheckItem = { id: string; label: string; reading?: string; done: boolean; value: string | null; at: string | null };
+type Checklist = { templateId: string; title: string; items: CheckItem[]; done: number; total: number };
+type Signature = { signerName: string; signedAt: string; agreedCents: number | null; statement: string; pendingImage?: string };
 type BookItem = { id: string; name: string; kind: string; unitCents: number; description: string | null };
 type Money = {
   totalCents: number | null;
@@ -41,9 +46,278 @@ type Detail = {
   linesTotalCents: number;
   photos: Photo[];
   notes: Note[];
+  checklist: Checklist | null;
+  signature: Signature | null;
   priceBook: BookItem[];
   money: Money;
 };
+
+function countChecklist(c: Checklist): Checklist {
+  return { ...c, done: c.items.filter((i) => i.done).length, total: c.items.length };
+}
+
+/** What the server last said, plus the changes still waiting on this phone, so the screen shows what the tech did. */
+function withPending(d: Detail, base: string, queued: Queued[]): Detail {
+  let next = d;
+  for (const q of queued) {
+    let body: Record<string, unknown>;
+    try {
+      body = JSON.parse(q.body) as Record<string, unknown>;
+    } catch {
+      continue;
+    }
+    if (q.url === base && typeof body.status === "string") {
+      next = { ...next, job: { ...next.job, status: body.status, ...(typeof body.resolutionCode === "string" ? { resolutionCode: body.resolutionCode, resolutionSummary: typeof body.resolutionSummary === "string" ? body.resolutionSummary : null } : {}) } };
+    } else if (q.url === `${base}/notes` && typeof body.body === "string") {
+      next = { ...next, notes: [...next.notes, { id: `pending-${q.id}`, authorKind: "technician", authorName: d.technician.name, body: body.body, createdAt: q.at, pending: true }] };
+    } else if (q.url === `${base}/checklist` && next.checklist && Array.isArray(body.items)) {
+      const changes = new Map((body.items as Array<{ id: string; done?: boolean; value?: string }>).map((c) => [c.id, c]));
+      const items = next.checklist.items.map((i) => {
+        const c = changes.get(i.id);
+        return c ? { ...i, done: c.done ?? i.done, value: c.value ?? i.value } : i;
+      });
+      next = { ...next, checklist: countChecklist({ ...next.checklist, items }) };
+    } else if (q.url === `${base}/signature` && typeof body.name === "string" && typeof body.image === "string") {
+      if (!next.signature || body.replace === true) {
+        const agreed = next.lines.length ? next.linesTotalCents : null;
+        next = { ...next, signature: { signerName: body.name, signedAt: q.at, agreedCents: agreed, statement: signatureStatement(agreed), pendingImage: body.image } };
+      }
+    }
+  }
+  return next;
+}
+
+function ChecklistCard({ base, checklist, onSaved }: { base: string; checklist: Checklist; onSaved: (c: Checklist) => void }) {
+  const [draft, setDraft] = useState<Record<string, string>>({});
+  const [optimistic, setOptimistic] = useState<Record<string, boolean>>({});
+  const [error, setError] = useState<string | null>(null);
+  const [open, setOpen] = useState(checklist.done < checklist.total);
+  useEffect(() => setOptimistic({}), [checklist]);
+
+  async function send(change: { id: string; done?: boolean; value?: string }) {
+    setError(null);
+    if (change.done != null) setOptimistic((o) => ({ ...o, [change.id]: change.done! }));
+    try {
+      const r = await sendOrQueue<{ checklist: Checklist }>(`${base}/checklist`, "PUT", { items: [{ ...change, at: new Date().toISOString() }] }, "A checklist change");
+      if (!r.queued) onSaved(r.data.checklist);
+    } catch (err) {
+      setOptimistic((o) => {
+        const rest = { ...o };
+        delete rest[change.id];
+        return rest;
+      });
+      setError(err instanceof Error ? err.message : "That didn't save. Try again.");
+    }
+  }
+
+  const items = checklist.items.map((i) => ({ ...i, done: optimistic[i.id] ?? i.done }));
+  const done = items.filter((i) => i.done).length;
+  return (
+    <section className="ta-card" aria-labelledby="ta-check">
+      <div className="ta-card-head">
+        <h2 id="ta-check" className="ta-h3">
+          {checklist.title} checklist
+        </h2>
+        <button type="button" className="ta-link" aria-expanded={open} onClick={() => setOpen(!open)}>
+          {done} of {items.length} {open ? "· Hide" : "· Show"}
+        </button>
+      </div>
+      {open ? (
+        <ul className="ta-checklist">
+          {items.map((item) => (
+            <li key={item.id} className={item.done ? "is-done" : ""}>
+              <label className="ta-check">
+                <input type="checkbox" checked={item.done} onChange={(e) => void send({ id: item.id, done: e.target.checked })} />
+                <span>{item.label}</span>
+              </label>
+              {item.reading ? (
+                <input
+                  className="ta-input ta-reading"
+                  placeholder={item.reading}
+                  aria-label={`${item.label}: ${item.reading}`}
+                  maxLength={80}
+                  value={draft[item.id] ?? item.value ?? ""}
+                  onChange={(e) => setDraft({ ...draft, [item.id]: e.target.value })}
+                  onBlur={() => {
+                    const value = draft[item.id];
+                    if (value == null || value.trim() === (item.value ?? "")) return;
+                    void send({ id: item.id, value: value.trim(), ...(value.trim() && !item.done ? { done: true } : {}) });
+                  }}
+                />
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {error ? (
+        <p className="ta-error" role="alert">
+          {error}
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
+function SignaturePad({ onChange }: { onChange: (dataUrl: string | null) => void }) {
+  const ref = useRef<HTMLCanvasElement>(null);
+  const strokes = useRef(0);
+  const last = useRef<{ x: number; y: number } | null>(null);
+
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 3);
+    canvas.width = canvas.clientWidth * dpr;
+    canvas.height = canvas.clientHeight * dpr;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.scale(dpr, dpr);
+    ctx.lineWidth = 2.4;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = "#111";
+  }, []);
+
+  function point(e: React.PointerEvent<HTMLCanvasElement>) {
+    const r = e.currentTarget.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+
+  function exportPng() {
+    const canvas = ref.current;
+    if (!canvas || strokes.current < 8) return onChange(null);
+    const width = Math.min(600, canvas.clientWidth);
+    const out = document.createElement("canvas");
+    out.width = width;
+    out.height = Math.round((canvas.clientHeight / canvas.clientWidth) * width);
+    out.getContext("2d")?.drawImage(canvas, 0, 0, out.width, out.height);
+    onChange(out.toDataURL("image/png"));
+  }
+
+  return (
+    <div className="ta-sign">
+      <canvas
+        ref={ref}
+        className="ta-sign-pad"
+        aria-label="Signature box. The customer signs here with a finger."
+        onPointerDown={(e) => {
+          e.currentTarget.setPointerCapture(e.pointerId);
+          last.current = point(e);
+        }}
+        onPointerMove={(e) => {
+          if (!last.current) return;
+          const ctx = e.currentTarget.getContext("2d");
+          const p = point(e);
+          ctx?.beginPath();
+          ctx?.moveTo(last.current.x, last.current.y);
+          ctx?.lineTo(p.x, p.y);
+          ctx?.stroke();
+          last.current = p;
+          strokes.current += 1;
+        }}
+        onPointerUp={() => {
+          last.current = null;
+          exportPng();
+        }}
+        onPointerCancel={() => {
+          last.current = null;
+        }}
+      />
+      <button
+        type="button"
+        className="ta-link"
+        onClick={() => {
+          const canvas = ref.current;
+          canvas?.getContext("2d")?.clearRect(0, 0, canvas.width, canvas.height);
+          strokes.current = 0;
+          onChange(null);
+        }}
+      >
+        Clear
+      </button>
+    </div>
+  );
+}
+
+function SignOff({ base, detail, onSigned }: { base: string; detail: Detail; onSigned: (s: Signature) => void }) {
+  const sig = detail.signature;
+  const total = detail.lines.length ? detail.linesTotalCents : null;
+  const [signing, setSigning] = useState(false);
+  const [name, setName] = useState(detail.job.customerName ?? "");
+  const [image, setImage] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [queuedNote, setQueuedNote] = useState(false);
+
+  async function save() {
+    if (!image) return setError("Have the customer sign in the box first.");
+    if (!name.trim()) return setError("Type the customer's name under the signature.");
+    setBusy(true);
+    setError(null);
+    try {
+      const r = await sendOrQueue<{ signature: Signature }>(`${base}/signature`, "POST", { name: name.trim(), image, replace: Boolean(sig) }, "The customer's signature");
+      if (!r.queued) onSigned(r.data.signature);
+      setQueuedNote(r.queued);
+      setSigning(false);
+      setImage(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "That didn't save. Try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const changed = sig && sig.agreedCents != null && total != null && sig.agreedCents !== total;
+  return (
+    <section className="ta-card" aria-labelledby="ta-sign">
+      <div className="ta-card-head">
+        <h2 id="ta-sign" className="ta-h3">
+          Customer sign-off
+        </h2>
+        <span className="ta-muted">{sig ? "Signed" : "Not signed"}</span>
+      </div>
+      {sig && !signing ? (
+        <div className="ta-stack">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="ta-sign-img" src={sig.pendingImage ?? `${base}/signature?at=${encodeURIComponent(sig.signedAt)}`} alt={`Signature of ${sig.signerName}`} />
+          <p className="ta-muted">
+            {sig.signerName} · {whenLabel(sig.signedAt, detail.shop.timezone)}: &ldquo;{sig.statement}&rdquo;
+          </p>
+          {sig.pendingImage || queuedNote ? <p className="ta-muted">Saved on this phone. It sends when you have bars.</p> : null}
+          {changed ? <p className="ta-error">The work changed after they signed ({money(sig.agreedCents)} then, {money(total)} now). Ask them to sign again.</p> : null}
+          <button type="button" className="ta-btn ta-btn--quiet" onClick={() => setSigning(true)}>
+            Sign again
+          </button>
+        </div>
+      ) : signing || !sig ? (
+        <div className="ta-stack">
+          <p className="ta-sign-statement">&ldquo;{signatureStatement(total)}&rdquo;</p>
+          {!detail.lines.length ? <p className="ta-muted">No work added yet. Add the work above first so they sign for a total.</p> : null}
+          <SignaturePad onChange={setImage} />
+          <label className="ta-label" htmlFor="ta-sign-name">
+            Customer&apos;s name
+          </label>
+          <input id="ta-sign-name" className="ta-input" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} autoComplete="off" />
+          <div className="ta-row2">
+            {sig ? (
+              <button type="button" className="ta-btn ta-btn--quiet" onClick={() => setSigning(false)}>
+                Cancel
+              </button>
+            ) : null}
+            <button type="button" className="ta-btn ta-btn--primary" disabled={busy || !image || !name.trim()} onClick={() => void save()}>
+              {busy ? "Saving…" : "Save signature"}
+            </button>
+          </div>
+        </div>
+      ) : null}
+      {error ? (
+        <p className="ta-error" role="alert">
+          {error}
+        </p>
+      ) : null}
+    </section>
+  );
+}
 
 const KIND_WORD: Record<string, string> = { service: "Service", labor: "Labor", part: "Part", discount: "Discount" };
 
@@ -160,8 +434,8 @@ function Notes({ base, detail, onChange }: { base: string; detail: Detail; onCha
     setBusy(true);
     setError(null);
     try {
-      const { note } = await techFetch<{ note: Note }>(`${base}/notes`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ body }) });
-      onChange((notes) => [...notes, note]);
+      const r = await sendOrQueue<{ note: Note }>(`${base}/notes`, "POST", { body }, "A note");
+      if (!r.queued) onChange((notes) => [...notes, r.data.note]);
       setBody("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn't save the note.");
@@ -183,7 +457,7 @@ function Notes({ base, detail, onChange }: { base: string; detail: Detail; onCha
       {detail.notes.map((n) => (
         <div key={n.id} className={`ta-note${n.authorKind === "person" ? " ta-note--office" : ""}`}>
           <p className="ta-note-who">
-            {n.authorKind === "technician" ? n.authorName : `Office · ${n.authorName}`} · {whenLabel(n.createdAt, detail.shop.timezone)}
+            {n.authorKind === "technician" ? n.authorName : `Office · ${n.authorName}`} · {n.pending ? "waiting for signal" : whenLabel(n.createdAt, detail.shop.timezone)}
           </p>
           <p className="ta-note-body">{n.body}</p>
         </div>
@@ -463,7 +737,8 @@ const NEXT: Record<string, { label: string; status: string } | null> = {
 /** One job on the technician's phone, from driving there to getting paid. */
 export function TechJob({ token, jobId }: { token: string; jobId: string }) {
   const base = `/api/tech/${token}/jobs/${jobId}`;
-  const [detail, setDetail] = useState<Detail | null>(null);
+  const [loaded, setDetail] = useState<Detail | null>(null);
+  const [savedAt, setSavedAt] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [eta, setEta] = useState("");
@@ -474,12 +749,24 @@ export function TechJob({ token, jobId }: { token: string; jobId: string }) {
 
   const load = useCallback(async () => {
     try {
-      setDetail(await techFetch<Detail>(base));
+      const { data, savedAt: at } = await cachedGet<Detail>(base);
+      setDetail(data);
+      setSavedAt(at);
       setError(null);
     } catch (err) {
+      if (isGone(err)) setDetail(null);
       setError(err instanceof Error ? err.message : "Couldn't open the job.");
     }
   }, [base]);
+  const sync = useFieldSync(() => void load());
+  useTechShell();
+  useEffect(() => {
+    if (error && /link is off/i.test(error)) forgetEverything();
+  }, [error]);
+  const detail = useMemo(() => (loaded ? withPending(loaded, base, sync.queued) : null), [loaded, base, sync.queued]);
+  useEffect(() => {
+    if (loaded && !savedAt) rememberGet(base, loaded);
+  }, [loaded, savedAt, base]);
 
   useEffect(() => {
     void load();
@@ -492,7 +779,8 @@ export function TechJob({ token, jobId }: { token: string; jobId: string }) {
     setBusy(true);
     setError(null);
     try {
-      setDetail(await techFetch<Detail>(base, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }));
+      const r = await sendOrQueue<Detail>(base, "PATCH", { ...body, happenedAt: new Date().toISOString() }, body.status === "completed" ? "Finishing the job" : "A status change");
+      if (!r.queued) setDetail(r.data);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
       setError(err instanceof Error ? err.message : "That didn't save. Try again.");
@@ -575,6 +863,8 @@ export function TechJob({ token, jobId }: { token: string; jobId: string }) {
         ) : null}
       </div>
 
+      <SyncBar online={sync.online} savedAt={savedAt} queued={sync.queued.length} failed={sync.failed} timeZone={shop.timezone} onDismiss={sync.dismissFailed} />
+
       <section className="ta-card">
         <dl className="ta-kv">
           <div>
@@ -619,8 +909,12 @@ export function TechJob({ token, jobId }: { token: string; jobId: string }) {
       ) : null}
 
       <Work base={base} detail={detail} onSaved={setDetail} />
+      {detail.checklist && (job.status === "on_site" || job.status === "completed") ? (
+        <ChecklistCard base={base} checklist={detail.checklist} onSaved={(checklist) => setDetail((d) => (d ? { ...d, checklist } : d))} />
+      ) : null}
       <Photos base={base} detail={detail} onChange={(update) => setDetail((d) => (d ? { ...d, photos: update(d.photos) } : d))} />
       <Notes base={base} detail={detail} onChange={(update) => setDetail((d) => (d ? { ...d, notes: update(d.notes) } : d))} />
+      {job.status === "on_site" || job.status === "completed" ? <SignOff base={base} detail={detail} onSigned={(signature) => setDetail((d) => (d ? { ...d, signature } : d))} /> : null}
       {job.status === "on_site" || job.status === "completed" || hasLines ? <Pay base={base} detail={detail} onPaid={setDetail} /> : null}
 
       {job.status === "on_site" ? (
@@ -628,6 +922,12 @@ export function TechJob({ token, jobId }: { token: string; jobId: string }) {
           <h2 id="ta-finish" className="ta-h3">
             Finish the job
           </h2>
+          {detail.checklist && detail.checklist.done < detail.checklist.total ? (
+            <p className="ta-muted">
+              Checklist: {detail.checklist.done} of {detail.checklist.total} done.
+            </p>
+          ) : null}
+          {!detail.signature ? <p className="ta-muted">The customer hasn&apos;t signed off yet.</p> : null}
           <label className="ta-label" htmlFor="ta-outcome">
             What happened?
           </label>

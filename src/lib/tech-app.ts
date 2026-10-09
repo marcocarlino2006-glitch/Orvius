@@ -263,6 +263,8 @@ export async function techJobDetail(tech: TechSession, jobId: string) {
     linesTotalCents: field.totalCents,
     photos: field.photos,
     notes: field.notes,
+    checklist: field.checklist,
+    signature: field.signature,
     priceBook: book,
     money: await money(tech, job, field.totalCents, field.lines.length > 0),
   };
@@ -286,6 +288,16 @@ async function customerText(jobId: string, businessId: string, body: string, act
 
 const TECH_STATUSES = ["confirmed", "en_route", "on_site", "completed"] as const;
 
+/* Past this, an "on my way" or "I've arrived" text would reach the customer after the fact. */
+export const LATE_FIELD_UPDATE_MS = 15 * 60_000;
+
+/** When a field update happened: the phone's time if it was queued offline (within a day, never ahead of now), else now. */
+export function fieldTime(happenedAt: unknown, now = new Date()) {
+  const claimed = typeof happenedAt === "string" ? new Date(happenedAt) : null;
+  if (!claimed || Number.isNaN(claimed.getTime()) || claimed > now || now.getTime() - claimed.getTime() > 86_400_000) return { at: now, late: false };
+  return { at: claimed, late: now.getTime() - claimed.getTime() > LATE_FIELD_UPDATE_MS };
+}
+
 /**
  * A status change from the field. Moving to "arrived" or "done" texts the
  * customer once, however many times the button is tapped.
@@ -293,9 +305,12 @@ const TECH_STATUSES = ["confirmed", "en_route", "on_site", "completed"] as const
 export async function techUpdateJob(
   tech: TechSession,
   jobId: string,
-  body: { status?: unknown; etaText?: unknown; resolutionCode?: unknown; resolutionSummary?: unknown; finalAmountCents?: unknown },
+  body: { status?: unknown; etaText?: unknown; resolutionCode?: unknown; resolutionSummary?: unknown; finalAmountCents?: unknown; happenedAt?: unknown },
+  now = new Date(),
 ) {
   const job = await techJob(tech, jobId);
+  const { at, late } = fieldTime(body.happenedAt, now);
+  const lateNote = late ? " (sent when the phone got signal back)" : "";
   const shop = tech.business.name;
   const who = firstName(tech.name) ?? "Your technician";
   const actor = { actor: "technician" as const, actorEmail: null };
@@ -309,10 +324,10 @@ export async function techUpdateJob(
   if (job.status === "completed" && status) throw new FieldError("This job is already done.", 409);
 
   if (status === "on_site") {
-    const moved = await prisma.job.updateMany({ where: { id: job.id, status: { not: "on_site" } }, data: { status: "on_site", onSiteAt: new Date() } });
+    const moved = await prisma.job.updateMany({ where: { id: job.id, status: { not: "on_site" } }, data: { status: "on_site", onSiteAt: at } });
     if (moved.count) {
-      await recordAudit({ businessId: tech.businessId, entityType: "job", entityId: job.id, jobId: job.id, action: "job.status", ...actor, summary: `${tech.name} arrived` });
-      await customerText(job.id, tech.businessId, `${shop}: ${who} has arrived for your appointment.`, "customer.arrived_sent", `Texted the customer that ${who} arrived`);
+      await recordAudit({ businessId: tech.businessId, entityType: "job", entityId: job.id, jobId: job.id, action: "job.status", ...actor, summary: `${tech.name} arrived${lateNote}` });
+      if (!late) await customerText(job.id, tech.businessId, `${shop}: ${who} has arrived for your appointment.`, "customer.arrived_sent", `Texted the customer that ${who} arrived`);
     }
   } else if (status === "completed") {
     if (!isJobOutcomeCode(body.resolutionCode)) throw new FieldError("Choose what happened before finishing the job.");
@@ -323,7 +338,7 @@ export async function techUpdateJob(
       resolutionSummary: typeof body.resolutionSummary === "string" ? body.resolutionSummary : null,
       finalAmountCents: lines ? job.finalAmountCents : typed,
     });
-    await recordAudit({ businessId: tech.businessId, entityType: "job", entityId: job.id, jobId: job.id, action: "job.status", ...actor, summary: `${tech.name} finished the job` });
+    await recordAudit({ businessId: tech.businessId, entityType: "job", entityId: job.id, jobId: job.id, action: "job.status", ...actor, summary: `${tech.name} finished the job${lateNote}` });
     const billed = await invoiceCompletedJob(job.id).catch((error) => {
       logWarn("invoice.on_complete_failed", { jobId: job.id, error: error instanceof Error ? error.message : String(error) });
       return null;
@@ -340,7 +355,7 @@ export async function techUpdateJob(
       );
     }
   } else if (status) {
-    await updateJobStatus(job.id, status as "confirmed" | "en_route");
+    await updateJobStatus(job.id, status as "confirmed" | "en_route", { at, notifyCustomer: !late });
     await recordAudit({
       businessId: tech.businessId,
       entityType: "job",
@@ -348,7 +363,7 @@ export async function techUpdateJob(
       jobId: job.id,
       action: "job.status",
       ...actor,
-      summary: status === "en_route" ? `${tech.name} is on the way` : `${tech.name} confirmed the job`,
+      summary: (status === "en_route" ? `${tech.name} is on the way` : `${tech.name} confirmed the job`) + lateNote,
     });
   }
   return techJobDetail(tech, job.id);

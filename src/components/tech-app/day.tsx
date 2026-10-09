@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { StatusPill, techFetch, timeLabel, whenLabel } from "@/components/tech-app/shared";
+import { cachedGet, forgetEverything, isGone, useFieldSync, useTechShell } from "@/components/tech-app/offline";
+import { StatusPill, SyncBar, timeLabel, whenLabel } from "@/components/tech-app/shared";
 
 type DayJob = {
   id: string;
@@ -40,19 +41,44 @@ function JobRow({ token, job, tz, showDay }: { token: string; job: DayJob; tz: s
   );
 }
 
+const KEEP_JOBS = 12;
+let keptAt = 0;
+
+/** Save the jobs still ahead today (and anything in progress) on the phone, so each one opens in a basement. */
+async function keepJobsOnPhone(token: string, day: Day) {
+  if (Date.now() - keptAt < 5 * 60_000) return;
+  keptAt = Date.now();
+  const soon = [...day.now, ...day.late, ...(day.days[0]?.jobs ?? []), ...(day.days[1]?.jobs ?? [])].filter((j) => j.status !== "completed" && j.status !== "cancelled");
+  const ids = [...new Set(soon.map((j) => j.id))].slice(0, KEEP_JOBS);
+  for (const id of ids) {
+    await cachedGet(`/api/tech/${token}/jobs/${id}`).catch(() => undefined);
+    await fetch(`/tech/${token}/jobs/${id}`, { credentials: "same-origin" }).catch(() => undefined);
+  }
+}
+
 /** A technician's day: what they are in the middle of, anything overdue, then each day's jobs. */
 export function TechDay({ token }: { token: string }) {
   const [day, setDay] = useState<Day | null>(null);
+  const [savedAt, setSavedAt] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
-      setDay(await techFetch<Day>(`/api/tech/${token}`));
+      const { data, savedAt: at } = await cachedGet<Day>(`/api/tech/${token}`);
+      setDay(data);
+      setSavedAt(at);
       setError(null);
+      if (!at) void keepJobsOnPhone(token, data);
     } catch (err) {
+      if (isGone(err)) {
+        forgetEverything();
+        setDay(null);
+      }
       setError(err instanceof Error ? err.message : "Couldn't load your day.");
     }
   }, [token]);
+  const sync = useFieldSync(() => void load());
+  useTechShell();
 
   useEffect(() => {
     void load();
@@ -98,7 +124,9 @@ export function TechDay({ token }: { token: string }) {
         </p>
       </header>
 
-      {error ? (
+      <SyncBar online={sync.online} savedAt={savedAt} queued={sync.queued.length} failed={sync.failed} timeZone={tz} onDismiss={sync.dismissFailed} />
+
+      {error && !savedAt ? (
         <p className="ta-error" role="alert">
           {error}
         </p>
