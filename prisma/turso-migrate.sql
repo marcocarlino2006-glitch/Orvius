@@ -898,3 +898,45 @@ CREATE TABLE IF NOT EXISTS "ForwardTest" (
     CONSTRAINT "ForwardTest_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 CREATE INDEX IF NOT EXISTS "ForwardTest_businessId_startedAt_idx" ON "ForwardTest"("businessId", "startedAt");
+
+-- QuickBooks: a shop's company connection, and each collected payment's one trip in as a sales receipt.
+ALTER TABLE "Customer" ADD COLUMN "quickbooksCustomerId" TEXT;
+CREATE TABLE IF NOT EXISTS "QuickBooksConnection" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "businessId" TEXT NOT NULL,
+  "realmId" TEXT NOT NULL,
+  "companyName" TEXT,
+  "accessTokenEnc" TEXT,
+  "refreshTokenEnc" TEXT,
+  "accessExpiresAt" DATETIME,
+  "refreshClaimAt" DATETIME,
+  "itemId" TEXT,
+  "status" TEXT NOT NULL DEFAULT 'active',
+  "lastError" TEXT,
+  "connectedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "disconnectedAt" DATETIME,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" DATETIME NOT NULL,
+  CONSTRAINT "QuickBooksConnection_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "QuickBooksConnection_businessId_key" ON "QuickBooksConnection"("businessId");
+CREATE INDEX IF NOT EXISTS "QuickBooksConnection_realmId_idx" ON "QuickBooksConnection"("realmId");
+CREATE TABLE IF NOT EXISTS "QuickBooksSync" (
+  "id" TEXT NOT NULL PRIMARY KEY,
+  "businessId" TEXT NOT NULL,
+  "sourceType" TEXT NOT NULL,
+  "sourceId" TEXT NOT NULL,
+  "amountCents" INTEGER NOT NULL,
+  "status" TEXT NOT NULL DEFAULT 'pending',
+  "attempts" INTEGER NOT NULL DEFAULT 0,
+  "nextAttemptAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "claimedAt" DATETIME,
+  "qbCustomerId" TEXT,
+  "qbReceiptId" TEXT,
+  "lastError" TEXT,
+  "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" DATETIME NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "QuickBooksSync_sourceType_sourceId_key" ON "QuickBooksSync"("sourceType", "sourceId");
+CREATE INDEX IF NOT EXISTS "QuickBooksSync_status_nextAttemptAt_idx" ON "QuickBooksSync"("status", "nextAttemptAt");
+CREATE INDEX IF NOT EXISTS "QuickBooksSync_businessId_createdAt_idx" ON "QuickBooksSync"("businessId", "createdAt");

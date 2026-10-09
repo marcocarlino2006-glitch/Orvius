@@ -6,6 +6,7 @@ import { busyCalendarHost } from "@/lib/busy-calendar";
 import { normalizeReviewUrl } from "@/lib/review-requests";
 import { calendarFeedUrl } from "@/lib/calendar-feed";
 import { jobberStatus } from "@/lib/jobber";
+import { quickbooksStatus } from "@/lib/quickbooks";
 import { getShopLineForBusiness } from "@/lib/demo-business";
 import { getShopAccessWithAutoLine } from "@/lib/provision-business";
 import { recordAudit } from "@/lib/audit";
@@ -234,6 +235,7 @@ export async function GET(request: Request) {
         }
       : null,
     jobber: businessRecord ? await jobberStatus(businessRecord.id).catch(() => null) : null,
+    quickbooks: businessRecord ? await quickbooksStatus(businessRecord.id).catch(() => null) : null,
     billing: {
       configured: isStripeCheckoutConfigured(),
       fullyReady: isStripeConfigured(),
