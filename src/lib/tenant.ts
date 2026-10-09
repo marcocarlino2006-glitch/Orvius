@@ -64,6 +64,7 @@ export function roleForbiddenResponse(permission: Permission) {
     "workspace.delete": "delete the workspace",
     "ownership.transfer": "change who owns the shop",
     "audit.view": "view the activity log",
+    "reports.view": "see the shop's money reports",
   };
   return NextResponse.json({ error: `Your role can't ${what[permission]}. Ask the shop owner.` }, { status: 403 });
 }
