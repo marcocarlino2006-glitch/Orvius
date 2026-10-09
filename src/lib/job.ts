@@ -933,7 +933,8 @@ async function autoAssignTechnician(params: {
   return { job: await prisma.job.findUniqueOrThrow({ where: { id: job.id } }), busy };
 }
 
-export async function updateJobStatus(jobId: string, status: JobStatus) {
+/** `at` is when it happened in the field; a late "on the way" (an offline phone catching up) is recorded without texting. */
+export async function updateJobStatus(jobId: string, status: JobStatus, options: { at?: Date; notifyCustomer?: boolean } = {}) {
   const data: {
     status: JobStatus;
     confirmedAt?: Date;
@@ -942,10 +943,11 @@ export async function updateJobStatus(jobId: string, status: JobStatus) {
     completedAt?: Date;
   } = { status };
 
-  if (status === "confirmed") data.confirmedAt = new Date();
-  if (status === "en_route") data.dispatchedAt = new Date();
-  if (status === "on_site") data.onSiteAt = new Date();
-  if (status === "completed") data.completedAt = new Date();
+  const at = options.at ?? new Date();
+  if (status === "confirmed") data.confirmedAt = at;
+  if (status === "en_route") data.dispatchedAt = at;
+  if (status === "on_site") data.onSiteAt = at;
+  if (status === "completed") data.completedAt = at;
 
   if (status !== "en_route") {
     return prisma.job.update({
@@ -960,7 +962,7 @@ export async function updateJobStatus(jobId: string, status: JobStatus) {
     where: { id: jobId, status: { not: "en_route" } },
     data,
   });
-  if (moved.count) {
+  if (moved.count && options.notifyCustomer !== false) {
     await notifyCustomerOnTheWay(jobId).catch((error) =>
       logWarn("customer.on_the_way_failed", {
         jobId,

@@ -595,3 +595,87 @@ html:has(.ta-dock) {
   max-width: 32rem;
   margin-inline: auto;
 }
+.ta-sync {
+  display: grid;
+  gap: 0.375rem;
+  padding: 0.75rem 0.875rem;
+  border-radius: 12px;
+  background: rgb(242 169 59 / 0.1);
+  border: 1px solid rgb(242 169 59 / 0.3);
+  color: var(--ta-text);
+  font-size: 0.9375rem;
+}
+.ta-sync-line {
+  margin: 0;
+}
+.ta-sync-failed {
+  display: grid;
+  gap: 0.25rem;
+  color: #fecaca;
+}
+.ta-sync-failed p {
+  margin: 0;
+}
+.ta-checklist {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ta-checklist li {
+  display: grid;
+  gap: 0.375rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--ta-line);
+}
+.ta-checklist li:last-child {
+  border-bottom: 0;
+}
+.ta-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+  font-size: 0.9375rem;
+  color: var(--ta-text-2);
+  cursor: pointer;
+}
+.ta-check input {
+  flex: none;
+  width: 1.375rem;
+  height: 1.375rem;
+  margin: 0.125rem 0 0;
+  accent-color: var(--ta-green);
+}
+.ta-checklist li.is-done .ta-check {
+  color: var(--ta-text);
+}
+.ta-reading {
+  margin-left: 2.125rem;
+  width: calc(100% - 2.125rem);
+}
+.ta-sign {
+  display: grid;
+  gap: 0.375rem;
+  justify-items: end;
+}
+.ta-sign-pad {
+  width: 100%;
+  height: 11rem;
+  border-radius: 12px;
+  background: #fff;
+  touch-action: none;
+  cursor: crosshair;
+}
+.ta-sign-img {
+  width: 100%;
+  max-width: 22rem;
+  border-radius: 12px;
+  background: #fff;
+}
+.ta-sign-statement {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--ta-text);
+}

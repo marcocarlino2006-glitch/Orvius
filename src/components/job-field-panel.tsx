@@ -11,7 +11,10 @@ type Line = { id?: string; name: string; kind: string; quantity: number; unitCen
 type Photo = { id: string; kind: "before" | "after" | "other"; takenBy: string | null; createdAt: string };
 type Note = { id: string; authorKind: "technician" | "person"; authorName: string; body: string; createdAt: string };
 type BookItem = { id: string; name: string; kind: string; unitCents: number; description: string | null };
-type Field = { lines: Line[]; totalCents: number; photos: Photo[]; notes: Note[]; priceBook: BookItem[] };
+type ChecklistItem = { id: string; label: string; reading?: string; done: boolean; value: string | null; at: string | null };
+type Checklist = { title: string; items: ChecklistItem[]; done: number; total: number };
+type Signature = { signerName: string; signedAt: string; agreedCents: number | null; statement: string };
+type Field = { lines: Line[]; totalCents: number; photos: Photo[]; notes: Note[]; priceBook: BookItem[]; checklist: Checklist | null; signature: Signature | null };
 
 const KIND_WORD: Record<string, string> = { service: "Service", labor: "Labor", part: "Part", discount: "Discount" };
 
@@ -261,6 +264,47 @@ export function JobFieldPanel({ jobId, locked, timezone, onChange }: { jobId: st
       ) : (
         <p className="jf-muted">None yet. The technician adds before and after photos from their phone.</p>
       )}
+
+      {field.checklist && field.checklist.done > 0 ? (
+        <>
+          <div className="jf-head jf-head--rule">
+            <h3 className="jf-title">{field.checklist.title} checklist</h3>
+            <span className="jf-muted">
+              {field.checklist.done} of {field.checklist.total}
+            </span>
+          </div>
+          <ul className="jf-checklist">
+            {field.checklist.items.map((item) => (
+              <li key={item.id} className={item.done ? "is-done" : ""}>
+                <span aria-hidden>{item.done ? "✓" : "–"}</span>
+                <span>
+                  {item.label}
+                  {item.value ? <strong> · {item.value}</strong> : null}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
+
+      {field.signature ? (
+        <>
+          <div className="jf-head jf-head--rule">
+            <h3 className="jf-title">Customer sign-off</h3>
+            <span className="jf-muted">{formatWhen(field.signature.signedAt, undefined, timezone)}</span>
+          </div>
+          <div className="jf-signature">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={`/api/jobs/${jobId}/signature`} alt={`Signature of ${field.signature.signerName}`} />
+            <p>
+              <strong>{field.signature.signerName}</strong>: &ldquo;{field.signature.statement}&rdquo;
+            </p>
+            {field.signature.agreedCents != null && field.lines.length && field.signature.agreedCents !== field.totalCents ? (
+              <p className="jf-warn">The work changed after signing: signed for {usd(field.signature.agreedCents)}, now {usd(field.totalCents)}.</p>
+            ) : null}
+          </div>
+        </>
+      ) : null}
 
       <div className="jf-head jf-head--rule">
         <h3 className="jf-title">Notes</h3>

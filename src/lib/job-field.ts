@@ -1,5 +1,6 @@
 import { recordAudit, type AuditActor } from "@/lib/audit";
 import { upsertJobInvoice } from "@/lib/invoice-pay";
+import { applyChecklist, checklistTemplateFor, readChecklist } from "@/lib/job-checklist";
 import { prisma } from "@/lib/prisma";
 
 export const LINE_KINDS = ["service", "labor", "part", "discount"] as const;
@@ -242,6 +243,13 @@ export async function addJobNote(params: { businessId: string; jobId: string; bo
   const body = typeof params.body === "string" ? params.body.trim() : "";
   if (!body) throw new FieldError("Write the note first.");
   if (body.length > 2000) throw new FieldError("Keep a note under 2,000 characters.");
+  if (params.authorKind === "technician") {
+    // A phone that lost signal mid-send resends the note when it reconnects; the first copy stands.
+    const twin = await prisma.jobNote.findFirst({
+      where: { businessId: params.businessId, jobId: params.jobId, authorKind: "technician", authorName: params.authorName.slice(0, 120), body, createdAt: { gte: new Date(Date.now() - 6 * 3_600_000) } },
+    });
+    if (twin) return toNote(twin);
+  }
   const row = await prisma.jobNote.create({
     data: { businessId: params.businessId, jobId: params.jobId, authorKind: params.authorKind, authorName: params.authorName.slice(0, 120), body },
   });
@@ -263,10 +271,31 @@ export async function jobNotes(businessId: string, jobId: string) {
   return rows.map(toNote);
 }
 
-/** Everything done on the job in the field: lines and their total, photos, notes. */
+/** Everything done on the job in the field: lines and their total, photos, notes, the checklist and the customer's sign-off. */
 export async function jobField(businessId: string, jobId: string) {
-  const [lines, photos, notes] = await Promise.all([jobLines(businessId, jobId), jobPhotos(businessId, jobId), jobNotes(businessId, jobId)]);
-  return { ...lines, photos, notes };
+  const [lines, photos, notes, job, signed] = await Promise.all([
+    jobLines(businessId, jobId),
+    jobPhotos(businessId, jobId),
+    jobNotes(businessId, jobId),
+    prisma.job.findFirst({ where: { id: jobId, businessId }, select: { checklistJson: true, categoryCode: true, title: true, serviceType: true, business: { select: { trade: true } } } }),
+    prisma.jobSignature.findFirst({ where: { businessId, jobId }, select: { signerName: true, signedAt: true, agreedCents: true, statement: true } }),
+  ]);
+  const checklist = job ? readChecklist(job.checklistJson, checklistTemplateFor(job, job.business.trade)) : null;
+  const signature = signed ? { ...signed, signedAt: signed.signedAt.toISOString() } : null;
+  return { ...lines, photos, notes, checklist, signature };
+}
+
+/** Save ticks and readings on the job's checklist, starting it from the template on first use. */
+export async function setJobChecklist(businessId: string, jobId: string, changes: unknown) {
+  // Two quick ticks arrive as two requests; each applies on top of what the other saved, never over it.
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const job = await prisma.job.findFirst({ where: { id: jobId, businessId }, select: { id: true, checklistJson: true, categoryCode: true, title: true, serviceType: true, business: { select: { trade: true } } } });
+    if (!job) throw new FieldError("Job not found", 404);
+    const { json, checklist } = applyChecklist(job.checklistJson, checklistTemplateFor(job, job.business.trade), changes);
+    const saved = await prisma.job.updateMany({ where: { id: job.id, checklistJson: job.checklistJson }, data: { checklistJson: json } });
+    if (saved.count) return checklist;
+  }
+  throw new FieldError("Too many changes at once. Try that tick again.", 409);
 }
 
 export type PriceBookEntry = { id: string; name: string; kind: LineKind; unitCents: number; description: string | null };
