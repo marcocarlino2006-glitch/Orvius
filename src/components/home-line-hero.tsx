@@ -93,7 +93,7 @@ export function HomeLineHero({ signupOpen = false }: { signupOpen?: boolean }) {
             )}
           </div>
 
-          <TalkInBrowser phoneHref={demoLineHref()} phoneDisplay={DEMO_LINE_DISPLAY} />
+          <TalkInBrowser personal phoneHref={demoLineHref()} phoneDisplay={DEMO_LINE_DISPLAY} />
 
           <a
             href={demoLineHref()}

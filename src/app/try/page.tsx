@@ -23,17 +23,16 @@ export default function TryPage() {
           <ShellPageIntro
             label="Free preview"
             title="Hear your business answer."
-            subline={live ? "Two free calls. No card, no account." : "Opening soon."}
-            description={
-              live
-                ? "Tell us your business name and call from your mobile. Orvius answers as your business, takes the call, and texts you the card you'd get for every call."
-                : `Personal previews aren't open yet. Call ${DEMO_LINE_DISPLAY} to hear Orvius answer for a demo business, or set up your own line now.`
-            }
+            subline="Two free calls. No card, no account."
+            description="Type your business name and talk to it in your browser, like a customer calling you. Orvius answers as your business, takes down the job, and shows you the text you'd get after every call."
           />
-          <TalkInBrowser phoneHref={demoLineHref()} phoneDisplay={DEMO_LINE_DISPLAY} />
+          <TalkInBrowser personal phoneHref={demoLineHref()} phoneDisplay={DEMO_LINE_DISPLAY} />
           <div className="tier1-form-slot" style={{ marginTop: "1.5rem" }}>
             {live ? (
-              <ShopPreviewForm />
+              <>
+                <p className="pd-scenario-sub">Or call from your phone instead:</p>
+                <ShopPreviewForm />
+              </>
             ) : (
               <div className="shop-preview-actions">
                 <a href={demoLineHref()} className="ov-btn ov-btn--solid">

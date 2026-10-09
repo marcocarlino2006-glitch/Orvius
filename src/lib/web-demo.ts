@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { getDemoPlatformLine } from "@/lib/demo-business";
 import { prisma } from "@/lib/prisma";
 import { resolveBusinessByInboundPhone } from "@/lib/resolve-shop-line";
+import { buildPreviewAssistant, claimWebPreviewCall } from "@/lib/shop-preview";
 
 /*
   Talk to the receptionist from the browser, no phone needed. Every web call
@@ -114,19 +115,22 @@ export async function checkTicket(ticketId: string, now = new Date()): Promise<T
 }
 
 /** Join the line, or pick up the place this visitor already holds. */
-export async function joinLine(ip: string, now = new Date()): Promise<TicketView> {
+export async function joinLine(ip: string, now = new Date(), previewId?: string): Promise<TicketView> {
   const ipHash = hashVisitor(ip);
   const open = await prisma.demoTicket.findFirst({
     where: { ipHash, status: { in: ["waiting", "granted", "live"] }, createdAt: { gte: new Date(now.getTime() - 30 * 60_000) } },
     orderBy: { createdAt: "desc" },
   });
   if (open) {
+    if (previewId && open.previewId !== previewId && open.status === "waiting") {
+      await prisma.demoTicket.update({ where: { id: open.id }, data: { previewId } });
+    }
     const view = await checkTicket(open.id, now);
     if (view.state !== "done") return view;
   }
   const recent = await prisma.demoTicket.count({ where: { ipHash, createdAt: { gte: new Date(now.getTime() - 60 * 60_000) } } });
   if (recent >= TICKETS_PER_IP_PER_HOUR) return { state: "closed", reason: "limit" };
-  const ticket = await prisma.demoTicket.create({ data: { ipHash, createdAt: now, lastSeenAt: now } });
+  const ticket = await prisma.demoTicket.create({ data: { ipHash, createdAt: now, lastSeenAt: now, previewId: previewId ?? null } });
   return checkTicket(ticket.id, now);
 }
 
@@ -157,10 +161,23 @@ export async function startWebDemo(ticketId: string, create: CreateWebCall, now 
     throw new WebDemoRefused("Your turn timed out. Join the line again.");
   }
   try {
-    const assistantId = await demoAssistantId();
-    if (!assistantId) throw new Error("demo assistant missing");
-    const call = await create({ assistantId, assistantOverrides: { maxDurationSeconds: WEB_DEMO_MAX_SECONDS, metadata: { demoTicketId: ticketId } } });
+    const ticket = await prisma.demoTicket.findUnique({ where: { id: ticketId }, select: { previewId: true } });
+    let body: Record<string, unknown>;
+    let previewId: string | null = null;
+    if (ticket?.previewId) {
+      const preview = await claimWebPreviewCall(ticket.previewId, now);
+      if (!preview) throw new WebDemoRefused("That business has used its free calls. Start your line to keep it answering.");
+      previewId = preview.id;
+      const assistant = buildPreviewAssistant(preview);
+      body = { assistant: { ...assistant, maxDurationSeconds: WEB_DEMO_MAX_SECONDS, metadata: { ...assistant.metadata, demoTicketId: ticketId } } };
+    } else {
+      const assistantId = await demoAssistantId();
+      if (!assistantId) throw new Error("demo assistant missing");
+      body = { assistantId, assistantOverrides: { maxDurationSeconds: WEB_DEMO_MAX_SECONDS, metadata: { demoTicketId: ticketId } } };
+    }
+    const call = await create(body);
     if (!call?.id || !call.webCallUrl) throw new Error("vapi returned no web call");
+    if (previewId) await prisma.shopPreview.update({ where: { id: previewId }, data: { lastVapiCallId: call.id } });
     await prisma.demoTicket.update({ where: { id: ticketId }, data: { vapiCallId: call.id } });
     return { id: call.id, webCallUrl: call.webCallUrl, transport: call.transport, assistant: { voice: { provider: call.assistant?.voice?.provider } }, artifactPlan: { videoRecordingEnabled: false } };
   } catch (error) {

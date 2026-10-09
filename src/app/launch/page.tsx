@@ -49,7 +49,7 @@ export default async function LaunchPage() {
             Orvius picks up when you can&apos;t, books the job on your calendar, texts the customer and tells you what happened. Don&apos;t take our word for it: talk to it.
           </p>
           {video ? <LaunchVideo src={video} poster={process.env.ORVIUS_LAUNCH_VIDEO_POSTER?.trim() || undefined} /> : null}
-          <TalkInBrowser phoneHref={demoLineHref()} phoneDisplay={DEMO_LINE_DISPLAY} />
+          <TalkInBrowser personal phoneHref={demoLineHref()} phoneDisplay={DEMO_LINE_DISPLAY} />
           <p className="lx-alt font-sans">
             Rather use your phone? Call <a href={demoLineHref()}>{DEMO_LINE_DISPLAY}</a>. You&apos;ll reach a demo HVAC shop.
           </p>

@@ -211,6 +211,47 @@ export function buildPreviewAlert(preview: { shopName: string; token: string }, 
   return withSmsOptOutFooter(lines.filter(Boolean).join("\n"));
 }
 
+/**
+ * A preview from the website, no phone: the visitor typed their business and
+ * talks to it in the browser. One visitor keeps one active preview, with the
+ * same free-call and daily limits as a phone preview.
+ */
+export async function createWebPreview(input: {
+  shopName: string;
+  trade?: Trade | null;
+  serviceArea?: string | null;
+  visitorKey: string;
+  now?: Date;
+}): Promise<CreatePreviewResult> {
+  const now = input.now ?? new Date();
+  const key = `web:${input.visitorKey}`;
+  const trade = input.trade ?? "HVAC";
+  const details = { shopName: input.shopName.trim(), trade, serviceArea: input.serviceArea?.trim() || null, servicesJson: servicesForTrade(trade) };
+  const active = await prisma.shopPreview.findFirst({ where: { ownerPhoneNormalized: key, expiresAt: { gt: now } }, orderBy: { createdAt: "desc" } });
+  if (active) {
+    await prisma.shopPreview.update({ where: { id: active.id }, data: details });
+    return { ok: true, token: active.token, reused: true };
+  }
+  const recent = await prisma.shopPreview.count({ where: { ownerPhoneNormalized: key, createdAt: { gte: new Date(now.getTime() - PHONE_WINDOW_MS) } } });
+  if (recent >= PREVIEW_MAX_PER_PHONE) return { ok: false, reason: "phone_cap" };
+  const today = await prisma.shopPreview.count({ where: { createdAt: { gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) } } });
+  if (today >= dailyCap()) return { ok: false, reason: "daily_cap" };
+  const token = randomBytes(18).toString("base64url");
+  await prisma.shopPreview.create({
+    data: { ...details, token, hoursJson: DEFAULT_HOURS_JSON, ownerPhone: "", ownerPhoneNormalized: key, maxCalls: PREVIEW_MAX_CALLS, expiresAt: new Date(now.getTime() + PREVIEW_TTL_MS) },
+  });
+  return { ok: true, token, reused: false };
+}
+
+/** Use one of a preview's free calls for a browser call; null when they're used up. */
+export async function claimWebPreviewCall(previewId: string, now = new Date()) {
+  const claimed = await prisma.shopPreview.updateMany({
+    where: { id: previewId, expiresAt: { gt: now }, callsUsed: { lt: PREVIEW_MAX_CALLS } },
+    data: { callsUsed: { increment: 1 }, lastCallAt: now, lastSummary: null, lastCaptureJson: null, transcriptJson: null, alertSentAt: null, lastVapiCallId: null },
+  });
+  return claimed.count ? prisma.shopPreview.findUnique({ where: { id: previewId } }) : null;
+}
+
 /** A preview call ended: keep what was captured for the page and text the owner once per call. */
 export async function recordPreviewOutcome(
   preview: { id: string; token: string; shopName: string; ownerPhone: string; lastVapiCallId: string | null },
@@ -233,7 +274,7 @@ export async function recordPreviewOutcome(
       transcriptJson: JSON.stringify(replayTurns({ messages: message.artifact?.messages, transcript: message.transcript })),
     },
   });
-  if (stamped.count === 0) return;
+  if (stamped.count === 0 || !preview.ownerPhone) return;
 
   try {
     const sent = await sendSms({ to: preview.ownerPhone, body: buildPreviewAlert(preview, capture), audience: "owner" });

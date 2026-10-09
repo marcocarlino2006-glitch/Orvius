@@ -128,7 +128,10 @@ export async function POST(request: NextRequest) {
   // Preview calls belong to no shop: they must never reach findBusinessForCall's number fallback.
   const preview = await findPreviewByVapiCallId(vapiCallId);
   if (preview) {
-    if (type === "end-of-call-report") await recordPreviewOutcome(preview, message);
+    if (type === "end-of-call-report") {
+      await recordPreviewOutcome(preview, message);
+      if (message.call?.type === "webCall") after(() => endWebDemo({ vapiCallId }));
+    }
     return NextResponse.json({ ok: true, preview: true });
   }
 

@@ -1,7 +1,17 @@
 import { NextResponse } from "next/server";
 import { logError } from "@/lib/logger";
+import { prisma } from "@/lib/prisma";
 import { clientIp, sharedRateLimit, tooManyRequests } from "@/lib/rate-limit";
-import { checkTicket, createVapiWebCall, endWebDemo, joinLine, startWebDemo, WebDemoRefused } from "@/lib/web-demo";
+import { z } from "zod";
+import { createWebPreview } from "@/lib/shop-preview";
+import { isHipaaTrade, TRADES } from "@/lib/trades";
+import { checkTicket, createVapiWebCall, endWebDemo, hashVisitor, joinLine, startWebDemo, WebDemoRefused } from "@/lib/web-demo";
+
+const businessSchema = z.object({
+  name: z.string().trim().min(2).max(80),
+  trade: z.enum(TRADES).optional(),
+  city: z.string().trim().max(80).optional(),
+});
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,13 +42,28 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const tooMany = await limited(request);
   if (tooMany) return tooMany;
-  const body = (await request.json().catch(() => ({}))) as { action?: string; ticketId?: string };
+  const body = (await request.json().catch(() => ({}))) as { action?: string; ticketId?: string; business?: unknown };
   if (body.action === "end") {
     await endWebDemo({ ticketId: body.ticketId });
     return NextResponse.json({ ok: true }, { headers: noStore });
   }
   if (!configured()) return NextResponse.json({ state: "closed", reason: "off" }, { headers: noStore });
-  if (body.action === "join") return NextResponse.json(await joinLine(clientIp(request)), { headers: noStore });
+  if (body.action === "join") {
+    const ip = clientIp(request);
+    if (body.business == null) return NextResponse.json(await joinLine(ip), { headers: noStore });
+    const parsed = businessSchema.safeParse(body.business);
+    if (!parsed.success) return NextResponse.json({ error: "Type your business name (at least 2 letters)." }, { status: 400, headers: noStore });
+    if (isHipaaTrade(parsed.data.trade)) {
+      return NextResponse.json({ error: "Orvius doesn't answer for medical or dental offices yet." }, { status: 400, headers: noStore });
+    }
+    const preview = await createWebPreview({ shopName: parsed.data.name, trade: parsed.data.trade, serviceArea: parsed.data.city, visitorKey: hashVisitor(ip) });
+    if (!preview.ok) {
+      if (preview.reason === "daily_cap") return NextResponse.json({ state: "closed", reason: "daily" }, { headers: noStore });
+      return NextResponse.json({ error: "You've tried a few businesses today. Start your line to keep it answering." }, { status: 429, headers: noStore });
+    }
+    const id = (await prisma.shopPreview.findUnique({ where: { token: preview.token }, select: { id: true } }))?.id;
+    return NextResponse.json({ ...(await joinLine(ip, new Date(), id)), previewToken: preview.token }, { headers: noStore });
+  }
   if (body.action === "start" && body.ticketId) {
     try {
       return NextResponse.json({ call: await startWebDemo(body.ticketId, createVapiWebCall) }, { headers: noStore });
