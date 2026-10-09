@@ -7,6 +7,7 @@ import { formatCentsExact } from "@/lib/money";
 import { logWarn } from "@/lib/logger";
 import { creditNetworkSender } from "@/lib/orvius-network";
 import { calculateNetworkFeeCents, calculatePlatformFeeCents, isChargeableAmount } from "@/lib/platform-fee";
+import { checkoutPaymentMethods } from "@/lib/financing";
 import { prisma } from "@/lib/prisma";
 import { mintPublicToken } from "@/lib/public-tokens";
 import { withSmsOptOutFooter } from "@/lib/sms-keywords";
@@ -147,6 +148,8 @@ export async function getInvoiceByToken(token: string) {
           stripeConnectChargesEnabled: true,
           stripeConnectPayoutsEnabled: true,
           stripeConnectDetailsSubmitted: true,
+          financingEnabled: true,
+          financingMethods: true,
         },
       },
     },
@@ -162,7 +165,7 @@ export async function isNetworkJob(jobId: string | null | undefined) {
 
 export async function createInvoiceCheckoutSession(params: {
   invoice: Pick<Invoice, "id" | "amountCents" | "publicToken"> & { jobId?: string | null };
-  business: Pick<Business, "id" | "name"> & ConnectableShop;
+  business: Pick<Business, "id" | "name"> & ConnectableShop & Partial<Pick<Business, "financingEnabled" | "financingMethods">>;
   jobTitle?: string | null;
 }) {
   const connect = getConnectStatus(params.business);
@@ -189,9 +192,11 @@ export async function createInvoiceCheckoutSession(params: {
     ...(network ? { network: "1" } : {}),
   };
 
+  const paymentMethods = checkoutPaymentMethods(params.business, params.invoice.amountCents);
   return getStripe().checkout.sessions.create(
     {
       mode: "payment",
+      ...(paymentMethods ? { payment_method_types: paymentMethods } : {}),
       line_items: [
         {
           quantity: 1,

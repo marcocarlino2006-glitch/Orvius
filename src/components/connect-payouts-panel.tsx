@@ -37,6 +37,56 @@ const BODY: Record<ConnectState, string> = {
     "Customers can pay your deposits and estimates by card. Funds settle to your bank on Stripe's normal payout schedule.",
 };
 
+type Financing = { enabled: boolean; active: string[]; pending: string[]; costNote: string };
+const METHOD_LABEL: Record<string, string> = { affirm: "Affirm", klarna: "Klarna" };
+const names = (list: string[]) => list.map((m) => METHOD_LABEL[m] ?? m).join(" and ");
+
+function FinancingRow() {
+  const [data, setData] = useState<Financing | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    void fetch("/api/connect/financing", { cache: "no-store" })
+      .then(async (res) => (res.ok ? setData(await res.json()) : null))
+      .catch(() => null);
+  }, []);
+
+  async function toggle(enabled: boolean) {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/connect/financing", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ enabled }) });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error ?? "That didn't save. Try again.");
+      setData(body);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "That didn't save. Try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (!data) return null;
+  return (
+    <div className="financing-row mt-5 font-sans">
+      <p className="payment-state-title">Pay over time</p>
+      <p className="mt-1 text-sm leading-relaxed text-ash">
+        {!data.enabled
+          ? "Let customers split a big repair or a new system into payments with Affirm or Klarna, on the same pay links and estimates."
+          : data.active.length
+            ? `${names(data.active)} ${data.active.length === 1 ? "is" : "are"} live on your pay links for amounts they cover.${data.pending.length ? ` Stripe is still reviewing ${names(data.pending)}.` : ""}`
+            : "Requested. Stripe is reviewing your account for Affirm and Klarna; they show up on your pay links the moment it clears."}
+      </p>
+      <p className="mt-2 text-xs leading-relaxed text-ash">{data.costNote}</p>
+      {error ? <p className="os-own-color panel-action-error mt-2 text-sm">{error}</p> : null}
+      <button type="button" className="btn btn-secondary mt-3" disabled={busy} onClick={() => void toggle(!data.enabled)}>
+        {busy ? "Saving…" : data.enabled ? "Turn off pay over time" : "Turn on pay over time"}
+      </button>
+    </div>
+  );
+}
+
 export function ConnectPayoutsPanel() {
   const [data, setData] = useState<ConnectResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -158,6 +208,8 @@ export function ConnectPayoutsPanel() {
           </button>
         )}
       </div>
+
+      {state === "ready" ? <FinancingRow /> : null}
 
       {/*
         The take rate is stated wherever a shop is asked to turn the rail on.

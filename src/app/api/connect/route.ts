@@ -103,6 +103,6 @@ export async function POST(request: Request) {
     const message =
       error instanceof Error ? error.message : "Could not start onboarding";
     console.error("connect.onboard_failed", { businessId: business.id, message });
-    return NextResponse.json({ error: message }, { status: 502 });
+    return NextResponse.json({ error: "Stripe didn't open. Try again in a minute." }, { status: 502 });
   }
 }

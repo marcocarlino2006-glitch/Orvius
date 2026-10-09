@@ -1,5 +1,6 @@
 import { calculatePlatformFeeCents, isChargeableAmount } from "@/lib/platform-fee";
 import { getAppBaseUrl, getStripe } from "@/lib/stripe";
+import { checkoutPaymentMethods } from "@/lib/financing";
 import { getConnectStatus } from "@/lib/stripe-connect";
 import { prisma } from "@/lib/prisma";
 import type Stripe from "stripe";
@@ -64,7 +65,7 @@ export async function createEstimateCheckoutSession(params: {
   publicToken: string;
   invoiceId: string;
   jobTitle?: string | null;
-  business: ConnectableShop;
+  business: ConnectableShop & { financingEnabled?: boolean | null; financingMethods?: string | null };
 }) {
   const connect = getConnectStatus(params.business);
   if (!connect.canAcceptPayments || !connect.accountId) {
@@ -87,9 +88,11 @@ export async function createEstimateCheckoutSession(params: {
     publicToken: params.publicToken,
   };
 
+  const paymentMethods = checkoutPaymentMethods(params.business, params.amountCents);
   const session = await stripe.checkout.sessions.create(
     {
       mode: "payment",
+      ...(paymentMethods ? { payment_method_types: paymentMethods } : {}),
       line_items: [
         {
           quantity: 1,

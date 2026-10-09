@@ -957,3 +957,5 @@ CREATE TABLE IF NOT EXISTS "JobSignature" (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "JobSignature_jobId_key" ON "JobSignature"("jobId");
 CREATE INDEX IF NOT EXISTS "JobSignature_businessId_signedAt_idx" ON "JobSignature"("businessId", "signedAt");
+ALTER TABLE "Business" ADD COLUMN "financingEnabled" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Business" ADD COLUMN "financingMethods" TEXT;

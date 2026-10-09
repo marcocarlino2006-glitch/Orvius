@@ -62,6 +62,10 @@ model Business {
   stripeConnectPayoutsEnabled   Boolean  @default(false)
   stripeConnectDetailsSubmitted Boolean  @default(false)
   stripeConnectUpdatedAt        DateTime?
+  /** The owner switched on pay-over-time (Affirm, Klarna) on their pay links. */
+  financingEnabled              Boolean  @default(false)
+  /** Pay-over-time methods Stripe has made active on the shop's account, comma-separated. */
+  financingMethods              String?
   /** Deposit asked for at booking. Null amount or false means deposits off. */
   depositEnabled                Boolean  @default(false)
   depositAmountCents            Int?

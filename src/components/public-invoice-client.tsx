@@ -10,6 +10,7 @@ type PublicInvoice = {
   shopPhone: string | null;
   paid: boolean;
   cardPayAvailable: boolean;
+  financing?: string | null;
   paidAt: string | null;
 };
 
@@ -155,6 +156,7 @@ export function PublicInvoiceClient({ token }: { token: string }) {
           </p>
         )}
       </div>
+      {!invoice.paid && invoice.cardPayAvailable && invoice.financing ? <p className="public-money-muted">{invoice.financing}</p> : null}
 
       <p className="public-money-fine">
         {invoice.paid
