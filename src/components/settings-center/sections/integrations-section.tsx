@@ -145,7 +145,7 @@ export function IntegrationsSection({
     },
     {
       name: "Stripe",
-      detail: account.billing?.fullyReady ? "Card payments and payouts" : "Set up payouts to take deposits",
+      detail: account.billing?.fullyReady ? "Card payments and payouts" : "Set up payments to take deposits and bills by card",
       on: Boolean(account.billing?.fullyReady),
       mark: "billing",
       action: { label: account.billing?.fullyReady ? "Manage" : "Connect", to: "billing" },

@@ -6,6 +6,8 @@ import { PricingTerms } from "@/components/pricing-terms";
 import { demoLineHref } from "@/lib/demo-line";
 import { getLowestPaidPrice } from "@/lib/company";
 import { getPaidPlans, OVERAGE_CENTS_PER_CALL, perCallCents } from "@/lib/pricing-plans";
+import { EXAMPLE_BILL_CENTS, PAYMENT_STEPS, STRIPE_STANDARD_LABEL, paymentExample, usd } from "@/lib/payments-intro";
+import { formatPlatformFeeRate, getPlatformFeeBps } from "@/lib/platform-fee";
 import { getPublicLaunchReadiness } from "@/lib/public-launch-readiness";
 
 const entry = getPaidPlans().reduce((low, plan) => (plan.price < low.price ? plan : low));
@@ -18,6 +20,7 @@ export const metadata: Metadata = {
 
 export default function PricingPage() {
   const selfServeReady = getPublicLaunchReadiness().ready;
+  const pay = paymentExample(EXAMPLE_BILL_CENTS, getPlatformFeeBps());
 
   return (
     <MarketingShell>
@@ -53,6 +56,50 @@ export default function PricingPage() {
 
       <section className="tier1-story">
         <PricingPagePlans selfServeReady={selfServeReady} terms={<PricingTerms />} />
+      </section>
+
+      <section className="pricing-getpaid" aria-labelledby="pricing-getpaid-title">
+        <div className="editorial-wrap">
+          <h2 id="pricing-getpaid-title" className="tier1-section-title type-headline">
+            Getting paid works the same way.
+          </h2>
+          <p className="tier1-section-lead font-sans">
+            When a job is done, Orvius texts the customer the bill and they pay from their phone. Payments run on your
+            own Stripe account, so the money goes to your bank, never to Orvius.
+          </p>
+          <div className="pricing-getpaid-grid font-sans">
+            <ol className="pricing-getpaid-steps">
+              {PAYMENT_STEPS.map((step) => (
+                <li key={step.when}>
+                  <span>{step.when}</span>
+                  <p className="pricing-getpaid-step">{step.title}</p>
+                  <p>{step.body}</p>
+                </li>
+              ))}
+            </ol>
+            <div className="pricing-getpaid-math">
+              <p className="pricing-getpaid-step">On a {usd(pay.billCents)} bill</p>
+              <dl>
+                <div>
+                  <dt>Stripe, at its standard {STRIPE_STANDARD_LABEL}</dt>
+                  <dd>−{usd(pay.stripeCents)}</dd>
+                </div>
+                <div>
+                  <dt>Orvius, {formatPlatformFeeRate()}</dt>
+                  <dd>−{usd(pay.orviusCents)}</dd>
+                </div>
+                <div className="is-net">
+                  <dt>In your bank</dt>
+                  <dd>{usd(pay.netCents)}</dd>
+                </div>
+              </dl>
+              <p>
+                Stripe shows your exact rate when you set up. Cash and checks you record yourself carry no fee, and
+                payments never change your plan price.
+              </p>
+            </div>
+          </div>
+        </div>
       </section>
 
       <section className="tier1-close">

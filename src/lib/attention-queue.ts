@@ -425,8 +425,8 @@ export async function collectAttention(businessId: string, now = new Date()): Pr
       impact: "critical",
       title: "Deposits on — cards cannot charge",
       detail:
-        "Deposit holds are enabled but Stripe Connect is not cleared to take cards. Finish payouts setup or turn deposits off.",
-      recommendedAction: "Open payouts",
+        "Deposits are on, but Stripe hasn't cleared your shop to take cards yet, so customers can't pay them. Finish payment setup or turn deposits off.",
+      recommendedAction: "Finish payment setup",
       href: "/dashboard/billing#payouts",
       entityType: "shop",
       entityId: businessId,

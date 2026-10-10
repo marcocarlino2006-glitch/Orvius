@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { formatPlatformFeeRate } from "@/lib/platform-fee";
+import { formatPlatformFeeRate, getPlatformFeeBps } from "@/lib/platform-fee";
 import {
   createConnectLoginLink,
   createConnectOnboardingLink,
@@ -45,6 +45,8 @@ export async function GET() {
     return uncached({
       configured: false,
       feeRate: formatPlatformFeeRate(),
+      feeBps: getPlatformFeeBps(),
+      shopName: business.name,
       status: getConnectStatus(business),
     });
   }
@@ -60,6 +62,8 @@ export async function GET() {
   return uncached({
     configured: true,
     feeRate: formatPlatformFeeRate(),
+    feeBps: getPlatformFeeBps(),
+    shopName: business.name,
     status: refreshed ?? getConnectStatus(business),
   });
 }

@@ -5,6 +5,7 @@ import { connectionHealth } from "@/lib/number-connection";
 import { getShopLine } from "@/lib/owner-setup-state";
 import { prisma } from "@/lib/prisma";
 import { isSetupSandbox, permissionLevelFor } from "@/lib/setup-flow";
+import { getConnectStatus, isConnectConfigured } from "@/lib/stripe-connect";
 import { requireEntitledSession } from "@/lib/tenant";
 
 /** After go-live: what is on, proven by real events, and the one next thing for each item that isn't. */
@@ -46,6 +47,7 @@ export async function GET() {
       lastTest: lastTest ? { state: lastTest.state, title: lastTest.title ?? "", at: lastTest.startedAt } : null,
     }),
     level: permissionLevelFor(b),
+    payments: isConnectConfigured() ? getConnectStatus(b).state : null,
   });
 
   return NextResponse.json({ items, summary: activationSummary(items) });

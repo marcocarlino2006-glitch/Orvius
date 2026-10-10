@@ -162,3 +162,113 @@ html .ov-signin .ov-signin-row-tag--intake::before {
     padding-top: 2rem !important;
   }
 }
+
+/* Pricing: getting paid, with the same steps and worked bill the app shows owners. */
+.ov-public .pricing-getpaid {
+  padding: clamp(3.5rem, 7vw, 5.5rem) 0;
+  border-top: 1px solid var(--ov-hairline);
+}
+
+.ov-public .pricing-getpaid-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: clamp(1.5rem, 4vw, 3rem);
+  margin-top: 2rem;
+  align-items: start;
+}
+
+.ov-public .pricing-getpaid-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ov-public .pricing-getpaid-steps li {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr);
+  column-gap: 1rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--ov-hairline);
+}
+
+.ov-public .pricing-getpaid-steps li:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.ov-public .pricing-getpaid-steps li > span {
+  grid-row: span 2;
+  color: var(--ov-emerald-text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.ov-public .pricing-getpaid-steps p,
+.ov-public .pricing-getpaid-math > p:last-child {
+  margin: 0.2rem 0 0;
+  color: var(--ov-muted);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.ov-public .pricing-getpaid .pricing-getpaid-step {
+  margin: 0;
+  color: var(--ov-headline);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.ov-public .pricing-getpaid-math {
+  padding: 1.25rem 1.4rem;
+  border: 1px solid var(--ov-hairline);
+  border-radius: 12px;
+  background: var(--ov-paper-raised);
+}
+
+.ov-public .pricing-getpaid-math dl {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.85rem 0 0.9rem;
+}
+
+.ov-public .pricing-getpaid-math dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--ov-muted);
+  font-size: 1rem;
+}
+
+.ov-public .pricing-getpaid-math dd {
+  margin: 0;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.ov-public .pricing-getpaid-math .is-net {
+  padding-top: 0.55rem;
+  border-top: 1px solid var(--ov-hairline);
+  color: var(--ov-headline);
+  font-weight: 600;
+}
+
+.ov-public .pricing-getpaid-math > p:last-child {
+  font-size: 0.875rem;
+}
+
+@media (max-width: 860px) {
+  .ov-public .pricing-getpaid-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .ov-public .pricing-getpaid-steps li {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ov-public .pricing-getpaid-steps li > span {
+    grid-row: auto;
+  }
+}
