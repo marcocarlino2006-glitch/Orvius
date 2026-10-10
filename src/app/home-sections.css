@@ -358,6 +358,12 @@
   }
 }
 
+@media (min-width: 561px) and (max-width: 900px) {
+  .ov-public .ov-hero-stage.ov-hero-stage--art {
+    padding: clamp(2rem, 5vw, 3rem) clamp(1.5rem, 6vw, 4rem) clamp(8rem, 22vw, 12rem);
+  }
+}
+
 @media (max-width: 900px) {
   .ov-public .hf-row,
   .ov-public .hf-row--flip {

@@ -38,6 +38,19 @@
   color: #fff;
 }
 
+/* Touch: the pill stays its drawn size; the tap area grows to 44px around it. */
+@media (pointer: coarse) {
+  .hd-pills button {
+    position: relative;
+  }
+
+  .hd-pills button::after {
+    content: "";
+    position: absolute;
+    inset: -6px 0;
+  }
+}
+
 .hd-pills button.is-on {
   background: rgb(255 255 255 / 0.92);
   border-color: transparent;

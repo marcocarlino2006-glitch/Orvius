@@ -5853,3 +5853,37 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   border-top: 1px solid color-mix(in srgb, #ececec 14%, transparent);
   font-weight: 600;
 }
+
+/*
+  Touch floor — phones and iPads. Every control a thumb can tap is at least
+  44×44, Apple's minimum and WCAG's enhanced target size. min-height beats a
+  fixed height, so small button variants grow without per-class overrides, and
+  :not(#tap-floor) lends ID weight over themed !important sizes. The visual
+  audit fails CI on any button under 44px on a touch viewport.
+*/
+@media (pointer: coarse) {
+  html body :is(button, [role="button"], [role="tab"], summary, select, input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]):not([type="file"]):not([type="color"]), a.btn, a[class*="btn"], .mkt-nav-links a, .mkt-nav-login, .mkt-nav-sheet-nav a, .mkt-footer-col a, .ov-signin-foot nav a, .os-sidebar-brand, .wc-more-item):not(.sc-switch):not(.hd-pills > button):not(#tap-floor) {
+    min-height: 44px !important;
+  }
+
+  html body :is(button, [role="button"], [role="tab"], summary, a.btn, a[class*="btn"], .mx-bar-icon, .os-topbar-search):not(.sc-switch):not(.hd-pills > button):not(#tap-floor) {
+    min-width: 44px !important;
+  }
+
+  html body :is(.mx-bar-icon, .os-topbar-search, .cb-ask-send, .mkt-footer-col a, .ov-signin-foot nav a, .mkt-nav-links a, .mkt-nav-login):not(#tap-floor) {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Title links in lists keep their line; the tap area grows around the text. */
+  html body :is(.wc-title, .dt-row-link, .dt-link, .cmd-section-link, .cmd-feed-text, .hf-link):not(#tap-floor) {
+    position: relative;
+  }
+
+  html body :is(.wc-title, .dt-row-link, .dt-link, .cmd-section-link, .cmd-feed-text, .hf-link):not(#tap-floor)::before {
+    content: "";
+    position: absolute;
+    inset: -12px -4px;
+  }
+}
