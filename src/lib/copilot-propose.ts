@@ -20,7 +20,7 @@ export type ProposeOutcome =
   | { ok: true; proposalId: string; action: string; preview: string; params: Record<string, string> }
   | { ok: false; error: string; status: number; reason?: string; alternatives?: string[] };
 
-type Shop = Pick<Business, "id" | "name" | "timezone" | "hoursJson" | "servicesJson" | "trade">;
+type Shop = Pick<Business, "id" | "name" | "timezone" | "hoursJson" | "servicesJson" | "trade"> & { jobLengthsJson?: string | null };
 
 type SlotTarget =
   | { kind: "lead"; lead: { serviceType: string | null; notes: string | null; urgency: string | null } }

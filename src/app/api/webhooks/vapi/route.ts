@@ -208,6 +208,7 @@ export async function POST(request: NextRequest) {
           timezone: true,
           trade: true,
           servicesJson: true,
+          jobLengthsJson: true,
           ownerPhone: true,
           ownerEmail: true,
           transferPhone: true,

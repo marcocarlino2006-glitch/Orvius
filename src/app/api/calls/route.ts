@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
   */
   const hours = await prisma.business.findUnique({
     where: { id: business.id },
-    select: { hoursJson: true, timezone: true, closedDatesJson: true, trade: true, servicesJson: true, name: true },
+    select: { hoursJson: true, timezone: true, closedDatesJson: true, trade: true, servicesJson: true, jobLengthsJson: true, name: true },
   });
   const timezone = hours?.timezone ?? "America/New_York";
   const hoursJson = hours?.hoursJson ?? "{}";

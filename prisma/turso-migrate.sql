@@ -1003,3 +1003,4 @@ CREATE TABLE IF NOT EXISTS "DemoSlot" (
 ALTER TABLE "DemoTicket" ADD COLUMN "previewId" TEXT;
 ALTER TABLE "Business" ADD COLUMN "billingInterval" TEXT;
 ALTER TABLE "Business" ADD COLUMN "closedDatesJson" TEXT NOT NULL DEFAULT '[]';
+ALTER TABLE "Business" ADD COLUMN "jobLengthsJson" TEXT NOT NULL DEFAULT '{}';

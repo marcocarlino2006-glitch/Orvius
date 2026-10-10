@@ -34,6 +34,8 @@ model Business {
   hoursJson            String   @default("{}")
   /** Whole days the shop is closed (holidays), shop-local: [{ date: "YYYY-MM-DD", label }]. */
   closedDatesJson      String   @default("[]")
+  /** Owner-set job length per trade service, minutes: { "no_cooling": 90 }. Wins over the playbook default. */
+  jobLengthsJson       String   @default("{}")
   servicesJson         String   @default("[]")
   greeting             String?
   /** Callers who ask for a person are connected here. Null means transfers are off and they get a callback. */

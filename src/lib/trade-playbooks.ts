@@ -403,8 +403,66 @@ const GENERAL_FALLBACK = {
 };
 
 const ALL_SAFETY: SafetyRule[] = TRADES.flatMap((t) => TRADE_PLAYBOOKS[t].safety);
+const SERVICE_KEYS = new Set(TRADES.flatMap((t) => [...TRADE_PLAYBOOKS[t].services, TRADE_PLAYBOOKS[t].fallback].map((s) => s.key)));
 
 export type ServiceOverride = { name?: string; durationMin?: number; skill?: string };
+
+/** The lengths an owner can pick for a job, in minutes. */
+export const JOB_LENGTH_OPTIONS = [30, 45, 60, 90, 120, 150, 180, 240, 300, 360, 480] as const;
+const JOB_LENGTH_SET = new Set<number>(JOB_LENGTH_OPTIONS);
+
+export function jobLengthLabel(min: number) {
+  if (min < 60) return `${min} min`;
+  const h = min / 60;
+  return `${Number.isInteger(h) ? h : h.toFixed(1)} hr${h === 1 ? "" : "s"}`;
+}
+
+/** Owner-set lengths keyed by playbook service key. Unknown keys and odd values are dropped. */
+export function parseJobLengths(raw: string | null | undefined): Record<string, number> {
+  if (!raw) return {};
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return {};
+  }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+  const out: Record<string, number> = {};
+  for (const [key, value] of Object.entries(parsed as Record<string, unknown>)) {
+    if (SERVICE_KEYS.has(key) && typeof value === "number" && JOB_LENGTH_SET.has(value)) out[key] = value;
+  }
+  return out;
+}
+
+export type JobLengthsCheck = { ok: true; json: string } | { ok: false; error: string };
+
+/** What the settings API stores; a bad request is refused rather than silently trimmed. */
+export function validateJobLengths(raw: string): JobLengthsCheck {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    parsed = null;
+  }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    return { ok: false, error: "Job lengths couldn't be read. Refresh and try again." };
+  }
+  for (const [key, value] of Object.entries(parsed as Record<string, unknown>)) {
+    if (!SERVICE_KEYS.has(key)) return { ok: false, error: "That kind of job isn't on the list. Refresh and try again." };
+    if (typeof value !== "number" || !JOB_LENGTH_SET.has(value)) {
+      return { ok: false, error: "Pick a job length from the list." };
+    }
+  }
+  return { ok: true, json: JSON.stringify(parsed) };
+}
+
+/** The trade's standard jobs, in the order owners see them, each with its default length. */
+export function jobLengthServices(business: { trade?: string | null; servicesJson?: string | null; name?: string | null }) {
+  const trade = resolveTrade(business);
+  if (!trade) return [];
+  const playbook = TRADE_PLAYBOOKS[trade];
+  return [...playbook.services, playbook.fallback].map((s) => ({ key: s.key, label: s.label, defaultMin: s.durationMin }));
+}
 
 /**
  * A shop's servicesJson may override a playbook service's duration or skill
@@ -493,7 +551,7 @@ const SERVICE_FOR_CATEGORY: Record<string, string> = {
 };
 
 export function classifyRequest(input: {
-  business: { trade?: string | null; servicesJson?: string | null; name?: string | null };
+  business: { trade?: string | null; servicesJson?: string | null; name?: string | null; jobLengthsJson?: string | null };
   serviceType?: string | null;
   notes?: string | null;
   summary?: string | null;
@@ -529,9 +587,10 @@ export function classifyRequest(input: {
   const override = overrides.find(
     (o) => o.name && (o.name.toLowerCase() === base.label.toLowerCase() || o.name.toLowerCase() === base.key),
   );
-  const durationMin = override?.durationMin ?? base.durationMin;
+  const ownLength = parseJobLengths(input.business.jobLengthsJson)[base.key];
+  const durationMin = ownLength ?? override?.durationMin ?? base.durationMin;
   const skill = override?.skill ?? base.skill;
-  if (override?.durationMin) reasons.push(`Shop sets ${base.label} at ${durationMin} min`);
+  if (ownLength ?? override?.durationMin) reasons.push(`Shop sets ${base.label} at ${durationMin} min`);
 
   let urgency = normalizeUrgency(input.urgency);
   if (hazard) {

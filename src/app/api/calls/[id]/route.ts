@@ -18,7 +18,7 @@ export async function GET(_request: Request, { params }: Params) {
   const call = await prisma.call.findFirst({
     where: { id, businessId: business.id },
     include: {
-      business: { select: { id: true, name: true, trade: true, servicesJson: true } },
+      business: { select: { id: true, name: true, trade: true, servicesJson: true, jobLengthsJson: true } },
       customer: {
         select: {
           id: true,

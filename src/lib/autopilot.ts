@@ -40,7 +40,7 @@ export async function runAutopilot(
 
   const business = await prisma.business.findUnique({
     where: { id: businessId },
-    select: { id: true, autopilot: true, trade: true, servicesJson: true, isActive: true },
+    select: { id: true, autopilot: true, trade: true, servicesJson: true, jobLengthsJson: true, isActive: true },
   });
   if (!business?.autopilot || !business.isActive) return null;
 

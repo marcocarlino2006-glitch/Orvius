@@ -46,7 +46,7 @@ import {
 
 const str = (value: unknown) => (typeof value === "string" && value.trim() ? value.trim() : null);
 
-type ShopForTools = Pick<Business, "id" | "hoursJson" | "timezone" | "trade" | "servicesJson" | "name"> &
+type ShopForTools = Pick<Business, "id" | "hoursJson" | "timezone" | "trade" | "servicesJson" | "name"> & { jobLengthsJson?: string | null } &
   Partial<Pick<Business, "ownerPhone" | "ownerEmail" | "transferPhone" | "networkOn" | "networkZip3" | "address" | "bookingMode">>;
 
 type CallForTools = { id: string; vapiCallId?: string | null; callerPhone?: string | null };

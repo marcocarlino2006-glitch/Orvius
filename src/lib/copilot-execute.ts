@@ -11,7 +11,7 @@ import { loadTechCandidates } from "@/lib/technician-match";
 
 export type ProposalParams = { jobId?: string; leadId?: string; technicianId?: string; at?: string };
 
-type Shop = Pick<Business, "id" | "name" | "timezone" | "hoursJson" | "servicesJson" | "trade">;
+type Shop = Pick<Business, "id" | "name" | "timezone" | "hoursJson" | "servicesJson" | "trade"> & { jobLengthsJson?: string | null };
 
 type RunOutcome =
   | { error: string; status: number; reason?: string }
@@ -149,7 +149,7 @@ async function runWindowProposal(
   if (!at || Number.isNaN(at.getTime())) return { error: "Invalid window", status: 400 };
   const shop = await prisma.business.findUniqueOrThrow({
     where: { id: business.id },
-    select: { id: true, name: true, timezone: true, hoursJson: true, servicesJson: true, trade: true },
+    select: { id: true, name: true, timezone: true, hoursJson: true, servicesJson: true, jobLengthsJson: true, trade: true },
   });
   const when = windowLabel(at, shop.timezone);
 
