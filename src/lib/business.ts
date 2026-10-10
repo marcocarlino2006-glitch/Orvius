@@ -55,6 +55,7 @@ export function isAfterHours(
   at: Date,
   hoursJson: string,
   timezone = "America/New_York",
+  closedDatesJson?: string | null,
 ): boolean {
   // A bad zone must fall back to the default zone, not to the server clock, which is UTC on Vercel.
   try {
@@ -62,6 +63,7 @@ export function isAfterHours(
   } catch {
     timezone = "America/New_York";
   }
+  if (closedDatesJson && isClosedDay(at, parseClosures(closedDatesJson), timezone)) return true;
   const hours = parseJson<BusinessHours>(hoursJson, {});
   if (!hours || Object.keys(hours).length === 0) {
     // No hours configured — treat nights/weekends as after-hours signal.
@@ -158,6 +160,7 @@ LISTED PRICES
 - This is the only exception to any rule about not quoting prices. For a service without a listed price, or anything beyond what is listed, never give a number: say the team will go over pricing when they call back.`;
 }
 
+import { formatClosuresForPrompt, isClosedDay, parseClosures } from "@/lib/shop-closures";
 import { formatRulesForPrompt } from "@/lib/receptionist-rules";
 import { scopePromptBlock } from "@/lib/trade-scope";
 import {
@@ -182,6 +185,9 @@ type AssistantPromptInput = {
   offerTimes?: boolean;
   /** Business.receptionistRulesJson: the owner's corrections from past calls. */
   rulesJson?: string | null;
+  /** Business.closedDatesJson: whole days closed (holidays). */
+  closedDatesJson?: string | null;
+  timezone?: string | null;
 };
 
 export function buildAssistantSystemPrompt(business: AssistantPromptInput): string {
@@ -271,7 +277,7 @@ OPENING LINE
 "${greeting}"
 
 BUSINESS HOURS
-${formatHoursForPrompt(business.hoursJson)}
+${formatHoursForPrompt(business.hoursJson)}${formatClosuresForPrompt(business.closedDatesJson, business.timezone ?? "America/New_York")}
 
 After hours: still take the message and mark urgency. Emergency calls get priority callback.
 
@@ -360,7 +366,7 @@ OPENING LINE
 "${greeting}"
 
 BUSINESS HOURS
-${formatHoursForPrompt(business.hoursJson)}
+${formatHoursForPrompt(business.hoursJson)}${formatClosuresForPrompt(business.closedDatesJson, business.timezone ?? "America/New_York")}
 
 After hours: still take the message and mark urgency. Urgent calls get a priority callback.
 

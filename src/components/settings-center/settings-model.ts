@@ -51,6 +51,8 @@ export type Account = {
     forwardCarrier?: CarrierId | null;
     lineVerifiedAt?: string | null;
     hoursJson?: string | null;
+    closedDatesJson?: string | null;
+    timezone?: string | null;
     servicesJson?: string | null;
     serviceZipsJson?: string | null;
     billingStatus?: string;

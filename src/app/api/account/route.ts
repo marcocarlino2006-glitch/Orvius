@@ -1,3 +1,5 @@
+import { isValidTimezone } from "@/lib/availability";
+import { validateClosures } from "@/lib/shop-closures";
 import { NextResponse } from "next/server";
 import { isReceptionistVoice, resolveVoiceId } from "@/lib/voices";
 import { auth } from "@/auth";
@@ -68,6 +70,8 @@ const patchSchema = z.object({
     .nullable()
     .optional(),
   hoursJson: z.string().max(4000).optional(),
+  closedDatesJson: z.string().max(6000).optional(),
+  timezone: z.string().max(64).optional(),
   servicesJson: z.string().max(4000).optional(),
   serviceZipsJson: z.string().max(2000).optional(),
   depositEnabled: z.boolean().optional(),
@@ -157,6 +161,8 @@ export async function GET(request: Request) {
         captureMode: businessRecord.captureMode ?? "forward",
         forwardCarrier: businessRecord.forwardCarrier ?? null,
         hoursJson: businessRecord.hoursJson ?? "{}",
+        closedDatesJson: businessRecord.closedDatesJson ?? "[]",
+        timezone: businessRecord.timezone,
         servicesJson: businessRecord.servicesJson ?? "[]",
         serviceZipsJson: businessRecord.serviceZipsJson ?? "[]",
         depositEnabled: businessRecord.depositEnabled,
@@ -275,6 +281,8 @@ const SETTING_LABELS: Record<string, { label: string; value?: false }> = {
   captureMode: { label: "capture mode" },
   forwardCarrier: { label: "carrier" },
   hoursJson: { label: "open hours", value: false },
+  closedDatesJson: { label: "days closed", value: false },
+  timezone: { label: "time zone" },
   servicesJson: { label: "services", value: false },
   serviceZipsJson: { label: "service ZIPs", value: false },
   depositEnabled: { label: "deposits" },
@@ -310,7 +318,7 @@ function networkZip3For(address: string | null, serviceZipsJson: string | null) 
   }
 }
 
-const ASSISTANT_FIELDS = ["name", "trade", "greeting", "transferPhone", "voiceId", "hoursJson", "servicesJson", "bookingMode"] as const;
+const ASSISTANT_FIELDS = ["name", "trade", "greeting", "transferPhone", "voiceId", "hoursJson", "closedDatesJson", "timezone", "servicesJson", "bookingMode"] as const;
 
 export async function PATCH(request: Request) {
   const session = await auth();
@@ -413,6 +421,16 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: depositCheck.error }, { status: 400 });
     }
 
+    let closedDatesJson: string | undefined;
+    if (body.closedDatesJson !== undefined) {
+      const checked = validateClosures(body.closedDatesJson);
+      if (!checked.ok) return NextResponse.json({ error: checked.error }, { status: 400 });
+      closedDatesJson = checked.json;
+    }
+    if (body.timezone !== undefined && !isValidTimezone(body.timezone)) {
+      return NextResponse.json({ error: "Pick a time zone from the list." }, { status: 400 });
+    }
+
     let reviewUrl: string | null | undefined;
     if (body.reviewUrl !== undefined) {
       if (!body.reviewUrl?.trim()) {
@@ -485,6 +503,8 @@ export async function PATCH(request: Request) {
           ? { forwardCarrier: body.forwardCarrier }
           : {}),
         ...(body.hoursJson !== undefined ? { hoursJson: body.hoursJson } : {}),
+        ...(closedDatesJson !== undefined ? { closedDatesJson } : {}),
+        ...(body.timezone !== undefined ? { timezone: body.timezone } : {}),
         ...(body.servicesJson !== undefined
           ? { servicesJson: body.servicesJson }
           : {}),
@@ -530,7 +550,7 @@ export async function PATCH(request: Request) {
     let syncWarning: string | null = null;
 
     /*
-      The assistant is built from name, trade, greeting, transfer number, hours, and services only.
+      The assistant is built from name, trade, greeting, transfer number, hours, days closed, and services only.
       Everything else (autopilot, deposits, ticket, capture path) skips the two
       Vapi round trips, which is what makes save-as-you-go feel instant.
     */
@@ -569,6 +589,8 @@ export async function PATCH(request: Request) {
         overflowProvedAt: saved.overflowProvedAt,
         forwardGuideSentAt: saved.forwardGuideSentAt,
         hoursJson: saved.hoursJson,
+        closedDatesJson: saved.closedDatesJson,
+        timezone: saved.timezone,
         servicesJson: saved.servicesJson,
         serviceZipsJson: saved.serviceZipsJson,
         twilioPhone: saved.twilioPhone,

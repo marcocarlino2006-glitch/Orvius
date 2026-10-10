@@ -258,6 +258,7 @@ export async function collectAttention(businessId: string, now = new Date()): Pr
           /* Read to rank: what matters at 2am is not what matters at 2pm. */
           hoursJson: true,
           timezone: true,
+          closedDatesJson: true,
         },
       }),
       prisma.ownerNotification.findMany({
@@ -340,6 +341,7 @@ export async function collectAttention(businessId: string, now = new Date()): Pr
     now,
     business?.hoursJson ?? "{}",
     business?.timezone ?? undefined,
+    business?.closedDatesJson,
   );
 
   /** Earliest delivered alert per lead — silence after this is the failure. */

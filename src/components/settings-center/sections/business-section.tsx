@@ -1,5 +1,6 @@
 "use client";
 
+import { US_TIMEZONES, timezoneLabel } from "@/lib/shop-closures";
 import { OFFERED_TRADES, type Trade } from "@/lib/trades";
 import type { Business, PatchFn } from "../settings-model";
 import { ScField, ScGroup, ScRow, ScSwitch } from "../settings-primitives";
@@ -38,6 +39,23 @@ export function BusinessSection({ b, patch }: { b: Business; patch: PatchFn }) {
             onCommit={(v) => patch({ address: v.trim() || null })}
           />
         </ScRow>
+        <ScRow label="Time zone" hint={timezoneHint(b.timezone)}>
+          <select
+            className="sc-input sc-input--select"
+            aria-label="Time zone"
+            value={b.timezone ?? "America/New_York"}
+            onChange={(e) => void patch({ timezone: e.target.value })}
+          >
+            {(b.timezone && !US_TIMEZONES.some((z) => z.id === b.timezone)
+              ? [{ id: b.timezone, label: timezoneLabel(b.timezone) }, ...US_TIMEZONES]
+              : US_TIMEZONES
+            ).map((zone) => (
+              <option key={zone.id} value={zone.id}>
+                {zone.label}
+              </option>
+            ))}
+          </select>
+        </ScRow>
       </ScGroup>
       <ScGroup title="Orvius Network">
         <ScRow
@@ -53,4 +71,10 @@ export function BusinessSection({ b, patch }: { b: Business; patch: PatchFn }) {
       </ScGroup>
     </>
   );
+}
+
+function timezoneHint(timezone: string | null | undefined) {
+  const zone = timezone ?? "America/New_York";
+  const now = new Intl.DateTimeFormat("en-US", { timeZone: zone, hour: "numeric", minute: "2-digit" }).format(new Date());
+  return `Your hours, bookings and alerts run on this clock. It's ${now} there now.`;
 }
