@@ -2,6 +2,7 @@ import { recordAudit, type AuditActor } from "@/lib/audit";
 import { findOption, parseEstimateOptions, type EstimateOption } from "@/lib/estimate-options";
 import { formatCents } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
+import { pricedInvoice } from "@/lib/invoice-tax";
 
 export type ChooseResult =
   | { ok: true; option: EstimateOption | null }
@@ -39,6 +40,7 @@ export async function acceptEstimate(params: {
   }
 
   const amountCents = option?.amountCents ?? estimate.amountCents;
+  const priced = await pricedInvoice(estimate.businessId, amountCents);
   await prisma.$transaction(async (tx) => {
     await tx.estimate.update({
       where: { id: estimate.id },
@@ -54,12 +56,12 @@ export async function acceptEstimate(params: {
           businessId: estimate.businessId,
           estimateId: estimate.id,
           jobId: estimate.jobId,
-          amountCents,
+          ...priced,
           status: "open",
         },
       });
     } else if (option && estimate.invoice.status !== "paid" && !estimate.invoice.payments.length) {
-      await tx.invoice.update({ where: { id: estimate.invoice.id }, data: { amountCents } });
+      await tx.invoice.update({ where: { id: estimate.invoice.id }, data: priced });
     }
   });
 

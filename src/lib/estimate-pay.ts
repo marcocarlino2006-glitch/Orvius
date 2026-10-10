@@ -4,6 +4,8 @@ import { checkoutPaymentMethods } from "@/lib/financing";
 import { getConnectStatus } from "@/lib/stripe-connect";
 import { prisma } from "@/lib/prisma";
 import type Stripe from "stripe";
+import { pricedInvoice } from "@/lib/invoice-tax";
+import { feeBaseCents } from "@/lib/sales-tax";
 
 type ConnectableShop = Parameters<typeof getConnectStatus>[0];
 
@@ -29,7 +31,13 @@ export async function ensureInvoiceForEstimate(estimate: {
   acceptedAt: Date | null;
   invoice?: { id: string } | null;
 }) {
-  if (estimate.invoice?.id) return estimate.invoice.id;
+  if (estimate.invoice?.id) {
+    const existing = await prisma.invoice.findUniqueOrThrow({
+      where: { id: estimate.invoice.id },
+      select: { id: true, amountCents: true, taxCents: true },
+    });
+    return existing;
+  }
 
   await prisma.estimate.update({
     where: { id: estimate.id },
@@ -44,11 +52,12 @@ export async function ensureInvoiceForEstimate(estimate: {
       businessId: estimate.businessId,
       estimateId: estimate.id,
       jobId: estimate.jobId,
-      amountCents: estimate.amountCents,
+      ...(await pricedInvoice(estimate.businessId, estimate.amountCents)),
       status: "open",
     },
+    select: { id: true, amountCents: true, taxCents: true },
   });
-  return created.id;
+  return created;
 }
 
 /**
@@ -61,7 +70,9 @@ export async function createEstimateCheckoutSession(params: {
   estimateId: string;
   businessId: string;
   businessName: string;
+  /** What the customer pays: the estimate plus any sales tax on its invoice. */
   amountCents: number;
+  taxCents?: number;
   publicToken: string;
   invoiceId: string;
   jobTitle?: string | null;
@@ -78,7 +89,7 @@ export async function createEstimateCheckoutSession(params: {
   const stripe = getStripe();
   const baseUrl = getAppBaseUrl();
   const title = params.jobTitle?.trim() || "Service estimate";
-  const applicationFeeCents = calculatePlatformFeeCents(params.amountCents);
+  const applicationFeeCents = calculatePlatformFeeCents(feeBaseCents(params));
 
   const metadata = {
     kind: "estimate_pay",

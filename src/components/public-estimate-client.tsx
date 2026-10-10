@@ -24,6 +24,7 @@ type PublicEstimate = {
   invoice: { id: string; status: string; paid: boolean; claimed?: boolean } | null;
   cardPayAvailable?: boolean;
   financing?: string | null;
+  taxNote?: string | null;
 };
 
 export function PublicEstimateClient({ token }: { token: string }) {
@@ -173,6 +174,7 @@ export function PublicEstimateClient({ token }: { token: string }) {
       ) : (
         <p className="public-money-amount">{estimate.amountLabel}</p>
       )}
+      {estimate.taxNote ? <p className="public-money-meta">{estimate.taxNote}</p> : null}
       {estimate.notes ? <p className="public-money-notes">{estimate.notes}</p> : null}
       <p className="public-money-status">
         {paid ? "Paid" : accepted ? "Accepted" : "Waiting for your answer"}

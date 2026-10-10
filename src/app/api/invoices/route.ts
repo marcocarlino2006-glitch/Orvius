@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { parseEstimateOptions } from "@/lib/estimate-options";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
+import { pricedInvoice } from "@/lib/invoice-tax";
 import { forbiddenResponse, requireEntitledSession } from "@/lib/tenant";
 import { z } from "zod";
 
@@ -106,7 +107,7 @@ export async function POST(request: Request) {
         businessId: business.id,
         jobId,
         estimateId,
-        amountCents,
+        ...(await pricedInvoice(business.id, amountCents)),
         status: "draft",
       },
       include: {

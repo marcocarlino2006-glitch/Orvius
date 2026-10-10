@@ -140,6 +140,7 @@ export default function JobDetailPage() {
           invoice: jobData.invoice ?? null,
           finalAmountCents: jobData.finalAmountCents ?? null,
           cardPayReady: Boolean(jobData.cardPayReady),
+          salesTaxBps: Number(jobData.salesTaxBps) || 0,
         });
         setCrew(techData.technicians ?? []);
         setScheduleDraft(shopWallInput(jobData.job?.scheduledAt, jobData.job?.business?.timezone));

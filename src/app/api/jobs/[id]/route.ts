@@ -88,6 +88,7 @@ export async function GET(_request: Request, { params }: Params) {
       : null,
     finalAmountCents: job.finalAmountCents,
     cardPayReady: getConnectStatus(business).canAcceptPayments,
+    salesTaxBps: business.salesTaxBps ?? 0,
   });
 }
 

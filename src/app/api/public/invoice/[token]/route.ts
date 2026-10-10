@@ -12,6 +12,7 @@ import { isChargeableAmount } from "@/lib/platform-fee";
 import { publicTokenLimited } from "@/lib/rate-limit";
 import { getStripe } from "@/lib/stripe";
 import { getConnectStatus } from "@/lib/stripe-connect";
+import { formatTaxRate } from "@/lib/sales-tax";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,10 +20,22 @@ export const dynamic = "force-dynamic";
 type Params = { params: Promise<{ token: string }> };
 type LoadedInvoice = NonNullable<Awaited<ReturnType<typeof getInvoiceByToken>>>;
 
+/** Work, tax and any deposit, so the total on the page adds up line by line. */
+function breakdown(invoice: LoadedInvoice) {
+  if (invoice.subtotalCents == null || invoice.taxCents <= 0) return null;
+  const credited = invoice.subtotalCents + invoice.taxCents - invoice.amountCents;
+  return [
+    { label: "Work", value: formatCentsExact(invoice.subtotalCents) },
+    { label: `Sales tax (${formatTaxRate(invoice.taxBps)})`, value: formatCentsExact(invoice.taxCents) },
+    ...(credited > 0 ? [{ label: "Deposit paid", value: `−${formatCentsExact(credited)}` }] : []),
+  ];
+}
+
 function serializePublic(invoice: LoadedInvoice) {
   return {
     status: invoice.status,
     amountLabel: formatCentsExact(invoice.amountCents),
+    lines: breakdown(invoice),
     jobTitle: invoice.job?.title ?? null,
     shopName: invoice.business.name,
     shopPhone: invoice.business.phone,

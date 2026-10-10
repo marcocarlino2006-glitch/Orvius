@@ -9,6 +9,8 @@ import { creditNetworkSender } from "@/lib/orvius-network";
 import { calculateNetworkFeeCents, calculatePlatformFeeCents, isChargeableAmount } from "@/lib/platform-fee";
 import { checkoutPaymentMethods } from "@/lib/financing";
 import { prisma } from "@/lib/prisma";
+import { shopTaxBps } from "@/lib/invoice-tax";
+import { feeBaseCents, withSalesTax } from "@/lib/sales-tax";
 import { mintPublicToken } from "@/lib/public-tokens";
 import { withSmsOptOutFooter } from "@/lib/sms-keywords";
 import { getAppBaseUrl, getStripe } from "@/lib/stripe";
@@ -29,9 +31,9 @@ export function invoicePayUrl(publicToken: string) {
 }
 
 /**
- * What the customer still owes on a job: the final bill less any booking
- * deposit already paid. Asking for the deposit twice is the fastest way to a
- * chargeback.
+ * What the customer still owes on a job: the final bill plus the shop's sales
+ * tax, less any booking deposit already paid. `totalCents` is the work before
+ * tax. Asking for the deposit twice is the fastest way to a chargeback.
  */
 export async function balanceDueForJob(params: {
   businessId: string;
@@ -52,10 +54,13 @@ export async function balanceDueForJob(params: {
     select: { amountCents: true },
   });
   const depositPaidCents = deposits.reduce((sum, d) => sum + d.amountCents, 0);
+  const priced = withSalesTax(params.totalCents, await shopTaxBps(params.businessId));
   return {
     totalCents: params.totalCents,
+    taxBps: priced.taxBps,
+    taxCents: priced.taxCents,
     depositPaidCents,
-    balanceCents: Math.max(0, params.totalCents - depositPaidCents),
+    balanceCents: Math.max(0, priced.totalCents - depositPaidCents),
   };
 }
 
@@ -71,7 +76,8 @@ export async function upsertJobInvoice(params: {
   jobId: string;
   totalCents: number;
 }): Promise<{ invoice: Invoice; created: boolean; depositPaidCents: number }> {
-  const { balanceCents, depositPaidCents } = await balanceDueForJob(params);
+  const { balanceCents, depositPaidCents, taxBps, taxCents } = await balanceDueForJob(params);
+  const priced = { amountCents: balanceCents, subtotalCents: params.totalCents, taxCents, taxBps };
 
   const existing = await prisma.invoice.findFirst({
     where: { businessId: params.businessId, jobId: params.jobId },
@@ -86,7 +92,7 @@ export async function upsertJobInvoice(params: {
     const invoice = await prisma.invoice.update({
       where: { id: existing.id },
       data: {
-        amountCents: balanceCents,
+        ...priced,
         status: existing.status === "draft" ? "open" : existing.status,
         publicToken: existing.publicToken ?? mintPublicToken(),
       },
@@ -98,7 +104,7 @@ export async function upsertJobInvoice(params: {
     data: {
       businessId: params.businessId,
       jobId: params.jobId,
-      amountCents: balanceCents,
+      ...priced,
       status: "open",
       publicToken: mintPublicToken(),
     },
@@ -164,7 +170,7 @@ export async function isNetworkJob(jobId: string | null | undefined) {
 }
 
 export async function createInvoiceCheckoutSession(params: {
-  invoice: Pick<Invoice, "id" | "amountCents" | "publicToken"> & { jobId?: string | null };
+  invoice: Pick<Invoice, "id" | "amountCents" | "publicToken"> & { jobId?: string | null; taxCents?: number | null };
   business: Pick<Business, "id" | "name"> & ConnectableShop & Partial<Pick<Business, "financingEnabled" | "financingMethods">>;
   jobTitle?: string | null;
 }) {
@@ -181,8 +187,8 @@ export async function createInvoiceCheckoutSession(params: {
   const baseUrl = getAppBaseUrl();
   const network = await isNetworkJob(params.invoice.jobId);
   const applicationFeeCents = network
-    ? calculateNetworkFeeCents(params.invoice.amountCents)
-    : calculatePlatformFeeCents(params.invoice.amountCents);
+    ? calculateNetworkFeeCents(feeBaseCents(params.invoice))
+    : calculatePlatformFeeCents(feeBaseCents(params.invoice));
   const metadata = {
     kind: "invoice_pay",
     invoiceId: params.invoice.id,
@@ -242,6 +248,7 @@ export async function fulfillInvoiceCheckoutSession(
   if (invoice.status === "paid") return { ok: true, reason: "already_paid" };
 
   const amountCents = session.amount_total ?? invoice.amountCents;
+  const workCents = feeBaseCents({ amountCents, taxCents: invoice.taxCents });
   const network = session.metadata.network === "1";
   const chargedFee = Number(session.metadata.applicationFeeCents);
   const claimed = await prisma.invoice.updateMany({
@@ -253,8 +260,8 @@ export async function fulfillInvoiceCheckoutSession(
       applicationFeeCents: Number.isInteger(chargedFee) && chargedFee >= 0
         ? chargedFee
         : network
-          ? calculateNetworkFeeCents(amountCents)
-          : calculatePlatformFeeCents(amountCents),
+          ? calculateNetworkFeeCents(workCents)
+          : calculatePlatformFeeCents(workCents),
     },
   });
   if (claimed.count === 0) return { ok: true, reason: "already_paid" };
@@ -270,7 +277,7 @@ export async function fulfillInvoiceCheckoutSession(
   });
   await textOwnerPaid({ businessId, jobId: invoice.jobId, amountCents }).catch(() => null);
   if (network && invoice.jobId) {
-    await creditNetworkSender({ jobId: invoice.jobId, amountCents }).catch((error) =>
+    await creditNetworkSender({ jobId: invoice.jobId, amountCents: workCents }).catch((error) =>
       logWarn("network.credit_failed", {
         invoiceId: invoice.id,
         error: error instanceof Error ? error.message : "unknown",

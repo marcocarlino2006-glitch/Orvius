@@ -215,10 +215,11 @@ async function money(tech: TechSession, job: { id: string; finalAmountCents: num
     orderBy: { createdAt: "desc" },
     select: { id: true, status: true, amountCents: true, publicToken: true, sentAt: true, paidAt: true, payments: { where: { status: { in: COLLECTED_STATUSES } }, select: { amountCents: true, method: true } } },
   });
-  const { depositPaidCents, balanceCents } = await balanceDueForJob({ businessId: tech.businessId, jobId: job.id, totalCents: totalCents ?? 0 });
+  const { depositPaidCents, balanceCents, taxCents } = await balanceDueForJob({ businessId: tech.businessId, jobId: job.id, totalCents: totalCents ?? 0 });
   const paidCents = invoice?.payments.reduce((sum, p) => sum + p.amountCents, 0) ?? 0;
   return {
     totalCents,
+    taxCents,
     depositPaidCents,
     balanceCents: invoice?.status === "paid" ? 0 : Math.max(0, balanceCents - paidCents),
     cardReady: getConnectStatus(tech.business).canAcceptPayments,

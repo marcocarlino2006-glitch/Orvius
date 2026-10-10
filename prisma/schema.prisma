@@ -75,6 +75,8 @@ model Business {
   /** Deposit asked for at booking. Null amount or false means deposits off. */
   depositEnabled                Boolean  @default(false)
   depositAmountCents            Int?
+  /** Sales tax on customer invoices, basis points (825 = 8.25%). 0 = no tax line. */
+  salesTaxBps                   Int       @default(0)
   /** When card payments first went live and deposits were switched on by default. Set once. */
   paymentsDefaultedAt           DateTime?
   /** When the free design-partner window ends. After this, subscribe or lock. */
@@ -828,6 +830,11 @@ model Invoice {
   jobId       String?
   job         Job?      @relation(fields: [jobId], references: [id], onDelete: SetNull)
   amountCents Int
+  /** The work before tax, stamped when the invoice is priced. Null on invoices from before sales tax. */
+  subtotalCents Int?
+  taxCents    Int       @default(0)
+  /** The shop's rate when this invoice was last priced; changing the rate alone never reprices it. */
+  taxBps      Int       @default(0)
   status      String    @default("draft")
   /** Public magic-link token for the customer pay page (/i/[token]). */
   publicToken String?   @unique

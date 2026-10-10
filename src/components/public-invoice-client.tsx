@@ -12,6 +12,7 @@ type PublicInvoice = {
   cardPayAvailable: boolean;
   financing?: string | null;
   paidAt: string | null;
+  lines?: { label: string; value: string }[] | null;
 };
 
 export function PublicInvoiceClient({ token }: { token: string }) {
@@ -126,6 +127,20 @@ export function PublicInvoiceClient({ token }: { token: string }) {
         {invoice.paid ? "Paid — thank you" : invoice.jobTitle ?? "Your invoice"}
       </h1>
       <p className="public-money-amount">{invoice.amountLabel}</p>
+      {invoice.lines?.length ? (
+        <dl className="public-money-lines">
+          {invoice.lines.map((line) => (
+            <div key={line.label}>
+              <dt>{line.label}</dt>
+              <dd>{line.value}</dd>
+            </div>
+          ))}
+          <div className="is-total">
+            <dt>{invoice.paid ? "Paid" : "Due"}</dt>
+            <dd>{invoice.amountLabel}</dd>
+          </div>
+        </dl>
+      ) : null}
       <p className="public-money-notes">
         {invoice.paid
           ? `Paid to ${invoice.shopName}.`
