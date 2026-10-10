@@ -10,6 +10,7 @@ import {
   type HoursForm,
 } from "@/lib/shop-hours-form";
 import { ClosedDaysGroup } from "../closed-days-group";
+import { JobLengthsGroup } from "../job-lengths-group";
 import { ReceptionistRulesGroup } from "../receptionist-rules-group";
 import type { Business, PatchFn } from "../settings-model";
 import { ScField, ScGroup, ScRow, ScSwitch } from "../settings-primitives";
@@ -96,6 +97,7 @@ export function HoursSection({
           />
         </ScRow>
       </ScGroup>
+      <JobLengthsGroup b={b} patch={patch} />
       <ReceptionistRulesGroup />
     </>
   );

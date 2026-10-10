@@ -78,7 +78,7 @@ export async function buildAskBrief(params: {
   const [business, jobs, leads] = await Promise.all([
     prisma.business.findUnique({
       where: { id: params.businessId },
-      select: { trade: true, servicesJson: true, name: true, timezone: true },
+      select: { trade: true, servicesJson: true, jobLengthsJson: true, name: true, timezone: true },
     }),
     prisma.job.findMany({
       where: {

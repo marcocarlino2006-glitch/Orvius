@@ -34,6 +34,7 @@ type BookingShop = Pick<
   | "slug"
   | "trade"
   | "servicesJson"
+  | "jobLengthsJson"
   | "hoursJson"
   | "timezone"
   | "isActive"
@@ -56,6 +57,7 @@ const SHOP_SELECT = {
   slug: true,
   trade: true,
   servicesJson: true,
+  jobLengthsJson: true,
   hoursJson: true,
   timezone: true,
   isActive: true,

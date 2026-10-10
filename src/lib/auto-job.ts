@@ -135,6 +135,7 @@ async function loadLeadForBooking(leadId: string) {
         serviceZipsJson: true,
         trade: true,
         servicesJson: true,
+        jobLengthsJson: true,
         name: true,
         hoursJson: true,
         timezone: true,

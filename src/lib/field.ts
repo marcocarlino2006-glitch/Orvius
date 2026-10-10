@@ -69,7 +69,7 @@ export async function getDispatchBoard(
     known ??
     (await prisma.business.findUnique({
       where: { id: businessId },
-      select: { trade: true, servicesJson: true, timezone: true },
+      select: { trade: true, servicesJson: true, jobLengthsJson: true, timezone: true },
     }));
   const timezone = business?.timezone ?? "America/New_York";
   const { start, end, day } = shopDayBounds(isoDay, timezone);
@@ -174,7 +174,7 @@ export function weekDays(isoDay: string | null | undefined, timezone: string): s
 export async function getDispatchWeek(businessId: string, isoDay?: string | null) {
   const business = await prisma.business.findUnique({
     where: { id: businessId },
-    select: { trade: true, servicesJson: true, timezone: true },
+    select: { trade: true, servicesJson: true, jobLengthsJson: true, timezone: true },
   });
   const timezone = business?.timezone ?? "America/New_York";
   const days = weekDays(isoDay, timezone);

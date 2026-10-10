@@ -370,6 +370,7 @@ export async function createJobFromLead(params: {
         id: true,
         name: true,
         servicesJson: true,
+        jobLengthsJson: true,
         hoursJson: true,
         timezone: true,
         trade: true,
@@ -739,7 +740,7 @@ export async function createOwnerJob(params: {
 }) {
   const business = await prisma.business.findUniqueOrThrow({
     where: { id: params.businessId },
-    select: { id: true, name: true, servicesJson: true, hoursJson: true, timezone: true, trade: true },
+    select: { id: true, name: true, servicesJson: true, jobLengthsJson: true, hoursJson: true, timezone: true, trade: true },
   });
   const name = params.name?.trim() || null;
   const address = params.address?.trim() || null;

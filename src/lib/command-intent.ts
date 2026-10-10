@@ -50,7 +50,7 @@ export type AskActResult =
   | { kind: "refused"; message: string; alternatives?: string[] }
   | { kind: "clarify"; message: string };
 
-type Shop = Pick<Business, "id" | "name" | "timezone" | "hoursJson" | "servicesJson" | "trade">;
+type Shop = Pick<Business, "id" | "name" | "timezone" | "hoursJson" | "servicesJson" | "trade"> & { jobLengthsJson?: string | null };
 
 export async function askToAct(shop: Shop, text: string, now = new Date()): Promise<AskActResult | null> {
   const parsed = parseActVerb(text);

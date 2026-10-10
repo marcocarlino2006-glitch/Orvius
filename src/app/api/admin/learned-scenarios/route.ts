@@ -39,7 +39,7 @@ export async function GET(request: Request) {
       summary: true,
       booked: true,
       successEvaluation: true,
-      business: { select: { trade: true, servicesJson: true, name: true } },
+      business: { select: { trade: true, servicesJson: true, jobLengthsJson: true, name: true } },
       customer: { select: { address: true } },
       lead: {
         select: {

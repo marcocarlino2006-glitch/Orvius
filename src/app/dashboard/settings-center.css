@@ -1799,3 +1799,20 @@ html .os-shell .sc-dialog .sc-plan {
     width: 100% !important;
   }
 }
+
+/* Job lengths — a short intro, then one row per kind of job. */
+.os-shell .sc-dialog .sc-group-note {
+  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.os-shell .sc-dialog select.sc-input--length {
+  width: 8.5rem;
+}
+
+@media (max-width: 640px) {
+  .os-shell .sc-dialog select.sc-input--length {
+    width: 100%;
+  }
+}

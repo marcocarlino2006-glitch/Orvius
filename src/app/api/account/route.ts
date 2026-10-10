@@ -1,5 +1,6 @@
 import { isValidTimezone } from "@/lib/availability";
 import { validateClosures } from "@/lib/shop-closures";
+import { validateJobLengths } from "@/lib/trade-playbooks";
 import { NextResponse } from "next/server";
 import { isReceptionistVoice, resolveVoiceId } from "@/lib/voices";
 import { auth } from "@/auth";
@@ -71,6 +72,7 @@ const patchSchema = z.object({
     .optional(),
   hoursJson: z.string().max(4000).optional(),
   closedDatesJson: z.string().max(6000).optional(),
+  jobLengthsJson: z.string().max(2000).optional(),
   timezone: z.string().max(64).optional(),
   servicesJson: z.string().max(4000).optional(),
   serviceZipsJson: z.string().max(2000).optional(),
@@ -162,6 +164,7 @@ export async function GET(request: Request) {
         forwardCarrier: businessRecord.forwardCarrier ?? null,
         hoursJson: businessRecord.hoursJson ?? "{}",
         closedDatesJson: businessRecord.closedDatesJson ?? "[]",
+        jobLengthsJson: businessRecord.jobLengthsJson ?? "{}",
         timezone: businessRecord.timezone,
         servicesJson: businessRecord.servicesJson ?? "[]",
         serviceZipsJson: businessRecord.serviceZipsJson ?? "[]",
@@ -282,6 +285,7 @@ const SETTING_LABELS: Record<string, { label: string; value?: false }> = {
   forwardCarrier: { label: "carrier" },
   hoursJson: { label: "open hours", value: false },
   closedDatesJson: { label: "days closed", value: false },
+  jobLengthsJson: { label: "job lengths", value: false },
   timezone: { label: "time zone" },
   servicesJson: { label: "services", value: false },
   serviceZipsJson: { label: "service ZIPs", value: false },
@@ -427,6 +431,12 @@ export async function PATCH(request: Request) {
       if (!checked.ok) return NextResponse.json({ error: checked.error }, { status: 400 });
       closedDatesJson = checked.json;
     }
+    let jobLengthsJson: string | undefined;
+    if (body.jobLengthsJson !== undefined) {
+      const checked = validateJobLengths(body.jobLengthsJson);
+      if (!checked.ok) return NextResponse.json({ error: checked.error }, { status: 400 });
+      jobLengthsJson = checked.json;
+    }
     if (body.timezone !== undefined && !isValidTimezone(body.timezone)) {
       return NextResponse.json({ error: "Pick a time zone from the list." }, { status: 400 });
     }
@@ -504,6 +514,7 @@ export async function PATCH(request: Request) {
           : {}),
         ...(body.hoursJson !== undefined ? { hoursJson: body.hoursJson } : {}),
         ...(closedDatesJson !== undefined ? { closedDatesJson } : {}),
+        ...(jobLengthsJson !== undefined ? { jobLengthsJson } : {}),
         ...(body.timezone !== undefined ? { timezone: body.timezone } : {}),
         ...(body.servicesJson !== undefined
           ? { servicesJson: body.servicesJson }
@@ -590,6 +601,7 @@ export async function PATCH(request: Request) {
         forwardGuideSentAt: saved.forwardGuideSentAt,
         hoursJson: saved.hoursJson,
         closedDatesJson: saved.closedDatesJson,
+        jobLengthsJson: saved.jobLengthsJson,
         timezone: saved.timezone,
         servicesJson: saved.servicesJson,
         serviceZipsJson: saved.serviceZipsJson,

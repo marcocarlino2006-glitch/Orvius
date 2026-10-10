@@ -84,7 +84,7 @@ const minutesInto = (date: Date, dayStart: Date) => Math.round((date.getTime() -
  * the technician for the rest, so two recommendations never collide.
  */
 export function buildDispatchSchedule(input: {
-  business: { trade?: string | null; servicesJson?: string | null };
+  business: { trade?: string | null; servicesJson?: string | null; jobLengthsJson?: string | null };
   crew: ScheduleTech[];
   jobs: ScheduleJobInput[];
   dayStart: Date;
