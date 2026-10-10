@@ -9,6 +9,7 @@ import {
   weekdayLabel,
   type HoursForm,
 } from "@/lib/shop-hours-form";
+import { ClosedDaysGroup } from "../closed-days-group";
 import { ReceptionistRulesGroup } from "../receptionist-rules-group";
 import type { Business, PatchFn } from "../settings-model";
 import { ScField, ScGroup, ScRow, ScSwitch } from "../settings-primitives";
@@ -68,6 +69,7 @@ export function HoursSection({
           );
         })}
       </ScGroup>
+      <ClosedDaysGroup b={b} patch={patch} />
       <ScGroup title="Work you take">
         <ScRow stack label="Services" hint="One per line. Add a price after a dash, like “Diagnostic visit — $89”, and the receptionist can quote it; without one it never gives a number.">
           <ScField

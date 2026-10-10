@@ -12,6 +12,7 @@ import {
 } from "@/lib/availability";
 import { ensureBookingDepositForJob } from "@/lib/booking-deposit";
 import { getBusyWindows } from "@/lib/busy-calendar";
+import { closureWindows, parseClosures } from "@/lib/shop-closures";
 import { createAuditQueue, recordAudit, type AuditActor, type AuditQueue } from "@/lib/audit";
 import { logWarn } from "@/lib/logger";
 import { notifyTechOnAssign } from "@/lib/notify-tech-assign";
@@ -166,7 +167,7 @@ export async function findOpenSlots(
   options: { count: number; minGapMin?: number; preference?: SlotPreference; onlyAt?: Date },
 ): Promise<Date[]> {
   const now = new Date();
-  const [existing, technicians, holds, blocked] = await Promise.all([
+  const [existing, technicians, holds, busy, shop] = await Promise.all([
     prisma.job.findMany({
       where: {
         businessId: params.businessId,
@@ -200,7 +201,10 @@ export async function findOpenSlots(
       select: { heldSlotAt: true, heldSlotDurationMin: true },
     }),
     getBusyWindows(params.businessId, now),
+    prisma.business.findUnique({ where: { id: params.businessId }, select: { closedDatesJson: true } }),
   ]);
+  // A holiday is a full calendar for every booking path: live calls, auto-booking, reschedules.
+  const blocked = [...busy, ...closureWindows(parseClosures(shop?.closedDatesJson), params.timezone, now)];
 
   // Capacity is the people who can do this job — a furnace call cannot use
   // the cooling specialist's free hour. Unassigned jobs may land on any of

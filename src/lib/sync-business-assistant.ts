@@ -40,6 +40,8 @@ export function buildBusinessAssistantConfig(business: Business) {
     canBook: true,
     offerTimes: business.bookingMode !== "alert",
     rulesJson: business.receptionistRulesJson,
+    closedDatesJson: business.closedDatesJson,
+    timezone: business.timezone,
   });
   return buildVapiAssistantConfig({
     businessName: business.name,

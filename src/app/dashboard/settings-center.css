@@ -1689,3 +1689,113 @@ html .os-shell .sc-dialog .sc-plan {
     min-width: 0;
   }
 }
+
+/* Days closed — upcoming closures, holiday chips, add-a-day form. */
+.os-shell .sc-dialog .sc-closures {
+  display: grid;
+  gap: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--sc-line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.os-shell .sc-dialog .sc-closure {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 52px;
+  padding: 0.5rem 0.5rem 0.5rem 0.875rem;
+}
+
+.os-shell .sc-dialog .sc-closure + .sc-closure {
+  border-top: 1px solid var(--sc-line);
+}
+
+.os-shell .sc-dialog .sc-closure-copy {
+  display: grid;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.os-shell .sc-dialog .sc-closure-label {
+  overflow: hidden;
+  color: var(--sc-text);
+  font-size: 0.875rem;
+  font-weight: 550;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.os-shell .sc-dialog .sc-closure-date {
+  color: var(--sc-mute);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.os-shell .sc-dialog .sc-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.os-shell .sc-dialog .sc-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 0.875rem;
+  border: 1px solid var(--sc-line-strong);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--sc-text-2);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--ox-dur-fast) ease, color var(--ox-dur-fast) ease;
+}
+
+.os-shell .sc-dialog .sc-chip:hover:not(:disabled) {
+  background: var(--sc-hover);
+  color: var(--sc-text);
+}
+
+.os-shell .sc-dialog .sc-chip:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.os-shell .sc-dialog .sc-input--date {
+  flex: none;
+  width: 11rem;
+  color-scheme: light dark;
+}
+
+@media (pointer: coarse) {
+  .os-shell .sc-dialog .sc-chip {
+    min-height: 44px;
+  }
+
+  html body .os-shell .sc-dialog :is(.sc-closure .sc-btn, form.sc-inline-field > .sc-input, form.sc-inline-field > .sc-btn) {
+    min-height: 44px !important;
+  }
+
+  html body .os-shell .sc-dialog form.sc-inline-field > .sc-input {
+    height: 44px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .os-shell .sc-dialog .sc-closure {
+    padding-left: 0.75rem;
+  }
+
+  .os-shell .sc-dialog .sc-inline-field > input.sc-input--date {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+  }
+}

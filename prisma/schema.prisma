@@ -32,6 +32,8 @@ model Business {
   /** Shop street address for intake and service-area context. */
   address              String?
   hoursJson            String   @default("{}")
+  /** Whole days the shop is closed (holidays), shop-local: [{ date: "YYYY-MM-DD", label }]. */
+  closedDatesJson      String   @default("[]")
   servicesJson         String   @default("[]")
   greeting             String?
   /** Callers who ask for a person are connected here. Null means transfers are off and they get a callback. */

@@ -187,7 +187,7 @@ export async function GET(request: Request) {
   ]);
   const crew = dispatchBoard.crew;
   const boardJobs = [...dispatchBoard.unassigned, ...dispatchBoard.columns.flatMap((c) => c.jobs)];
-  const afterHoursNow = isAfterHours(now, business.hoursJson, business.timezone ?? "America/New_York");
+  const afterHoursNow = isAfterHours(now, business.hoursJson, business.timezone ?? "America/New_York", business.closedDatesJson);
   const personalBrief = await loadPersonalBrief({
     business,
     ownerName: session.user?.name,
