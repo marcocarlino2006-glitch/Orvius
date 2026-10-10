@@ -9,6 +9,10 @@
   inset: 0;
 }
 
+.hd-slide:not(.is-on) {
+  visibility: hidden;
+}
+
 .hd-pills {
   position: absolute;
   top: 3.4%;
@@ -40,14 +44,19 @@
   color: #111;
 }
 
+/*
+  The window sits wholly inside the painting, off to one side, so the part of
+  the scene that says "trades" (the van, the lit house) stays in view. Each row
+  sets where via --win-x; the art's crop is nudged to match in home-sections.
+*/
 .hd-window {
   position: absolute;
-  left: 7%;
+  left: var(--win-x, 5%);
   top: 13%;
-  width: 98%;
-  height: 100%;
+  width: var(--win-w, 64%);
+  height: 74%;
   display: grid;
-  grid-template-columns: 11em minmax(0, 1fr);
+  grid-template-columns: 9.5em minmax(0, 1fr);
   border-radius: 0.8em;
   background: #1a1a1a;
   color: #e6e6e6;
@@ -166,10 +175,10 @@
 }
 
 .hd-field--row {
-  grid-auto-flow: column;
-  justify-content: start;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.8em;
+  gap: 0.6em 0.8em;
 }
 
 .hd-label {
@@ -187,7 +196,7 @@
 
 .hd-select {
   justify-self: start;
-  min-width: 12em;
+  min-width: 10em;
 }
 
 .hd-input {
@@ -307,7 +316,7 @@
 .hd-queue li,
 .hd-calls li {
   display: grid;
-  grid-template-columns: 6.5em minmax(0, 1fr) 6em 4.5em;
+  grid-template-columns: 6.2em minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 0.8em;
   padding: 0.7em 0.9em;
@@ -368,7 +377,7 @@
 
 .hd-split {
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
   gap: 1em;
   align-items: start;
 }
@@ -387,7 +396,6 @@
   padding: 1em;
   border: 1px solid rgb(255 255 255 / 0.08);
   border-radius: 0.55em;
-  min-height: 18em;
   align-content: start;
 }
 
@@ -428,36 +436,41 @@
 
 .hd-phones {
   position: absolute;
-  inset: 13% 0 0;
+  inset: 11% auto 13% 7%;
+  width: 58%;
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 5cqi;
+  justify-content: space-between;
+  align-items: stretch;
   font-family: var(--ov-font, system-ui);
-  font-size: max(8px, 1.45cqi);
+  font-size: max(8px, 1.4cqi);
   line-height: 1.4;
   color: #ecebe8;
   animation: hd-in 500ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 .hd-phone {
-  width: 30%;
-  aspect-ratio: 9 / 18;
+  width: 47%;
   display: flex;
   flex-direction: column;
   gap: 0.7em;
-  padding: 2.2em 1.1em 1.2em;
+  padding: 1.6em 1em 1em;
   border: 0.45em solid #050506;
-  border-radius: 2.4em;
+  border-radius: 2.2em;
   background: #101012;
   box-shadow: 0 2em 4em -1em rgb(0 0 0 / 0.6);
+  overflow: hidden;
 }
 
 .hd-phone--team {
-  margin-top: 7%;
+  margin-top: 6%;
+  margin-bottom: -6%;
 }
 
 .hd-phone-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
   padding-bottom: 0.6em;
   border-bottom: 1px solid rgb(255 255 255 / 0.08);
   color: rgb(255 255 255 / 0.6);
@@ -466,10 +479,23 @@
   text-align: center;
 }
 
+.hd-avatar {
+  display: grid;
+  place-items: center;
+  width: 1.8em;
+  height: 1.8em;
+  border-radius: 50%;
+  background: #2a2a2e;
+  color: #fff;
+  font-style: normal;
+}
+
 .hd-sms {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 0.5em;
+  min-height: 0;
 }
 
 .hd-bubble {
@@ -481,6 +507,11 @@
   animation: hd-in 360ms ease both;
 }
 
+.hd-bubble.is-pending {
+  visibility: hidden;
+  animation: none;
+}
+
 .hd-bubble--me {
   align-self: flex-end;
   border-radius: 1em 1em 0.3em 1em;
@@ -488,9 +519,29 @@
   color: #fff;
 }
 
+.hd-compose {
+  padding: 0.55em 0.9em;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: 999px;
+  color: rgb(255 255 255 / 0.4);
+  font-size: 0.9em;
+}
+
+.hd-job {
+  display: grid;
+  gap: 0.2em;
+  padding: 0.8em;
+  border-radius: 0.8em;
+  background: rgb(255 255 255 / 0.05);
+}
+
+.hd-job .hd-tag {
+  margin-top: 0.4em;
+}
+
 .hd-job-when {
-  margin: 0.2em 0 0;
-  font-size: 1.5em;
+  margin: 0;
+  font-size: 1.35em;
   font-weight: 600;
   letter-spacing: -0.02em;
 }
@@ -499,6 +550,42 @@
 .hd-job-where {
   margin: 0;
   color: rgb(255 255 255 / 0.65);
+}
+
+.hd-done {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.hd-done li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 0.5em;
+  padding: 0.5em 0.1em;
+  border-top: 1px solid rgb(255 255 255 / 0.07);
+  color: rgb(255 255 255 / 0.75);
+  font-size: 0.9em;
+}
+
+.hd-done li > span {
+  grid-column: 1 / -1;
+  color: rgb(255 255 255 / 0.45);
+  font-size: 0.9em;
+}
+
+.hd-done b {
+  grid-row: 2;
+  grid-column: 2;
+  color: #f7c46c;
+  font-weight: 600;
+}
+
+.hd-done b.is-paid {
+  color: #6ee7a5;
 }
 
 .hd-job-actions {
@@ -534,13 +621,6 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .hd-transcript {
-    display: none;
-  }
-
-  .hd-phone {
-    width: 40%;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -563,7 +643,8 @@
 /* Rows and chips wait until the demo is on screen, then play in. */
 .hd-demo:not(.is-in) .hd-queue li,
 .hd-demo:not(.is-in) .hd-calls li,
-.hd-demo:not(.is-in) .hd-chips span {
+.hd-demo:not(.is-in) .hd-chips span,
+.hd-demo:not(.is-in) .hd-transcript p {
   animation: none;
   opacity: 0;
 }
@@ -571,7 +652,8 @@
 @media (prefers-reduced-motion: reduce) {
   .hd-demo:not(.is-in) .hd-queue li,
   .hd-demo:not(.is-in) .hd-calls li,
-  .hd-demo:not(.is-in) .hd-chips span {
+  .hd-demo:not(.is-in) .hd-chips span,
+  .hd-demo:not(.is-in) .hd-transcript p {
     opacity: 1;
   }
 }
@@ -592,17 +674,32 @@
 }
 
 /*
-  Phones: scaled off a 350px panel the demo type fell to 6–8px and the caption
-  sat on top of the window. A taller panel gives the window room to be read at
-  a real size, fully inside the frame, with the caption below it.
+  Phones: a fixed-ratio panel either shrinks the demo past reading size or
+  clips it. Here the panel takes the demo's own height instead, with the
+  painting behind it, so every line is readable and nothing is cut off.
 */
 @media (max-width: 560px) {
   .ov-public .hf-art {
-    aspect-ratio: 3 / 4;
+    aspect-ratio: auto;
+  }
+
+  .hd-stage {
+    display: grid;
+  }
+
+  .hd-slide {
+    grid-area: 1 / 1;
+    min-width: 0;
+  }
+
+  .hd-demo {
+    position: relative;
+    inset: auto;
+    padding: 3.4rem 5% 6.5rem;
   }
 
   .hd-pills {
-    top: 3%;
+    top: 0.9rem;
     left: 5%;
   }
 
@@ -611,27 +708,56 @@
   }
 
   .hd-window {
-    left: 5%;
-    top: 11%;
-    width: 90%;
-    height: 72%;
+    position: relative;
+    left: auto;
+    top: auto;
+    width: auto;
+    height: auto;
     font-size: 12px;
   }
 
+  .hd-queue li {
+    grid-template-columns: 6.6em minmax(0, 1fr) auto;
+  }
+
+  .hd-queue .hd-value {
+    display: none;
+  }
+
   .hd-phones {
-    inset: 11% 0 17%;
+    position: relative;
+    inset: auto;
+    width: auto;
+    gap: 0.6rem;
+    align-items: flex-start;
     font-size: 12px;
   }
 
   .hd-phone {
-    width: 44%;
-    aspect-ratio: auto;
-    height: 100%;
+    width: auto;
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 1.1em 0.7em 0.8em;
+    border-width: 0.35em;
+    border-radius: 1.6em;
+  }
+
+  .hd-phone--team {
+    margin: 1.5rem 0 0;
+  }
+
+  .hd-bubble {
+    max-width: 100%;
+  }
+
+  .hd-sms .hd-bubble:first-child,
+  .hd-done li:nth-child(n + 3) {
+    display: none;
   }
 
   .hd-example {
     left: 5%;
-    bottom: 2.5%;
+    bottom: 0.9rem;
     max-width: 90%;
     font-size: 12px;
   }

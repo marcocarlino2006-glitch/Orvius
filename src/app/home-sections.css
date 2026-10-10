@@ -117,6 +117,73 @@
   transform: scale(1.06);
 }
 
+/*
+  Where each row's window sits, and the crop that keeps the scene's trade
+  detail beside it rather than under it: the lit house and van at night, the
+  vans at the yard, the van at the curb, the van heading home.
+*/
+.ov-public .hf-art--receptionist {
+  --win-x: 4%;
+  --win-w: 58%;
+}
+
+.ov-public .hf-art--receptionist .hf-art-bg {
+  object-position: 16% 50%;
+}
+
+.ov-public .hf-art--command {
+  --win-x: 35%;
+  --win-w: 62%;
+}
+
+.ov-public .hf-art--command .hf-art-bg {
+  object-position: 0% 50%;
+}
+
+.ov-public .hf-art--field .hf-art-bg {
+  object-position: 100% 50%;
+}
+
+.ov-public .hf-art--calls {
+  --win-x: 4%;
+  --win-w: 62%;
+}
+
+/* The record needs its width for the transcript more than it needs the nav. */
+.ov-public .hf-art--calls .hd-window {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.ov-public .hf-art--calls .hd-side {
+  display: none;
+}
+
+.ov-public .hf-art--calls .hf-art-bg {
+  object-position: 30% 50%;
+}
+
+/* The hour each row happens in; down the page the rows read as one day. */
+.ov-public .hf-scene {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin: 0 0 0.85rem;
+  color: var(--ov-muted);
+  font-size: 0.875rem;
+  line-height: 1.3;
+}
+
+.ov-public .hf-scene time {
+  color: var(--ov-headline);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ov-public .hf-scene span {
+  padding-left: 0.6rem;
+  border-left: 1px solid var(--ov-hairline-strong);
+}
+
 .ov-public .hf-industries {
   background: var(--ov-paper-raised);
 }
@@ -278,6 +345,17 @@
 .ov-public .ov-hero-stage--art .ov-hero-art {
   z-index: -1;
   object-fit: cover;
+  object-position: 50% 100%;
+}
+
+/*
+  The call window floats in the sky and stops short of the rooftops, so the
+  lit street (and the van parked on it) is the first thing under it.
+*/
+@media (min-width: 901px) {
+  .ov-public .ov-hero-stage.ov-hero-stage--art {
+    padding: clamp(2.5rem, 4.5vw, 4rem) clamp(3rem, 9vw, 9rem) clamp(9rem, 17vw, 15rem);
+  }
 }
 
 @media (max-width: 900px) {
@@ -304,6 +382,25 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .ov-public .hf-art--receptionist .hf-art-bg {
+    object-position: 78% 50%;
+  }
+
+  .ov-public .hf-art--command .hf-art-bg {
+    object-position: 12% 50%;
+  }
+
+  .ov-public .hf-art--calls .hf-art-bg {
+    object-position: 68% 50%;
+  }
+
+  .ov-public .ov-hero-stage.ov-hero-stage--art {
+    padding-bottom: 6.5rem;
+  }
+
+  .ov-public .ov-hero-stage--art .ov-hero-art {
+    object-position: 18% 100%;
+  }
 }
 
 /* ---------- Compare ---------- */
