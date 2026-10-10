@@ -296,9 +296,6 @@ export function PremiumNav() {
             <Link href="/signin" onClick={() => setMenuOpen(false)}>
               Sign in
             </Link>
-            <a href="tel:+18446439170" onClick={() => setMenuOpen(false)}>
-              Call the live line
-            </a>
           </nav>
 
           <div className="mkt-nav-sheet-foot">
