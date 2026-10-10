@@ -328,10 +328,14 @@ try {
 
 try {
   const { text } = await get("/help");
+  // Email-only support is the founder's decision; a phone (NEXT_PUBLIC_ORVIUS_SUPPORT_PHONE) is optional.
+  const email = text.match(/href="mailto:([^"?]+)/)?.[1];
   if (/Call or text <a href="tel:/.test(text)) {
     pass("Support", "a phone number a person answers is on the help center");
+  } else if (email) {
+    pass("Support", `email ${email} on the help center`);
   } else {
-    warn("Support", "email only — set NEXT_PUBLIC_ORVIUS_SUPPORT_PHONE in Vercel to a number a person answers, then redeploy");
+    fail("Support", "the help center shows no way to reach a person");
   }
 } catch (error) {
   warn("Support", `could not read /help: ${error.message}`);

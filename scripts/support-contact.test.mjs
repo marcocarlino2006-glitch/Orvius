@@ -34,5 +34,8 @@ test("every place an owner gets stuck offers a person", () => {
   const component = read("src/components/support-contact.tsx");
   assert.match(component, /SUPPORT_RESPONSE/);
   assert.match(read("src/lib/support.ts"), /normally within one business day/);
-  assert.match(read("scripts/prod-verify.mjs"), /NEXT_PUBLIC_ORVIUS_SUPPORT_PHONE/);
+  const verify = read("scripts/prod-verify.mjs");
+  assert.match(verify, /pass\("Support", `email \$\{email\} on the help center`\)/, "email-only support passes");
+  assert.match(verify, /fail\("Support", "the help center shows no way to reach a person"\)/);
+  assert.doesNotMatch(verify, /warn\("Support", "email only/, "email-only is a choice, not a warning");
 });
