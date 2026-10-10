@@ -56,3 +56,13 @@ test("CI audits every page on phone, iPad and desktop", async () => {
   assert.ok(PUBLIC_PAGES.includes("/") && PUBLIC_PAGES.includes("/pricing"));
   assert.ok(APP_PAGES.includes("/dashboard") && APP_PAGES.includes("/dashboard/team"));
 });
+
+test("phones keep Sign in in the header and a menu that scrolls instead of overlapping", () => {
+  const css = read("src/app/public-polish.css");
+  assert.match(css, /\.mkt-nav-actions \.mkt-nav-login:not\(\.mkt-nav-contact\) \{\s*display: inline-flex !important;/);
+  assert.match(css, /\.mkt-nav-sheet \{[^}]*overflow-y: auto !important;/);
+  assert.match(css, /\.mkt-nav-sheet-nav \{\s*flex: none !important;/);
+  const nav = read("src/components/premium-nav.tsx");
+  const sheet = nav.slice(nav.indexOf('className="mkt-nav-sheet-nav"'), nav.indexOf('className="mkt-nav-sheet-foot"'));
+  assert.doesNotMatch(sheet, /tel:/, "the call button lives once, in the menu footer");
+});

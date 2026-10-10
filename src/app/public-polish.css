@@ -115,3 +115,50 @@ html .ov-signin .ov-signin-row-tag--intake::before {
 .ov-public :is(.ov-btn, th) {
   font-size: 0.875rem;
 }
+
+/*
+  Phone header and menu. Sign in stays one tap away for returning owners. In
+  the menu the list keeps its full height so a short screen scrolls the sheet
+  instead of sliding the last links under the call button.
+*/
+@media (max-width: 980px) {
+  html .ov-public .mkt-nav-actions .mkt-nav-login:not(.mkt-nav-contact) {
+    display: inline-flex !important;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 1rem;
+    border: 1px solid var(--ov-line);
+    border-radius: 999px;
+    color: var(--ov-ink) !important;
+    font-size: 0.875rem !important;
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  html .ov-public .mkt-nav-actions .mkt-nav-contact,
+  html .ov-public .mkt-nav--open .mkt-nav-actions .mkt-nav-login:not(.mkt-nav-contact) {
+    display: none !important;
+  }
+
+  html .ov-public .mkt-nav--open {
+    background: var(--ov-paper) !important;
+    box-shadow: 0 1px 0 var(--ov-line);
+  }
+
+  html .ov-public .mkt-nav-sheet {
+    height: 100dvh !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  html .ov-public .mkt-nav-sheet-nav {
+    flex: none !important;
+    margin-top: 1.5rem !important;
+  }
+
+  html .ov-public .mkt-nav-sheet-foot {
+    padding-top: 2rem !important;
+  }
+}
