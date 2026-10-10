@@ -18,6 +18,8 @@ export type ValueFacts = {
   shopId: string;
   name: string;
   planId: string | null;
+  /** "year" means billed annually; anything else is monthly. */
+  interval?: string | null;
   createdAt: Date;
   avgTicketCents: number | null;
   callsAnswered: number;
@@ -35,18 +37,19 @@ export type ValueVerdict = ValueFacts & {
 
 const usd = (cents: number) => `$${Math.round(cents / 100).toLocaleString("en-US")}`;
 
-export function planMonthlyCents(planId: string | null): number {
+/** What the shop pays per month; an annual charge is spread over its twelve months. */
+export function planMonthlyCents(planId: string | null, interval?: string | null): number {
   if (!planId) return 0;
   try {
     const plan = getPlanById(planId as PlanId);
-    return plan.contactSales ? 0 : Math.round(getPlanPrice(plan, "month") * 100);
+    return plan.contactSales ? 0 : Math.round(getPlanPrice(plan, interval === "year" ? "year" : "month") * 100);
   } catch {
     return 0;
   }
 }
 
 export function judgeShopValue(facts: ValueFacts, now = new Date()): ValueVerdict {
-  const priceCents = planMonthlyCents(facts.planId);
+  const priceCents = planMonthlyCents(facts.planId, facts.interval);
   const bookedValueCents = facts.avgTicketCents ? facts.jobsBooked * facts.avgTicketCents : null;
   const base = { ...facts, priceCents, bookedValueCents };
   const ageDays = (now.getTime() - facts.createdAt.getTime()) / 86_400_000;
@@ -79,7 +82,7 @@ export async function payingShopValue(now = new Date()): Promise<ValueVerdict[]>
   const since = new Date(now.getTime() - VALUE_WINDOW_DAYS * 86_400_000);
   const shops = await prisma.business.findMany({
     where: { environment: "production", isActive: true, billingStatus: { in: ["active", "past_due"] } },
-    select: { id: true, name: true, billingPlan: true, createdAt: true, avgTicketCents: true },
+    select: { id: true, name: true, billingPlan: true, billingInterval: true, createdAt: true, avgTicketCents: true },
     take: 20_000,
   });
   if (!shops.length) return [];
@@ -106,6 +109,7 @@ export async function payingShopValue(now = new Date()): Promise<ValueVerdict[]>
         shopId: shop.id,
         name: shop.name,
         planId: shop.billingPlan,
+        interval: shop.billingInterval,
         createdAt: shop.createdAt,
         avgTicketCents: shop.avgTicketCents,
         callsAnswered: callsBy.get(shop.id) ?? 0,
