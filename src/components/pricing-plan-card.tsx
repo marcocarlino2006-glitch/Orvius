@@ -145,7 +145,7 @@ export function PricingPlanCard({
         <p className="tier1-plan-ideal font-sans">Built for: {plan.idealFor}</p>
       ) : null}
       {highlights}
-      {action}
+      <div className="tier1-plan-action">{action}</div>
     </article>
   );
 }

@@ -25,7 +25,7 @@
   background: rgb(10 10 12 / 0.45);
   backdrop-filter: blur(8px);
   color: rgb(255 255 255 / 0.78);
-  font: 500 max(10px, 1.45cqi) / 1.2 var(--ov-font, system-ui);
+  font: 500 max(12px, 1.45cqi) / 1.2 var(--ov-font, system-ui);
   cursor: pointer;
   transition: background 200ms ease, color 200ms ease, border-color 200ms ease;
 }
@@ -589,4 +589,50 @@
   line-height: 1.35;
   color: #fff;
   background: rgb(0 0 0 / 0.62);
+}
+
+/*
+  Phones: scaled off a 350px panel the demo type fell to 6–8px and the caption
+  sat on top of the window. A taller panel gives the window room to be read at
+  a real size, fully inside the frame, with the caption below it.
+*/
+@media (max-width: 560px) {
+  .ov-public .hf-art {
+    aspect-ratio: 3 / 4;
+  }
+
+  .hd-pills {
+    top: 3%;
+    left: 5%;
+  }
+
+  .hd-pills button {
+    font-size: 12px;
+  }
+
+  .hd-window {
+    left: 5%;
+    top: 11%;
+    width: 90%;
+    height: 72%;
+    font-size: 12px;
+  }
+
+  .hd-phones {
+    inset: 11% 0 17%;
+    font-size: 12px;
+  }
+
+  .hd-phone {
+    width: 44%;
+    aspect-ratio: auto;
+    height: 100%;
+  }
+
+  .hd-example {
+    left: 5%;
+    bottom: 2.5%;
+    max-width: 90%;
+    font-size: 12px;
+  }
 }

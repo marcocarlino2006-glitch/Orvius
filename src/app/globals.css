@@ -5706,3 +5706,117 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 :where(h1, h2, h3, h4, h5, h6, strong, b, th) {
   font-weight: 600;
 }
+
+/*
+  Touch screens — phones and iPads.
+  iOS Safari zooms the whole page when a focused field's text is under 16px, and
+  a thumb needs about 40px to hit a control reliably. Desktop density is unchanged.
+*/
+@media (pointer: coarse) {
+  /* :not(#no-zoom) lends ID weight, so no themed class rule can shrink a field back under 16px. */
+  :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]), select, textarea):not(#no-zoom) {
+    font-size: 16px !important;
+  }
+
+  [role="radiogroup"] > button,
+  [role="tablist"]:not(.hd-pills) > button,
+  .dwk-mode > button,
+  .sc-btn,
+  .ov-signin-switch button {
+    min-height: 40px !important;
+  }
+
+  html body .os-shell .sc-dialog :is(.sc-btn, .ox-btn, .btn, .btn-secondary, .btn-void) {
+    min-height: 40px !important;
+    height: auto !important;
+  }
+
+  .ov-signin-switch button {
+    padding-inline: 0.25rem;
+  }
+
+  .hd-pills button {
+    min-height: 32px;
+  }
+
+  .ov-player-toggle {
+    min-width: 40px !important;
+    min-height: 40px !important;
+  }
+
+  /* The switch stays its drawn size; its hit area grows around it. */
+  .sc-switch {
+    position: relative;
+  }
+  .sc-switch::after {
+    content: "";
+    position: absolute;
+    inset: -12px -8px;
+  }
+}
+
+/* Pricing: the note in the billing box keeps off its border; buttons line up across plans. */
+.pricing-page-controls {
+  padding: 1rem 1.25rem;
+}
+
+.tier1-plan > .tier1-plan-action {
+  margin-top: auto;
+  padding-top: 0.5rem;
+}
+
+@media (max-width: 720px) {
+  /* Stacked cards have nothing to line up with; the spacer is just a gap. */
+  .tier1-plan-badge--empty {
+    display: none;
+  }
+}
+
+/* Trade pages: each part of the scope is its own card, two across where there's room. */
+.trade-blocks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  gap: 1rem;
+}
+
+.trade-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.5rem 1.5rem 1.25rem;
+  border: 1px solid var(--rule);
+  border-radius: 0.75rem;
+  background: var(--chalk);
+  box-shadow: var(--shadow-soft);
+}
+
+.trade-block--muted {
+  background: transparent;
+  box-shadow: none;
+}
+
+.trade-block-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  color: var(--void);
+}
+
+.trade-block-lead {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--ash);
+}
+
+.trade-block .tier1-plan-list {
+  margin: 0.25rem 0 0;
+  font-size: 0.9375rem;
+  color: var(--void);
+}
+
+.trade-block .tier1-plan-list li + li {
+  margin-top: 0.25rem;
+}
