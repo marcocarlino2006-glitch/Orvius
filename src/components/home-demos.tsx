@@ -16,6 +16,7 @@ type Biz = {
   calls: { who: string; what: string; grade: "Clean" | "Worth a listen" }[];
   transcript: [string, string][];
   confirm: { when: string; with: string; service: string; place: string };
+  earlier: { when: string; what: string }[];
 };
 
 const BIZ: Biz[] = [
@@ -46,6 +47,11 @@ const BIZ: Biz[] = [
       ["Orvius", "I can get a technician there at 6:30 tonight. What's the address?"],
     ],
     confirm: { when: "Tonight 6:30 PM", with: "Ray", service: "No heat", place: "418 Quarry Rd" },
+    earlier: [
+      { when: "8:00 AM", what: "Furnace tune-up · Elm Ct" },
+      { when: "11:30 AM", what: "Thermostat swap · Birch Ln" },
+      { when: "2:15 PM", what: "Duct inspection · Pine Ave" },
+    ],
   },
   {
     id: "plumbing",
@@ -74,6 +80,11 @@ const BIZ: Biz[] = [
       ["Orvius", "Shut the cold valve on top. I can get someone there at 7 AM."],
     ],
     confirm: { when: "Wed 7:00 AM", with: "Chris", service: "Water heater leak", place: "1842 Oak St" },
+    earlier: [
+      { when: "Tue 9:00 AM", what: "Disposal install · Maple Dr" },
+      { when: "Tue 1:00 PM", what: "Leak under sink · Cedar St" },
+      { when: "Tue 3:30 PM", what: "Drain clear · Ash Way" },
+    ],
   },
 ];
 
@@ -194,10 +205,30 @@ function Window({ title, biz, children, nav }: { title: string; biz: Biz; childr
   );
 }
 
-function Shell({ ctl, children }: { ctl: ReturnType<typeof useBusiness>; children: ReactNode }) {
+/**
+ * Every example business is rendered into the same slot and only the current
+ * one is shown, so the slot is always as tall as the longest. Where the panel
+ * takes its demo's height (phones) the page never jumps as the examples rotate.
+ */
+function Shell({
+  ctl,
+  render,
+}: {
+  ctl: ReturnType<typeof useBusiness>;
+  render: (biz: Biz, live: boolean) => ReactNode;
+}) {
   return (
     <div ref={ctl.ref} className={`hd-demo ${ctl.inView ? "is-in" : ""}`}>
-      {children}
+      <div className="hd-stage">
+        {BIZ.map((b, i) => {
+          const live = i === ctl.index;
+          return (
+            <div key={`${b.id}-${live}`} className={`hd-slide ${live ? "is-on" : ""}`} aria-hidden>
+              {render(b, live)}
+            </div>
+          );
+        })}
+      </div>
       <p className="hd-example">Example business, not a customer. This is how Orvius looks with sample calls.</p>
       <Pills index={ctl.index} pick={ctl.pick} />
     </div>
@@ -206,44 +237,46 @@ function Shell({ ctl, children }: { ctl: ReturnType<typeof useBusiness>; childre
 
 export function ReceptionistDemo() {
   const ctl = useBusiness();
-  const { biz } = ctl;
-  const typed = useTyped(biz.greeting, ctl.inView, ctl.reduced);
+  const typed = useTyped(ctl.biz.greeting, ctl.inView, ctl.reduced);
   return (
-    <Shell ctl={ctl}>
-      <Window title="Receptionist" biz={biz} nav="Settings">
-        <div className="hd-field">
-          <span className="hd-label">Business type</span>
-          <span className="hd-select">{biz.kind}</span>
-        </div>
-        <div className="hd-field">
-          <span className="hd-label">Opening line</span>
-          <span className="hd-input">
-            {typed}
-            <b className="hd-caret" />
-          </span>
-        </div>
-        <div className="hd-field">
-          <span className="hd-label">Asks every caller</span>
-          <span className="hd-chips">
-            {biz.asks.map((a, i) => (
-              <span key={a} style={{ animationDelay: `${300 + i * 120}ms` }}>
-                {a}
-              </span>
-            ))}
-          </span>
-        </div>
-        <div className="hd-field">
-          <span className="hd-label">Safety first</span>
-          <span className="hd-note">{biz.safety}</span>
-        </div>
-        <div className="hd-field hd-field--row">
-          <span className="hd-label">Voice</span>
-          <span className="hd-select">Iris · Warm</span>
-          <span className="hd-toggle is-on" />
-          <span className="hd-label">English and Spanish</span>
-        </div>
-      </Window>
-    </Shell>
+    <Shell
+      ctl={ctl}
+      render={(biz, live) => (
+        <Window title="Receptionist" biz={biz} nav="Settings">
+          <div className="hd-field">
+            <span className="hd-label">Business type</span>
+            <span className="hd-select">{biz.kind}</span>
+          </div>
+          <div className="hd-field">
+            <span className="hd-label">Opening line</span>
+            <span className="hd-input">
+              {live ? typed : biz.greeting}
+              <b className="hd-caret" />
+            </span>
+          </div>
+          <div className="hd-field">
+            <span className="hd-label">Asks every caller</span>
+            <span className="hd-chips">
+              {biz.asks.map((a, i) => (
+                <span key={a} style={{ animationDelay: `${300 + i * 120}ms` }}>
+                  {a}
+                </span>
+              ))}
+            </span>
+          </div>
+          <div className="hd-field">
+            <span className="hd-label">Safety first</span>
+            <span className="hd-note">{biz.safety}</span>
+          </div>
+          <div className="hd-field hd-field--row">
+            <span className="hd-label">Voice</span>
+            <span className="hd-select">Iris · Warm</span>
+            <span className="hd-toggle is-on" />
+            <span className="hd-label">English and Spanish</span>
+          </div>
+        </Window>
+      )}
+    />
   );
 }
 
@@ -256,133 +289,172 @@ const TAG_CLASS: Record<Biz["queue"][number]["tag"], string> = {
 
 export function BoardDemo() {
   const ctl = useBusiness();
-  const { biz } = ctl;
-  const booked = biz.queue.filter((q) => q.tag === "Booked" || q.tag === "Emergency").length;
   return (
-    <Shell ctl={ctl}>
-      <Window title="Command" biz={biz} nav="Command">
-        <p className="hd-greet">Good morning, {biz.owner}.</p>
-        <p className="hd-headline">
-          {biz.queue.length} calls overnight, {booked} already booked.
-        </p>
-        <div className="hd-stats">
-          <span>
-            <b>{biz.queue.length}</b> new
-          </span>
-          <span>
-            <b>{booked}</b> booked
-          </span>
-          <span>
-            <b>{biz.queue.filter((q) => q.tag === "Call back").length}</b> need you
-          </span>
-        </div>
-        <ul className="hd-queue">
-          {biz.queue.map((q, i) => (
-            <li key={q.who} style={{ animationDelay: `${200 + i * 260}ms` }}>
-              <span className={`hd-tag ${TAG_CLASS[q.tag]}`}>{q.tag}</span>
-              <span className="hd-who">
-                <b>{q.who}</b>
-                <small>{q.what}</small>
+    <Shell
+      ctl={ctl}
+      render={(biz) => {
+        const booked = biz.queue.filter((q) => q.tag === "Booked" || q.tag === "Emergency").length;
+        return (
+          <Window title="Command" biz={biz} nav="Command">
+            <p className="hd-greet">Good morning, {biz.owner}.</p>
+            <p className="hd-headline">
+              {biz.queue.length} calls overnight, {booked} already booked.
+            </p>
+            <div className="hd-stats">
+              <span>
+                <b>{biz.queue.length}</b> new
               </span>
-              <span className="hd-when">{q.when}</span>
-              <span className="hd-value">{q.value}</span>
-            </li>
-          ))}
-        </ul>
-      </Window>
-    </Shell>
+              <span>
+                <b>{booked}</b> booked
+              </span>
+              <span>
+                <b>{biz.queue.filter((q) => q.tag === "Call back").length}</b> need you
+              </span>
+            </div>
+            <ul className="hd-queue">
+              {biz.queue.map((q, i) => (
+                <li key={q.who} style={{ animationDelay: `${200 + i * 260}ms` }}>
+                  <span className={`hd-tag ${TAG_CLASS[q.tag]}`}>{q.tag}</span>
+                  <span className="hd-who">
+                    <b>{q.who}</b>
+                    <small>{q.what}</small>
+                  </span>
+                  <span className="hd-when">{q.when}</span>
+                  <span className="hd-value">{q.value}</span>
+                </li>
+              ))}
+            </ul>
+          </Window>
+        );
+      }}
+    />
   );
 }
 
 export function CallsDemo() {
   const ctl = useBusiness();
-  const { biz } = ctl;
-  const [line, setLine] = useState(0);
-  useEffect(() => {
-    setLine(0);
-  }, [biz.id]);
-  useEffect(() => {
-    if (!ctl.inView || ctl.reduced || line >= biz.transcript.length) return;
-    const t = window.setTimeout(() => setLine((l) => l + 1), 1300);
-    return () => window.clearTimeout(t);
-  }, [ctl.inView, ctl.reduced, line, biz.transcript.length]);
-  const shown = ctl.reduced ? biz.transcript.length : line;
   return (
-    <Shell ctl={ctl}>
-      <Window title="Calls" biz={biz} nav="Calls">
-        <div className="hd-split">
-          <ul className="hd-calls">
-            {biz.calls.map((c, i) => (
-              <li key={c.who + c.what} className={i === 0 ? "is-on" : ""} style={{ animationDelay: `${i * 140}ms` }}>
-                <span className="hd-who">
-                  <b>{c.who}</b>
-                  <small>{c.what}</small>
-                </span>
-                <span className={`hd-tag ${c.grade === "Clean" ? "is-green" : "is-amber"}`}>{c.grade}</span>
-              </li>
-            ))}
-          </ul>
-          <div className="hd-transcript">
-            <span className="hd-label">Transcript · recorded</span>
-            {biz.transcript.slice(0, shown).map(([who, text], i) => (
-              <p key={i} className={who === "Orvius" ? "is-us" : ""}>
-                <span>{who}</span>
-                {text}
-              </p>
-            ))}
-            {shown >= biz.transcript.length ? (
-              <p className="hd-summary">
-                <span>Summary</span>
-                {biz.queue[0].what}. {biz.queue[0].tag === "Call back" ? "Wants a callback." : `Booked ${biz.queue[0].when}.`}
-              </p>
-            ) : null}
-          </div>
-        </div>
-      </Window>
-    </Shell>
+    <Shell
+      ctl={ctl}
+      render={(biz) => {
+        const lead = biz.queue[0];
+        return (
+          <Window title="Calls" biz={biz} nav="Calls">
+            <div className="hd-split">
+              <ul className="hd-calls">
+                {biz.calls.map((c, i) => (
+                  <li
+                    key={c.who + c.what}
+                    className={i === 0 ? "is-on" : ""}
+                    style={{ animationDelay: `${i * 140}ms` }}
+                  >
+                    <span className="hd-who">
+                      <b>{c.who}</b>
+                      <small>{c.what}</small>
+                    </span>
+                    <span className={`hd-tag ${c.grade === "Clean" ? "is-green" : "is-amber"}`}>{c.grade}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="hd-transcript">
+                <span className="hd-label">Transcript · recorded</span>
+                {biz.transcript.map(([who, text], i) => (
+                  <p
+                    key={i}
+                    className={who === "Orvius" ? "is-us" : ""}
+                    style={{ animationDelay: `${300 + i * 700}ms` }}
+                  >
+                    <span>{who}</span>
+                    {text}
+                  </p>
+                ))}
+                <p
+                  className="hd-summary"
+                  style={{
+                    animationDelay: `${300 + biz.transcript.length * 700}ms`,
+                  }}
+                >
+                  <span>Summary</span>
+                  {lead.what}. {lead.tag === "Call back" ? "Wants a callback." : `Booked ${lead.when}.`}
+                </p>
+              </div>
+            </div>
+          </Window>
+        );
+      }}
+    />
   );
 }
 
 export function PhonesDemo() {
   const ctl = useBusiness();
-  const { biz } = ctl;
   const [step, setStep] = useState(0);
   useEffect(() => {
     setStep(0);
-  }, [biz.id]);
+  }, [ctl.biz.id]);
   useEffect(() => {
     if (!ctl.inView || ctl.reduced || step >= 3) return;
     const t = window.setTimeout(() => setStep((s) => s + 1), 1100);
     return () => window.clearTimeout(t);
   }, [ctl.inView, ctl.reduced, step]);
-  const s = ctl.reduced ? 3 : step;
   return (
-    <Shell ctl={ctl}>
-      <div className="hd-phones" aria-hidden key={biz.id}>
-        <div className="hd-phone">
-          <span className="hd-phone-head">{biz.name}</span>
-          <div className="hd-sms">
-            {s >= 1 ? (
-              <p className="hd-bubble">
-                You&apos;re booked {biz.confirm.when} with {biz.confirm.with}. Tap to confirm: orvius.im/c/8f2k
-              </p>
-            ) : null}
-            {s >= 2 ? <p className="hd-bubble hd-bubble--me">Confirmed ✓</p> : null}
-            {s >= 3 ? <p className="hd-bubble">See you then. Reply here if anything changes.</p> : null}
+    <Shell
+      ctl={ctl}
+      render={(biz, live) => {
+        const s = live && !ctl.reduced ? step : 3;
+        return (
+          <div className="hd-phones">
+            <div className="hd-phone">
+              <span className="hd-phone-head">
+                <i className="hd-avatar">{biz.name.charAt(0)}</i>
+                {biz.name}
+              </span>
+              <div className="hd-sms">
+                <p className="hd-bubble">
+                  Thanks for calling {biz.name}. We have your request for {biz.confirm.service.toLowerCase()} at{" "}
+                  {biz.confirm.place}.
+                </p>
+                <p className={`hd-bubble ${s >= 1 ? "" : "is-pending"}`}>
+                  You&apos;re booked {biz.confirm.when} with {biz.confirm.with}. Tap to confirm: orvius.im/c/8f2k
+                </p>
+                <p className={`hd-bubble hd-bubble--me ${s >= 2 ? "" : "is-pending"}`}>Confirmed ✓</p>
+                <p className={`hd-bubble ${s >= 3 ? "" : "is-pending"}`}>
+                  See you then. Reply here if anything changes.
+                </p>
+              </div>
+              <span className="hd-compose">Text message</span>
+            </div>
+            <div className="hd-phone hd-phone--team">
+              <span className="hd-phone-head">Your day · {biz.confirm.with}</span>
+              <div className="hd-job">
+                <span className="hd-label">Next job</span>
+                <p className="hd-job-when">{biz.confirm.when}</p>
+                <p className="hd-job-what">{biz.confirm.service}</p>
+                <p className="hd-job-where">{biz.confirm.place}</p>
+                <span className={`hd-tag ${s >= 2 ? "is-green" : "is-amber"}`}>
+                  {s >= 2 ? "Customer confirmed" : "Waiting on customer"}
+                </span>
+              </div>
+              <ul className="hd-done">
+                {biz.earlier.map((e, i) => {
+                  const paid = i < biz.earlier.length - 1;
+                  return (
+                    <li key={e.when}>
+                      <span>{e.when}</span>
+                      {e.what}
+                      <b className={paid ? "is-paid" : ""}>{paid ? "Paid" : "Bill sent"}</b>
+                    </li>
+                  );
+                })}
+              </ul>
+              <div className="hd-job-actions">
+                <span>Call</span>
+                <span>{biz.id === "plumbing" ? "Directions" : "Notes"}</span>
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="hd-phone hd-phone--team">
-          <span className="hd-phone-head">Your day · {biz.confirm.with}</span>
-          <p className="hd-job-when">{biz.confirm.when}</p>
-          <p className="hd-job-what">{biz.confirm.service}</p>
-          <p className="hd-job-where">{biz.confirm.place}</p>
-          <span className={`hd-tag ${s >= 2 ? "is-green" : "is-amber"}`}>{s >= 2 ? "Customer confirmed" : "Waiting on customer"}</span>
-          <div className="hd-job-actions">
-            <span>Call</span>
-            <span>{biz.id === "plumbing" ? "Directions" : "Notes"}</span>
-          </div>
-        </div>
-      </div>
-    </Shell>
+        );
+      }}
+    />
   );
 }

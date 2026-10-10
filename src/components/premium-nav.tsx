@@ -23,7 +23,7 @@ const MENUS: Record<MenuId, { items: MenuItem[]; feature: { title: string; body:
       body: "Call the live line and talk to the same receptionist your callers get.",
       href: "tel:+18446439170",
       cta: "+1 844 643 9170",
-      art: "/marketing/art/dusk.webp",
+      art: "/marketing/art/evening-town.webp",
     },
   },
   resources: {
@@ -40,7 +40,7 @@ const MENUS: Record<MenuId, { items: MenuItem[]; feature: { title: string; body:
       body: "We review a week of your calls and show what went unanswered.",
       href: "/pilot",
       cta: "Start an audit",
-      art: "/marketing/art/night.webp",
+      art: "/marketing/art/after-hours.webp",
     },
   },
 };
