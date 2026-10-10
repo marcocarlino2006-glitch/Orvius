@@ -81,6 +81,14 @@ export async function issueMagicLink(rawEmail: string): Promise<IssueResult> {
   return { ok: true, email, token };
 }
 
+/** The email a still-valid link would sign in, without spending it (two-step asks for a code first). */
+export async function peekMagicLink(token: string): Promise<string | null> {
+  if (!token || token.length > 512) return null;
+  const record = await prisma.loginToken.findUnique({ where: { tokenHash: hashToken(token) } });
+  if (!record || record.usedAt || record.expiresAt.getTime() < Date.now()) return null;
+  return isMagicLinkEmailAuthorized(record.email) ? record.email : null;
+}
+
 /**
  * Claim a token. Returns the email on success and null for anything else —
  * expired, already used, unknown, or an address that has since lost access.

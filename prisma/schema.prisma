@@ -1006,6 +1006,22 @@ model PasswordLogin {
   updatedAt    DateTime  @updatedAt
 }
 
+/** Two-step sign-in with an authenticator app, per sign-in email. */
+model TwoStep {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  /** Authenticator secret, AES-GCM sealed; unreadable without the server key. */
+  secretSealed      String
+  /** Set once the owner proves the app works; until then nothing is enforced. */
+  enabledAt         DateTime?
+  /** SHA-256 hashes of one-time recovery codes (random, so a fast hash is enough); each is removed when used. */
+  recoveryHashesJson String   @default("[]")
+  /** Last 30-second step accepted, so a code seen over a shoulder can't be replayed. */
+  lastStep          Int       @default(0)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
 model LoginToken {
   id         String    @id @default(cuid())
   email      String
