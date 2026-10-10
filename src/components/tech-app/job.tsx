@@ -17,6 +17,7 @@ type Signature = { signerName: string; signedAt: string; agreedCents: number | n
 type BookItem = { id: string; name: string; kind: string; unitCents: number; description: string | null };
 type Money = {
   totalCents: number | null;
+  taxCents?: number;
   depositPaidCents: number;
   balanceCents: number;
   cardReady: boolean;
@@ -678,6 +679,7 @@ function Pay({ base, detail, onPaid }: { base: string; detail: Detail; onPaid: (
         </h2>
         <span className={`ta-total${paid ? " is-paid" : ""}`}>{paid ? "Paid" : m.totalCents ? `${money(m.balanceCents)} due` : "—"}</span>
       </div>
+      {!paid && m.totalCents && m.taxCents ? <p className="ta-muted">Includes {money(m.taxCents)} sales tax.</p> : null}
       {m.depositPaidCents ? <p className="ta-muted">{money(m.depositPaidCents)} deposit already paid.</p> : null}
       {paid ? (
         <p className="ta-ok">

@@ -8,7 +8,8 @@ import {
 } from "@/lib/estimate-pay";
 import { acceptEstimate } from "@/lib/estimate-choice";
 import { findOption, parseEstimateOptions } from "@/lib/estimate-options";
-import { formatCents } from "@/lib/money";
+import { formatCents, formatCentsExact } from "@/lib/money";
+import { formatTaxRate, withSalesTax } from "@/lib/sales-tax";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
 import { z } from "zod";
@@ -28,6 +29,7 @@ const BUSINESS_SELECT = {
   stripeConnectDetailsSubmitted: true,
   financingEnabled: true,
   financingMethods: true,
+  salesTaxBps: true,
 } as const;
 
 async function loadEstimate(token: string) {
@@ -47,11 +49,25 @@ async function loadEstimate(token: string) {
   });
 }
 
+/** The customer sees tax before they accept, never first at checkout. */
+function taxNote(estimate: NonNullable<Awaited<ReturnType<typeof loadEstimate>>>, hasOpenChoice: boolean) {
+  const stamped = estimate.invoice && estimate.invoice.subtotalCents != null ? estimate.invoice : null;
+  const bps = stamped ? stamped.taxBps : estimate.business.salesTaxBps;
+  if (!bps) return null;
+  if (hasOpenChoice) return `Prices are before ${formatTaxRate(bps)} sales tax.`;
+  const priced = stamped
+    ? { taxCents: stamped.taxCents, totalCents: stamped.amountCents }
+    : withSalesTax(estimate.amountCents, bps);
+  return `Plus ${formatTaxRate(bps)} sales tax (${formatCentsExact(priced.taxCents)}). Total ${formatCentsExact(priced.totalCents)}.`;
+}
+
 function serializePublic(estimate: NonNullable<Awaited<ReturnType<typeof loadEstimate>>>) {
   const options = parseEstimateOptions(estimate.optionsJson);
+  const chosen = findOption(options, estimate.chosenOption);
   return {
+    taxNote: taxNote(estimate, options.length > 0 && !chosen),
     options: options.map((o) => ({ ...o, amountLabel: formatCents(o.amountCents) })),
-    chosenOption: findOption(options, estimate.chosenOption)?.key ?? null,
+    chosenOption: chosen?.key ?? null,
     token: estimate.publicToken,
     status: estimate.status,
     amountCents: estimate.amountCents,
@@ -175,14 +191,15 @@ export async function POST(request: Request, { params }: Params) {
         });
       }
 
-      const invoiceId = await ensureInvoiceForEstimate(estimate);
+      const due = await ensureInvoiceForEstimate(estimate);
       const session = await createEstimateCheckoutSession({
         estimateId: estimate.id,
         businessId: estimate.businessId,
         businessName: estimate.business.name,
-        amountCents: estimate.amountCents,
+        amountCents: due.amountCents,
+        taxCents: due.taxCents,
         publicToken: estimate.publicToken,
-        invoiceId,
+        invoiceId: due.id,
         jobTitle: estimate.job?.title,
         business: estimate.business,
       });
@@ -198,7 +215,8 @@ export async function POST(request: Request, { params }: Params) {
     }
 
     // pay_manual — customer attests payment outside card rails
-    const invoiceId = await ensureInvoiceForEstimate(estimate);
+    const due = await ensureInvoiceForEstimate(estimate);
+    const invoiceId = due.id;
 
     if (estimate.invoice?.status === "paid") {
       const fresh = await loadEstimate(token);
@@ -212,7 +230,7 @@ export async function POST(request: Request, { params }: Params) {
     const claim = await recordCustomerClaim({
       businessId: estimate.businessId,
       invoiceId,
-      amountCents: estimate.amountCents,
+      amountCents: due.amountCents,
       jobId: estimate.job?.id ?? null,
     });
     if (claim.created) {
@@ -227,7 +245,7 @@ export async function POST(request: Request, { params }: Params) {
           ownerPhone: shop.ownerPhone,
           ownerEmail: shop.ownerEmail,
           dedupeKey: `payment-claimed:${invoiceId}`,
-          message: `Orvius: a customer says they paid ${formatCents(estimate.amountCents)} for ${estimate.job?.title ?? "an estimate"} outside card checkout. It isn't counted as collected until you confirm it on the job.`,
+          message: `Orvius: a customer says they paid ${formatCents(due.amountCents)} for ${estimate.job?.title ?? "an estimate"} outside card checkout. It isn't counted as collected until you confirm it on the job.`,
         }).catch(() => undefined);
       }
     }

@@ -4,6 +4,7 @@ import { BillingPortalButton } from "@/components/billing-portal-button";
 import { CheckoutButton } from "@/components/checkout-button";
 import { ConnectPayoutsPanel } from "@/components/connect-payouts-panel";
 import { DepositSettingsPanel } from "@/components/deposit-settings-panel";
+import { SalesTaxPanel } from "@/components/sales-tax-panel";
 import { MoneyBackDone, MoneyBackPanel } from "@/components/money-back-panel";
 import { ShellLoading, ShellPanel } from "@/components/shell-primitives";
 import {
@@ -299,6 +300,8 @@ export function BillingContent() {
           </div>
 
           <DepositSettingsPanel />
+
+          <SalesTaxPanel />
 
           <p className="billing-legal font-sans">
             Receipts come from Stripe. <Link href="/terms">Terms</Link> · <Link href="/refunds">Refunds</Link> ·{" "}

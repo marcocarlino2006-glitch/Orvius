@@ -55,7 +55,7 @@ test("a paid booking deposit comes off the bill, matched by lead or job", async 
     data: { businessId: shop.id, jobId: job.id, amountCents: 5_000, status: "pending" },
   });
   const due = await balanceDueForJob({ businessId: shop.id, jobId: job.id, totalCents: 64_000 });
-  assert.deepEqual(due, { totalCents: 64_000, depositPaidCents: 9_900, balanceCents: 54_100 });
+  assert.deepEqual(due, { totalCents: 64_000, taxBps: 0, taxCents: 0, depositPaidCents: 9_900, balanceCents: 54_100 });
 });
 
 test("one job keeps one pay link, re-priced in place", async () => {

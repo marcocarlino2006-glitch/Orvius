@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { toast } from "@/components/toaster";
 import { formatCentsExact } from "@/lib/money";
+import { formatTaxRate, withSalesTax } from "@/lib/sales-tax";
 import { formatDay, formatWhen } from "@/lib/when";
 
 export type JobBill = {
@@ -20,6 +21,7 @@ export type JobBill = {
   } | null;
   finalAmountCents: number | null;
   cardPayReady: boolean;
+  salesTaxBps?: number;
 };
 
 export function JobBillSection({
@@ -48,7 +50,9 @@ export function JobBillSection({
 
   const totalCents = Math.round(Number(total.replace(/[^0-9.]/g, "")) * 100);
   const valid = Number.isFinite(totalCents) && totalCents >= 100;
-  const balanceCents = valid ? Math.max(0, totalCents - depositPaidCents) : null;
+  const taxBps = bill.salesTaxBps ?? 0;
+  const priced = valid ? withSalesTax(totalCents, taxBps) : null;
+  const balanceCents = priced ? Math.max(0, priced.totalCents - depositPaidCents) : null;
 
   async function bill_(send: boolean) {
     setBusy(true);
@@ -141,6 +145,11 @@ export function JobBillSection({
           disabled={busy}
         />
       </label>
+      {priced && priced.taxCents > 0 ? (
+        <p className="job-money-lead">
+          Plus {formatTaxRate(taxBps)} sales tax ({formatCentsExact(priced.taxCents)}): {formatCentsExact(priced.totalCents)} total.
+        </p>
+      ) : null}
       {balanceCents != null && depositPaidCents > 0 ? (
         <p className="job-money-lead">
           {formatCentsExact(depositPaidCents)} deposit already paid — the customer owes{" "}
