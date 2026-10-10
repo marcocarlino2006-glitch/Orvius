@@ -20,7 +20,7 @@ export async function setShopFinancing(shop: Shop, enabled: boolean, stripe: Fin
     return financingStatus(updated);
   }
   const connect = getConnectStatus(shop);
-  if (!connect.canAcceptPayments || !connect.accountId) throw new FinancingRefused("Connect payouts first. Pay over time runs on the same Stripe account as card payments.");
+  if (!connect.canAcceptPayments || !connect.accountId) throw new FinancingRefused("Set up payments first. Pay over time runs on the same Stripe account as card payments.");
   const account = await stripe.accounts.update(connect.accountId, financingCapabilityRequest());
   const updated = await prisma.business.update({
     where: { id: shop.id },

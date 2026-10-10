@@ -137,17 +137,20 @@ function inspect({ isPhone, touch }) {
       faults.push({ kind: "ios-zoom-input", blocking: true, detail: `${zoomers.length} inputs under 16px — iOS zooms the page when tapped${matchMedia("(pointer: coarse)").matches ? "" : " (browser lost touch emulation)"}`, samples: zoomers.slice(0, 4).map((el) => `${describe(el)} ${getComputedStyle(el).fontSize}`) });
     }
   }
-  if (isPhone) {
-    const small = [...document.querySelectorAll("button,[role=button],input[type=submit],a.btn,[class*=btn]")]
-      .filter((el) => visible(el) && !srOnly(el))
+  // Phones and iPads: 44×44 is Apple's minimum and WCAG's enhanced target size.
+  if (touch) {
+    const small = [...document.querySelectorAll("button,[role=button],[role=tab],input[type=submit],select,a.btn,a[class*=btn],[class*=btn]:is(a,button,summary)")]
+      .filter((el) => visible(el) && !srOnly(el) && !el.closest('[aria-hidden="true"]'))
       .filter((el) => {
-        const hit = getComputedStyle(el, "::after");
-        if (hit.content !== "none" && hit.position === "absolute" && parseFloat(hit.top) < 0) return false;
+        for (const pseudo of ["::after", "::before"]) {
+          const hit = getComputedStyle(el, pseudo);
+          if (hit.content !== "none" && hit.position === "absolute" && parseFloat(hit.top) < 0) return false;
+        }
         const r = el.getBoundingClientRect();
-        return r.height < 32 || r.width < 32;
+        return r.height < 43.5 || r.width < 43.5;
       });
     if (small.length) {
-      faults.push({ kind: "small-tap-target", blocking: false, detail: `${small.length} buttons under 32px`, samples: small.slice(0, 4).map((el) => { const r = el.getBoundingClientRect(); return `${describe(el)} ${Math.round(r.width)}×${Math.round(r.height)}`; }) });
+      faults.push({ kind: "small-tap-target", blocking: true, detail: `${small.length} controls under 44px`, samples: small.slice(0, 4).map((el) => { const r = el.getBoundingClientRect(); return `${describe(el)} ${Math.round(r.width)}×${Math.round(r.height)}`; }) });
     }
   }
   return faults;

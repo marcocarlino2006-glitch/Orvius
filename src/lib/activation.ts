@@ -1,4 +1,5 @@
 import type { ConnectionHealth } from "@/lib/number-connection";
+import { paymentsActivation, type ConnectState } from "@/lib/payments-intro";
 import { PERMISSION_LEVELS, type PermissionLevel } from "@/lib/setup-flow";
 
 /*
@@ -13,7 +14,7 @@ export type ActivationAction =
   | { kind: "test_alert"; label: string };
 
 export type ActivationItem = {
-  id: "line" | "alerts" | "handoff" | "number" | "permissions";
+  id: "line" | "alerts" | "handoff" | "number" | "payments" | "permissions";
   label: string;
   state: ActivationState;
   detail: string;
@@ -37,6 +38,8 @@ export function activationChecklist(input: {
   transferProvenAt: Date | string | null;
   connection: ConnectionHealth;
   level: PermissionLevel;
+  /** Omitted when card payments aren't open on this deployment, so no owner is sent to a dead end. */
+  payments?: ConnectState | null;
 }): ActivationItem[] {
   const alert = input.latestAlert;
   const alertReached = alert && (alert.deliveryStatus === "delivered" || (alert.status === "sent" && alert.channel === "email"));
@@ -118,6 +121,19 @@ export function activationChecklist(input: {
 
   const level = PERMISSION_LEVELS.find((l) => l.id === input.level) ?? PERMISSION_LEVELS[0];
 
+  const pay = input.payments ? paymentsActivation(input.payments) : null;
+  const payments: ActivationItem[] = pay
+    ? [
+        {
+          id: "payments",
+          label: "Getting paid",
+          state: pay.state,
+          detail: pay.detail,
+          ...(pay.action ? { action: { kind: "link" as const, label: pay.action.label, href: pay.action.href } } : {}),
+        },
+      ]
+    : [];
+
   return [
     {
       id: "line",
@@ -128,6 +144,7 @@ export function activationChecklist(input: {
     alerts,
     handoff,
     number,
+    ...payments,
     {
       id: "permissions",
       label: "What Orvius does on its own",

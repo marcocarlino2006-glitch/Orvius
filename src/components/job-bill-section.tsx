@@ -129,7 +129,7 @@ export function JobBillSection({
       {!bill.cardPayReady ? (
         <p className="job-money-lead">
           <Link href="/dashboard/billing#payouts" className="underline underline-offset-2">
-            Connect payouts
+            Set up payments
           </Link>{" "}
           to let customers pay by card from a text.
         </p>

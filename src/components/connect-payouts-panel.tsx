@@ -3,12 +3,22 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { ShellLoading, ShellPanel } from "@/components/shell-primitives";
-
-type ConnectState = "not_started" | "in_progress" | "verifying" | "ready";
+import {
+  EXAMPLE_BILL_CENTS,
+  PAYMENT_STEPS,
+  SETUP_NEEDS,
+  STRIPE_STANDARD_LABEL,
+  exampleBillText,
+  paymentExample,
+  usd,
+  type ConnectState,
+} from "@/lib/payments-intro";
 
 type ConnectResponse = {
   configured: boolean;
   feeRate: string;
+  feeBps: number;
+  shopName: string;
   status: {
     accountId: string | null;
     chargesEnabled: boolean;
@@ -19,22 +29,16 @@ type ConnectResponse = {
   };
 };
 
-const HEADLINE: Record<ConnectState, string> = {
-  not_started: "Take card payments",
-  in_progress: "Finish connecting your account",
+const HEADLINE: Record<Exclude<ConnectState, "not_started" | "in_progress">, string> = {
   verifying: "Stripe is verifying your account",
   ready: "Card payments are live",
 };
 
-const BODY: Record<ConnectState, string> = {
-  not_started:
-    "Connect a payout account and Orvius can collect deposits when a job is booked and payment when it is done. Money goes straight to your bank, not to us.",
-  in_progress:
-    "Stripe still needs a few details before your shop can accept cards. Your progress was saved.",
+const BODY: Record<Exclude<ConnectState, "not_started" | "in_progress">, string> = {
   verifying:
     "Stripe has your details and is checking them. This usually takes minutes, and we will switch cards on the moment it clears — nothing more for you to do.",
   ready:
-    "Customers can pay your deposits and estimates by card. Funds settle to your bank on Stripe's normal payout schedule.",
+    "Customers pay deposits, estimates and bills by card from a text. Money settles to your bank on Stripe's payout schedule, usually two business days.",
 };
 
 type Financing = { enabled: boolean; active: string[]; pending: string[]; costNote: string };
@@ -87,6 +91,106 @@ function FinancingRow() {
   );
 }
 
+/**
+ * The first time an owner meets card payments: what happens, what the customer
+ * sees, what a real bill pays out, and what Stripe will ask for. Shown until
+ * Stripe has the shop's details, so a half-finished setup gets the same answers.
+ */
+function GetPaidIntro({
+  data,
+  busy,
+  resume,
+  onStart,
+}: {
+  data: ConnectResponse;
+  busy: boolean;
+  resume: boolean;
+  onStart: () => void;
+}) {
+  const ex = paymentExample(EXAMPLE_BILL_CENTS, data.feeBps);
+  return (
+    <div className="getpaid font-sans">
+      <div className="getpaid-head">
+        <p className="getpaid-title">{resume ? "Finish setting up payments" : "Get paid by text"}</p>
+        <p className="getpaid-lead">
+          {resume
+            ? "Stripe still needs a few details. Your progress was saved, so you pick up where you stopped."
+            : "When the work is done, Orvius texts your customer the bill and they pay from their phone. The money goes to your bank, not to Orvius."}
+        </p>
+      </div>
+
+      <div className="getpaid-grid">
+        <ol className="getpaid-steps">
+          {PAYMENT_STEPS.map((step) => (
+            <li key={step.when}>
+              <span className="getpaid-when">{step.when}</span>
+              <p className="getpaid-step-title">{step.title}</p>
+              <p className="getpaid-step-body">{step.body}</p>
+            </li>
+          ))}
+        </ol>
+
+        <figure className="getpaid-preview" aria-label="Example of the text your customer gets">
+          <figcaption>What your customer gets</figcaption>
+          <div className="getpaid-phone" aria-hidden>
+            <span className="getpaid-phone-from">{data.shopName}</span>
+            <p className="getpaid-bubble">{exampleBillText(data.shopName, EXAMPLE_BILL_CENTS)}</p>
+            <span className="getpaid-paybar">Pay {usd(EXAMPLE_BILL_CENTS)}</span>
+          </div>
+          <p className="getpaid-note">Example. Real bills use the job&apos;s amount.</p>
+        </figure>
+      </div>
+
+      <div className="getpaid-facts">
+        <section aria-labelledby="getpaid-cost">
+          <p id="getpaid-cost" className="getpaid-facts-title">
+            On a {usd(ex.billCents)} bill
+          </p>
+          <dl className="getpaid-math">
+            <div>
+              <dt>Stripe, at its standard {STRIPE_STANDARD_LABEL}</dt>
+              <dd>−{usd(ex.stripeCents)}</dd>
+            </div>
+            <div>
+              <dt>Orvius, {data.feeRate}</dt>
+              <dd>−{usd(ex.orviusCents)}</dd>
+            </div>
+            <div className="getpaid-net">
+              <dt>In your bank</dt>
+              <dd>{usd(ex.netCents)}</dd>
+            </div>
+          </dl>
+          <p className="getpaid-small">
+            Stripe shows your exact rate during setup. Cash and checks you record yourself carry no fee. Your Orvius
+            plan is billed separately and doesn&apos;t change.
+          </p>
+        </section>
+        <section aria-labelledby="getpaid-needs">
+          <p id="getpaid-needs" className="getpaid-facts-title">
+            Have these ready, about 5 minutes
+          </p>
+          <ul className="getpaid-needs">
+            {SETUP_NEEDS.map((need) => (
+              <li key={need}>{need}</li>
+            ))}
+          </ul>
+          <p className="getpaid-small">
+            Setup happens on Stripe, which handles payments for millions of businesses. Orvius never sees your bank
+            login and never holds your money.
+          </p>
+        </section>
+      </div>
+
+      <div className="getpaid-cta">
+        <button type="button" className="btn btn-void" disabled={busy} onClick={onStart}>
+          {busy ? "Opening Stripe…" : resume ? "Finish setup" : "Set up payments"}
+        </button>
+        <span className="getpaid-cta-note">You leave for Stripe and come straight back here.</span>
+      </div>
+    </div>
+  );
+}
+
 export function ConnectPayoutsPanel() {
   const [data, setData] = useState<ConnectResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -134,7 +238,7 @@ export function ConnectPayoutsPanel() {
 
   if (loading) {
     return (
-      <ShellPanel title="Payouts" dense>
+      <ShellPanel title="Payments" dense>
         <ShellLoading />
       </ShellPanel>
     );
@@ -142,7 +246,7 @@ export function ConnectPayoutsPanel() {
 
   if (!data?.configured) {
     return (
-      <ShellPanel title="Payouts" dense>
+      <ShellPanel title="Payments" dense>
         <div className="payment-locked-state font-sans">
           <span className="payment-state-step" aria-hidden>
             1
@@ -161,8 +265,17 @@ export function ConnectPayoutsPanel() {
 
   const { state } = data.status;
 
+  if (state === "not_started" || state === "in_progress") {
+    return (
+      <ShellPanel title="Payments" dense>
+        {error ? <p className="os-own-color panel-action-error mb-4 font-sans text-sm">{error}</p> : null}
+        <GetPaidIntro data={data} busy={busy} resume={state === "in_progress"} onStart={() => void go("onboard")} />
+      </ShellPanel>
+    );
+  }
+
   return (
-    <ShellPanel title="Payouts" dense>
+    <ShellPanel title="Payments" dense>
       <p className="account-plan-name font-sans">{HEADLINE[state]}</p>
       <p className="mt-4 font-sans text-sm leading-relaxed text-ash">
         {BODY[state]}
@@ -184,7 +297,7 @@ export function ConnectPayoutsPanel() {
           >
             {busy ? "Opening Stripe…" : "View payouts on Stripe"}
           </button>
-        ) : state === "verifying" ? (
+        ) : (
           <button
             type="button"
             className="btn btn-secondary"
@@ -192,19 +305,6 @@ export function ConnectPayoutsPanel() {
             onClick={() => void load()}
           >
             Check again
-          </button>
-        ) : (
-          <button
-            type="button"
-            className="btn btn-void"
-            disabled={busy}
-            onClick={() => void go("onboard")}
-          >
-            {busy
-              ? "Opening Stripe…"
-              : state === "in_progress"
-                ? "Finish setup"
-                : "Connect payouts"}
           </button>
         )}
       </div>

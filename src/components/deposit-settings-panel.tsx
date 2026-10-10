@@ -122,16 +122,16 @@ export function DepositSettingsPanel() {
             2
           </span>
           <div>
-            <p className="payment-state-title">Available after payouts</p>
+            <p className="payment-state-title">Deposits start after payments</p>
             <p className="payment-state-copy">
-              Connect payouts first. Then choose the deposit amount Orvius
-              requests when a customer books.
+              Once payments are set up, choose the deposit Orvius asks for when
+              a customer books. It holds the slot.
             </p>
             <Link
               href="/dashboard/billing#payouts"
               className="btn btn-secondary text-sm mt-4"
             >
-              Open payouts
+              Set up payments
             </Link>
           </div>
         </div>
