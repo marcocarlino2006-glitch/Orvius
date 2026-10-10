@@ -1,3 +1,4 @@
+import { classifyDemand } from "@/lib/job-taxonomy";
 import { inferTradeFromBusiness, TRADES, type Trade } from "@/lib/trades";
 
 /**
@@ -466,6 +467,31 @@ export function normalizeUrgency(value: string | null | undefined): RequestUrgen
  * Classify one request. Safety rules from every trade apply regardless of the
  * shop's trade — a gas smell reported to an electrician is still a gas smell.
  */
+/**
+ * The demand taxonomy names the job; this names the playbook service that
+ * books it. Reading the category first keeps the calendar and the job record
+ * from disagreeing about what the caller asked for.
+ */
+const SERVICE_FOR_CATEGORY: Record<string, string> = {
+  "hvac.system_replace": "system_quote",
+  "hvac.maintenance": "tune_up",
+  "hvac.no_cool": "no_cooling",
+  "hvac.no_heat": "no_heat",
+  "hvac.thermostat": "thermostat",
+  "plumb.water_heater": "water_heater",
+  "plumb.sewer": "sewer",
+  "plumb.toilet": "toilet",
+  "plumb.drain_clog": "drain_clog",
+  "plumb.leak": "active_leak",
+  "plumb.fixture": "fixture",
+  "elec.panel": "panel",
+  "elec.ev_charger": "panel",
+  "elec.outage": "power_loss",
+  "elec.breaker": "breaker",
+  "elec.outlet": "outlet",
+  "elec.lighting": "lighting",
+};
+
 export function classifyRequest(input: {
   business: { trade?: string | null; servicesJson?: string | null; name?: string | null };
   serviceType?: string | null;
@@ -489,7 +515,12 @@ export function classifyRequest(input: {
   const hazard = safetyRules.find((rule) => matches(text, rule.keywords)) ?? null;
   if (hazard) reasons.push(`Safety: ${hazard.label.toLowerCase()} mentioned`);
 
-  const matched = playbook?.services.find((s) => matches(text, s.keywords)) ?? null;
+  const category = trade ? classifyDemand({ text, trade }) : null;
+  const byCategory = category ? SERVICE_FOR_CATEGORY[category] : undefined;
+  const matched =
+    (byCategory ? playbook?.services.find((s) => s.key === byCategory) : undefined) ??
+    playbook?.services.find((s) => matches(text, s.keywords)) ??
+    null;
   const base = matched ?? playbook?.fallback ?? GENERAL_FALLBACK;
   if (matched) reasons.push(`Matched ${trade} service “${matched.label}”`);
   else reasons.push(playbook ? `No specific ${trade} service matched — using ${base.label.toLowerCase()}` : "Trade not set — using a general service call");
