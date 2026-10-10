@@ -8,6 +8,7 @@ type Feature = {
   id: string;
   title: string;
   body: string;
+  scene: { time: string; label: string };
   link: { href: string; label: string };
   art: string;
   demo: ReactNode;
@@ -17,35 +18,39 @@ type Feature = {
 const features: Feature[] = [
   {
     id: "receptionist",
+    scene: { time: "11:48 PM", label: "A furnace quits after hours" },
     title: "The receptionist brings in the work.",
     body: "Calls answered in your name, with your opening line, voice and hours. Gas, smoke and medical emergencies get safety steps first, then you.",
     link: { href: "/product", label: "See how the receptionist works" },
-    art: "/marketing/art/dusk.webp",
+    art: "/marketing/art/after-hours.webp",
     demo: <ReceptionistDemo />,
   },
   {
     id: "command",
+    scene: { time: "6:40 AM", label: "Before the first van rolls" },
     title: "Command schedules it.",
     body: "Each job lands on your real calendar with someone free who has the skill. What still needs you is a short list, each with the dollar value at stake and the one thing to do next.",
     link: { href: "/product", label: "Explore the board" },
-    art: "/marketing/art/dawn.webp",
+    art: "/marketing/art/first-light.webp",
     demo: <BoardDemo />,
   },
   {
     id: "field",
+    scene: { time: "9:15 AM", label: "Out on the job" },
     title: "Your people and customers, coordinated.",
     body: "Whoever is going gets the address and one tap to call. The customer gets the time with one tap to confirm, and callers nobody reached get a follow-up. When the work is done the bill goes out by text, and it counts as paid only once the money arrives. No app to install.",
     link: { href: "/help", label: "Read the help center" },
-    art: "/marketing/art/morning.webp",
+    art: "/marketing/art/on-the-job.webp",
     demo: <PhonesDemo />,
     phones: true,
   },
   {
     id: "calls",
+    scene: { time: "6:05 PM", label: "Heading home" },
     title: "What actually happened, on the record.",
     body: "Every call recorded, transcribed and graded. Every booking, text and change is in the activity log, and each week shows calls answered, jobs booked and money collected.",
     link: { href: "/pilot", label: "Get a free call audit" },
-    art: "/marketing/art/night.webp",
+    art: "/marketing/art/heading-home.webp",
     demo: <CallsDemo />,
   },
 ];
@@ -66,7 +71,8 @@ function Arrow() {
 
 /**
  * One idea per row: a short heading, one sentence, one link, and the real
- * screen set on a painted backdrop. Rows alternate sides on wide screens.
+ * screen set on a painted backdrop. Read top to bottom the rows are one
+ * working day, so each painting is the hour its row happens in.
  */
 export function HomeFeatures() {
   return (
@@ -76,13 +82,17 @@ export function HomeFeatures() {
           {features.map((f, i) => (
             <article key={f.id} id={f.id} className={`hf-row ${i % 2 ? "hf-row--flip" : ""}`} data-reveal>
               <div className="hf-copy">
+                <p className="hf-scene font-sans">
+                  <time>{f.scene.time}</time>
+                  <span>{f.scene.label}</span>
+                </p>
                 <h2 className="hf-title">{f.title}</h2>
                 <p className="hf-body font-sans">{f.body}</p>
                 <Link href={f.link.href} className="hf-link font-sans">
                   {f.link.label} <Arrow />
                 </Link>
               </div>
-              <div className={`hf-art ${f.phones ? "hf-art--phones" : ""}`}>
+              <div className={`hf-art hf-art--${f.id} ${f.phones ? "hf-art--phones" : ""}`}>
                 <Image src={f.art} alt="" fill sizes="(max-width: 900px) 100vw, 60vw" className="hf-art-bg" />
                 {f.demo}
               </div>

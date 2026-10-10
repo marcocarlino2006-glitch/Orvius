@@ -111,7 +111,7 @@ export function HomeLineHero({ signupOpen = false }: { signupOpen?: boolean }) {
 
         <div className="ov-hero-stage ov-hero-stage--art">
           <Image
-            src="/marketing/art/dusk.webp"
+            src="/marketing/art/evening-town.webp"
             alt=""
             fill
             priority
