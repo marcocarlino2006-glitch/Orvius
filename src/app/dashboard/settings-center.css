@@ -1537,3 +1537,155 @@ html[data-theme="day"] .sc-dialog {
 html[data-theme="day"] .os-shell .sc-dialog {
   box-shadow: 0 0 0 1px rgb(0 0 0 / 0.08), 0 24px 48px -12px rgb(0 0 0 / 0.18);
 }
+
+/*
+  Finish. Every rail name sits on one line, the close button sits on the title's
+  line, the plan reads as a card on both themes, and phones get a full-screen
+  sheet whose forms wrap instead of running off the edge.
+*/
+
+.os-shell .sc-dialog {
+  grid-template-columns: 232px minmax(0, 1fr);
+}
+
+.os-shell .sc-dialog .sc-nav-item {
+  min-height: 32px;
+  height: auto;
+}
+
+.os-shell .sc-dialog .sc-nav-item-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.os-shell .sc-dialog .sc-nav-heading {
+  margin-top: 16px !important;
+}
+
+.os-shell .sc-dialog .sc-nav-empty {
+  margin: 12px 14px;
+  color: var(--sc-mute);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.os-shell .sc-dialog .sc-title {
+  line-height: 32px;
+}
+
+.os-shell .sc-dialog .sc-head > .sc-icon-btn:last-child {
+  top: 34px;
+  right: 16px;
+}
+
+html[data-theme="day"] .os-shell .sc-dialog .sc-nav-item.is-active {
+  background: var(--sc-active);
+}
+
+/* Touch screens have no hover; a tapped row must not stay grey. */
+@media (hover: none) {
+  .os-shell .sc-dialog :is(.sc-nav-user-btn, .sc-nav-item:not(.is-active)):hover {
+    background: transparent;
+  }
+}
+
+html .os-shell .sc-dialog .sc-plan {
+  border: 1px solid var(--sc-line);
+  background: var(--sc-hover);
+}
+
+.os-shell .sc-dialog .sc-hours-times .sc-input.sc-time {
+  flex: none;
+}
+
+@media (pointer: coarse) {
+  .os-shell .sc-dialog .sc-hours-times .sc-input.sc-time {
+    width: 9rem;
+  }
+}
+
+@media (max-width: 720px) {
+  .os-shell.sc-overlay {
+    padding: 0;
+  }
+
+  html body .os-shell .sc-dialog {
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+    height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .os-shell .sc-dialog .sc-nav {
+    padding-top: max(14px, env(safe-area-inset-top));
+  }
+
+  .os-shell .sc-dialog .sc-head {
+    padding-top: max(16px, env(safe-area-inset-top)) !important;
+  }
+
+  .os-shell .sc-dialog .sc-head > .sc-icon-btn:last-child {
+    top: max(16px, env(safe-area-inset-top));
+    right: 8px;
+  }
+
+  .os-shell .sc-dialog .sc-head > .sc-icon-btn:first-child {
+    margin-left: -8px;
+  }
+
+  .os-shell .sc-dialog .sc-hours-row .sc-row-control {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .os-shell .sc-dialog .sc-hours-times {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .os-shell .sc-dialog .sc-hours-times .sc-input.sc-time {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+  }
+
+  /* Connectors: mark beside the name, actions under the name, on every row alike. */
+  .os-shell .sc-dialog .sc-connector {
+    display: grid;
+    grid-template-columns: 2.25rem minmax(0, 1fr);
+    align-items: start;
+    gap: 0.5rem 0.875rem;
+  }
+
+  .os-shell .sc-dialog .sc-connector > .sc-row-control {
+    grid-column: 2;
+    width: auto;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .os-shell .sc-dialog select.sc-input {
+    height: 44px;
+    padding-block: 0 !important;
+    line-height: normal;
+  }
+
+  .os-shell .sc-dialog .sc-inline-field {
+    flex-wrap: wrap;
+  }
+
+  .os-shell .sc-dialog .sc-inline-field > input.sc-input {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+  }
+
+  .os-shell .sc-dialog .sc-inline-field > select.sc-input {
+    flex: 1 1 0 !important;
+    width: auto !important;
+    min-width: 0;
+  }
+}

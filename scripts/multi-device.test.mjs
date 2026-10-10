@@ -66,3 +66,25 @@ test("phones keep Sign in in the header and a menu that scrolls instead of overl
   const sheet = nav.slice(nav.indexOf('className="mkt-nav-sheet-nav"'), nav.indexOf('className="mkt-nav-sheet-foot"'));
   assert.doesNotMatch(sheet, /tel:/, "the call button lives once, in the menu footer");
 });
+
+test("settings pop-up: one-line rail names, keyword search, readable on both themes, phone forms wrap", async () => {
+  const { SETTINGS_SECTIONS, settingsNavLabel } = await import("../src/lib/settings-center.ts");
+  for (const section of SETTINGS_SECTIONS) {
+    assert.ok(settingsNavLabel(section).length <= 20, `rail name "${settingsNavLabel(section)}" wraps at 232px`);
+  }
+  const center = read("src/components/settings-center/settings-center.tsx");
+  assert.match(center, /searchSettings\(query\)/, "the rail search uses the keyword index");
+  assert.match(center, /className="sc-nav-empty"/);
+  assert.match(center, /\{current\.label\}/, "the page title keeps the full name");
+
+  const css = read("src/app/dashboard/settings-center.css");
+  assert.match(css, /grid-template-columns: 232px minmax\(0, 1fr\);/);
+  assert.match(css, /html body \.os-shell \.sc-dialog \{\s*grid-template-columns: minmax\(0, 1fr\);/, "phones get one column");
+  assert.match(css, /\.sc-inline-field > select\.sc-input \{\s*flex: 1 1 0 !important;/);
+  assert.match(css, /\.sc-connector \{\s*display: grid;/);
+  assert.match(css, /html\[data-theme="day"\] \.os-shell \.sc-dialog \.sc-nav-item\.is-active/);
+
+  const globals = read("src/app/globals.css");
+  assert.match(globals, /\.os-shell-night \.pro-economics-grid dd \{[^}]*color: var\(--ox-text/, "performance numbers follow the theme");
+  assert.match(globals, /\.os-shell-night \.pro-economics-notes strong \{[^}]*color: var\(--ox-text/);
+});

@@ -5,9 +5,9 @@
  */
 export const SETTINGS_SECTIONS = [
   { id: "business", label: "Business profile", group: "business" },
-  { id: "hours", label: "Hours, services & area", group: "business" },
-  { id: "phone", label: "Connect your number", group: "connections" },
-  { id: "integrations", label: "Calendar, payments & texting", group: "connections" },
+  { id: "hours", label: "Hours, services & area", nav: "Hours & services", group: "business" },
+  { id: "phone", label: "Connect your number", nav: "Phone number", group: "connections" },
+  { id: "integrations", label: "Calendar, payments & texting", nav: "Integrations", group: "connections" },
   { id: "receptionist", label: "What Orvius may do", group: "authority" },
   { id: "notifications", label: "Alerts & escalation", group: "escalation" },
   { id: "account", label: "Profile & security", group: "account" },
@@ -21,6 +21,11 @@ export const SETTINGS_SECTIONS = [
 ] as const;
 
 export type SettingsSectionId = (typeof SETTINGS_SECTIONS)[number]["id"];
+
+/** The rail name: one line at the rail's width. The page title keeps the full label. */
+export function settingsNavLabel(section: (typeof SETTINGS_SECTIONS)[number]): string {
+  return "nav" in section ? section.nav : section.label;
+}
 
 /** Every setting an owner can look for, with the words they might type instead of ours. */
 export const SETTINGS_SEARCH: Array<{ label: string; section: SettingsSectionId; keywords?: string }> = [
