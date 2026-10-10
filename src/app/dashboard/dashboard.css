@@ -5871,3 +5871,14 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* The weekly trend is drawn on charcoal; on the light theme it sits on the page's own surface. */
+html[data-theme="day"] .trend {
+  border-color: var(--ox-line, #e5e5e2);
+  background: var(--ox-btn-hover, #37352f0a);
+}
+
+html[data-theme="day"] :is(.trend-bar, .trend-key-open) {
+  border-color: #d9d9d5;
+  background: #f1f1ef;
+}

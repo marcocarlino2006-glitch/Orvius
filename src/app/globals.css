@@ -5436,7 +5436,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   font-size: 1.5rem;
   font-weight: 600;
   letter-spacing: -0.02em;
-  color: #f7f9f9;
+  color: var(--ox-text, #f7f9f9);
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
 }
@@ -5664,7 +5664,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 .os-shell-night .pro-economics-notes strong {
   font-weight: 600;
-  color: #e7e7e7;
+  color: var(--ox-text, #e7e7e7);
   font-variant-numeric: tabular-nums;
 }
 

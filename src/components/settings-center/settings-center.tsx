@@ -11,7 +11,7 @@ import type { CaptureMode, CarrierId } from "@/lib/carrier-forward";
 import { displayPhone } from "@/lib/customer";
 import type { ManusPostStep } from "@/lib/manus-post";
 import { useOptionalRing1 } from "@/lib/ring1-context";
-import { SETTINGS_SECTIONS, type SettingsSectionId } from "@/lib/settings-center";
+import { SETTINGS_SECTIONS, searchSettings, settingsNavLabel, type SettingsSectionId } from "@/lib/settings-center";
 import {
   parseHoursForm,
   serializeHoursForm,
@@ -259,8 +259,12 @@ export function SettingsCenter({
   );
 
   const query = navQuery.trim().toLowerCase();
+  const matched = new Set(searchSettings(query).map((hit) => hit.section));
   const sections = SETTINGS_SECTIONS.filter((s) => s.id !== "internal" || account?.founder).filter(
-    (s) => !query || s.label.toLowerCase().includes(query),
+    (s) =>
+      !query ||
+      matched.has(s.id) ||
+      `${s.label} ${settingsNavLabel(s)}`.toLowerCase().includes(query),
   );
   const current = SETTINGS_SECTIONS.find((s) => s.id === section) ?? SETTINGS_SECTIONS[0];
   const name = account?.user?.name ?? b?.name ?? "Owner";
@@ -400,7 +404,7 @@ export function SettingsCenter({
                     onClick={() => go(item.id)}
                   >
                     <SettingsIcon name={item.id} />
-                    <span>{item.label}</span>
+                    <span className="sc-nav-item-label">{settingsNavLabel(item)}</span>
                     {item.id === "account" && checklist.next ? (
                       <span className="sc-nav-badge">
                         {checklist.doneCount}/{checklist.totalCount}
@@ -410,6 +414,7 @@ export function SettingsCenter({
                 </div>
               );
             })}
+            {!sections.length ? <p className="sc-nav-empty">No settings match “{navQuery.trim()}”.</p> : null}
           </nav>
           <a className="sc-nav-item sc-nav-help" href="/help" target="_blank" rel="noreferrer">
             <SettingsIcon name="help" />
