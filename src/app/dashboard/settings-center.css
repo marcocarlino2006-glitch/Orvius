@@ -1816,3 +1816,80 @@ html .os-shell .sc-dialog .sc-plan {
     width: 100%;
   }
 }
+
+/* Password and two-step sign-in. */
+.os-shell .sc-dialog .sc-security-form {
+  display: grid;
+  gap: 0.625rem;
+  max-width: 28rem;
+  padding: 0.25rem 0 0.75rem;
+}
+
+.os-shell .sc-dialog .sc-security-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.os-shell .sc-dialog .sc-input--code {
+  width: 9rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+}
+
+.os-shell .sc-dialog .sc-qr {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+}
+
+.os-shell .sc-dialog .sc-qr img {
+  flex: none;
+  padding: 6px;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.os-shell .sc-dialog .sc-qr-copy {
+  display: grid;
+  justify-items: start;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.os-shell .sc-dialog .sc-setup-key,
+.os-shell .sc-dialog .sc-recovery code {
+  color: var(--sc-text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.875rem;
+  word-break: break-all;
+}
+
+.os-shell .sc-dialog .sc-recovery {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.375rem 1rem;
+  margin: 0;
+  padding: 0.75rem 0.875rem;
+  list-style: none;
+  border: 1px solid var(--sc-line);
+  border-radius: 10px;
+}
+
+@media (pointer: coarse) {
+  html body .os-shell .sc-dialog .sc-security-form .sc-input {
+    height: 44px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .os-shell .sc-dialog .sc-security-form {
+    max-width: none;
+  }
+
+  .os-shell .sc-dialog .sc-input--code {
+    flex: 1 1 8rem;
+  }
+}

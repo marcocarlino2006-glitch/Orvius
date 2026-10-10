@@ -9,6 +9,12 @@ import {
 } from "@/lib/dev-auth";
 import { isDashboardEmailAuthorized } from "@/lib/auth-allowlist";
 
+/** Imported on demand: two-step reaches Prisma and node:crypto, and this module is on the edge path. */
+async function requireTwoStep(email: string, code: unknown) {
+  const { requireTwoStepCode } = await import("@/lib/two-step-signin");
+  await requireTwoStepCode(email, code);
+}
+
 const providers: Provider[] = [
   Google({
     clientId: process.env.AUTH_GOOGLE_ID ?? process.env.GOOGLE_CLIENT_ID ?? "",
@@ -25,13 +31,17 @@ const providers: Provider[] = [
   Credentials({
     id: "email-link",
     name: "Email link",
-    credentials: { token: { type: "text" } },
+    credentials: { token: { type: "text" }, code: { type: "text" } },
     async authorize(credentials) {
       const token = typeof credentials?.token === "string" ? credentials.token : "";
       // Imported here rather than at module scope: consumeMagicLink reaches
       // node:crypto and Prisma, and this module is on the edge middleware's
       // import path.
-      const { consumeMagicLink } = await import("@/lib/magic-link");
+      const { consumeMagicLink, peekMagicLink } = await import("@/lib/magic-link");
+      const pending = await peekMagicLink(token);
+      if (!pending) return null;
+      // Checked before the link is spent, so a missing code costs the owner nothing.
+      await requireTwoStep(pending, credentials?.code);
       const email = await consumeMagicLink(token);
       if (!email) return null;
       const { dropUnverifiedPassword } = await import("@/lib/password-auth");
@@ -42,7 +52,7 @@ const providers: Provider[] = [
   Credentials({
     id: "password",
     name: "Email and password",
-    credentials: { email: { type: "email" }, password: { type: "password" } },
+    credentials: { email: { type: "email" }, password: { type: "password" }, code: { type: "text" } },
     async authorize(credentials, request) {
       const email = typeof credentials?.email === "string" ? credentials.email : "";
       const password = typeof credentials?.password === "string" ? credentials.password : "";
@@ -56,6 +66,7 @@ const providers: Provider[] = [
       const { verifyPasswordLogin } = await import("@/lib/password-auth");
       const verified = await verifyPasswordLogin(email, password);
       if (!verified) return null;
+      await requireTwoStep(verified, credentials?.code);
       return { id: verified, email: verified, name: verified.split("@")[0] };
     },
   }),

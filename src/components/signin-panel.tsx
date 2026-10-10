@@ -37,16 +37,29 @@ export function SignInPanel({
   );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  const [needsCode, setNeedsCode] = useState(false);
   const [status, setStatus] = useState<Status>({ kind: "idle" });
   const copy = COPY[mode];
 
   function switchTo(next: SignInMode) {
     setMode(next);
+    setNeedsCode(false);
+    setCode("");
     setStatus({ kind: "idle" });
   }
 
   async function signInWithPassword() {
-    const result = await signIn("password", { email, password, redirect: false });
+    const result = await signIn("password", { email, password, ...(needsCode ? { code } : {}), redirect: false });
+    if (result?.code === "two_step_required") {
+      setNeedsCode(true);
+      setStatus({ kind: "idle" });
+      return;
+    }
+    if (result?.code === "two_step_invalid") {
+      setStatus({ kind: "error", message: "That code didn't match. Use the 6 digits showing in your app now, or a recovery code." });
+      return;
+    }
     if (result?.error || !result?.ok) {
       setStatus({ kind: "error", message: "Wrong email or password." });
       return;
@@ -151,6 +164,33 @@ export function SignInPanel({
                 if (status.kind !== "idle") setStatus({ kind: "idle" });
               }}
             />
+          </>
+        ) : null}
+        {needsCode && mode === "signin" ? (
+          <>
+            <label className="ov-signin-label ov-signin-label--gap" htmlFor="signin-code">
+              Code from your authenticator app
+            </label>
+            <input
+              id="signin-code"
+              className="ov-signin-input"
+              name="code"
+              value={code}
+              autoComplete="one-time-code"
+              autoCapitalize="characters"
+              spellCheck={false}
+              placeholder="123456"
+              required
+              autoFocus
+              aria-describedby="signin-code-hint"
+              onChange={(event) => {
+                setCode(event.target.value);
+                if (status.kind !== "idle") setStatus({ kind: "idle" });
+              }}
+            />
+            <p id="signin-code-hint" className="ov-signin-hint">
+              Two-step sign-in is on for this account. Lost your phone? Enter one of your recovery codes instead.
+            </p>
           </>
         ) : null}
         <button type="submit" className="ov-signin-submit" disabled={status.kind === "working"}>
