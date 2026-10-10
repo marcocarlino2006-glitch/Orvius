@@ -129,3 +129,38 @@ test("the founders' board lists shops at risk by name", () => {
   assert.deepEqual(valueLines([]), ["Shops getting less than they pay for: none"]);
   assert.match(valueLines([short])[1], /Bright Electric: 1 job booked/);
 });
+
+test("annual shops count a twelfth of what they pay per year, not the monthly price", async () => {
+  const { getPlanById, annualChargeDollars } = await import("../src/lib/pricing-plans.ts");
+  const pro = getPlanById("pro");
+  assert.equal(planMonthlyCents("pro", "year") * 12, annualChargeDollars(pro) * 100);
+  assert.ok(planMonthlyCents("pro", "year") < planMonthlyCents("pro"));
+  assert.equal(planMonthlyCents("pro", null), planMonthlyCents("pro"));
+
+  const r = revenueFrom({
+    byPlan: [
+      { planId: "pro", interval: "month", shops: 3 },
+      { planId: "pro", interval: "year", shops: 2 },
+      { planId: "line", interval: null, shops: 1 },
+    ],
+    calls30d: 0,
+    unitCost: null,
+  });
+  assert.equal(r.mrrCents, 3 * planMonthlyCents("pro") + 2 * planMonthlyCents("pro", "year") + planMonthlyCents("line"));
+  assert.deepEqual(r.byPlan.map((p) => [p.planId, p.shops]), [["pro", 5], ["line", 1]]);
+
+  const annual = judgeShopValue(facts({ interval: "year" }), now);
+  assert.equal(annual.priceCents, planMonthlyCents(annual.planId, "year"));
+});
+
+test("the billing interval is read from the Stripe price and stored on the shop", async () => {
+  const { resolveBillingInterval } = await import("../src/lib/billing-sync.ts");
+  const sub = (interval) => ({ items: { data: [{ price: { id: "price_x", recurring: { interval } } }] } });
+  assert.equal(resolveBillingInterval(sub("year")), "year");
+  assert.equal(resolveBillingInterval(sub("month")), "month");
+  assert.equal(resolveBillingInterval({ items: { data: [{ price: "price_x" }] } }), null);
+  assert.match(readFileSync("prisma/schema.prisma", "utf8"), /billingInterval\s+String\?/);
+  assert.match(readFileSync("prisma/turso-migrate.sql", "utf8"), /ALTER TABLE "Business" ADD COLUMN "billingInterval" TEXT;/);
+  assert.match(readFileSync("src/lib/billing-sync.ts", "utf8"), /billingInterval: resolveBillingInterval\(subscription\)/);
+  assert.match(readFileSync("src/lib/company-scoreboard.ts", "utf8"), /by: \["billingPlan", "billingInterval"\]/);
+});

@@ -66,13 +66,19 @@ export type CompanyScoreboard = {
 
 
 export function revenueFrom(input: {
-  byPlan: Array<{ planId: string | null; shops: number }>;
+  byPlan: Array<{ planId: string | null; shops: number; interval?: string | null }>;
   calls30d: number;
   unitCost: UnitEconomics | null;
 }): Revenue {
-  const byPlan = input.byPlan
-    .filter((p) => p.planId)
-    .map((p) => ({ planId: p.planId!, shops: p.shops, mrrCents: p.shops * planMonthlyCents(p.planId) }));
+  const totals = new Map<string, { shops: number; mrrCents: number }>();
+  for (const row of input.byPlan) {
+    if (!row.planId) continue;
+    const t = totals.get(row.planId) ?? { shops: 0, mrrCents: 0 };
+    t.shops += row.shops;
+    t.mrrCents += row.shops * planMonthlyCents(row.planId, row.interval);
+    totals.set(row.planId, t);
+  }
+  const byPlan = [...totals].map(([planId, t]) => ({ planId, ...t }));
   const mrrCents = byPlan.reduce((n, p) => n + p.mrrCents, 0);
   if (!input.unitCost) return { mrrCents, byPlan, costCents: null, grossMarginPct: null };
   const fixed = byPlan.reduce((n, p) => n + p.shops * (input.unitCost!.plans.find((u) => u.id === p.planId)?.fixedCents ?? 0), 0);
@@ -154,7 +160,7 @@ export async function getCompanyScoreboard(now = new Date()): Promise<CompanySco
   ]);
   const [plans, calls30d, value] = await Promise.all([
     prisma.business.groupBy({
-      by: ["billingPlan"],
+      by: ["billingPlan", "billingInterval"],
       where: { ...realShop, isActive: true, billingStatus: { in: ["active", "past_due"] } },
       _count: { _all: true },
     }),
@@ -162,7 +168,7 @@ export async function getCompanyScoreboard(now = new Date()): Promise<CompanySco
     payingShopValue(now),
   ]);
   const revenue = revenueFrom({
-    byPlan: plans.map((p) => ({ planId: p.billingPlan, shops: p._count._all })),
+    byPlan: plans.map((p) => ({ planId: p.billingPlan, interval: p.billingInterval, shops: p._count._all })),
     calls30d,
     unitCost,
   });

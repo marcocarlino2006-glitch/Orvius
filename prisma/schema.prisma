@@ -48,6 +48,8 @@ model Business {
   stripeSubscriptionId String?
   billingStatus        String   @default("pilot")
   billingPlan          String?
+  /// "month" or "year", read from the Stripe price. Null is treated as monthly.
+  billingInterval      String?
   /**
    * Connect: the shop's own Stripe account. Customer card money settles to the
    * shop directly and Orvius only ever takes an application fee, which is what

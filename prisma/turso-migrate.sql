@@ -1001,3 +1001,4 @@ CREATE TABLE IF NOT EXISTS "DemoSlot" (
   "heldUntil" DATETIME NOT NULL
 );
 ALTER TABLE "DemoTicket" ADD COLUMN "previewId" TEXT;
+ALTER TABLE "Business" ADD COLUMN "billingInterval" TEXT;

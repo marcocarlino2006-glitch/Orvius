@@ -43,6 +43,17 @@ export function resolveBillingPlan(subscription: Stripe.Subscription): string | 
   return null;
 }
 
+/** How often the shop is charged, from its subscription's recurring price. */
+export function resolveBillingInterval(subscription: Stripe.Subscription): "month" | "year" | null {
+  for (const item of subscription.items?.data ?? []) {
+    const price = item.price as Stripe.Price | string | null | undefined;
+    if (!price || typeof price === "string") continue;
+    const interval = price.recurring?.interval;
+    if (interval === "month" || interval === "year") return interval;
+  }
+  return null;
+}
+
 export function mapStripeStatusToBilling(
   status: Stripe.Subscription.Status,
 ): "active" | "past_due" | "canceled" | "incomplete" {
@@ -219,6 +230,7 @@ export async function syncSubscriptionToBusiness(
       stripeSubscriptionId: subscription.id,
       billingStatus,
       billingPlan: resolveBillingPlan(subscription),
+      billingInterval: resolveBillingInterval(subscription) ?? business.billingInterval,
       ownerEmail: business.ownerEmail ?? customerEmail?.toLowerCase() ?? undefined,
       pastDueSince: billingStatus === "past_due" ? (business.pastDueSince ?? now) : null,
       canceledAt: billingStatus === "canceled" ? (business.canceledAt ?? now) : null,

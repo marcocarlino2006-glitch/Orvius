@@ -4,7 +4,7 @@ const money = (cents: number) => `$${(cents / 100).toLocaleString("en-US", { max
 const rate = (value: number | null) => (value == null ? "—" : `${value}%`);
 
 export type Revenue = {
-  /** Monthly recurring revenue at each paying shop's plan list price. */
+  /** Monthly recurring revenue at each paying shop's list price; annual plans count a twelfth of the yearly charge. */
   mrrCents: number;
   byPlan: Array<{ planId: string; shops: number; mrrCents: number }>;
   /** Last 30 days of calls at the measured cost per call, plus each shop's fixed monthly costs. */
