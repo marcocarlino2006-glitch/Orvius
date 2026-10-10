@@ -40,7 +40,7 @@ const RESIDENTIAL = "Homes and small residential properties: service, repair and
 const NEW_CONSTRUCTION: NotCovered = {
   key: "new_construction",
   label: "New construction and remodel work",
-  keywords: [/new construction/, /\bnew build\b/, /rough[- ]?in/, /(bathroom|kitchen|basement) remodel/, /\baddition\b/],
+  keywords: [/new construction/, /\bnew build\b/, /rough[- ]?in/, /(bathroom|kitchen|basement) remodel/, /\b(home|house|room|garage|second[- ]story) addition\b/, /\b(building|adding|putting on) an addition\b/],
   says: "We're building a new house and need a bid on the rough-in",
 };
 

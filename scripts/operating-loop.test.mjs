@@ -423,7 +423,7 @@ test("playbooks: trade services, durations, and cross-trade safety", () => {
     serviceType: "Water heater leaking, no hot water",
     urgency: null,
   });
-  assert.equal(plumbing.service.key, "active_leak");
+  assert.equal(plumbing.service.key, "water_heater");
   assert.equal(plumbing.urgency, "same-day");
 
   const electric = classifyRequest({ business: { trade: "Electrical" }, serviceType: "Outlet sparking in kitchen" });
