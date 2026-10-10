@@ -22,6 +22,12 @@ const SEVERITY_CLASS: Record<WorkSeverity, string> = { critical: "wc-tag--critic
 
 const WAITING_LABEL = { customer: "Waiting on the customer", technician: "With the technician" } as const;
 
+const CLOSED_DETAIL: Partial<Record<WorkItem["stage"], string>> = {
+  done: "Finished. Nothing open on this job.",
+  cancelled: "Cancelled. Nothing left to do.",
+  spam: "Marked as spam. Nothing to do.",
+};
+
 const JOB_STATUS_FOR_STAGE: Partial<Record<WorkItem["stage"], string>> = {
   on_the_way: "en_route",
   on_site: "on_site",
@@ -153,7 +159,7 @@ export function WorkCard({
             </Link>
           ) : null}
           <p className="wc-detail">
-            {top?.detail ?? item.nextAction ?? (item.waitingOn === "customer" || item.waitingOn === "technician" ? WAITING_LABEL[item.waitingOn] : "Nothing to do")}
+            {top?.detail ?? item.nextAction ?? (item.waitingOn === "customer" || item.waitingOn === "technician" ? WAITING_LABEL[item.waitingOn] : CLOSED_DETAIL[item.stage] ?? "On track. Nothing for you to do right now.")}
           </p>
           {top && item.nextAction ? <p className="wc-next">Recommended: {item.nextAction}</p> : null}
         </div>

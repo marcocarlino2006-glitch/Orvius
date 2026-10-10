@@ -165,7 +165,7 @@ export default function WorkPage() {
                     ))}
                   </span>
                 ) : null}
-                {item.problems[0]?.detail ?? item.nextAction ?? <span className="text-ash">Nothing to do</span>}
+                {item.problems[0]?.detail ?? item.nextAction ?? <span className="text-ash">{item.open ? "On track" : "Closed"}</span>}
               </div>
               <div role="cell">
                 <select
