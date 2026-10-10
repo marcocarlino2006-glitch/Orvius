@@ -3661,7 +3661,7 @@
 }
 
 .os-shell-night .os-content-pro > * {
-  max-width: 78rem;
+  max-width: min(78rem, 100%);
 }
 
 .os-shell-night .attention-item-detail {
@@ -3733,7 +3733,7 @@
 }
 
 .os-shell-night .os-content-pro > * {
-  max-width: 72rem;
+  max-width: min(72rem, 100%);
 }
 
 .os-shell-night .lead-quick-btn,

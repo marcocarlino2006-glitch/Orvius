@@ -304,7 +304,7 @@ body:has(.os-shell.os-shell-night) {
 }
 
 .os-shell.os-shell-night .os-content-pro > * {
-  max-width: 88rem;
+  max-width: min(88rem, 100%);
 }
 
 @media (max-width: 900px) {
@@ -3068,7 +3068,8 @@ html[data-theme="day"] .os-shell .dsp-date {
 
 .dsp-lane {
   display: grid;
-  grid-template-columns: 11rem minmax(36rem, 1fr);
+  /* About 50px an hour: a 90-minute job still reads. Narrower screens scroll the track, not the page. */
+  grid-template-columns: 11rem minmax(52rem, 1fr);
   align-items: center;
   gap: 0.75rem;
 }
@@ -3402,7 +3403,7 @@ html[data-theme="day"] .os-shell .dsp-date {
   }
 
   .dsp-lane {
-    grid-template-columns: 7rem minmax(32rem, 1fr);
+    grid-template-columns: 7rem minmax(44rem, 1fr);
   }
 }
 

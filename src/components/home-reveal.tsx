@@ -27,7 +27,8 @@ export function HomeReveal() {
           io.unobserve(entry.target);
         }
       },
-      { threshold: 0.12, rootMargin: "0px 0px -8% 0px" },
+      // Any pixel in view, not a share of the element: a share can never be reached by a section taller than the phone screen.
+      { threshold: 0, rootMargin: "0px 0px -8% 0px" },
     );
     pending.forEach((el) => io.observe(el));
 

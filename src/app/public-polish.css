@@ -34,6 +34,11 @@ html .ov-signin .ov-signin-eyebrow {
   margin-bottom: 0.375rem;
 }
 
+/* The sign-in card is dark in every theme; the light theme's muted grey read at under 3:1 on it. */
+html .ov-signin :is(.ov-signin-eyebrow, .ov-signin-label) {
+  color: #aaa8a0 !important;
+}
+
 /* Links and marks: emphasis is the text colour, not an accent. */
 html .mkt-page .home-platform-link,
 html .mkt-page .mkt-doc-body a,

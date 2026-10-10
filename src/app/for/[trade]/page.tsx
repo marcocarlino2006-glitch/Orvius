@@ -53,40 +53,23 @@ export default async function TradePage({ params }: Props) {
       </section>
 
       <section className="tier1-story">
-        <div className="editorial-wrap">
-          <h2 className="tier1-section-title type-headline">Jobs it books</h2>
-          <p className="tier1-section-lead font-sans">
-            For homes and small residential properties. Each of these is checked by an automated test before every release.
-          </p>
-          <ul className="tier1-plan-list font-sans">
-            {page.workflows.map((w) => (
-              <li key={w}>{w}</li>
-            ))}
-          </ul>
-
-          {page.notCovered.length ? (
-            <>
-              <h2 className="tier1-section-title type-headline mt-10">Not covered yet</h2>
-              <p className="tier1-section-lead font-sans">
-                Orvius takes a message and texts you to call back. It doesn&apos;t book these or guess at an answer.
-              </p>
-              <ul className="tier1-plan-list font-sans">
-                {page.notCovered.map((n) => (
-                  <li key={n}>{n}</li>
-                ))}
-              </ul>
-              <p className="tier1-section-lead font-sans">
-                <Link href="/trades" className="customer-timeline-link">
-                  See every trade and how each is checked →
-                </Link>
-              </p>
-            </>
-          ) : null}
+        <div className="editorial-wrap trade-blocks">
+          <section className="trade-block">
+            <h2 className="trade-block-title">Jobs it books</h2>
+            <p className="trade-block-lead font-sans">
+              For homes and small residential properties. Each of these is checked by an automated test before every release.
+            </p>
+            <ul className="tier1-plan-list font-sans">
+              {page.workflows.map((w) => (
+                <li key={w}>{w}</li>
+              ))}
+            </ul>
+          </section>
 
           {page.urgentSignals.length ? (
-            <>
-              <h2 className="tier1-section-title type-headline mt-10">What it treats as urgent</h2>
-              <p className="tier1-section-lead font-sans">
+            <section className="trade-block">
+              <h2 className="trade-block-title">What it treats as urgent</h2>
+              <p className="trade-block-lead font-sans">
                 These go to the top of your board and to your phone right away, instead of waiting for a booking slot.
               </p>
               <ul className="tier1-plan-list font-sans">
@@ -94,18 +77,39 @@ export default async function TradePage({ params }: Props) {
                   <li key={s}>{s[0].toUpperCase() + s.slice(1)}</li>
                 ))}
               </ul>
-            </>
+            </section>
           ) : null}
 
-          <h2 className="tier1-section-title type-headline mt-10">Set up with your services</h2>
-          <p className="tier1-section-lead font-sans">
-            Your line starts with these and you edit them in Settings. Add a price to any of them and the receptionist can quote it; it never makes one up.
-          </p>
-          <ul className="tier1-plan-list font-sans">
-            {page.services.map((s) => (
-              <li key={s}>{s}</li>
-            ))}
-          </ul>
+          <section className="trade-block">
+            <h2 className="trade-block-title">Set up with your services</h2>
+            <p className="trade-block-lead font-sans">
+              Your line starts with these and you edit them in Settings. Add a price to any of them and the receptionist can quote it; it never makes one up.
+            </p>
+            <ul className="tier1-plan-list font-sans">
+              {page.services.map((s) => (
+                <li key={s}>{s}</li>
+              ))}
+            </ul>
+          </section>
+
+          {page.notCovered.length ? (
+            <section className="trade-block trade-block--muted">
+              <h2 className="trade-block-title">Not covered yet</h2>
+              <p className="trade-block-lead font-sans">
+                Orvius takes a message and texts you to call back. It doesn&apos;t book these or guess at an answer.
+              </p>
+              <ul className="tier1-plan-list font-sans">
+                {page.notCovered.map((n) => (
+                  <li key={n}>{n}</li>
+                ))}
+              </ul>
+              <p className="trade-block-lead font-sans">
+                <Link href="/trades" className="customer-timeline-link">
+                  See every trade and how each is checked →
+                </Link>
+              </p>
+            </section>
+          ) : null}
         </div>
       </section>
 
