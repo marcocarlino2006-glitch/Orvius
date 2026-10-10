@@ -27,7 +27,20 @@ jobs:
       - name: Create the schema the suite writes to
         run: npx prisma db push --skip-generate
       - run: npx tsc --noEmit
+      # Stripe's API simulator, so the billing check is exercised through the real SDK.
+      - name: Start stripe-mock
+        run: |
+          curl -fsSL https://github.com/stripe/stripe-mock/releases/download/v0.206.0/stripe-mock_0.206.0_linux_amd64.tar.gz | tar xz -C /tmp stripe-mock
+          nohup /tmp/stripe-mock -http-port 12111 > /tmp/stripe-mock.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -sf -H "Authorization: Bearer sk_test_ci" http://localhost:12111/v1/subscriptions?limit=1 > /dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/stripe-mock.log
+          exit 1
       - run: npm run test:trust
+        env:
+          STRIPE_MOCK_REQUIRED: "1"
       - name: Multi-b check (honest — skips stay yellow, never counted green)
         run: MULTI_B_CI=1 npm run multi-b:check
         continue-on-error: false
