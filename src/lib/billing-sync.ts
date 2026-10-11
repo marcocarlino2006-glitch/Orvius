@@ -1,6 +1,8 @@
 import { logInfo, logWarn } from "@/lib/logger";
 import { alertPaymentFailed } from "@/lib/owner-nudges";
+import { isPaused } from "@/lib/billing-entitlement";
 import { resumeShopLine, suspendShopLine } from "@/lib/line-lifecycle";
+import { pauseFieldsFromSubscription } from "@/lib/plan-pause";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
 import { isPaidPlanId, planIdForStripePriceId } from "@/lib/pricing-plans";
@@ -234,6 +236,7 @@ export async function syncSubscriptionToBusiness(
       ownerEmail: business.ownerEmail ?? customerEmail?.toLowerCase() ?? undefined,
       pastDueSince: billingStatus === "past_due" ? (business.pastDueSince ?? now) : null,
       canceledAt: billingStatus === "canceled" ? (business.canceledAt ?? now) : null,
+      ...pauseFieldsFromSubscription(subscription, business, now),
     },
   });
 
@@ -244,7 +247,12 @@ export async function syncSubscriptionToBusiness(
   }
   if (billingStatus === "canceled" && previous !== "canceled") {
     await suspendShopLine(updated);
-  } else if (billingStatus === "active" && (previous === "canceled" || updated.lineSuspendedAt) && !updated.lineReleasedAt) {
+  } else if (
+    billingStatus === "active" &&
+    (previous === "canceled" || updated.lineSuspendedAt) &&
+    !updated.lineReleasedAt &&
+    !isPaused(updated, now)
+  ) {
     await resumeShopLine(updated);
   }
 

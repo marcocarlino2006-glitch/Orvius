@@ -105,7 +105,16 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
     [data?.commandCounts, data?.attention],
   );
 
-  const lockBar = locked ? (
+  const lockBar = locked?.reason === "paused" ? (
+    <div className="cmd-lockbar" role="status">
+      <p className="cmd-lockbar-text">
+        <strong>Paused for the off-season.</strong> {locked.message}
+      </p>
+      <Link href="/dashboard/billing" className="ox-btn ox-btn--primary ox-btn--sm">
+        Resume
+      </Link>
+    </div>
+  ) : locked ? (
     <div className="cmd-lockbar" role="status">
       <p className="cmd-lockbar-text">
         <strong>

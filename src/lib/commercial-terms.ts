@@ -2,6 +2,7 @@ import { PAST_DUE_GRACE_DAYS, PAST_DUE_LINE_DAYS, PILOT_DAYS, PILOT_LINE_GRACE_D
 import { getPlatformFeeBps } from "@/lib/platform-fee";
 import { OVERAGE_CENTS_PER_CALL, getPaidPlans } from "@/lib/pricing-plans";
 import { MONEY_BACK_DAYS } from "@/lib/money-back";
+import { PAUSE_ENDING_NOTICE_DAYS } from "@/lib/plan-exit";
 import { LAUNCH_SCOPE_LINE } from "@/lib/trades";
 import {
   CALLER_HOURLY_LIMIT,
@@ -91,7 +92,12 @@ export function commercialTerms(): readonly TermGroup[] {
         {
           id: "cancel",
           label: "Cancel",
-          detail: `Settings → Billing → Manage opens Stripe, where you cancel. You keep everything until the end of the period you paid for. After that the line stops answering and your number is held for ${LINE_RETENTION_DAYS} days in case you come back. You can download all your records at any time, including after you cancel.`,
+          detail: `Billing → Pause or cancel. You cancel on Stripe in a few taps. You keep everything until the end of the period you paid for. After that the line stops answering and your number is held for ${LINE_RETENTION_DAYS} days in case you come back. You can download all your records at any time, including after you cancel.`,
+        },
+        {
+          id: "pause",
+          label: "Pause",
+          detail: `A monthly plan can pause for 1, 2 or 3 months in the slow season. The month you paid for runs out first. While paused there is no charge, the line is off, and your number, customers and settings are kept. We text you ${PAUSE_ENDING_NOTICE_DAYS} days before it switches back on by itself.`,
         },
         {
           id: "refunds",

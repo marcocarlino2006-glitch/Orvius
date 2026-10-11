@@ -45,7 +45,7 @@ export const pricingFaq: readonly PricingFaqItem[] = [
     id: "cancel",
     question: "Can I cancel anytime?",
     answer:
-      `Yes. No plan has a contract. Settings → Billing → Manage opens Stripe, where you cancel; you keep everything until the end of the period you paid for. Then the line stops answering, your number is held ${LINE_RETENTION_DAYS} days in case you come back, and your records stay downloadable. In your first ${MONEY_BACK_DAYS} days on your first plan, Billing → Cancel and refund also gives back every payment so far, once per shop. After that, plans aren't refunded for unused time; billing errors are, within 14 days.`,
+      `Yes. No plan has a contract. Billing → Pause or cancel opens Stripe, where you cancel; you keep everything until the end of the period you paid for. Then the line stops answering, your number is held ${LINE_RETENTION_DAYS} days in case you come back, and your records stay downloadable. In your first ${MONEY_BACK_DAYS} days on your first plan, Billing → Cancel and refund also gives back every payment so far, once per shop. After that, plans aren't refunded for unused time; billing errors are, within 14 days. Slow season? A monthly plan can pause for up to 3 months instead, with no charge and your number kept.`,
   },
   {
     id: "one-job",

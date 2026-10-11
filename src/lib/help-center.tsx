@@ -417,8 +417,8 @@ export const HELP_ARTICLES: HelpArticle[] = [
             the plan ends.
           </li>
           <li>
-            <strong>Cancel</strong> from Settings → Billing → Manage, which opens Stripe. Everything keeps working until
-            the end of the period you paid for. See <Link href="/refunds">Refunds &amp; cancellation</Link>.
+            <strong>Cancel</strong> from Settings → Billing → Pause or cancel, which opens Stripe. Everything keeps working
+            until the end of the period you paid for. In a slow season, a monthly plan can pause for up to 3 months instead. See <Link href="/refunds">Refunds &amp; cancellation</Link>.
           </li>
           <li>
             <strong>Your number.</strong> If you forwarded your number, it never left your carrier. Turn forwarding off

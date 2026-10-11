@@ -1019,3 +1019,5 @@ CREATE TABLE IF NOT EXISTS "TwoStep" (
   "updatedAt" DATETIME NOT NULL
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "TwoStep_email_key" ON "TwoStep"("email");
+ALTER TABLE "Business" ADD COLUMN "pauseStartsAt" DATETIME;
+ALTER TABLE "Business" ADD COLUMN "pausedUntil" DATETIME;

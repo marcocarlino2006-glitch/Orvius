@@ -6,6 +6,7 @@ import { ConnectPayoutsPanel } from "@/components/connect-payouts-panel";
 import { DepositSettingsPanel } from "@/components/deposit-settings-panel";
 import { SalesTaxPanel } from "@/components/sales-tax-panel";
 import { MoneyBackDone, MoneyBackPanel } from "@/components/money-back-panel";
+import { PausedPlanNote, PlanExitPanel, type PlanPause } from "@/components/plan-exit-panel";
 import { ShellLoading, ShellPanel } from "@/components/shell-primitives";
 import {
   company,
@@ -17,7 +18,7 @@ import {
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { fetchAccount } from "@/lib/account-client";
+import { fetchAccount, invalidateAccount } from "@/lib/account-client";
 import { callUsageLine, type CallUsage } from "@/lib/call-usage";
 import { MONEY_BACK_DAYS } from "@/lib/money-back";
 import { OVERAGE_CENTS_PER_CALL } from "@/lib/pricing-plans";
@@ -61,6 +62,9 @@ type BillingAccount = {
     pilotEndsAt?: string | null;
     usage?: CallUsage | null;
     valueLine?: string | null;
+    advice?: string | null;
+    interval?: "month" | "year";
+    pause?: PlanPause | null;
   };
 };
 
@@ -98,7 +102,8 @@ export function BillingContent() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [refundedCents, setRefundedCents] = useState<number | null>(null);
 
-  async function loadAccount() {
+  async function loadAccount({ fresh = false } = {}) {
+    if (fresh) invalidateAccount();
     setLoadState("loading");
     setLoadError(null);
     try {
@@ -146,7 +151,8 @@ export function BillingContent() {
   const checkoutReady = account?.billing.configured ?? false;
   const founder = account?.founder ?? false;
   const loading = loadState === "loading";
-  const locked = !entitled;
+  const pause = account?.billing.pause ?? null;
+  const locked = !entitled && !pause?.started;
   const hasStripeCustomer = Boolean(account?.business?.stripeCustomerId);
 
   return (
@@ -175,7 +181,9 @@ export function BillingContent() {
                 <div>
                   <p className="sc-plan-kicker">Plan</p>
                   <p className="sc-plan-name">
-                    {locked
+                    {pause?.started
+                      ? `${account?.billing.plan.name ?? "Orvius"} · Paused`
+                      : locked
                       ? "Locked"
                       : status === "pilot"
                         ? pricing.pilot.name
@@ -183,7 +191,9 @@ export function BillingContent() {
                           ? `${account?.billing.plan.name ?? "Orvius"} · $${account?.billing.plan.price} ${account?.billing.plan.period}`
                           : "No plan"}
                   </p>
-                  <p className="sc-plan-detail">{statusCopy(status, entitled, pilotEndsAt)}</p>
+                  <p className="sc-plan-detail">
+                    {pause?.started ? "No charge while paused." : statusCopy(status, entitled, pilotEndsAt)}
+                  </p>
                 </div>
                 {(status === "active" || status === "past_due") && hasStripeCustomer ? (
                   <BillingPortalButton
@@ -210,15 +220,20 @@ export function BillingContent() {
                       ? `${account.billing.usage.overCalls.toLocaleString("en-US")} × ${OVERAGE_CENTS_PER_CALL}¢ = $${(account.billing.usage.overageCents / 100).toFixed(2)} so far. Calls never stop at the limit.`
                       : `Past the allowance every call is still answered, at ${OVERAGE_CENTS_PER_CALL}¢ each. Resets on the 1st.`}
                   </p>
+                  {account.billing.advice ? <p className="billing-usage-advice">{account.billing.advice}</p> : null}
                 </div>
               ) : null}
               {account?.billing.valueLine ? <p className="billing-value-line font-sans">{account.billing.valueLine}</p> : null}
+              {pause ? <PausedPlanNote pause={pause} onChanged={() => void loadAccount({ fresh: true })} /> : null}
               {status === "active" && hasStripeCustomer ? <MoneyBackPanel
                   onRefunded={(cents) => {
                     setRefundedCents(cents);
-                    void loadAccount();
+                    void loadAccount({ fresh: true });
                   }}
                 /> : null}
+              {status === "active" && account?.billing.hasSubscription && !pause ? (
+                <PlanExitPanel planName={account.billing.plan.name} onChanged={() => void loadAccount({ fresh: true })} />
+              ) : null}
             </section>
           )}
 

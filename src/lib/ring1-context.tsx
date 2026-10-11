@@ -30,7 +30,7 @@ import type {
 
 /** The shop's access ended or was never paid: it reads its records, and Command says how to reopen it. */
 export type Ring1Lock = {
-  reason: "past_due" | "canceled" | "trial_ended" | "unpaid";
+  reason: "past_due" | "canceled" | "trial_ended" | "unpaid" | "paused";
   message: string;
 };
 
