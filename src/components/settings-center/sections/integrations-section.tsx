@@ -5,7 +5,7 @@ import { displayPhone } from "@/lib/customer";
 import type { SettingsSectionId } from "@/lib/settings-center";
 import { BusyCalendarGroup } from "../busy-calendar-group";
 import { CopyLinkButton } from "../settings-controls";
-import type { Account, BusyCalendar, JobberLink, QuickBooksLink } from "../settings-model";
+import type { Account, BusyCalendar, HousecallLink, JobberLink, QuickBooksLink } from "../settings-model";
 import { ScGroup, ScStatus } from "../settings-primitives";
 import { SettingsIcon, type SettingsIconName } from "../settings-icons";
 
@@ -27,6 +27,13 @@ export function IntegrationsSection({
   const [jobber, setJobber] = useState<JobberLink>(account.jobber ?? null);
   const [jobberBusy, setJobberBusy] = useState(false);
   const [jobberNote, setJobberNote] = useState<string | null>(null);
+
+  const [housecall, setHousecall] = useState<HousecallLink>(account.housecall ?? null);
+  const [hcpOpen, setHcpOpen] = useState(false);
+  const [hcpKey, setHcpKey] = useState("");
+  const [hcpBusy, setHcpBusy] = useState(false);
+  const [hcpNote, setHcpNote] = useState<string | null>(null);
+  const [hcpError, setHcpError] = useState<string | null>(null);
 
   const [quickbooks, setQuickbooks] = useState<QuickBooksLink>(account.quickbooks ?? null);
   const [qbBusy, setQbBusy] = useState(false);
@@ -88,6 +95,44 @@ export function IntegrationsSection({
     }
   }
 
+  async function connectHousecall() {
+    setHcpBusy(true);
+    setHcpError(null);
+    try {
+      const res = await fetch("/api/integrations/housecall", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ apiKey: hcpKey }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.housecall) throw new Error(data.error ?? "Could not connect. Try again.");
+      setHousecall(data.housecall);
+      setHcpKey("");
+      setHcpOpen(false);
+      setHcpNote(null);
+    } catch (error) {
+      setHcpError(error instanceof Error ? error.message : "Could not connect. Try again.");
+    } finally {
+      setHcpBusy(false);
+    }
+  }
+
+  async function disconnectHousecall() {
+    if (!window.confirm("Disconnect Housecall Pro? New calls stop going to Housecall Pro. Leads already there stay.")) return;
+    setHcpBusy(true);
+    setHcpNote(null);
+    try {
+      const res = await fetch("/api/integrations/housecall", { method: "DELETE" });
+      if (!res.ok) throw new Error("Could not disconnect. Try again.");
+      setHousecall((prev) => (prev ? { ...prev, status: "disconnected", companyName: null } : prev));
+      setHcpNote("Housecall Pro disconnected.");
+    } catch (error) {
+      setHcpNote(error instanceof Error ? error.message : "Could not disconnect. Try again.");
+    } finally {
+      setHcpBusy(false);
+    }
+  }
+
   async function resetFeed() {
     if (!window.confirm("Reset the calendar link? Calendars subscribed to the old link stop updating until you add the new one.")) return;
     setFeedBusy(true);
@@ -116,7 +161,8 @@ export function IntegrationsSection({
     copy?: string;
     reset?: boolean;
     href?: { label: string; url: string };
-    disconnect?: "jobber" | "quickbooks";
+    disconnect?: "jobber" | "quickbooks" | "housecall";
+    keyEntry?: string;
   }> = [
     {
       name: "Phone line",
@@ -164,6 +210,7 @@ export function IntegrationsSection({
       reset: Boolean(feedUrl),
     },
     jobberRow(jobber, jobberNote),
+    housecallRow(housecall, hcpNote),
     quickbooksRow(quickbooks, qbNote),
   ];
   return (
@@ -193,6 +240,16 @@ export function IntegrationsSection({
                 {jobberBusy ? "Disconnecting…" : "Disconnect"}
               </button>
             ) : null}
+            {row.disconnect === "housecall" ? (
+              <button type="button" className="sc-btn" disabled={hcpBusy} onClick={() => void disconnectHousecall()}>
+                {hcpBusy ? "Disconnecting…" : "Disconnect"}
+              </button>
+            ) : null}
+            {row.keyEntry && !hcpOpen ? (
+              <button type="button" className="sc-btn" onClick={() => setHcpOpen(true)}>
+                {row.keyEntry}
+              </button>
+            ) : null}
             {row.disconnect === "quickbooks" ? (
               <button type="button" className="sc-btn" disabled={qbBusy} onClick={() => void disconnectQuickBooks()}>
                 {qbBusy ? "Disconnecting…" : "Disconnect"}
@@ -203,7 +260,7 @@ export function IntegrationsSection({
                 {row.href.label}
               </a>
             ) : null}
-            {row.copy || row.href || row.disconnect ? null : row.action ? (
+            {row.copy || row.href || row.disconnect || row.keyEntry ? null : row.action ? (
               <button type="button" className="sc-btn" onClick={() => go(row.action!.to)}>
                 {row.action.label}
               </button>
@@ -213,6 +270,49 @@ export function IntegrationsSection({
           </div>
         </div>
       ))}
+      {hcpOpen ? (
+        <form
+          className="sc-row sc-key-entry"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void connectHousecall();
+          }}
+        >
+          <div className="sc-row-copy">
+            <label className="sc-row-label" htmlFor="hcp-api-key">
+              Housecall Pro API key
+            </label>
+            <p className="sc-row-hint">
+              In Housecall Pro, open My Apps → API Key Management, generate a Full access key, and paste it here. Needs the Housecall Pro MAX plan. Orvius
+              stores it encrypted and only uses it to add leads and customers.
+            </p>
+            <input
+              id="hcp-api-key"
+              className="sc-input"
+              type="password"
+              autoComplete="off"
+              spellCheck={false}
+              value={hcpKey}
+              onChange={(event) => setHcpKey(event.target.value)}
+              aria-invalid={hcpError ? true : undefined}
+              aria-describedby={hcpError ? "hcp-api-key-error" : undefined}
+            />
+            {hcpError ? (
+              <p id="hcp-api-key-error" className="sc-field-error" role="alert">
+                {hcpError}
+              </p>
+            ) : null}
+          </div>
+          <div className="sc-row-control">
+            <button type="button" className="sc-btn" disabled={hcpBusy} onClick={() => { setHcpOpen(false); setHcpError(null); }}>
+              Cancel
+            </button>
+            <button type="submit" className="sc-btn sc-btn--primary" disabled={hcpBusy || !hcpKey.trim()}>
+              {hcpBusy ? "Checking…" : "Connect"}
+            </button>
+          </div>
+        </form>
+      ) : null}
     </ScGroup>
     <BusyCalendarGroup
       value={account.busyCalendar ?? null}
@@ -244,6 +344,27 @@ function jobberRow(jobber: JobberLink, note: string | null) {
     return { ...base, on: false, detail: note ?? "", hidden: !note };
   }
   return { ...base, on: false, detail: note ?? "Send every call to Jobber as a request, matched to the client by phone.", href: connect };
+}
+
+function housecallRow(hcp: HousecallLink, note: string | null) {
+  const base = { name: "Housecall Pro", mark: "jobs" as const };
+  if (hcp?.status === "active") {
+    const sent = hcp.sentLast30Days === 1 ? "1 call" : `${hcp.sentLast30Days} calls`;
+    const attention = hcp.needsAttention ? ` ${hcp.needsAttention} did not go through. Your alert texts still have them.` : "";
+    return {
+      ...base,
+      on: true,
+      detail: note ?? `New calls land in ${hcp.companyName ?? "Housecall Pro"} as leads. ${sent} sent in 30 days.${attention}`,
+      disconnect: "housecall" as const,
+    };
+  }
+  if (hcp?.status === "reconnect") {
+    return { ...base, on: false, detail: note ?? "Housecall Pro stopped accepting the key. Paste a new one to keep calls flowing there.", keyEntry: "Reconnect" };
+  }
+  if (!hcp?.available) {
+    return { ...base, on: false, detail: note ?? "", hidden: !note };
+  }
+  return { ...base, on: false, detail: note ?? "Send every call to Housecall Pro as a lead, matched to the customer by phone.", keyEntry: "Connect" };
 }
 
 function quickbooksRow(qb: QuickBooksLink, note: string | null) {

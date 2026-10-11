@@ -148,6 +148,7 @@ model Business {
   customers        Customer[]
   jobs             Job[]
   jobberConnection JobberConnection?
+  housecallConnection HousecallConnection?
   quickbooksConnection QuickBooksConnection?
   technicians      Technician[]
   estimates        Estimate[]
@@ -427,6 +428,8 @@ model Customer {
   phoneNormalized   String
   /** The same person in the shop's Jobber, once Orvius has matched or created them. */
   jobberClientId    String?
+  /** The same person in the shop's Housecall Pro, once Orvius has matched or created them. */
+  housecallCustomerId String?
   /** The same person in the shop's QuickBooks, once Orvius has matched or created them. */
   quickbooksCustomerId String?
   email             String?
@@ -1284,6 +1287,44 @@ model JobberSync {
   lastError       String?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+
+  @@index([status, nextAttemptAt])
+  @@index([businessId, createdAt])
+}
+
+/** A shop's Housecall Pro account, reached with an API key the owner generated there. Sealed with ORVIUS_TOKEN_KEY. */
+model HousecallConnection {
+  id             String    @id @default(cuid())
+  businessId     String    @unique
+  business       Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  companyId      String?
+  companyName    String?
+  apiKeyEnc      String?
+  /** active | disconnected | reconnect (Housecall Pro refused the key) */
+  status         String    @default("active")
+  lastError      String?
+  connectedAt    DateTime  @default(now())
+  disconnectedAt DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+/** One captured call on its way into Housecall Pro as a lead. Same at-most-once rules as JobberSync. */
+model HousecallSync {
+  id                  String    @id @default(cuid())
+  businessId          String
+  leadId              String    @unique
+  /** pending | done | skipped | failed | check (sent, reply lost: look in Housecall Pro before resending) */
+  status              String    @default("pending")
+  attempts            Int       @default(0)
+  nextAttemptAt       DateTime  @default(now())
+  claimedAt           DateTime?
+  requestSentAt       DateTime?
+  housecallCustomerId String?
+  housecallLeadId     String?
+  lastError           String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
   @@index([status, nextAttemptAt])
   @@index([businessId, createdAt])

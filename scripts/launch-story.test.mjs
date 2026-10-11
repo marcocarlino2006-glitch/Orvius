@@ -82,6 +82,6 @@ test("what the pilot page says Orvius won't do matches what Pricing says it work
   const pilot = read("src/app/pilot/forward/page.tsx");
   assert.match(read("src/lib/commercial-terms.ts"), /Jobber/);
   assert.doesNotMatch(pilot, /<li>Sync Jobber/);
-  assert.match(pilot, /Jobber is supported/);
+  assert.match(pilot, /Jobber and Housecall Pro are supported/);
   assert.doesNotMatch(pilot, /<li>Quote prices,/);
 });
