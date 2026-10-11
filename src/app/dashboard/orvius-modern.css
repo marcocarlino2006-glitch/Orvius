@@ -1370,3 +1370,7 @@
 :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.plan-exit-title, .plan-exit-option-title, .plan-paused-title, .plan-exit-lead, .plan-exit-stats dd) {
   color: var(--ox-text) !important;
 }
+
+.os-shell .plan-paused--ending {
+  border-left-color: var(--m-red);
+}

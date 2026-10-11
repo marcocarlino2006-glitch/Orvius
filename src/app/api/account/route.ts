@@ -272,6 +272,7 @@ export async function GET(request: Request) {
       valueLine: monthValue ? monthValueLine(monthValue) : null,
       advice: usageAdvice,
       interval: businessRecord?.billingInterval === "year" ? "year" : "month",
+      planEndsAt: businessRecord?.planEndsAt?.toISOString() ?? null,
       pause:
         businessRecord?.pausedUntil && billingFields
           ? {

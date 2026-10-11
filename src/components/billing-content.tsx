@@ -6,7 +6,7 @@ import { ConnectPayoutsPanel } from "@/components/connect-payouts-panel";
 import { DepositSettingsPanel } from "@/components/deposit-settings-panel";
 import { SalesTaxPanel } from "@/components/sales-tax-panel";
 import { MoneyBackDone, MoneyBackPanel } from "@/components/money-back-panel";
-import { PausedPlanNote, PlanExitPanel, type PlanPause } from "@/components/plan-exit-panel";
+import { PausedPlanNote, PlanEndingNote, PlanExitPanel, type PlanPause } from "@/components/plan-exit-panel";
 import { ShellLoading, ShellPanel } from "@/components/shell-primitives";
 import {
   company,
@@ -65,6 +65,7 @@ type BillingAccount = {
     advice?: string | null;
     interval?: "month" | "year";
     pause?: PlanPause | null;
+    planEndsAt?: string | null;
   };
 };
 
@@ -152,6 +153,7 @@ export function BillingContent() {
   const founder = account?.founder ?? false;
   const loading = loadState === "loading";
   const pause = account?.billing.pause ?? null;
+  const planEndsAt = status === "active" ? (account?.billing.planEndsAt ?? null) : null;
   const locked = !entitled && !pause?.started;
   const hasStripeCustomer = Boolean(account?.business?.stripeCustomerId);
 
@@ -192,7 +194,11 @@ export function BillingContent() {
                           : "No plan"}
                   </p>
                   <p className="sc-plan-detail">
-                    {pause?.started ? "No charge while paused." : statusCopy(status, entitled, pilotEndsAt)}
+                    {pause?.started
+                      ? "No charge while paused."
+                      : planEndsAt
+                        ? "Set to cancel. It won't renew."
+                        : statusCopy(status, entitled, pilotEndsAt)}
                   </p>
                 </div>
                 {(status === "active" || status === "past_due") && hasStripeCustomer ? (
@@ -225,13 +231,14 @@ export function BillingContent() {
               ) : null}
               {account?.billing.valueLine ? <p className="billing-value-line font-sans">{account.billing.valueLine}</p> : null}
               {pause ? <PausedPlanNote pause={pause} onChanged={() => void loadAccount({ fresh: true })} /> : null}
+              {planEndsAt && !pause ? <PlanEndingNote endsAt={planEndsAt} /> : null}
               {status === "active" && hasStripeCustomer ? <MoneyBackPanel
                   onRefunded={(cents) => {
                     setRefundedCents(cents);
                     void loadAccount({ fresh: true });
                   }}
                 /> : null}
-              {status === "active" && account?.billing.hasSubscription && !pause ? (
+              {status === "active" && account?.billing.hasSubscription && !pause && !planEndsAt ? (
                 <PlanExitPanel planName={account.billing.plan.name} onChanged={() => void loadAccount({ fresh: true })} />
               ) : null}
             </section>

@@ -60,6 +60,13 @@ export function pauseFieldsFromSubscription(
   };
 }
 
+/** When a plan set to cancel stops; null when it renews. */
+export function planEndsAtFromSubscription(subscription: Stripe.Subscription): Date | null {
+  if (subscription.status === "canceled") return null;
+  if (subscription.cancel_at) return new Date(subscription.cancel_at * 1000);
+  return subscription.cancel_at_period_end ? subscriptionPeriodEnd(subscription) : null;
+}
+
 type PauseResult = { ok: true; startsAt: Date; until: Date } | { ok: false; error: string; status: number };
 
 export async function pauseShopPlan(
@@ -175,6 +182,23 @@ export async function sweepPausedPlans(now = new Date()) {
       ownerEmail: shop.ownerEmail,
       dedupeKey: `billing:pause_ending:${shop.id}:${shop.pausedUntil!.toISOString().slice(0, 10)}`,
       message: `Orvius: ${shop.name}'s pause ends ${pauseDate(shop.pausedUntil)}. Your line answers again and your plan is charged again that day. To stay paused longer or cancel: ${link}`,
+    }).catch(() => null);
+    if (result && !result.duplicate && result.queued.length) reminded += 1;
+  }
+
+  /* A plan set to cancel: one text before the line stops, so it never goes quiet as a surprise. */
+  const cancelling = await prisma.business.findMany({
+    where: { ...pausedWhere, planEndsAt: { gt: now, lte: new Date(now.getTime() + PAUSE_ENDING_NOTICE_DAYS * DAY_MS) } },
+    take: 200,
+  });
+  for (const shop of cancelling) {
+    const result = await enqueueOwnerAlert({
+      businessId: shop.id,
+      businessName: shop.name,
+      ownerPhone: shop.ownerPhone,
+      ownerEmail: shop.ownerEmail,
+      dedupeKey: `billing:plan_ending:${shop.id}:${shop.planEndsAt!.toISOString().slice(0, 10)}`,
+      message: `Orvius: ${shop.name}'s plan ends ${pauseDate(shop.planEndsAt)}. After that your line stops answering and callers hear a short message to reach you directly. Changed your mind? Keep it in one tap: ${link}`,
     }).catch(() => null);
     if (result && !result.duplicate && result.queued.length) reminded += 1;
   }

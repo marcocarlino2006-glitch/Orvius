@@ -57,6 +57,8 @@ model Business {
   /// Off-season pause: no charge, and the line is off from pauseStartsAt (the end of the paid month) until pausedUntil.
   pauseStartsAt        DateTime?
   pausedUntil          DateTime?
+  /// Set to cancel on Stripe: the plan runs to this date, then the line stops. Null when it renews.
+  planEndsAt           DateTime?
   /**
    * Connect: the shop's own Stripe account. Customer card money settles to the
    * shop directly and Orvius only ever takes an application fee, which is what

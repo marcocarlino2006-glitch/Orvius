@@ -12,6 +12,7 @@ import { PrismaClient } from "@prisma/client";
 
 const subscriptions = new Map();
 const posts = [];
+const portalConfigs = [];
 
 const server = createServer((req, res) => {
   let body = "";
@@ -23,6 +24,17 @@ const server = createServer((req, res) => {
       res.end(JSON.stringify(json));
     };
     const sub = url.pathname.match(/^\/v1\/subscriptions\/([^/]+)$/);
+    if (url.pathname === "/v1/billing_portal/configurations" && req.method === "GET") {
+      return send(200, { object: "list", data: portalConfigs, has_more: false });
+    }
+    if (url.pathname === "/v1/billing_portal/configurations" && req.method === "POST") {
+      const form = Object.fromEntries(new URLSearchParams(body));
+      const config = { id: `bpc_${portalConfigs.length + 1}`, metadata: { orvius: form["metadata[orvius]"] }, form };
+      portalConfigs.push(config);
+      return send(200, config);
+    }
+    const price = url.pathname.match(/^\/v1\/prices\/([^/]+)$/);
+    if (price) return send(200, { id: price[1], product: price[1].startsWith("price_pro") ? "prod_pro" : "prod_line" });
     if (sub && req.method === "GET") return send(200, subscriptions.get(sub[1]));
     if (sub && req.method === "POST") {
       const form = Object.fromEntries(new URLSearchParams(body));
@@ -39,13 +51,18 @@ await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
 
 process.env.STRIPE_SECRET_KEY = "sk_test_keep_customers";
 process.env.STRIPE_API_BASE = `http://127.0.0.1:${server.address().port}`;
+process.env.STRIPE_PRICE_ID_LINE = "price_line_month";
+process.env.STRIPE_PRICE_ID_PRO = "price_pro_month";
+process.env.STRIPE_PRICE_ID_PRO_ANNUAL = "price_pro_year";
 for (const key of ["TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "VAPI_API_KEY", "RESEND_API_KEY"]) delete process.env[key];
 
 const { isBillingEntitled, isLineEntitled, billingLockReason, isPaused } = await import("../src/lib/billing-entitlement.ts");
 const { billingLock } = await import("../src/lib/plan-gate.ts");
 const { planAdvice, planAdviceLine, projectMonthCalls, monthCostCents } = await import("../src/lib/plan-advice.ts");
 const { addMonthsUtc, pauseWindow, keepRows, keepHeadline, smallerPlan, isPauseMonths } = await import("../src/lib/plan-exit.ts");
-const { pauseBlocker, pauseFieldsFromSubscription, pauseShopPlan, resumeShopPlan, sweepPausedPlans } = await import(
+const { ensurePortalConfiguration, portalConfigurationParams, portalFingerprint } = await import("../src/lib/billing-portal.ts");
+const { getStripe } = await import("../src/lib/stripe.ts");
+const { pauseBlocker, pauseFieldsFromSubscription, planEndsAtFromSubscription, pauseShopPlan, resumeShopPlan, sweepPausedPlans } = await import(
   "../src/lib/plan-pause.ts"
 );
 const { syncSubscriptionToBusiness } = await import("../src/lib/billing-sync.ts");
@@ -321,4 +338,67 @@ test("cancel stays one tap away: the panel, Stripe's cancel step, and the terms 
   assert.match(read("src/lib/pricing-faq.ts"), /pause for up to 3 months/);
   assert.match(read("src/components/ring1-command-center.tsx"), /Paused for the off-season\./);
   assert.match(read("prisma/turso-migrate.sql"), /ADD COLUMN "pausedUntil" DATETIME/);
+});
+
+test("Orvius brings its own Stripe portal setup: cancel waits for the paid period, plans can be switched", async () => {
+  const params = portalConfigurationParams([{ product: "prod_pro", prices: ["price_pro_month", "price_pro_year"] }], "fp");
+  assert.equal(params.features.subscription_cancel.mode, "at_period_end");
+  assert.equal(params.features.subscription_update.enabled, true);
+  assert.equal(params.features.payment_method_update.enabled, true);
+  assert.equal(portalConfigurationParams([], "fp").features.subscription_update.enabled, false);
+  assert.equal(portalFingerprint(["b", "a"]), portalFingerprint(["a", "b"]));
+  assert.notEqual(portalFingerprint(["a"]), portalFingerprint(["a", "c"]));
+
+  const first = await ensurePortalConfiguration(getStripe());
+  assert.equal(first, "bpc_1");
+  const made = portalConfigs[0].form;
+  assert.equal(made["features[subscription_update][products][0][product]"], "prod_line");
+  assert.equal(made["features[subscription_update][products][1][product]"], "prod_pro");
+  assert.equal(made["features[subscription_update][products][1][prices][1]"], "price_pro_year");
+  assert.equal(await ensurePortalConfiguration(getStripe()), "bpc_1");
+  assert.equal(portalConfigs.length, 1, "made once, then reused");
+  assert.match(read("src/app/api/billing/portal/route.ts"), /\.\.\.\(configuration \? \{ configuration \} : \{\}\)/);
+});
+
+test("a plan set to cancel says when it ends, offers to keep it, and texts before the line stops", async () => {
+  const end = Math.floor((Date.now() + 2 * DAY) / 1000);
+  const base = { status: "active", cancel_at: null, cancel_at_period_end: false, items: { data: [{ current_period_end: end }] } };
+  assert.equal(planEndsAtFromSubscription(base), null);
+  assert.equal(planEndsAtFromSubscription({ ...base, cancel_at_period_end: true }).getTime(), end * 1000);
+  assert.equal(planEndsAtFromSubscription({ ...base, cancel_at: end - 100 }).getTime(), (end - 100) * 1000);
+  assert.equal(planEndsAtFromSubscription({ ...base, status: "canceled", cancel_at_period_end: true }), null);
+
+  const { shop, subId } = await monthlyShop({ environment: "production" });
+  try {
+    subscriptions.get(subId).cancel_at_period_end = true;
+    subscriptions.get(subId).items.data[0].current_period_end = end;
+    await syncSubscriptionToBusiness(subscriptions.get(subId));
+    const row = await prisma.business.findUnique({ where: { id: shop.id } });
+    assert.equal(row.planEndsAt.getTime(), end * 1000);
+
+    await sweepPausedPlans();
+    const note = await prisma.ownerNotification.findFirst({
+      where: { businessId: shop.id, dedupeKey: { startsWith: `billing:plan_ending:${shop.id}:` } },
+    });
+    assert.ok(note);
+    assert.match(note.message, /plan ends .+\. After that your line stops answering.+Keep it in one tap/);
+
+    subscriptions.get(subId).cancel_at_period_end = false;
+    await syncSubscriptionToBusiness(subscriptions.get(subId));
+    assert.equal((await prisma.business.findUnique({ where: { id: shop.id } })).planEndsAt, null, "renewing clears it");
+  } finally {
+    await drop(shop.id);
+  }
+
+  const billing = read("src/components/billing-content.tsx");
+  assert.match(billing, /<PlanEndingNote endsAt=\{planEndsAt\} \/>/);
+  assert.match(billing, /Set to cancel\. It won't renew\./);
+  assert.match(read("src/components/plan-exit-panel.tsx"), /Your plan ends \{pauseDate\(endsAt\)\}/);
+});
+
+test("a paused shop is told it is paused, not that its access ended", () => {
+  const access = read("src/lib/use-plan-access.ts");
+  assert.match(access, /typeof data\.billing\?\.entitled === "boolean" \? data\.billing\.entitled/);
+  assert.match(access, /paused: Boolean\(data\.billing\?\.pause\?\.started\)/);
+  assert.match(read("src/components/plan-upgrade-gate.tsx"), /access\?\.paused \? "Orvius is paused" : "Pay to continue"/);
 });
