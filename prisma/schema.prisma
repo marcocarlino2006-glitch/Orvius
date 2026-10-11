@@ -54,6 +54,9 @@ model Business {
   billingPlan          String?
   /// "month" or "year", read from the Stripe price. Null is treated as monthly.
   billingInterval      String?
+  /// Off-season pause: no charge, and the line is off from pauseStartsAt (the end of the paid month) until pausedUntil.
+  pauseStartsAt        DateTime?
+  pausedUntil          DateTime?
   /**
    * Connect: the shop's own Stripe account. Customer card money settles to the
    * shop directly and Orvius only ever takes an application fee, which is what

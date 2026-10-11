@@ -7,6 +7,7 @@ import { sendDueCustomerConfirmationReminders } from "@/lib/customer-confirm";
 import { sweepUnfinishedCallReports } from "@/lib/call-ingest";
 import { getBearerToken, secretsMatch, verifyAdminRequest } from "@/lib/env";
 import { releaseLapsedLines, suspendUnpaidLines } from "@/lib/line-lifecycle";
+import { sweepPausedPlans } from "@/lib/plan-pause";
 import { watchAllLines } from "@/lib/line-watch";
 import { sendDueWeeklyReports } from "@/lib/weekly-report";
 import { runBillingReconcile } from "@/lib/billing-reconcile";
@@ -121,6 +122,7 @@ export async function GET(request: NextRequest) {
 
   const overage = await step("overage_billing", () => billPreviousMonthOverage());
   const unpaidLines = await step("unpaid_lines", () => suspendUnpaidLines());
+  const pausedPlans = await step("paused_plans", () => sweepPausedPlans());
   const lapsedLines = await step("lapsed_lines", () => releaseLapsedLines());
   const ownerNudges = await step("owner_nudges", () => sendOwnerNudges());
   const stalledPorts = await step("stalled_ports", () => pageStalledPorts());
@@ -185,6 +187,7 @@ export async function GET(request: NextRequest) {
     lateCallReports,
     lapsedLines,
     unpaidLines,
+    pausedPlans,
     ownerNudges,
     retention,
     prunedLogs,

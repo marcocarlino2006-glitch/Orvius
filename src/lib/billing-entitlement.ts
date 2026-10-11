@@ -13,7 +13,16 @@ export type BusinessBillingFields = {
   pilotEndsAt?: Date | string | null;
   createdAt?: Date | string | null;
   pastDueSince?: Date | string | null;
+  pauseStartsAt?: Date | string | null;
+  pausedUntil?: Date | string | null;
 };
+
+/** Inside an off-season pause: the plan is not charged, so neither the line nor the workspace runs. */
+export function isPaused(business: BusinessBillingFields, now = new Date()): boolean {
+  if (!business.pauseStartsAt || !business.pausedUntil) return false;
+  const t = now.getTime();
+  return t >= new Date(business.pauseStartsAt).getTime() && t < new Date(business.pausedUntil).getTime();
+}
 
 /*
   The line is the last thing to go, after the dashboard: a shop that misses a
@@ -28,7 +37,7 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 export function isLineEntitled(business: BusinessBillingFields, now = new Date()): boolean {
   const status = (business.billingStatus ?? "none").toLowerCase();
-  if (status === "active") return true;
+  if (status === "active") return !isPaused(business, now);
   if (status === "canceled") return false;
   if (status === "past_due") {
     if (!business.pastDueSince) return true;
@@ -78,7 +87,7 @@ export function isBillingEntitled(
 ): boolean {
   const status = (business.billingStatus ?? "none").toLowerCase();
 
-  if (status === "active") return true;
+  if (status === "active") return !isPaused(business, now);
   if (status === "past_due") return !isPastDueGraceOver(business, now);
 
   if (status === "canceled") {
@@ -96,13 +105,14 @@ export function isBillingEntitled(
 export function billingLockReason(
   business: BusinessBillingFields,
   now = new Date(),
-): "past_due" | "canceled" | "trial_ended" | "unpaid" | null {
+): "past_due" | "canceled" | "trial_ended" | "unpaid" | "paused" | null {
   if (isBillingEntitled(business, now)) {
     const status = (business.billingStatus ?? "").toLowerCase();
     if (status === "past_due") return "past_due";
     return null;
   }
   const status = (business.billingStatus ?? "none").toLowerCase();
+  if (status === "active" && isPaused(business, now)) return "paused";
   if (status === "past_due") return "past_due";
   if (status === "canceled") return "canceled";
   if (isPilotExpired(business, now)) return "trial_ended";

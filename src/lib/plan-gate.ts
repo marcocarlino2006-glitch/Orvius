@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { pauseDate } from "@/lib/plan-exit";
 import {
   billingLockReason,
   isBillingEntitled,
@@ -37,7 +38,9 @@ export function billingLock(business: BusinessBillingFields): BillingLock {
         ? "Subscription canceled. Pay with card to reopen your shop."
         : reason === "past_due"
           ? "Payment failed. Update billing to continue."
-          : "Pay with card to use Orvius.";
+          : reason === "paused"
+            ? `Orvius is paused until ${pauseDate(business.pausedUntil)}. Resume on Billing to book, text and dispatch again.`
+            : "Pay with card to use Orvius.";
   return { reason, message };
 }
 

@@ -22,7 +22,7 @@ function ownLine(shop: LineShop): string | null {
 }
 
 /** Canceled: stop the assistant answering (and billing minutes). The number is kept for the retention window. */
-export async function suspendShopLine(shop: LineShop): Promise<boolean> {
+export async function suspendShopLine(shop: LineShop, why?: string): Promise<boolean> {
   const line = ownLine(shop);
   if (!line) return false;
   try {
@@ -41,7 +41,9 @@ export async function suspendShopLine(shop: LineShop): Promise<boolean> {
       entityType: "shop",
       entityId: shop.id,
       action: "line.suspended",
-      summary: `Plan ended — ${line} stopped answering. The number is kept for ${LINE_RETENTION_DAYS} days.`,
+      summary: why
+        ? `${line} stopped answering. ${why}`
+        : `Plan ended — ${line} stopped answering. The number is kept for ${LINE_RETENTION_DAYS} days.`,
     });
     return true;
   } catch (error) {
