@@ -95,3 +95,12 @@ test("a fresh calendar copy still offers times without waiting on the provider",
     await prisma.business.delete({ where: { id: setup.shop.id } });
   }
 });
+
+test("a shop that also books in Jobber, Housecall Pro or ServiceTitan is told Orvius can't see that schedule, and how to fix it", async () => {
+  const { readFileSync } = await import("node:fs");
+  const section = readFileSync(new URL("../src/components/settings-center/sections/integrations-section.tsx", import.meta.url), "utf8");
+  assert.match(section, /account\.business\?\.bookingMode === "alert" \|\| account\.busyCalendar\s*\? null/, "no warning once busy times or owner-set times cover it");
+  assert.match(section, /Orvius can&apos;t see your \{blindTo\} schedule/);
+  assert.match(section, /add it under Busy times/);
+  assert.match(section, /Alert me first/);
+});
