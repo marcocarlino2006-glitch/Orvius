@@ -767,3 +767,28 @@ html[data-theme="day"] body .os-shell.os-shell-night :is(.ox-btn--quiet, .btn-se
   box-shadow: none !important;
   border-color: var(--ox-line-strong) !important;
 }
+html body .os-shell.os-shell-night .cmd-lockbar {
+  flex-wrap: wrap;
+}
+html body .os-shell.os-shell-night .cmd-lockbar-text {
+  flex: 1 1 18rem;
+}
+html body .os-shell.os-shell-night .cmd-lockbar-way-out {
+  order: 3;
+  flex: 1 1 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 1rem;
+  font-size: 0.8125rem;
+  color: var(--os-ink);
+  opacity: 0.7;
+}
+html body .os-shell.os-shell-night .cmd-lockbar-way-out a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+html body .os-shell.os-shell-night .cmd-lockbar-way-out .cmd-lockbar-support {
+  margin: 0;
+}
