@@ -531,7 +531,8 @@ test("18. public forms cannot pump texts: only US and Canadian mobiles are texte
   const caribbean = await chat(`+1876555${tail()}`);
   assert.equal(caribbean.status, 400);
 
-  const target = `+1512555${String(Math.floor(Math.random() * 9000) + 1000)}`;
+  // Wide enough that a second run the same day never lands on a number already capped.
+  const target = `+1512${720 + Math.floor(Math.random() * 80)}${String(Math.floor(Math.random() * 10_000)).padStart(4, "0")}`;
   const statuses = [];
   for (let i = 0; i < 6; i += 1) statuses.push((await chat(target)).status);
   assert.deepEqual(statuses, [200, 200, 200, 200, 429, 429], "a fresh address per request still stops at four texts to one number");
