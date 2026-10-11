@@ -8,6 +8,7 @@ import { getAppUrl } from "@/lib/env";
 import { logInfo, logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { countChannels, signupChannelText } from "@/lib/acquisition";
+import { cancelReasonCounts, cancelReasonText } from "@/lib/cancel-signal";
 import { payingShopValue, planMonthlyCents, type ValueVerdict } from "@/lib/value-check";
 import { densityClusters, densityText, networkReadyAreas, zip3FromAddress, type DensityCluster } from "@/lib/network-density";
 
@@ -60,6 +61,8 @@ export type CompanyScoreboard = {
   /** Jobs passed between shops and taken, last 30 days. */
   networkJobs30d: number;
   revenue: Revenue;
+  /** What owners told Stripe when they asked to cancel, last 30 days, most common first. */
+  cancelReasons30d: Array<{ reason: string; count: number }>;
   /** Paying shops getting less than they pay for, or no calls at all, last 30 days. */
   valueAtRisk: ValueVerdict[];
 };
@@ -158,7 +161,7 @@ export async function getCompanyScoreboard(now = new Date()): Promise<CompanySco
     }),
     prisma.networkHandoff.count({ where: { status: "taken", takenAt: { gte: new Date(now.getTime() - 30 * DAY_MS) } } }),
   ]);
-  const [plans, calls30d, value] = await Promise.all([
+  const [plans, calls30d, value, leaving] = await Promise.all([
     prisma.business.groupBy({
       by: ["billingPlan", "billingInterval"],
       where: { ...realShop, isActive: true, billingStatus: { in: ["active", "past_due"] } },
@@ -166,6 +169,11 @@ export async function getCompanyScoreboard(now = new Date()): Promise<CompanySco
     }),
     prisma.call.count({ where: { business: realShop, createdAt: { gte: new Date(now.getTime() - 30 * DAY_MS) } } }),
     payingShopValue(now),
+    prisma.business.findMany({
+      where: { ...realShop, cancelRequestedAt: { gte: new Date(now.getTime() - 30 * DAY_MS) } },
+      select: { cancelReason: true },
+      take: 5000,
+    }),
   ]);
   const revenue = revenueFrom({
     byPlan: plans.map((p) => ({ planId: p.billingPlan, interval: p.billingInterval, shops: p._count._all })),
@@ -198,6 +206,7 @@ export async function getCompanyScoreboard(now = new Date()): Promise<CompanySco
     networkReadyAreas: networkReadyAreas(density),
     networkJobs30d,
     revenue,
+    cancelReasons30d: cancelReasonCounts(leaving.map((shop) => ({ reason: shop.cancelReason }))),
     valueAtRisk: value.filter((v) => v.verdict === "short" || v.verdict === "idle"),
   };
 }
@@ -218,6 +227,7 @@ export function scoreboardLines(board: CompanyScoreboard): string[] {
   return [
     `Paying shops: ${board.payingShops} (${board.activeShops} active)`,
     `New shops: ${now.newShops} (last week ${prev.newShops}) · canceled: ${now.churnedShops} (last week ${prev.churnedShops})`,
+    `Why shops asked to cancel, 30 days: ${cancelReasonText(board.cancelReasons30d ?? [])}`,
     `Calls: ${now.calls} · finished cleanly: ${rate(now.answeredCleanPct)} (last week ${rate(prev.answeredCleanPct)}) · failed: ${now.failedCalls}`,
     `Booking rate: ${rate(now.bookingRate)} of ${now.leads} leads (last week ${rate(prev.bookingRate)})`,
     `Jobs booked: ${now.jobsBooked} (last week ${prev.jobsBooked})`,

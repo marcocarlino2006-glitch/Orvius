@@ -59,6 +59,10 @@ model Business {
   pausedUntil          DateTime?
   /// Set to cancel on Stripe: the plan runs to this date, then the line stops. Null when it renews.
   planEndsAt           DateTime?
+  /// When the owner last asked to cancel, and what they told Stripe. Kept after a cancel lands; cleared if they keep the plan.
+  cancelRequestedAt    DateTime?
+  cancelReason         String?
+  cancelComment        String?
   /**
    * Connect: the shop's own Stripe account. Customer card money settles to the
    * shop directly and Orvius only ever takes an application fee, which is what
