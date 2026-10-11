@@ -5,7 +5,7 @@ import { displayPhone } from "@/lib/customer";
 import type { SettingsSectionId } from "@/lib/settings-center";
 import { BusyCalendarGroup } from "../busy-calendar-group";
 import { CopyLinkButton } from "../settings-controls";
-import type { Account, BusyCalendar, HousecallLink, JobberLink, QuickBooksLink } from "../settings-model";
+import type { Account, BusyCalendar, HousecallLink, JobberLink, QuickBooksLink, ServiceTitanLink } from "../settings-model";
 import { ScGroup, ScStatus } from "../settings-primitives";
 import { SettingsIcon, type SettingsIconName } from "../settings-icons";
 
@@ -34,6 +34,13 @@ export function IntegrationsSection({
   const [hcpBusy, setHcpBusy] = useState(false);
   const [hcpNote, setHcpNote] = useState<string | null>(null);
   const [hcpError, setHcpError] = useState<string | null>(null);
+
+  const [servicetitan, setServicetitan] = useState<ServiceTitanLink>(account.servicetitan ?? null);
+  const [stOpen, setStOpen] = useState(false);
+  const [stFields, setStFields] = useState({ tenantId: "", clientId: "", clientSecret: "" });
+  const [stBusy, setStBusy] = useState(false);
+  const [stNote, setStNote] = useState<string | null>(null);
+  const [stError, setStError] = useState<string | null>(null);
 
   const [quickbooks, setQuickbooks] = useState<QuickBooksLink>(account.quickbooks ?? null);
   const [qbBusy, setQbBusy] = useState(false);
@@ -133,6 +140,44 @@ export function IntegrationsSection({
     }
   }
 
+  async function connectServiceTitan() {
+    setStBusy(true);
+    setStError(null);
+    try {
+      const res = await fetch("/api/integrations/servicetitan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(stFields),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.servicetitan) throw new Error(data.error ?? "Could not connect. Try again.");
+      setServicetitan(data.servicetitan);
+      setStFields({ tenantId: "", clientId: "", clientSecret: "" });
+      setStOpen(false);
+      setStNote(null);
+    } catch (error) {
+      setStError(error instanceof Error ? error.message : "Could not connect. Try again.");
+    } finally {
+      setStBusy(false);
+    }
+  }
+
+  async function disconnectServiceTitan() {
+    if (!window.confirm("Disconnect ServiceTitan? New calls stop going to its booking queue. Bookings already there stay.")) return;
+    setStBusy(true);
+    setStNote(null);
+    try {
+      const res = await fetch("/api/integrations/servicetitan", { method: "DELETE" });
+      if (!res.ok) throw new Error("Could not disconnect. Try again.");
+      setServicetitan((prev) => (prev ? { ...prev, status: "disconnected", providerName: null } : prev));
+      setStNote("ServiceTitan disconnected.");
+    } catch (error) {
+      setStNote(error instanceof Error ? error.message : "Could not disconnect. Try again.");
+    } finally {
+      setStBusy(false);
+    }
+  }
+
   async function resetFeed() {
     if (!window.confirm("Reset the calendar link? Calendars subscribed to the old link stop updating until you add the new one.")) return;
     setFeedBusy(true);
@@ -161,8 +206,8 @@ export function IntegrationsSection({
     copy?: string;
     reset?: boolean;
     href?: { label: string; url: string };
-    disconnect?: "jobber" | "quickbooks" | "housecall";
-    keyEntry?: string;
+    disconnect?: "jobber" | "quickbooks" | "housecall" | "servicetitan";
+    keyEntry?: { label: string; form: "housecall" | "servicetitan" };
   }> = [
     {
       name: "Phone line",
@@ -211,6 +256,7 @@ export function IntegrationsSection({
     },
     jobberRow(jobber, jobberNote),
     housecallRow(housecall, hcpNote),
+    serviceTitanRow(servicetitan, stNote),
     quickbooksRow(quickbooks, qbNote),
   ];
   return (
@@ -245,9 +291,18 @@ export function IntegrationsSection({
                 {hcpBusy ? "Disconnecting…" : "Disconnect"}
               </button>
             ) : null}
-            {row.keyEntry && !hcpOpen ? (
-              <button type="button" className="sc-btn" onClick={() => setHcpOpen(true)}>
-                {row.keyEntry}
+            {row.disconnect === "servicetitan" ? (
+              <button type="button" className="sc-btn" disabled={stBusy} onClick={() => void disconnectServiceTitan()}>
+                {stBusy ? "Disconnecting…" : "Disconnect"}
+              </button>
+            ) : null}
+            {row.keyEntry && !(row.keyEntry.form === "housecall" ? hcpOpen : stOpen) ? (
+              <button
+                type="button"
+                className="sc-btn"
+                onClick={() => (row.keyEntry!.form === "housecall" ? setHcpOpen(true) : setStOpen(true))}
+              >
+                {row.keyEntry.label}
               </button>
             ) : null}
             {row.disconnect === "quickbooks" ? (
@@ -313,6 +368,62 @@ export function IntegrationsSection({
           </div>
         </form>
       ) : null}
+      {stOpen ? (
+        <form
+          className="sc-row sc-key-entry"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void connectServiceTitan();
+          }}
+        >
+          <div className="sc-row-copy">
+            <p className="sc-row-label">Connect ServiceTitan</p>
+            <p className="sc-row-hint">
+              In ServiceTitan, open Settings → Integrations → API Application Access, connect Orvius, and copy the three values it shows. Add a booking
+              provider tag named Orvius so calls land under it. Orvius stores the secret encrypted and only uses it to add bookings.
+            </p>
+            {(
+              [
+                ["tenantId", "Tenant ID", "text"],
+                ["clientId", "Client ID", "text"],
+                ["clientSecret", "Client secret", "password"],
+              ] as const
+            ).map(([key, label, type]) => (
+              <label key={key} className="sc-key-field">
+                <span>{label}</span>
+                <input
+                  className="sc-input"
+                  type={type}
+                  autoComplete="off"
+                  spellCheck={false}
+                  inputMode={key === "tenantId" ? "numeric" : undefined}
+                  value={stFields[key]}
+                  onChange={(event) => setStFields((prev) => ({ ...prev, [key]: event.target.value }))}
+                  aria-invalid={stError ? true : undefined}
+                  aria-describedby={stError ? "st-error" : undefined}
+                />
+              </label>
+            ))}
+            {stError ? (
+              <p id="st-error" className="sc-field-error" role="alert">
+                {stError}
+              </p>
+            ) : null}
+          </div>
+          <div className="sc-row-control">
+            <button type="button" className="sc-btn" disabled={stBusy} onClick={() => { setStOpen(false); setStError(null); }}>
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="sc-btn sc-btn--primary"
+              disabled={stBusy || !stFields.tenantId.trim() || !stFields.clientId.trim() || !stFields.clientSecret.trim()}
+            >
+              {stBusy ? "Checking…" : "Connect"}
+            </button>
+          </div>
+        </form>
+      ) : null}
     </ScGroup>
     <BusyCalendarGroup
       value={account.busyCalendar ?? null}
@@ -359,12 +470,33 @@ function housecallRow(hcp: HousecallLink, note: string | null) {
     };
   }
   if (hcp?.status === "reconnect") {
-    return { ...base, on: false, detail: note ?? "Housecall Pro stopped accepting the key. Paste a new one to keep calls flowing there.", keyEntry: "Reconnect" };
+    return { ...base, on: false, detail: note ?? "Housecall Pro stopped accepting the key. Paste a new one to keep calls flowing there.", keyEntry: { label: "Reconnect", form: "housecall" as const } };
   }
   if (!hcp?.available) {
     return { ...base, on: false, detail: note ?? "", hidden: !note };
   }
-  return { ...base, on: false, detail: note ?? "Send every call to Housecall Pro as a lead, matched to the customer by phone.", keyEntry: "Connect" };
+  return { ...base, on: false, detail: note ?? "Send every call to Housecall Pro as a lead, matched to the customer by phone.", keyEntry: { label: "Connect", form: "housecall" as const } };
+}
+
+function serviceTitanRow(st: ServiceTitanLink, note: string | null) {
+  const base = { name: "ServiceTitan", mark: "jobs" as const };
+  if (st?.status === "active") {
+    const sent = st.sentLast30Days === 1 ? "1 call" : `${st.sentLast30Days} calls`;
+    const attention = st.needsAttention ? ` ${st.needsAttention} did not go through. Your alert texts still have them.` : "";
+    return {
+      ...base,
+      on: true,
+      detail: note ?? `New calls land in your ServiceTitan booking queue${st.providerName ? ` as ${st.providerName}` : ""}. ${sent} sent in 30 days.${attention}`,
+      disconnect: "servicetitan" as const,
+    };
+  }
+  if (st?.status === "reconnect") {
+    return { ...base, on: false, detail: note ?? "ServiceTitan stopped accepting Orvius. Connect again to keep calls flowing there.", keyEntry: { label: "Reconnect", form: "servicetitan" as const } };
+  }
+  if (!st?.available) {
+    return { ...base, on: false, detail: note ?? "", hidden: !note };
+  }
+  return { ...base, on: false, detail: note ?? "Send every call to your ServiceTitan booking queue, ready for your CSRs to book.", keyEntry: { label: "Connect", form: "servicetitan" as const } };
 }
 
 function quickbooksRow(qb: QuickBooksLink, note: string | null) {

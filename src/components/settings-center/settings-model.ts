@@ -23,6 +23,16 @@ export type HousecallLink = {
   needsAttention: number;
 } | null;
 
+export type ServiceTitanLink = {
+  available: boolean;
+  status: "none" | "active" | "disconnected" | "reconnect" | string;
+  providerName: string | null;
+  connectedAt: string | null;
+  lastError: string | null;
+  sentLast30Days: number;
+  needsAttention: number;
+} | null;
+
 export type QuickBooksLink = {
   available: boolean;
   status: "none" | "active" | "disconnected" | "reconnect" | string;
@@ -40,6 +50,7 @@ export type Account = {
   busyCalendar?: BusyCalendar;
   jobber?: JobberLink;
   housecall?: HousecallLink;
+  servicetitan?: ServiceTitanLink;
   quickbooks?: QuickBooksLink;
   user?: { name: string | null; email: string | null; image?: string | null };
   business: {

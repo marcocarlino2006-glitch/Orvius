@@ -9,6 +9,7 @@ import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
 import { isInformationOnlyRequest } from "@/lib/info-request";
 import { drainJobberSyncs, enqueueJobberSync } from "@/lib/jobber";
 import { drainHousecallSyncs, enqueueHousecallSync } from "@/lib/housecall";
+import { drainServiceTitanSyncs, enqueueServiceTitanSync } from "@/lib/servicetitan";
 import { leadWantsHuman } from "@/lib/lead-wants-human";
 import { logError, logInfo, logWarn } from "@/lib/logger";
 import { buildLeadAlertDedupeKey, enqueueOwnerAlert } from "@/lib/notifications";
@@ -436,6 +437,16 @@ export async function finishCallReport(input: Omit<Captured, "duplicate">): Prom
       return false;
     });
     if (toHousecall) await afterResponse(() => drainHousecallSyncs({ businessId: business.id, limit: 5 }));
+    const toServiceTitan = await enqueueServiceTitanSync({
+      businessId: business.id,
+      leadId: lead.id,
+      skipReason: autoBook.skipReason,
+      nonService,
+    }).catch((error) => {
+      logWarn("servicetitan.enqueue_failed", { leadId: lead.id, error: error instanceof Error ? error.message : String(error) });
+      return false;
+    });
+    if (toServiceTitan) await afterResponse(() => drainServiceTitanSyncs({ businessId: business.id, limit: 5 }));
 
     await Promise.all([
       audit.flush(),

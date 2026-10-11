@@ -22,6 +22,7 @@ import { pruneOperationalLogs, purgeExpiredCallContent } from "@/lib/retention";
 import { voiceLatencyRollup } from "@/lib/call-latency";
 import { drainJobberSyncs } from "@/lib/jobber";
 import { drainHousecallSyncs } from "@/lib/housecall";
+import { drainServiceTitanSyncs } from "@/lib/servicetitan";
 import { drainQuickBooksSyncs } from "@/lib/quickbooks";
 import { purgeStaleVisitorShops } from "@/lib/public-demo";
 import { forEachShop } from "@/lib/for-each-shop";
@@ -135,6 +136,7 @@ export async function GET(request: NextRequest) {
   const visitorShops = await step("visitor_demo_purge", () => purgeStaleVisitorShops());
   const jobber = await step("jobber_sync", () => drainJobberSyncs({ limit: 100, budgetMs: 10_000 }));
   const housecall = await step("housecall_sync", () => drainHousecallSyncs({ limit: 100, budgetMs: 10_000 }));
+  const servicetitan = await step("servicetitan_sync", () => drainServiceTitanSyncs({ limit: 100, budgetMs: 10_000 }));
   const quickbooks = await step("quickbooks_sync", () => drainQuickBooksSyncs({ limit: 100, budgetMs: 10_000 }));
   const voiceLatency = await step("voice_latency", async () => {
     const rollup = await voiceLatencyRollup(new Date(Date.now() - 24 * 60 * 60 * 1000));
@@ -196,6 +198,7 @@ export async function GET(request: NextRequest) {
     visitorShops,
     jobber,
     housecall,
+    servicetitan,
     quickbooks,
     voiceLatency,
     autopilot: { shops: autopilotShops, assigned: autopilotAssigned, confirmations: autopilotConfirmations },

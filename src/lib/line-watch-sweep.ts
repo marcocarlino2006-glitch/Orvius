@@ -3,6 +3,7 @@ import { retryLostConfirmations } from "@/lib/confirm-sweep";
 import { markCronRan } from "@/lib/cron-runs";
 import { drainJobberSyncs } from "@/lib/jobber";
 import { drainHousecallSyncs } from "@/lib/housecall";
+import { drainServiceTitanSyncs } from "@/lib/servicetitan";
 import { drainQuickBooksSyncs } from "@/lib/quickbooks";
 import { runAutoFollowUps } from "@/lib/lead-follow-up";
 import { watchAllLines } from "@/lib/line-watch";
@@ -23,9 +24,10 @@ export async function runLineWatchSweep(at: string) {
   };
   // On the 30-minute schedule: a Jobber retry waits minutes, and a caller hears back hours after calling, not the next day.
   // Retention rides along too: one daily pass cannot keep up once a day's expiring calls outnumber it.
-  const [jobber, housecall, quickbooks, followUps, calendars, reviews, planVisits, confirmations, texting, weeklyTexts, retention, prunedLogs] = await Promise.all([
+  const [jobber, housecall, servicetitan, quickbooks, followUps, calendars, reviews, planVisits, confirmations, texting, weeklyTexts, retention, prunedLogs] = await Promise.all([
     drainJobberSyncs({ limit: 25, budgetMs: 25_000 }).catch(failed("jobber_sync")),
     drainHousecallSyncs({ limit: 25, budgetMs: 25_000 }).catch(failed("housecall_sync")),
+    drainServiceTitanSyncs({ limit: 25, budgetMs: 25_000 }).catch(failed("servicetitan_sync")),
     drainQuickBooksSyncs({ limit: 25, budgetMs: 25_000 }).catch(failed("quickbooks_sync")),
     runAutoFollowUps({ budgetMs: 25_000 }).catch(failed("follow_ups")),
     refreshStaleBusyCalendars({ budgetMs: 20_000 }).catch(failed("busy_calendars")),
@@ -37,5 +39,5 @@ export async function runLineWatchSweep(at: string) {
     purgeExpiredCallContent({ budgetMs: 20_000 }).catch(failed("call_content_retention")),
     pruneOperationalLogs({ budgetMs: 10_000 }).catch(failed("log_retention")),
   ]);
-  return { ...lines, jobber, housecall, quickbooks, followUps, calendars, reviews, planVisits, confirmations, texting, weeklyTexts, retention, prunedLogs };
+  return { ...lines, jobber, housecall, servicetitan, quickbooks, followUps, calendars, reviews, planVisits, confirmations, texting, weeklyTexts, retention, prunedLogs };
 }

@@ -10,6 +10,7 @@ import { normalizeReviewUrl } from "@/lib/review-requests";
 import { calendarFeedUrl } from "@/lib/calendar-feed";
 import { jobberStatus } from "@/lib/jobber";
 import { housecallStatus } from "@/lib/housecall";
+import { serviceTitanStatus } from "@/lib/servicetitan";
 import { quickbooksStatus } from "@/lib/quickbooks";
 import { getShopLineForBusiness } from "@/lib/demo-business";
 import { getShopAccessWithAutoLine } from "@/lib/provision-business";
@@ -254,6 +255,7 @@ export async function GET(request: Request) {
       : null,
     jobber: businessRecord ? await jobberStatus(businessRecord.id).catch(() => null) : null,
     housecall: businessRecord ? await housecallStatus(businessRecord.id).catch(() => null) : null,
+    servicetitan: businessRecord ? await serviceTitanStatus(businessRecord.id).catch(() => null) : null,
     quickbooks: businessRecord ? await quickbooksStatus(businessRecord.id).catch(() => null) : null,
     billing: {
       configured: isStripeCheckoutConfigured(),
