@@ -98,7 +98,7 @@ test("test and demo shops never count toward production speed", async () => {
 test("tool round trips are timed and the sim report breaks the wait into stages", () => {
   const route = readFileSync(new URL("../src/app/api/webhooks/vapi/route.ts", import.meta.url), "utf8");
   assert.match(route, /in_call\.tool_ms/);
-  assert.match(route, /const \[call, shop\] = await Promise\.all\(/);
+  assert.match(route, /const \[call, shop\] = existingCall\?\.business/);
   const sim = readFileSync(new URL("./voice-sim.mjs", import.meta.url), "utf8");
   assert.match(sim, /Median per stage: endpointing/);
   const cron = readFileSync(new URL("../src/app/api/cron/notifications/route.ts", import.meta.url), "utf8");

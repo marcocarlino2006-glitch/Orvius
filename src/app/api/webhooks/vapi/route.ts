@@ -34,18 +34,33 @@ import { isLineEntitled } from "@/lib/billing-entitlement";
 /* Room for a made-up line-watch run after the response (cron-backstop.ts). */
 export const maxDuration = 60;
 
-async function findBusinessForCall(
-  vapiCallId: string,
-  phoneNumber?: string,
-  assistantId?: string,
-) {
-  const call = await prisma.call.findUnique({
+function findCallWithBusiness(vapiCallId: string) {
+  return prisma.call.findUnique({
     where: { vapiCallId },
     include: { business: true },
   });
+}
 
-  if (call?.business) {
-    return call.business;
+type CallWithBusiness = Awaited<ReturnType<typeof findCallWithBusiness>>;
+
+/* A plain insert, not an upsert: on libsql an upsert is a whole write transaction the caller waits through. */
+async function createCallRow(data: { businessId: string; vapiCallId: string; callerPhone: string | null }) {
+  const select = { id: true, vapiCallId: true, callerPhone: true } as const;
+  try {
+    return await prisma.call.create({ data: { ...data, status: "in-progress" }, select });
+  } catch (error) {
+    if ((error as { code?: string })?.code !== "P2002") throw error;
+    return prisma.call.findUniqueOrThrow({ where: { vapiCallId: data.vapiCallId }, select });
+  }
+}
+
+async function findBusinessForCall(
+  existing: CallWithBusiness,
+  phoneNumber?: string,
+  assistantId?: string,
+) {
+  if (existing?.business) {
+    return existing.business;
   }
 
   if (assistantId) {
@@ -83,10 +98,12 @@ async function answerAssistantRequest(params: {
   callerPhone?: string;
   inboundNumber?: string;
 }) {
-  const preview = await claimPreviewCall({ callerPhone: params.callerPhone, vapiCallId: params.vapiCallId });
+  const [preview, owner] = await Promise.all([
+    claimPreviewCall({ callerPhone: params.callerPhone, vapiCallId: params.vapiCallId }),
+    params.inboundNumber ? resolveBusinessByInboundPhone(params.inboundNumber) : null,
+  ]);
   if (preview) return { assistant: buildPreviewAssistant(preview) };
 
-  const owner = params.inboundNumber ? await resolveBusinessByInboundPhone(params.inboundNumber) : null;
   if (owner && !isLineEntitled(owner)) {
     return { error: `Thanks for calling ${owner.name}. This line isn't taking calls right now. Please reach the business directly.` };
   }
@@ -126,7 +143,10 @@ export async function POST(request: NextRequest) {
   }
 
   // Preview calls belong to no shop: they must never reach findBusinessForCall's number fallback.
-  const preview = await findPreviewByVapiCallId(vapiCallId);
+  const [preview, existingCall] = await Promise.all([
+    findPreviewByVapiCallId(vapiCallId),
+    findCallWithBusiness(vapiCallId),
+  ]);
   if (preview) {
     if (type === "end-of-call-report") {
       await recordPreviewOutcome(preview, message);
@@ -136,7 +156,7 @@ export async function POST(request: NextRequest) {
   }
 
   const business = await findBusinessForCall(
-    vapiCallId,
+    existingCall,
     inboundNumber,
     assistantId,
   );
@@ -186,44 +206,42 @@ export async function POST(request: NextRequest) {
 
   if (type === "tool-calls") {
     /*
-      The caller is waiting on this reply mid-sentence, so the two reads run
-      together and the time is logged per tool: it is the one part of a turn's
-      latency that is ours rather than Vapi's.
+      The caller is waiting on this reply mid-sentence, and the time is logged
+      per tool: it is the one part of a turn's latency that is ours rather
+      than Vapi's. call-started normally made the row already, and then it
+      and its full shop row are reused: no write, no second read.
     */
     const startedAt = Date.now();
     const callerPhone = message.call?.customer?.number ?? null;
-    const [call, shop] = await Promise.all([
-      prisma.call.upsert({
-        where: { vapiCallId },
-        create: { businessId: business.id, vapiCallId, callerPhone, status: "in-progress" },
-        update: {},
-        select: { id: true, vapiCallId: true, callerPhone: true },
-      }),
-      prisma.business.findUniqueOrThrow({
-        where: { id: business.id },
-        select: {
-          id: true,
-          name: true,
-          hoursJson: true,
-          timezone: true,
-          trade: true,
-          servicesJson: true,
-          jobLengthsJson: true,
-          ownerPhone: true,
-          ownerEmail: true,
-          transferPhone: true,
-          networkOn: true,
-          networkZip3: true,
-          address: true,
-          bookingMode: true,
-        },
-      }),
-    ]);
+    const [call, shop] = existingCall?.business
+      ? [existingCall, existingCall.business]
+      : await Promise.all([
+          createCallRow({ businessId: business.id, vapiCallId, callerPhone }),
+          prisma.business.findUniqueOrThrow({
+            where: { id: business.id },
+            select: {
+              id: true,
+              name: true,
+              hoursJson: true,
+              timezone: true,
+              trade: true,
+              servicesJson: true,
+              jobLengthsJson: true,
+              ownerPhone: true,
+              ownerEmail: true,
+              transferPhone: true,
+              networkOn: true,
+              networkZip3: true,
+              address: true,
+              bookingMode: true,
+            },
+          }),
+        ]);
     const toolCalls = readToolCalls(message);
     const results = await handleInCallToolCalls({
       shop,
       callId: call.id,
-      call: { ...call, callerPhone: call.callerPhone ?? callerPhone },
+      call: { id: call.id, vapiCallId: call.vapiCallId, callerPhone: call.callerPhone ?? callerPhone },
       toolCalls,
       callerWords: callerWordsSoFar(message),
     });
