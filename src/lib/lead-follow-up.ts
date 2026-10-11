@@ -6,6 +6,7 @@ import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { logError, logInfo, logWarn } from "@/lib/logger";
 import { enqueueOwnerAlert } from "@/lib/notifications";
 import { recordWebhookEvent } from "@/lib/webhook-events";
+import { hasActiveOwnerConversation } from "@/lib/messages";
 import { prisma } from "@/lib/prisma";
 import { classifyRequest } from "@/lib/trade-playbooks";
 import { isEmergency } from "@/lib/urgency";
@@ -121,11 +122,16 @@ function loadLead(businessId: string, leadId: string) {
   return prisma.lead.findFirst({ where: { id: leadId, businessId }, select: LEAD_FOR_FOLLOW_UP });
 }
 
-/** Booked since, texted recently under another lead, or called back in: the text would be wrong. */
-async function laterBlock(businessId: string, lead: LoadedLead, now: Date): Promise<"booked" | "recently_texted" | null> {
+/** Booked since, texted recently, or the owner is already texting them: the text would be wrong. */
+async function laterBlock(
+  businessId: string,
+  lead: LoadedLead,
+  now: Date,
+  auto = false,
+): Promise<"booked" | "recently_texted" | "owner_talking" | null> {
   const phone = normalizePhone(lead.phone ?? "");
   if (!phone) return null;
-  const [otherJob, recentText] = await Promise.all([
+  const [otherJob, recentText, ownerTalking] = await Promise.all([
     lead.customerId
       ? prisma.job.findFirst({ where: { businessId, customerId: lead.customerId, createdAt: { gte: lead.createdAt } }, select: { id: true } })
       : null,
@@ -138,8 +144,10 @@ async function laterBlock(businessId: string, lead: LoadedLead, now: Date): Prom
       },
       select: { id: true },
     }),
+    auto ? hasActiveOwnerConversation(businessId, phone, now) : false,
   ]);
   if (otherJob) return "booked";
+  if (ownerTalking) return "owner_talking";
   if (recentText) return "recently_texted";
   return null;
 }
@@ -171,6 +179,7 @@ const REASONS: Record<string, string> = {
   not_service: "Not a service request.",
   too_old: "Over three days old. Call instead.",
   recently_texted: "This customer got a follow-up in the last week.",
+  owner_talking: "You're already texting this customer.",
   night: "Texts go out between 9am and 8pm shop time.",
   off: "Follow-up texts are off in Settings.",
 };
@@ -225,7 +234,7 @@ export async function sendLeadFollowUp(params: {
   if (mode === "off" || (auto && mode !== "auto")) return { sent: false, reason: REASONS.off };
   const block =
     followUpBlock(lead, now, { ignoreTooSoon: !auto }) ??
-    (await laterBlock(params.businessId, lead, now)) ??
+    (await laterBlock(params.businessId, lead, now, auto)) ??
     (isShopDaytime(now, lead.business.timezone) ? null : "night");
   if (block) return { sent: false, reason: REASONS[block] ?? block };
 
