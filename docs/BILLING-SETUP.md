@@ -76,7 +76,7 @@ Each plan's Subscribe button only appears when that plan's price ID is configure
 
 - Every new shop gets `Business.pilotEndsAt` = create + **30 days**
 - While entitled (`active`, `past_due` grace, or open pilot window): full product
-- After pilot / canceled: APIs return **402** `billing_required`; UI shows `BillingLockScreen`
+- After pilot / canceled: APIs return **402** `billing_required`; records stay readable and Command shows a lock bar (pay, download my data, support email)
 - Existing shops without `pilotEndsAt` fall back to `createdAt + 30 days`
 
 ## Pay prompt loop
@@ -88,10 +88,11 @@ Dashboard shell:
 | **active** | No prompt | — |
 | **pilot** (mid-trial) | Soft modal | Snooze 2–4h |
 | **pilot** ending ≤7d / **none** | Stronger soft modal | Snooze 2h |
-| **past_due** | Full `BillingLockScreen` + portal CTA | Not dismissible |
-| **expired pilot / canceled** | Full `BillingLockScreen` + Checkout | Not dismissible |
+| **past_due** | Command lock bar: Update payment | Stays until paid |
+| **expired pilot / canceled** | Command lock bar: Pay with card | Stays until paid |
+| **paused** | Command lock bar: Resume | Stays until resumed |
 
-When Stripe checkout is configured, lock/modal starts Checkout for Pro (or Customer Portal for past_due). Otherwise routes to mailto / design partner — never a dead Checkout button.
+When Stripe checkout is configured, the modal starts Checkout for the plan the shop picked (Pro if none); the lock bar opens Billing. Otherwise routes to mailto / design partner — never a dead Checkout button.
 
 ## Customer portal
 

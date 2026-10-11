@@ -83,7 +83,7 @@ test("pricing, FAQ, refunds and billing tell the same story", () => {
 });
 
 test("a locked owner can still take their data, and billing errors are plain", () => {
-  assert.match(read("src/components/billing-lock-screen.tsx"), /\/api\/account\/export/);
+  assert.match(read("src/components/ring1-command-center.tsx"), /\/api\/account\/export/);
   const portal = read("src/app/api/billing/portal/route.ts");
   assert.doesNotMatch(portal, /error: message/);
   assert.match(portal, /Nothing was changed/);

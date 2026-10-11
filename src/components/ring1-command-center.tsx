@@ -6,6 +6,7 @@ import { CommandSignals } from "@/components/command-signals";
 import { ActivationChecklist } from "@/components/activation-checklist";
 import { AskBar, PlanCard, TryDemo } from "@/components/command-board";
 import { OrviusPulse } from "@/components/orvius-pulse";
+import { SupportContact } from "@/components/support-contact";
 import { TestAlertButton } from "@/components/test-alert-button";
 import { WorkCard } from "@/components/work-card";
 import { buildCommandSignals, groupWorkItems } from "@/lib/command-model";
@@ -128,6 +129,12 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
         </strong>{" "}
         Everything is here to read. Pay to book, text and dispatch again.
       </p>
+      <div className="cmd-lockbar-way-out">
+        <a href="/api/account/export" download>
+          Download my data
+        </a>
+        <SupportContact lead="Questions?" subject="Account locked" path="/dashboard" className="cmd-lockbar-support" />
+      </div>
       <Link href="/dashboard/billing" className="ox-btn ox-btn--primary ox-btn--sm">
         {locked.reason === "past_due" ? "Update payment" : "Pay with card"}
       </Link>

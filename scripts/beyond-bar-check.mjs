@@ -198,9 +198,9 @@ try {
     /isBillingEntitled/.test(entitlement) &&
     /billing_required/.test(gate) &&
     /402/.test(gate) &&
-    fileOk("src/components/billing-lock-screen.tsx")
+    fileOk("src/components/ring1-command-center.tsx")
   ) {
-    pass("L5 Fail closed", "billing_required 402 + BillingLockScreen");
+    pass("L5 Fail closed", "billing_required 402 + Command lock bar");
   } else {
     fail("L5 Fail closed", "Hard paywall must return 402 billing_required");
   }

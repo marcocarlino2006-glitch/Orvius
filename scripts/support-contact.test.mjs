@@ -25,7 +25,7 @@ test("no page offers the demo line as a way to reach support", () => {
 });
 
 test("every place an owner gets stuck offers a person", () => {
-  for (const p of ["src/app/help/page.tsx", "src/app/help/[slug]/page.tsx", "src/app/status/page.tsx", "src/components/billing-lock-screen.tsx"]) {
+  for (const p of ["src/app/help/page.tsx", "src/app/help/[slug]/page.tsx", "src/app/status/page.tsx", "src/components/ring1-command-center.tsx"]) {
     assert.match(read(p), /<SupportContact\b/, `${p} has no support contact`);
   }
   for (const p of ["src/app/dashboard/error.tsx", "src/app/global-error.tsx", "src/components/os-sidebar-footer.tsx", "src/components/marketing-shell.tsx"]) {

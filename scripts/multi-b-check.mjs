@@ -72,8 +72,8 @@ gate(
   "hard_paywall",
   "Hard monetization code",
   fileOk("src/lib/billing-entitlement.ts") &&
-    fileOk("src/components/billing-lock-screen.tsx"),
-  "pilotEndsAt + BillingLockScreen",
+    fileOk("src/components/ring1-command-center.tsx"),
+  "pilotEndsAt + Command lock bar",
 );
 
 gate(

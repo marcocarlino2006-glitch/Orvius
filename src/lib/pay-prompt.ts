@@ -30,7 +30,7 @@ const HOUR = 60 * MINUTE;
 /**
  * Active paid: no prompt.
  * Mid-trial: soft loop (short snooze).
- * Expired / canceled: hard lock tone (BillingLockScreen handles full block).
+ * Expired / canceled: hard lock tone (Command shows the lock bar).
  * Past due: urgent hard prompt.
  */
 export function getPayPromptDecision(
