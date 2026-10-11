@@ -519,11 +519,9 @@ export async function PATCH(request: Request) {
         ...(body.founderCertJson !== undefined
           ? { founderCertJson: body.founderCertJson }
           : {}),
+        // The owner's word is recorded; "proven" stays for a call that actually came through.
         ...(body.overflowForwardConfirmedAt === true
-          ? {
-              overflowForwardConfirmedAt: new Date(),
-              overflowProvedAt: new Date(),
-            }
+          ? { overflowForwardConfirmedAt: new Date() }
           : body.overflowForwardConfirmedAt === false
             ? {
                 overflowForwardConfirmedAt: null,

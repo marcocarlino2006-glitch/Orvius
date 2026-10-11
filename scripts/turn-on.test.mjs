@@ -104,10 +104,23 @@ test("the go-live checklist says plainly what is live, not connected, or needs a
     line: "+15125550100",
     lineVerifiedAt: new Date(),
     overflowForwardConfirmedAt: new Date(),
+    overflowProvedAt: new Date(),
     ownerPhone: "+15125550111",
     recordingDisclosed: true,
   });
   assert.ok(after.every((i) => i.state === "live"));
+
+  const saidSo = buildGoLiveChecklist({
+    sandbox: false,
+    line: "+15125550100",
+    lineVerifiedAt: new Date(),
+    overflowForwardConfirmedAt: new Date(),
+    overflowProvedAt: null,
+    ownerPhone: "+15125550111",
+    recordingDisclosed: true,
+  }).find((i) => i.id === "forward");
+  assert.equal(saidSo.state, "not_connected", "the owner's word alone is not proof that forwarding works");
+  assert.match(saidSo.detail, /isn't proven until a call to your number reaches Orvius/);
 });
 
 test("a test-mode shop runs the real pipeline: alert-first holds, book-and-confirm books, safety escalates, every text simulated", async () => {

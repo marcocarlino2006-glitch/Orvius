@@ -118,6 +118,7 @@ async function view(business: Business | null) {
         line: business.vapiPhoneNumber ?? business.twilioPhone ?? null,
         lineVerifiedAt: business.lineVerifiedAt,
         overflowForwardConfirmedAt: business.overflowForwardConfirmedAt,
+        overflowProvedAt: business.overflowProvedAt,
         ownerPhone: business.ownerPhone,
         ownerSmsOptOutAt: business.ownerSmsOptOutAt,
         recordingDisclosed: false,

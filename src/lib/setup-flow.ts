@@ -304,6 +304,8 @@ export function buildGoLiveChecklist(input: {
   line: string | null;
   lineVerifiedAt: Date | string | null;
   overflowForwardConfirmedAt: Date | string | null;
+  /** Set only when a call to the shop's own number actually arrived. */
+  overflowProvedAt?: Date | string | null;
   ownerPhone: string | null;
   ownerSmsOptOutAt?: Date | string | null;
   recordingDisclosed: boolean;
@@ -330,10 +332,12 @@ export function buildGoLiveChecklist(input: {
     {
       id: "forward",
       label: "Your existing number",
-      state: input.overflowForwardConfirmedAt ? "live" : "not_connected",
-      detail: input.overflowForwardConfirmedAt
-        ? "Forwarding to Orvius."
-        : "Connected right after you go live. You keep your number and choose which calls Orvius takes.",
+      state: input.overflowProvedAt ? "live" : "not_connected",
+      detail: input.overflowProvedAt
+        ? "Forwarding to Orvius. A call to your number came through."
+        : input.overflowForwardConfirmedAt
+          ? "You said forwarding is on. It isn't proven until a call to your number reaches Orvius. Run the test call."
+          : "Connected right after you go live. You keep your number and choose which calls Orvius takes.",
     },
     {
       id: "messaging",
