@@ -187,7 +187,11 @@ export function SettingsCenter({
         prev && prev.business
           ? {
               ...prev,
-              business: { ...prev.business, overflowForwardConfirmedAt: stamp, overflowProvedAt: stamp },
+              business: {
+                ...prev.business,
+                overflowForwardConfirmedAt: stamp,
+                ...(next ? {} : { overflowProvedAt: null }),
+              },
             }
           : prev,
       );

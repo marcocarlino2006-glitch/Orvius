@@ -99,8 +99,15 @@ export async function pageOwnerUnreachable(businessId: string, lastChannel: "sms
   const text = `Orvius: ${shop?.name ?? "a shop"}'s owner alerts can't be delivered (${lastChannel === "sms" ? "text failed, no email backup" : "text and email both failed"}). Call them: ${shop?.ownerPhone ?? "no phone"}${shop?.ownerEmail ? `, ${shop.ownerEmail}` : ""}.`;
   const phone = process.env.ORVIUS_FOUNDER_PHONE?.trim();
   const sms = phone ? Boolean(await sendSms({ to: phone, body: text, audience: "owner" }).catch(() => null)) : false;
-  if (!sms) logError("platform.owner_unreachable", { businessId, lastChannel });
-  return { paged: true as const, sms };
+  /* When texts are what broke, the founder's text fails the same way; email is the copy that arrives. */
+  let email = 0;
+  if (isEmailConfigured()) {
+    for (const to of founderEmails()) {
+      if (await sendOwnerEmail({ to, subject: `Orvius: ${shop?.name ?? "a shop"} isn't getting alerts`, text }).then(() => true).catch(() => false)) email += 1;
+    }
+  }
+  if (!sms && !email) logError("platform.owner_unreachable", { businessId, lastChannel });
+  return { paged: true as const, sms, email };
 }
 
 /** A paying shop that needs a person from Orvius, once per shop per reason. */

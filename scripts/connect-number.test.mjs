@@ -145,3 +145,10 @@ test("a ported-in number is never released, and Command shows whether calls reac
   const ui = read("src/components/connect-number.tsx");
   assert.doesNotMatch(ui, /Twilio|Vapi/);
 });
+
+test("saying forwarding is on records the owner's word, never proof", () => {
+  const route = readFileSync(new URL("../src/app/api/account/route.ts", import.meta.url), "utf8");
+  const confirm = route.slice(route.indexOf("body.overflowForwardConfirmedAt === true\n          ?"), route.indexOf(": body.overflowForwardConfirmedAt === false"));
+  assert.ok(confirm.length > 0);
+  assert.doesNotMatch(confirm, /overflowProvedAt/);
+});

@@ -254,6 +254,7 @@ export async function syncSubscriptionToBusiness(
       ownerEmail: business.ownerEmail ?? customerEmail?.toLowerCase() ?? undefined,
       pastDueSince: billingStatus === "past_due" ? (business.pastDueSince ?? now) : null,
       canceledAt: billingStatus === "canceled" ? (business.canceledAt ?? now) : null,
+      ...(subscription.status === "active" && !business.paidSince ? { paidSince: now } : {}),
       ...pauseFieldsFromSubscription(subscription, business, now),
       planEndsAt,
       ...cancelFields,

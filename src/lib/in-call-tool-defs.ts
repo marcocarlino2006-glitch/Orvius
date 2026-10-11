@@ -197,6 +197,8 @@ export function outsideScopeReply(label: string) {
 /** The owner chose "alert me first": nothing goes on the schedule from a call. */
 export const OWNER_SETS_TIMES_REPLY =
   "This business sets every time itself. Do not offer or hold a time. Take their name, callback number and what they need, then say \"The team will call you to set a time.\"";
+export const CALENDAR_UNREADABLE_REPLY =
+  "The schedule can't be checked right now. Do not offer or hold a time, and do not say the business is booked up. Take their name, callback number, what they need and when suits them, then say \"The team will call you to set a time.\"";
 export const BAD_SLOT_REPLY = "That slot id is not valid. Call check_availability again and use a slot id it returns.";
 export const NO_ALT_NOTE = "Nothing is open at the time they asked for. Say so, then offer these instead. ";
 

@@ -193,6 +193,8 @@ model Business {
   pastDueSince       DateTime?
   /** When the subscription ended; the line is suspended now and released after the retention window. */
   canceledAt         DateTime?
+  /** When Stripe first reported the subscription active (not trialing): the start of paying, for retention. */
+  paidSince          DateTime?
   /** When a lapsed shop's number was given back to Twilio. */
   lineReleasedAt     DateTime?
   /// Owner corrections the receptionist follows on every call: [{ id, text, createdAt, callId? }].

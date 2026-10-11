@@ -195,6 +195,17 @@ export function IntegrationsSection({
     }
   }
 
+  const blindTo =
+    account.business?.bookingMode === "alert" || account.busyCalendar
+      ? null
+      : (
+          [
+            [jobber?.status === "active", "Jobber"],
+            [housecall?.status === "active", "Housecall Pro"],
+            [servicetitan?.status === "active", "ServiceTitan"],
+          ] as const
+        ).find(([on]) => on)?.[1] ?? null;
+
   const rows: Array<{
     name: string;
     detail: string;
@@ -423,6 +434,23 @@ export function IntegrationsSection({
             </button>
           </div>
         </form>
+      ) : null}
+      {blindTo ? (
+        <div className="sc-row sc-schedule-warning" role="note">
+          <div className="sc-row-copy">
+            <p className="sc-row-label">Orvius can&apos;t see your {blindTo} schedule</p>
+            <p className="sc-row-hint">
+              Orvius offers times from its own schedule and your busy-times calendar. If you also book work in {blindTo}, a caller could be
+              offered a time that is already taken there. Put those jobs on a Google, iCloud or Outlook calendar and add it under Busy times
+              below, or set booking to &ldquo;Alert me first&rdquo; so you pick every time.
+            </p>
+          </div>
+          <div className="sc-row-control">
+            <button type="button" className="sc-btn" onClick={() => go("receptionist")}>
+              Booking settings
+            </button>
+          </div>
+        </div>
       ) : null}
     </ScGroup>
     <BusyCalendarGroup

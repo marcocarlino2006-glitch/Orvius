@@ -219,7 +219,7 @@ export default function JobDetailPage() {
         : job.customerConfirmedAt
           ? "Customer confirmed"
           : job.status === "confirmed"
-            ? "Confirmed with the customer"
+            ? "Marked confirmed by your team"
             : job.scheduledAt
               ? "Waiting for the customer to confirm"
               : "No time picked yet";
