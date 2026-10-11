@@ -95,12 +95,18 @@ export async function sharedRateLimit(params: {
   const now = Date.now();
   const resetAt = now + params.windowMs;
   try {
+    /*
+      Epoch milliseconds go in as BigInt: the libsql driver binds a JS number
+      this large as a float, and reading it back from the BigInt column then
+      throws, which turned every fail-closed limit into a refusal in
+      production. The casts also mend rows already stored as floats.
+    */
     const rows = await prisma.$queryRaw<Array<{ count: number | bigint; resetAtMs: number | bigint }>>`
-      INSERT INTO "RateLimitBucket" ("key", "count", "resetAtMs") VALUES (${params.key}, 1, ${resetAt})
+      INSERT INTO "RateLimitBucket" ("key", "count", "resetAtMs") VALUES (${params.key}, 1, ${BigInt(resetAt)})
       ON CONFLICT("key") DO UPDATE SET
-        "count" = CASE WHEN "RateLimitBucket"."resetAtMs" <= ${now} THEN 1 ELSE "RateLimitBucket"."count" + 1 END,
-        "resetAtMs" = CASE WHEN "RateLimitBucket"."resetAtMs" <= ${now} THEN ${resetAt} ELSE "RateLimitBucket"."resetAtMs" END
-      RETURNING "count", "resetAtMs"`;
+        "count" = CASE WHEN "RateLimitBucket"."resetAtMs" <= ${BigInt(now)} THEN 1 ELSE "RateLimitBucket"."count" + 1 END,
+        "resetAtMs" = CASE WHEN "RateLimitBucket"."resetAtMs" <= ${BigInt(now)} THEN ${BigInt(resetAt)} ELSE CAST("RateLimitBucket"."resetAtMs" AS INTEGER) END
+      RETURNING "count", CAST("resetAtMs" AS INTEGER) AS "resetAtMs"`;
     const row = rows[0];
     if (!row) return params.failClosed ? STORE_DOWN : rateLimit(params);
     const count = Number(row.count);
