@@ -56,8 +56,8 @@ function NewJobForm() {
     if (options?.timezone && !whenTouched) setWhen(tomorrowMorning(options.timezone));
   }, [options?.timezone, whenTouched]);
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
+  async function submit(e: React.FormEvent | null, allowClash = false) {
+    e?.preventDefault();
     setSaving(true);
     setError(null);
     try {
@@ -70,9 +70,15 @@ function NewJobForm() {
           scheduledLocal: when,
           technicianId: technicianId || null,
           notes: notes.trim() || null,
+          allowClash,
         }),
       });
       const data = await res.json().catch(() => ({}));
+      if (res.status === 409 && data.clash && !allowClash) {
+        setSaving(false);
+        if (window.confirm(`${data.error} Book it anyway?`)) await submit(null, true);
+        return;
+      }
       if (!res.ok) throw new Error(data.error ?? `Could not book the ${terms.job}`);
       router.push(`/dashboard/jobs/${data.job.id}`);
     } catch (err) {
