@@ -12,6 +12,7 @@ import { hearLink } from "@/lib/hear-link";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { CompanyScoreboard, ScoreboardWeek } from "@/lib/company-scoreboard";
+import { activationText, retentionText } from "@/lib/scoreboard-text";
 import { revenueLines, valueLines } from "@/lib/revenue-lines";
 import { signupChannelText } from "@/lib/acquisition";
 import { unitCostLines } from "@/lib/unit-cost-lines";
@@ -829,7 +830,11 @@ function ScoreboardCard({ board }: { board: CompanyScoreboard }) {
     { label: "Finished cleanly", value: (w) => pctText(w.answeredCleanPct) },
     { label: "Booking rate", value: (w) => pctText(w.bookingRate) },
     { label: "Jobs booked", value: (w) => String(w.jobsBooked) },
-    { label: "Collected", value: (w) => dollars(w.collectedCents) },
+    { label: "From calls and texts Orvius answered", value: (w) => String(w.jobsFromOrvius ?? 0) },
+    { label: "Customer confirmed", value: (w) => String(w.jobsCustomerConfirmed ?? 0) },
+    { label: "Completed", value: (w) => String(w.jobsCompleted ?? 0) },
+    { label: "Shops' customer payments (not our revenue)", value: (w) => dollars(w.collectedCents) },
+    { label: "Orvius platform fees", value: (w) => dollars(w.platformFeeCents ?? 0) },
   ];
   return (
     <section className="card mb-8 p-6" aria-label="Weekly scoreboard">
@@ -841,9 +846,11 @@ function ScoreboardCard({ board }: { board: CompanyScoreboard }) {
           </h2>
         </div>
         <p className="font-sans text-xs text-ash">
-          Signup to first booked job: {firstJobText(board.signupToFirstJobMinutes)} median
+          Signup to first job from an answered call or text: {firstJobText(board.signupToFirstJobMinutes)} median
           {board.shopsWithoutFirstJob ? ` · ${board.shopsWithoutFirstJob} new without one` : ""}
         </p>
+        <p className="w-full font-sans text-xs text-ash">{activationText(board.activation30d)}</p>
+        <p className="w-full font-sans text-xs text-ash">{retentionText(board.retention)}</p>
       </div>
       <table className="mt-4 w-full font-sans text-sm">
         <thead>

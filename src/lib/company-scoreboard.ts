@@ -2,6 +2,7 @@ import { unitEconomicsSince, type UnitEconomics } from "@/lib/call-cost";
 import { COLLECTED_STATUSES } from "@/lib/payment-math";
 import { revenueLines, valueLines, type Revenue } from "@/lib/revenue-lines";
 import { unitCostLines } from "@/lib/unit-cost-lines";
+import { activationText, retentionText, type Activation, type Retention } from "@/lib/scoreboard-text";
 import { company } from "@/lib/company";
 import { isEmailConfigured, sendOwnerEmail } from "@/lib/email";
 import { getAppUrl } from "@/lib/env";
@@ -37,8 +38,18 @@ export type ScoreboardWeek = {
   /** Leads that became a job, 0–100; null with no leads. */
   bookingRate: number | null;
   jobsBooked: number;
+  /** Jobs whose lead came from a call or text Orvius answered, created this week. */
+  jobsFromOrvius: number;
+  /** Jobs the customer themselves confirmed this week (not the office marking them). */
+  jobsCustomerConfirmed: number;
+  jobsCompleted: number;
+  /** Shops' own customer payments recorded or collected this week: their money, not Orvius revenue. */
   collectedCents: number;
+  /** Orvius's platform fee on card payments paid this week (invoices and deposits). */
+  platformFeeCents: number;
 };
+
+
 
 export type { Revenue };
 
@@ -48,8 +59,10 @@ export type CompanyScoreboard = {
   activeShops: number;
   thisWeek: ScoreboardWeek;
   lastWeek: ScoreboardWeek;
-  /** Median minutes from a shop's signup to its first booked job, shops from the last 30 days. */
+  /** Median minutes from a shop's signup to its first job booked from an answered call or text, shops from the last 30 days. */
   signupToFirstJobMinutes: number | null;
+  activation30d: Activation;
+  retention: Retention;
   shopsWithoutFirstJob: number;
   /** Last 30 days of real calls that reported a cost; null until the first one does. */
   unitCost: UnitEconomics | null;
@@ -94,8 +107,23 @@ const pct = (part: number, whole: number) => (whole > 0 ? Math.round((part / who
 async function week(start: Date, end: Date, now: Date): Promise<ScoreboardWeek> {
   const inWindow = { gte: start, lt: end };
   const stuckBefore = new Date(Math.min(end.getTime(), now.getTime() - STUCK_CALL_MS));
-  const [newShops, churnedShops, calls, failedCalls, stuckCalls, leads, leadsBooked, jobsBooked, collected] =
-    await Promise.all([
+  const fromOrvius = { lead: { is: { OR: [{ callId: { not: null } }, { source: "sms" }] } } };
+  const [
+    newShops,
+    churnedShops,
+    calls,
+    failedCalls,
+    stuckCalls,
+    leads,
+    leadsBooked,
+    jobsBooked,
+    collected,
+    jobsFromOrvius,
+    jobsCustomerConfirmed,
+    jobsCompleted,
+    invoiceFees,
+    depositFees,
+  ] = await Promise.all([
       prisma.business.count({ where: { ...realShop, createdAt: inWindow } }),
       prisma.business.count({ where: { ...realShop, canceledAt: inWindow } }),
       prisma.call.count({ where: { business: realShop, createdAt: inWindow } }),
@@ -110,6 +138,17 @@ async function week(start: Date, end: Date, now: Date): Promise<ScoreboardWeek> 
         where: { business: realShop, createdAt: inWindow, status: { in: COLLECTED_STATUSES } },
         _sum: { amountCents: true },
       }),
+      prisma.job.count({ where: { business: realShop, createdAt: inWindow, ...fromOrvius } }),
+      prisma.job.count({ where: { business: realShop, customerConfirmedAt: inWindow } }),
+      prisma.job.count({ where: { business: realShop, completedAt: inWindow, status: "completed" } }),
+      prisma.invoice.aggregate({
+        where: { business: realShop, status: "paid", paidAt: inWindow },
+        _sum: { applicationFeeCents: true },
+      }),
+      prisma.deposit.aggregate({
+        where: { business: realShop, status: "paid", paidAt: inWindow },
+        _sum: { applicationFeeCents: true },
+      }),
     ]);
   const failed = failedCalls + stuckCalls;
   return {
@@ -123,8 +162,26 @@ async function week(start: Date, end: Date, now: Date): Promise<ScoreboardWeek> 
     leadsBooked,
     bookingRate: pct(leadsBooked, leads),
     jobsBooked,
+    jobsFromOrvius,
+    jobsCustomerConfirmed,
+    jobsCompleted,
     collectedCents: collected._sum.amountCents ?? 0,
+    platformFeeCents: (invoiceFees._sum.applicationFeeCents ?? 0) + (depositFees._sum.applicationFeeCents ?? 0),
   };
+}
+
+const RETENTION_DAYS = [30, 90] as const;
+
+/** Still on a plan means active or past due: a past-due shop has not left yet. */
+export function retentionFrom(shops: Array<{ paidSince: Date | null; billingStatus: string | null }>, now: Date): Retention {
+  return RETENTION_DAYS.map((days) => {
+    const cohort = shops.filter((shop) => shop.paidSince && now.getTime() - shop.paidSince.getTime() >= days * DAY_MS);
+    return {
+      days,
+      started: cohort.length,
+      kept: cohort.filter((shop) => shop.billingStatus === "active" || shop.billingStatus === "past_due").length,
+    };
+  });
 }
 
 function median(values: number[]): number | null {
@@ -149,8 +206,8 @@ export async function getCompanyScoreboard(now = new Date()): Promise<CompanySco
       select: {
         createdAt: true,
         acquisitionJson: true,
-        jobs: { orderBy: { createdAt: "asc" }, take: 1, select: { createdAt: true } },
       },
+      orderBy: { createdAt: "desc" },
       take: 1000,
     }),
     unitEconomicsSince(new Date(now.getTime() - 30 * DAY_MS)),
@@ -161,7 +218,9 @@ export async function getCompanyScoreboard(now = new Date()): Promise<CompanySco
     }),
     prisma.networkHandoff.count({ where: { status: "taken", takenAt: { gte: new Date(now.getTime() - 30 * DAY_MS) } } }),
   ]);
-  const [plans, calls30d, value, leaving] = await Promise.all([
+  const signedUp30d = { ...realShop, createdAt: { gte: new Date(now.getTime() - 30 * DAY_MS) } };
+  const orvJob = { lead: { is: { OR: [{ callId: { not: null } }, { source: "sms" }] } } };
+  const [plans, calls30d, value, leaving, payers, signedUp, lineAnswered, numberProven, withFirstJob, firstJobs] = await Promise.all([
     prisma.business.groupBy({
       by: ["billingPlan", "billingInterval"],
       where: { ...realShop, isActive: true, billingStatus: { in: ["active", "past_due"] } },
@@ -173,6 +232,21 @@ export async function getCompanyScoreboard(now = new Date()): Promise<CompanySco
       where: { ...realShop, cancelRequestedAt: { gte: new Date(now.getTime() - 30 * DAY_MS) } },
       select: { cancelReason: true },
       take: 5000,
+    }),
+    prisma.business.findMany({
+      where: { ...realShop, paidSince: { lte: new Date(now.getTime() - RETENTION_DAYS[0] * DAY_MS) } },
+      select: { paidSince: true, billingStatus: true },
+      take: 20_000,
+    }),
+    prisma.business.count({ where: signedUp30d }),
+    prisma.business.count({ where: { ...signedUp30d, lineVerifiedAt: { not: null } } }),
+    prisma.business.count({ where: { ...signedUp30d, overflowProvedAt: { not: null } } }),
+    prisma.business.count({ where: { ...signedUp30d, jobs: { some: orvJob } } }),
+    prisma.business.findMany({
+      where: { ...signedUp30d, jobs: { some: orvJob } },
+      select: { createdAt: true, jobs: { where: orvJob, orderBy: { createdAt: "asc" }, take: 1, select: { createdAt: true } } },
+      orderBy: { createdAt: "desc" },
+      take: 1000,
     }),
   ]);
   const revenue = revenueFrom({
@@ -188,7 +262,7 @@ export async function getCompanyScoreboard(now = new Date()): Promise<CompanySco
     })),
   );
 
-  const minutes = recentShops
+  const minutes = firstJobs
     .filter((shop) => shop.jobs[0])
     .map((shop) => Math.max(0, Math.round((shop.jobs[0].createdAt.getTime() - shop.createdAt.getTime()) / 60_000)));
 
@@ -199,7 +273,9 @@ export async function getCompanyScoreboard(now = new Date()): Promise<CompanySco
     thisWeek,
     lastWeek,
     signupToFirstJobMinutes: median(minutes),
-    shopsWithoutFirstJob: recentShops.length - minutes.length,
+    activation30d: { signedUp, lineAnswered, numberProven },
+    retention: retentionFrom(payers, now),
+    shopsWithoutFirstJob: signedUp - withFirstJob,
     unitCost,
     signupChannels: countChannels(recentShops.map((shop) => shop.acquisitionJson)),
     density,
@@ -230,9 +306,13 @@ export function scoreboardLines(board: CompanyScoreboard): string[] {
     `Why shops asked to cancel, 30 days: ${cancelReasonText(board.cancelReasons30d ?? [])}`,
     `Calls: ${now.calls} · finished cleanly: ${rate(now.answeredCleanPct)} (last week ${rate(prev.answeredCleanPct)}) · failed: ${now.failedCalls}`,
     `Booking rate: ${rate(now.bookingRate)} of ${now.leads} leads (last week ${rate(prev.bookingRate)})`,
-    `Jobs booked: ${now.jobsBooked} (last week ${prev.jobsBooked})`,
-    `Collected through Orvius: ${money(now.collectedCents)} (last week ${money(prev.collectedCents)})`,
-    `Signup to first booked job: ${duration(board.signupToFirstJobMinutes)} median · ${board.shopsWithoutFirstJob} new shop(s) still without one`,
+    `Jobs booked: ${now.jobsBooked} (last week ${prev.jobsBooked}) · from calls and texts Orvius answered: ${now.jobsFromOrvius ?? 0}`,
+    `Customer confirmed: ${now.jobsCustomerConfirmed ?? 0} · completed: ${now.jobsCompleted ?? 0}`,
+    `Shops' customer payments (their money, not ours): ${money(now.collectedCents)} (last week ${money(prev.collectedCents)})`,
+    `Orvius platform fees on card payments: ${money(now.platformFeeCents ?? 0)} (last week ${money(prev.platformFeeCents ?? 0)})`,
+    activationText(board.activation30d),
+    `Signup to first job from an answered call or text: ${duration(board.signupToFirstJobMinutes)} median · ${board.shopsWithoutFirstJob} new shop(s) still without one`,
+    retentionText(board.retention),
     `New shops by source, 30 days: ${signupChannelText(board.signupChannels ?? [])}`,
     `Densest areas: ${densityText(board.density ?? [])}`,
     `Network: ${board.networkReadyAreas ?? 0} area(s) where a pass can land · ${board.networkJobs30d ?? 0} job(s) passed and taken, 30 days`,

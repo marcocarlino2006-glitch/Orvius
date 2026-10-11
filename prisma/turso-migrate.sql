@@ -1093,3 +1093,4 @@ CREATE TABLE IF NOT EXISTS "ServiceTitanSync" (
 CREATE UNIQUE INDEX IF NOT EXISTS "ServiceTitanSync_leadId_key" ON "ServiceTitanSync"("leadId");
 CREATE INDEX IF NOT EXISTS "ServiceTitanSync_status_nextAttemptAt_idx" ON "ServiceTitanSync"("status", "nextAttemptAt");
 CREATE INDEX IF NOT EXISTS "ServiceTitanSync_businessId_createdAt_idx" ON "ServiceTitanSync"("businessId", "createdAt");
+ALTER TABLE "Business" ADD COLUMN "paidSince" DATETIME;
