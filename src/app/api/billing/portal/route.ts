@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { requirePermission } from "@/lib/tenant";
 import { getAppBaseUrl, getStripe } from "@/lib/stripe";
+import { ensurePortalConfiguration } from "@/lib/billing-portal";
 import { logError, logWarn } from "@/lib/logger";
 
 /*
@@ -34,7 +35,12 @@ export async function POST(request: NextRequest) {
 
     const body = (await request.json().catch(() => ({}))) as { flow?: unknown };
     const stripe = getStripe();
-    const base = { customer: business.stripeCustomerId, return_url: `${getAppBaseUrl()}/dashboard/billing` };
+    const configuration = await ensurePortalConfiguration(stripe);
+    const base = {
+      customer: business.stripeCustomerId,
+      return_url: `${getAppBaseUrl()}/dashboard/billing`,
+      ...(configuration ? { configuration } : {}),
+    };
     const flow_data = flowFor(body.flow, business.stripeSubscriptionId);
     if (flow_data) {
       try {
