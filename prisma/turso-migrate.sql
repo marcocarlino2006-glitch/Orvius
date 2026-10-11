@@ -1022,3 +1022,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS "TwoStep_email_key" ON "TwoStep"("email");
 ALTER TABLE "Business" ADD COLUMN "pauseStartsAt" DATETIME;
 ALTER TABLE "Business" ADD COLUMN "pausedUntil" DATETIME;
 ALTER TABLE "Business" ADD COLUMN "planEndsAt" DATETIME;
+ALTER TABLE "Business" ADD COLUMN "cancelRequestedAt" DATETIME;
+ALTER TABLE "Business" ADD COLUMN "cancelReason" TEXT;
+ALTER TABLE "Business" ADD COLUMN "cancelComment" TEXT;

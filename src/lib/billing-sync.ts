@@ -1,11 +1,15 @@
 import { logInfo, logWarn } from "@/lib/logger";
 import { alertPaymentFailed } from "@/lib/owner-nudges";
 import { isPaused } from "@/lib/billing-entitlement";
+import { recordAudit } from "@/lib/audit";
+import { cancelEvent, cancelReasonFrom, cancelReasonLabel, founderCancelText } from "@/lib/cancel-signal";
+import { pageFounderForShop } from "@/lib/platform-pager";
+import { planMonthlyCents } from "@/lib/value-check";
 import { resumeShopLine, suspendShopLine } from "@/lib/line-lifecycle";
 import { pauseFieldsFromSubscription, planEndsAtFromSubscription } from "@/lib/plan-pause";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
-import { isPaidPlanId, planIdForStripePriceId } from "@/lib/pricing-plans";
+import { getPlanById, isPaidPlanId, planIdForStripePriceId } from "@/lib/pricing-plans";
 import type Stripe from "stripe";
 
 /**
@@ -225,6 +229,20 @@ export async function syncSubscriptionToBusiness(
 
   const now = new Date();
   const previous = business.billingStatus;
+  const planEndsAt = planEndsAtFromSubscription(subscription);
+  const leaving = cancelEvent(
+    { billingStatus: previous, planEndsAt: business.planEndsAt },
+    { billingStatus, planEndsAt: billingStatus === "canceled" ? null : planEndsAt },
+  );
+  const said = cancelReasonFrom(subscription.cancellation_details);
+  const cancelFields =
+    leaving === "scheduled" || leaving === "ended_now"
+      ? { cancelRequestedAt: now, cancelReason: said.reason, cancelComment: said.comment }
+      : leaving === "kept"
+        ? { cancelRequestedAt: null, cancelReason: null, cancelComment: null }
+        : business.cancelRequestedAt && !business.cancelReason && said.reason
+          ? { cancelReason: said.reason, cancelComment: said.comment }
+          : {};
   const updated = await prisma.business.update({
     where: { id: business.id },
     data: {
@@ -237,9 +255,16 @@ export async function syncSubscriptionToBusiness(
       pastDueSince: billingStatus === "past_due" ? (business.pastDueSince ?? now) : null,
       canceledAt: billingStatus === "canceled" ? (business.canceledAt ?? now) : null,
       ...pauseFieldsFromSubscription(subscription, business, now),
-      planEndsAt: planEndsAtFromSubscription(subscription),
+      planEndsAt,
+      ...cancelFields,
     },
   });
+
+  if (leaving) {
+    await signalLeaving(updated, leaving, said).catch((error: unknown) =>
+      logWarn("billing.cancel_signal_failed", { businessId: updated.id, error: error instanceof Error ? error.message : "unknown" }),
+    );
+  }
 
   if (billingStatus === "past_due" && previous !== "past_due") {
     await alertPaymentFailed(updated).catch((error: unknown) =>
@@ -258,6 +283,44 @@ export async function syncSubscriptionToBusiness(
   }
 
   return { businessId: business.id };
+}
+
+async function signalLeaving(
+  shop: { id: string; name: string; ownerEmail: string | null; billingPlan: string | null; billingInterval: string | null; planEndsAt: Date | null },
+  event: "scheduled" | "ended_now" | "kept",
+  said: { reason: string | null; comment: string | null },
+) {
+  const planName = shop.billingPlan && isPaidPlanId(shop.billingPlan) ? getPlanById(shop.billingPlan).name : null;
+  if (event === "kept") {
+    await recordAudit({
+      businessId: shop.id,
+      entityType: "shop",
+      entityId: shop.id,
+      action: "billing.cancel_withdrawn",
+      actor: "owner",
+      summary: "Kept the plan. It renews again.",
+    });
+    return;
+  }
+  await recordAudit({
+    businessId: shop.id,
+    entityType: "shop",
+    entityId: shop.id,
+    action: event === "scheduled" ? "billing.cancel_scheduled" : "billing.canceled",
+    actor: said.reason?.startsWith("payment_") ? "system" : "owner",
+    summary: `${event === "scheduled" ? "Set to cancel" : "Canceled"}. Reason: ${cancelReasonLabel(said.reason)}${said.comment ? ` ("${said.comment}")` : ""}.`,
+  });
+  const text = founderCancelText({
+    shopName: shop.name,
+    event,
+    reason: said.reason,
+    comment: said.comment,
+    planName,
+    monthlyCents: planMonthlyCents(shop.billingPlan, shop.billingInterval),
+    endsAt: shop.planEndsAt,
+    ownerEmail: shop.ownerEmail,
+  });
+  await pageFounderForShop(shop.id, `cancel:${new Date().toISOString().slice(0, 10)}`, text);
 }
 
 /** Activate from a Checkout session id (success-page fallback if webhook is slow). */
