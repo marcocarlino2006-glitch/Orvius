@@ -253,6 +253,13 @@ export async function GET(request: Request) {
           error: businessRecord.busyCalendarError,
         }
       : null,
+    fsmSchedule: businessRecord?.fsmScheduleSource
+      ? {
+          source: businessRecord.fsmScheduleSource,
+          syncedAt: businessRecord.fsmScheduleSyncedAt?.toISOString() ?? null,
+          error: businessRecord.fsmScheduleError,
+        }
+      : null,
     jobber: businessRecord ? await jobberStatus(businessRecord.id).catch(() => null) : null,
     housecall: businessRecord ? await housecallStatus(businessRecord.id).catch(() => null) : null,
     servicetitan: businessRecord ? await serviceTitanStatus(businessRecord.id).catch(() => null) : null,

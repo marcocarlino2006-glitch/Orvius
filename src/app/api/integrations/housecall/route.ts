@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { afterResponse } from "@/lib/after-response";
+import { refreshFsmSchedule } from "@/lib/fsm-schedule";
 import { personActor, recordAudit } from "@/lib/audit";
 import { connectHousecall, disconnectHousecall, HousecallAuthError, housecallConfigured, housecallStatus } from "@/lib/housecall";
 import { logWarn } from "@/lib/logger";
@@ -17,6 +19,7 @@ export async function POST(request: Request) {
 
   try {
     const conn = await connectHousecall({ businessId: business.id, apiKey });
+    await afterResponse(() => refreshFsmSchedule(business.id).then(() => undefined));
     await recordAudit({
       businessId: business.id,
       entityType: "shop",
@@ -44,6 +47,7 @@ export async function DELETE() {
   const { business } = authResult;
 
   await disconnectHousecall(business.id);
+  await afterResponse(() => refreshFsmSchedule(business.id).then(() => undefined));
   await recordAudit({
     businessId: business.id,
     entityType: "shop",

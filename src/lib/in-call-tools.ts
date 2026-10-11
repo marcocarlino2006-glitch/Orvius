@@ -1,6 +1,7 @@
 import type { Business } from "@prisma/client";
 import { afterResponse } from "@/lib/after-response";
 import { isBusyCalendarUnreadable } from "@/lib/busy-calendar";
+import { isFsmScheduleUnreadable } from "@/lib/fsm-schedule";
 import { displayPhone } from "@/lib/customer";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { findOpenSlots } from "@/lib/job";
@@ -93,7 +94,7 @@ async function checkAvailability(shop: ShopForTools, callId: string, args: Recor
     if (slots.length) note = NO_ALT_NOTE;
   }
   if (!slots.length) {
-    if (await isBusyCalendarUnreadable(shop.id)) return CALENDAR_UNREADABLE_REPLY;
+    if ((await isBusyCalendarUnreadable(shop.id)) || (await isFsmScheduleUnreadable(shop.id))) return CALENDAR_UNREADABLE_REPLY;
     return (await networkCanHelp(shop)) ? NETWORK_OFFER_REPLY : NO_SLOTS_REPLY;
   }
   return availabilityReply(slots, timezone, note);
