@@ -1139,3 +1139,221 @@
     width: 100%;
   }
 }
+
+/* ── Pause or cancel ───────────────────────────────────────────────────── */
+
+.os-shell .billing-usage-advice {
+  margin: 0.4rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--ox-text-2);
+}
+
+.os-shell .plan-exit-open {
+  justify-self: start;
+  margin-top: 0.75rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 0.8125rem;
+  color: var(--ox-mute);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.os-shell .plan-exit-open:hover {
+  color: var(--ox-text);
+}
+
+.os-shell .plan-exit {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 1.25rem 1.4rem;
+  border: 1px solid var(--ox-line);
+  border-radius: 0.75rem;
+  background: var(--ox-s1);
+}
+
+.os-shell .plan-exit-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.os-shell .plan-exit-title {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ox-text);
+}
+
+.os-shell .plan-exit-close {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--ox-green);
+  cursor: pointer;
+}
+
+.os-shell .plan-exit-lead {
+  margin: 0;
+  max-width: 40rem;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--ox-text);
+}
+
+.os-shell .plan-exit-stats {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.75rem;
+}
+
+.os-shell .plan-exit-stats > div {
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--ox-line);
+  border-radius: 0.6rem;
+  background: var(--ox-bg);
+}
+
+.os-shell .plan-exit-stats dt {
+  font-size: 0.75rem;
+  color: var(--ox-mute);
+}
+
+.os-shell .plan-exit-stats dd {
+  margin: 0.2rem 0 0;
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ox-text);
+}
+
+.os-shell .plan-exit-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.75rem;
+}
+
+.os-shell .plan-exit-option {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: 0.6rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--ox-line);
+  border-radius: 0.75rem;
+  background: var(--ox-bg);
+}
+
+.os-shell .plan-exit-option-title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ox-text);
+}
+
+.os-shell .plan-exit-option-body {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--ox-text-2);
+}
+
+.os-shell .plan-exit-months {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--ox-line);
+  border-radius: 999px;
+  background: var(--ox-s1);
+}
+
+.os-shell .plan-exit-months button {
+  min-height: 32px;
+  padding: 0 0.8rem;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  font-size: 0.8125rem;
+  color: var(--ox-text-2);
+  cursor: pointer;
+  transition: background var(--ox-dur) ease, color var(--ox-dur) ease;
+}
+
+.os-shell .plan-exit-months button.is-on {
+  background: var(--ox-text);
+  color: var(--ox-bg);
+}
+
+.os-shell .plan-exit-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+}
+
+.os-shell .plan-exit-link {
+  font-size: 0.8125rem;
+  color: var(--ox-text-2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.os-shell .plan-exit-error {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--m-red);
+}
+
+.os-shell .plan-paused {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--ox-line);
+  border-left: 3px solid var(--ox-green);
+  border-radius: 0.75rem;
+  background: var(--ox-s1);
+}
+
+.os-shell .plan-paused-copy {
+  display: grid;
+  gap: 0.35rem;
+  flex: 1 1 18rem;
+}
+
+.os-shell .plan-paused-title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ox-text);
+}
+
+.os-shell .plan-paused-detail {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--ox-text-2);
+}
+
+@media (max-width: 640px) {
+  .os-shell .plan-exit {
+    padding: 1rem;
+  }
+
+  .os-shell .plan-exit-head {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+}

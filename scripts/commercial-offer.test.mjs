@@ -72,12 +72,12 @@ test("no surprise charges and no overclaiming", () => {
 test("pricing, FAQ, refunds and billing tell the same story", () => {
   assert.match(read("src/app/pricing/page.tsx"), /terms={<PricingTerms \/>}/);
   const faq = Object.fromEntries(pricingFaq.map((f) => [f.id, f.answer]));
-  assert.match(faq.cancel, /Settings → Billing → Manage/);
+  assert.match(faq.cancel, /Billing → Pause or cancel/);
   assert.ok(faq.cancel.includes(String(LINE_RETENTION_DAYS)));
   assert.match(faq["payments-fee"], /separate from your Orvius plan/);
   assert.ok(faq.launch.includes(String(PILOT_DAYS)));
   const refunds = read("src/app/refunds/page.tsx");
-  assert.match(refunds, /Settings → Billing → Manage/);
+  assert.match(refunds, /Settings → Billing → Pause or cancel/);
   assert.match(refunds, /LINE_RETENTION_DAYS/);
   assert.match(read("src/components/billing-content.tsx"), /billing-split-note/);
 });

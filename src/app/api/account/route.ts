@@ -29,10 +29,12 @@ import { syncBusinessAssistant } from "@/lib/sync-business-assistant";
 import { getBillingReadiness, isStripeCheckoutConfigured, isStripeConfigured } from "@/lib/stripe";
 import {
   isBillingEntitled,
+  isPaused,
   resolvePilotEndsAt,
 } from "@/lib/billing-entitlement";
 import { getShopHealth } from "@/lib/shop-health";
 import { summarizeCallUsage, usagePeriodStart } from "@/lib/call-usage";
+import { planAdvice, planAdviceLine } from "@/lib/plan-advice";
 import { getMonthValue, monthValueLine } from "@/lib/month-value";
 import { countBillableCalls } from "@/lib/billable-calls";
 import { getWedgeReadiness } from "@/lib/wedge-readiness";
@@ -206,9 +208,13 @@ export async function GET(request: Request) {
         billingPlan: business.billingPlan,
         pilotEndsAt: business.pilotEndsAt,
         createdAt: business.createdAt,
+        pauseStartsAt: businessRecord?.pauseStartsAt ?? null,
+        pausedUntil: businessRecord?.pausedUntil ?? null,
       }
     : null;
   const entitled = billingFields ? isBillingEntitled(billingFields) : false;
+  const advice = billableCalls !== null ? planAdvice({ used: billableCalls, planId: currentPlanId }) : null;
+  const usageAdvice = advice && currentPlan && business?.billingStatus === "active" ? planAdviceLine(advice, currentPlan.name) : null;
   const pilotEnds = billingFields ? resolvePilotEndsAt(billingFields) : null;
 
   /*
@@ -264,6 +270,16 @@ export async function GET(request: Request) {
       pilotEndsAt: pilotEnds?.toISOString() ?? null,
       usage: billableCalls !== null ? summarizeCallUsage({ used: billableCalls, planId: currentPlanId }) : null,
       valueLine: monthValue ? monthValueLine(monthValue) : null,
+      advice: usageAdvice,
+      interval: businessRecord?.billingInterval === "year" ? "year" : "month",
+      pause:
+        businessRecord?.pausedUntil && billingFields
+          ? {
+              startsAt: businessRecord.pauseStartsAt?.toISOString() ?? null,
+              until: businessRecord.pausedUntil.toISOString(),
+              started: isPaused(billingFields),
+            }
+          : null,
     },
     deposits: businessRecord ? depositsPayload(businessRecord) : null,
   });

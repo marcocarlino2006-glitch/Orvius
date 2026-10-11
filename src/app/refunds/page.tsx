@@ -61,11 +61,17 @@ export default function RefundsPage() {
 
       <LegalSection title="3. Cancellation">
         <p>
-          You may cancel at any time from Settings → Billing → Manage, which opens your Stripe
+          You may cancel at any time from Settings → Billing → Pause or cancel, which opens your Stripe
           customer portal, or by emailing {company.supportEmail}. Cancellation stops future renewals;
           access continues through the end of the paid period. After that your Orvius line stops
           answering, and your number is held for {LINE_RETENTION_DAYS} days in case you return. You can
           download your shop data at any time, including after cancellation.
+        </p>
+        <p>
+          A monthly plan can instead pause for 1, 2 or 3 months. The period you paid for runs out first;
+          while paused you are not charged, the line does not answer, and your number, records and
+          settings are kept. The plan resumes and is charged again on the date you chose, and we text you
+          before it does. You can resume early from Billing, which starts a new paid month that day.
         </p>
       </LegalSection>
 
