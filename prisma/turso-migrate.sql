@@ -1059,3 +1059,37 @@ CREATE TABLE IF NOT EXISTS "HousecallSync" (
 CREATE UNIQUE INDEX IF NOT EXISTS "HousecallSync_leadId_key" ON "HousecallSync"("leadId");
 CREATE INDEX IF NOT EXISTS "HousecallSync_status_nextAttemptAt_idx" ON "HousecallSync"("status", "nextAttemptAt");
 CREATE INDEX IF NOT EXISTS "HousecallSync_businessId_createdAt_idx" ON "HousecallSync"("businessId", "createdAt");
+CREATE TABLE IF NOT EXISTS "ServiceTitanConnection" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "tenantId" TEXT NOT NULL,
+    "clientId" TEXT NOT NULL,
+    "clientSecretEnc" TEXT,
+    "providerId" TEXT NOT NULL,
+    "providerName" TEXT,
+    "status" TEXT NOT NULL DEFAULT 'active',
+    "lastError" TEXT,
+    "connectedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "disconnectedAt" DATETIME,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "ServiceTitanConnection_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "ServiceTitanConnection_businessId_key" ON "ServiceTitanConnection"("businessId");
+CREATE TABLE IF NOT EXISTS "ServiceTitanSync" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "leadId" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'pending',
+    "attempts" INTEGER NOT NULL DEFAULT 0,
+    "nextAttemptAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "claimedAt" DATETIME,
+    "requestSentAt" DATETIME,
+    "bookingId" TEXT,
+    "lastError" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "ServiceTitanSync_leadId_key" ON "ServiceTitanSync"("leadId");
+CREATE INDEX IF NOT EXISTS "ServiceTitanSync_status_nextAttemptAt_idx" ON "ServiceTitanSync"("status", "nextAttemptAt");
+CREATE INDEX IF NOT EXISTS "ServiceTitanSync_businessId_createdAt_idx" ON "ServiceTitanSync"("businessId", "createdAt");

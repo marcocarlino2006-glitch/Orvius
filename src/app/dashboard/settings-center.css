@@ -1913,3 +1913,15 @@ html .os-shell .sc-dialog .sc-plan {
     justify-content: flex-end;
   }
 }
+.sc-key-field {
+  display: block;
+  margin-top: 10px;
+}
+.sc-key-field > span {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+.sc-key-field .sc-input {
+  margin-top: 4px;
+}
