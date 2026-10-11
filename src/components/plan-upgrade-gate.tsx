@@ -48,14 +48,15 @@ export function PlanUpgradeGate({ module, children }: PlanUpgradeGateProps) {
       <div className="plan-upgrade-gate">
         <div className="plan-upgrade-gate-inner font-sans">
           <p className="plan-upgrade-gate-kicker">{moduleLabel(module)}</p>
-          <h2 className="plan-upgrade-gate-title">Pay to continue</h2>
+          <h2 className="plan-upgrade-gate-title">{access?.paused ? "Orvius is paused" : "Pay to continue"}</h2>
           <p className="plan-upgrade-gate-detail">
-            Your shop access ended or subscription is inactive. Pay with card to reopen{" "}
-            {moduleLabel(module).toLowerCase()} and the rest of your shop.
+            {access?.paused
+              ? `You paused your plan for the off-season. Resume on Billing to use ${moduleLabel(module).toLowerCase()} again.`
+              : `Your shop access ended or subscription is inactive. Pay with card to reopen ${moduleLabel(module).toLowerCase()} and the rest of your shop.`}
           </p>
           <div className="plan-upgrade-gate-actions">
             <Link href="/dashboard/billing" className="btn btn-void text-sm">
-              Pay with card
+              {access?.paused ? "Resume" : "Pay with card"}
             </Link>
             <Link href="/pricing" className="btn btn-secondary text-sm">
               Compare plans
