@@ -2,7 +2,7 @@ import { logInfo, logWarn } from "@/lib/logger";
 import { alertPaymentFailed } from "@/lib/owner-nudges";
 import { isPaused } from "@/lib/billing-entitlement";
 import { resumeShopLine, suspendShopLine } from "@/lib/line-lifecycle";
-import { pauseFieldsFromSubscription } from "@/lib/plan-pause";
+import { pauseFieldsFromSubscription, planEndsAtFromSubscription } from "@/lib/plan-pause";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
 import { isPaidPlanId, planIdForStripePriceId } from "@/lib/pricing-plans";
@@ -237,6 +237,7 @@ export async function syncSubscriptionToBusiness(
       pastDueSince: billingStatus === "past_due" ? (business.pastDueSince ?? now) : null,
       canceledAt: billingStatus === "canceled" ? (business.canceledAt ?? now) : null,
       ...pauseFieldsFromSubscription(subscription, business, now),
+      planEndsAt: planEndsAtFromSubscription(subscription),
     },
   });
 

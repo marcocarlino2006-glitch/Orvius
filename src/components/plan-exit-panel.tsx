@@ -69,6 +69,39 @@ export function PausedPlanNote({ pause, onChanged }: { pause: PlanPause; onChang
   );
 }
 
+/** Set to cancel: when the line stops, and one tap to keep the plan. */
+export function PlanEndingNote({ endsAt }: { endsAt: string }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function keep() {
+    setBusy(true);
+    setError(null);
+    try {
+      await openPortal("manage");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Stripe didn't open. Nothing was changed. Try again.");
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="plan-paused plan-paused--ending font-sans" role="status">
+      <div className="plan-paused-copy">
+        <p className="plan-paused-title">Your plan ends {pauseDate(endsAt)}</p>
+        <p className="plan-paused-detail">
+          Everything works until then. After that your line stops answering and callers hear a short message to reach you
+          directly. Your number is held {LINE_RETENTION_DAYS} days in case you come back.
+        </p>
+        {error ? <p className="plan-exit-error" role="alert">{error}</p> : null}
+      </div>
+      <button type="button" className="sc-btn sc-btn--primary" disabled={busy} onClick={() => void keep()}>
+        {busy ? "Opening Stripe…" : "Keep my plan"}
+      </button>
+    </div>
+  );
+}
+
 /**
  * Pause or cancel. It opens on what Orvius did for the shop, then the ways to
  * stay for less (pause for the slow season, a smaller plan), then cancel.

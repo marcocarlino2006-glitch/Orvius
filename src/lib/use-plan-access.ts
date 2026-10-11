@@ -18,6 +18,8 @@ export type PlanAccess = {
   billingStatus: string;
   billingPlan: string | null;
   entitled: boolean;
+  /** Inside an off-season pause: records read, nothing acts. */
+  paused: boolean;
   pilotEndsAt: string | null;
   canAccess: (
     module: ReturnType<typeof navHrefToModule> extends infer M
@@ -51,7 +53,8 @@ export function usePlanAccess(): {
           effectivePlan,
           billingStatus,
           billingPlan,
-          entitled: isBillingEntitled(fields),
+          entitled: typeof data.billing?.entitled === "boolean" ? data.billing.entitled : isBillingEntitled(fields),
+          paused: Boolean(data.billing?.pause?.started),
           pilotEndsAt: ends?.toISOString() ?? null,
           canAccess: (module) => canAccessModule(effectivePlan, module),
         });
