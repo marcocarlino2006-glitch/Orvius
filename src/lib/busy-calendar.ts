@@ -2,6 +2,7 @@ import type { Business } from "@prisma/client";
 import { afterResponse } from "@/lib/after-response";
 import { isValidTimezone, MAX_SCHEDULE_DAYS, zonedWallToUtc, type BusyWindow } from "@/lib/availability";
 import { logWarn } from "@/lib/logger";
+import { enqueueOwnerAlert } from "@/lib/notification-queue";
 import { prisma } from "@/lib/prisma";
 
 /*
@@ -380,8 +381,47 @@ export async function refreshBusyCalendar(business: BusyBusiness, now = new Date
     await prisma.business
       .update({ where: { id: business.id }, data: { busyCalendarError: message.slice(0, 280) } })
       .catch(() => undefined);
+    if (busyCalendarUnreadable(business, now)) await tellOwnerCalendarUnreadable(business.id, message, now).catch(() => undefined);
     return { windows: decode(business.busyCalendarJson), error: message };
   }
+}
+
+/**
+ * A calendar Orvius has not read in BUSY_STALE_MAX_MS can't say what is free,
+ * so no time is offered from it: an old copy would promise slots the owner has
+ * since filled.
+ */
+export function busyCalendarUnreadable(
+  business: Pick<Business, "busyCalendarUrl" | "busyCalendarSyncedAt">,
+  now = new Date(),
+): boolean {
+  if (!business.busyCalendarUrl) return false;
+  const syncedAt = business.busyCalendarSyncedAt ? new Date(business.busyCalendarSyncedAt).getTime() : 0;
+  return now.getTime() - syncedAt >= BUSY_STALE_MAX_MS;
+}
+
+export async function isBusyCalendarUnreadable(businessId: string, now = new Date()) {
+  const business = await prisma.business.findUnique({
+    where: { id: businessId },
+    select: { busyCalendarUrl: true, busyCalendarSyncedAt: true },
+  });
+  return business ? busyCalendarUnreadable(business, now) : false;
+}
+
+async function tellOwnerCalendarUnreadable(businessId: string, reason: string, now: Date) {
+  const shop = await prisma.business.findUnique({
+    where: { id: businessId },
+    select: { name: true, ownerPhone: true, ownerEmail: true },
+  });
+  if (!shop) return;
+  await enqueueOwnerAlert({
+    businessId,
+    dedupeKey: `busy-calendar-unreadable:${now.toISOString().slice(0, 10)}`,
+    businessName: shop.name,
+    message: `Orvius can't read your calendar (${reason.slice(0, 120)}). Until it can, callers aren't offered times: Orvius takes their details and you call to set the time. Fix it in Settings > Integrations > Busy times.`,
+    ownerPhone: shop.ownerPhone,
+    ownerEmail: shop.ownerEmail,
+  });
 }
 
 /**
@@ -404,7 +444,8 @@ export async function getBusyWindows(businessId: string, now = new Date()): Prom
     windows = decode(business.busyCalendarJson);
     await afterResponse(() => refreshBusyCalendar(business, now).then(() => undefined));
   } else {
-    windows = (await refreshBusyCalendar(business, now)).windows;
+    const fresh = await refreshBusyCalendar(business, now);
+    windows = fresh.error ? [{ start: now, end: new Date(now.getTime() + HORIZON_MS) }] : fresh.windows;
   }
   return windows.filter((w) => w.end.getTime() > now.getTime());
 }
