@@ -48,6 +48,8 @@ const FOLLOWUP_HOURS = 4;
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 /** Inside this window an unconfirmed appointment needs a call, not another text. */
 const CONFIRM_CALL_WINDOW_MS = 2 * 60 * 60 * 1000;
+/** A confirm text this old with no reply needs a call while there is still time to refill the slot. */
+const CONFIRM_NO_REPLY_MS = 12 * 60 * 60 * 1000;
 
 /*
   Housekeeping. Real work, but not work anyone does in the dark, and the
@@ -1061,8 +1063,10 @@ export async function collectAttention(businessId: string, now = new Date()): Pr
     const beforeCallWindow =
       scheduled != null && scheduled.getTime() - now.getTime() > CONFIRM_CALL_WINDOW_MS;
     // Autopilot texts for confirmation until the call window, so the owner only sees it after that.
+    const noReply =
+      job.customerConfirmSentAt != null && now.getTime() - job.customerConfirmSentAt.getTime() >= CONFIRM_NO_REPLY_MS;
     const waitingOnCustomer =
-      beforeCallWindow && (job.customerConfirmSentAt != null || business?.autopilot === true);
+      beforeCallWindow && !noReply && (job.customerConfirmSentAt != null || business?.autopilot === true);
     if (
       !job.customerConfirmedAt &&
       !waitingOnCustomer &&
@@ -1077,7 +1081,7 @@ export async function collectAttention(businessId: string, now = new Date()): Pr
         impact: isPriorityUrgency(urgency) || dueToday ? "critical" : "high",
         title: who,
         detail: [
-          "Awaiting customer confirm",
+          noReply ? "No reply to the confirm text" : "Awaiting customer confirm",
           job.title,
           scheduled
             ? shopTime(scheduled)
@@ -1085,7 +1089,7 @@ export async function collectAttention(businessId: string, now = new Date()): Pr
         ]
           .filter(Boolean)
           .join(" · "),
-        recommendedAction: "Text confirm",
+        recommendedAction: noReply || !beforeCallWindow ? "Call customer" : "Text confirm",
         href: `/dashboard/jobs/${job.id}`,
         entityType: "job",
         entityId: job.id,
