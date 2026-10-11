@@ -70,9 +70,15 @@ async function accessToken(creds: Credentials): Promise<string> {
   return data.access_token;
 }
 
-export async function serviceTitanRequest<T>(creds: Credentials, method: "GET" | "POST", path: string, body?: unknown): Promise<T> {
+export async function serviceTitanRequest<T>(
+  creds: Credentials,
+  method: "GET" | "POST",
+  path: string,
+  body?: unknown,
+  module: "crm" | "jpm" = "crm",
+): Promise<T> {
   const token = await accessToken(creds);
-  const res = await fetch(`${hosts().api}/crm/v2/tenant/${encodeURIComponent(creds.tenantId)}${path}`, {
+  const res = await fetch(`${hosts().api}/${module}/v2/tenant/${encodeURIComponent(creds.tenantId)}${path}`, {
     method,
     headers: {
       Authorization: `Bearer ${token}`,
@@ -348,4 +354,41 @@ export async function serviceTitanStatus(businessId: string) {
     sentLast30Days: recent,
     needsAttention: failing,
   };
+}
+
+/* ── The shop's ServiceTitan schedule, read so Orvius doesn't offer a taken time ── */
+
+type ServiceTitanAppointment = { id?: number | string; start?: string | null; end?: string | null; status?: string | null };
+
+const SERVICETITAN_DONE = new Set(["done", "canceled", "cancelled"]);
+
+/** Appointments starting in [from, to), or null when ServiceTitan isn't connected. */
+export async function serviceTitanScheduledVisits(businessId: string, from: Date, to: Date) {
+  const conn = await connection(businessId);
+  if (!conn) return null;
+  const visits: Array<{ start: Date; end: Date; phone: string | null }> = [];
+  for (let page = 1; page <= 10; page++) {
+    const query = new URLSearchParams({
+      startsOnOrAfter: from.toISOString(),
+      startsBefore: to.toISOString(),
+      page: String(page),
+      pageSize: "200",
+    });
+    let data: { data?: ServiceTitanAppointment[]; hasMore?: boolean };
+    try {
+      data = await serviceTitanRequest(conn.creds, "GET", `/appointments?${query}`, undefined, "jpm");
+    } catch (error) {
+      if (error instanceof ServiceTitanAuthError) await needsReconnect(conn.id, error.message);
+      throw error;
+    }
+    for (const appt of data.data ?? []) {
+      if (SERVICETITAN_DONE.has((appt.status ?? "").toLowerCase()) || !appt.start) continue;
+      const start = new Date(appt.start);
+      const end = appt.end ? new Date(appt.end) : new Date(start.getTime() + 2 * 60 * 60_000);
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) continue;
+      visits.push({ start, end, phone: null });
+    }
+    if (!data.hasMore) break;
+  }
+  return visits;
 }

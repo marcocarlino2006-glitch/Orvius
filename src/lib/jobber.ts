@@ -436,3 +436,43 @@ export async function jobberStatus(businessId: string) {
     needsAttention: failing,
   };
 }
+
+/* ── The shop's Jobber schedule, read so Orvius doesn't offer a taken time ── */
+
+const VISITS_QUERY = `query OrviusVisits($after: String, $filter: VisitFilterAttributes) {
+  visits(first: 100, after: $after, filter: $filter) {
+    nodes { id startAt endAt isComplete client { phones { number } } }
+    pageInfo { hasNextPage endCursor }
+  }
+}`;
+
+type JobberVisit = {
+  id: string;
+  startAt: string | null;
+  endAt: string | null;
+  isComplete?: boolean | null;
+  client?: { phones?: Array<{ number?: string | null }> | null } | null;
+};
+
+/** Visits scheduled in [from, to), or null when Jobber isn't connected. */
+export async function jobberScheduledVisits(businessId: string, from: Date, to: Date) {
+  const token = await jobberAccessToken(businessId);
+  if (!token) return null;
+  const visits: Array<{ start: Date; end: Date; phone: string | null }> = [];
+  let after: string | null = null;
+  for (let page = 0; page < 10; page++) {
+    const data: { visits: { nodes: JobberVisit[]; pageInfo: { hasNextPage: boolean; endCursor: string | null } } } =
+      await jobberGraphql(token, VISITS_QUERY, { after, filter: { startAt: { after: from.toISOString(), before: to.toISOString() } } });
+    for (const v of data.visits.nodes) {
+      if (v.isComplete || !v.startAt) continue;
+      const start = new Date(v.startAt);
+      const end = v.endAt ? new Date(v.endAt) : new Date(start.getTime() + 2 * 60 * 60_000);
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) continue;
+      const phone = v.client?.phones?.map((p) => normalizePhone(p.number ?? "")).find(Boolean) ?? null;
+      visits.push({ start, end, phone });
+    }
+    if (!data.visits.pageInfo.hasNextPage) break;
+    after = data.visits.pageInfo.endCursor;
+  }
+  return visits;
+}

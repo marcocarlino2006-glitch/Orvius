@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { afterResponse } from "@/lib/after-response";
+import { refreshFsmSchedule } from "@/lib/fsm-schedule";
 import { personActor, recordAudit } from "@/lib/audit";
 import { disconnectJobber } from "@/lib/jobber";
 import { requirePermission } from "@/lib/tenant";
@@ -9,6 +11,7 @@ export async function POST() {
   const { business } = authResult;
 
   await disconnectJobber(business.id);
+  await afterResponse(() => refreshFsmSchedule(business.id).then(() => undefined));
   await recordAudit({
     businessId: business.id,
     entityType: "shop",

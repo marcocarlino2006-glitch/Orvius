@@ -1094,3 +1094,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS "ServiceTitanSync_leadId_key" ON "ServiceTitan
 CREATE INDEX IF NOT EXISTS "ServiceTitanSync_status_nextAttemptAt_idx" ON "ServiceTitanSync"("status", "nextAttemptAt");
 CREATE INDEX IF NOT EXISTS "ServiceTitanSync_businessId_createdAt_idx" ON "ServiceTitanSync"("businessId", "createdAt");
 ALTER TABLE "Business" ADD COLUMN "paidSince" DATETIME;
+ALTER TABLE "Business" ADD COLUMN "fsmScheduleJson" TEXT;
+ALTER TABLE "Business" ADD COLUMN "fsmScheduleSyncedAt" DATETIME;
+ALTER TABLE "Business" ADD COLUMN "fsmScheduleSource" TEXT;
+ALTER TABLE "Business" ADD COLUMN "fsmScheduleError" TEXT;

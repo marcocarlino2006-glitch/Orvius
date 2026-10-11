@@ -299,3 +299,48 @@ export async function housecallStatus(businessId: string) {
     needsAttention: failing,
   };
 }
+
+/* ── The shop's Housecall Pro schedule, read so Orvius doesn't offer a taken time ── */
+
+type HousecallJob = {
+  id?: string;
+  work_status?: string | null;
+  schedule?: { scheduled_start?: string | null; scheduled_end?: string | null } | null;
+  customer?: { mobile_number?: string | null; home_number?: string | null } | null;
+};
+
+const HOUSECALL_DONE = new Set(["completed", "complete unrated", "complete rated", "user canceled", "pro canceled", "canceled"]);
+
+/** Jobs scheduled in [from, to), or null when Housecall Pro isn't connected. */
+export async function housecallScheduledVisits(businessId: string, from: Date, to: Date) {
+  const conn = await housecallKey(businessId);
+  if (!conn) return null;
+  const visits: Array<{ start: Date; end: Date; phone: string | null }> = [];
+  for (let page = 1; page <= 10; page++) {
+    const query = new URLSearchParams({
+      scheduled_start_min: from.toISOString(),
+      scheduled_start_max: to.toISOString(),
+      page: String(page),
+      page_size: "100",
+    });
+    let data: { jobs?: HousecallJob[]; total_pages?: number };
+    try {
+      data = await housecallRequest(conn.key, "GET", `/jobs?${query}`);
+    } catch (error) {
+      if (error instanceof HousecallAuthError) await needsReconnect(conn.id, error.message);
+      throw error;
+    }
+    for (const job of data.jobs ?? []) {
+      if (HOUSECALL_DONE.has((job.work_status ?? "").toLowerCase())) continue;
+      const startRaw = job.schedule?.scheduled_start;
+      if (!startRaw) continue;
+      const start = new Date(startRaw);
+      const end = job.schedule?.scheduled_end ? new Date(job.schedule.scheduled_end) : new Date(start.getTime() + 2 * 60 * 60_000);
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) continue;
+      const phone = normalizePhone(job.customer?.mobile_number ?? job.customer?.home_number ?? "") || null;
+      visits.push({ start, end, phone });
+    }
+    if (!data.total_pages || page >= data.total_pages) break;
+  }
+  return visits;
+}

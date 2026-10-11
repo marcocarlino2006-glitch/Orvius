@@ -109,6 +109,12 @@ model Business {
   busyCalendarJson     String?
   busyCalendarSyncedAt DateTime?
   busyCalendarError    String?
+  /** Upcoming jobs read from the connected Jobber, Housecall Pro or ServiceTitan: JSON [{ s, e }] ISO times. */
+  fsmScheduleJson      String?
+  /** Last successful read of that schedule; null until one has worked. */
+  fsmScheduleSyncedAt  DateTime?
+  fsmScheduleSource    String?
+  fsmScheduleError     String?
   /** Founder phone cert checklist JSON — boolean[] matching Settings scenarios. */
   founderCertJson      String?
   /** Owner confirmed missed/busy/after-hours forward to Orvius line. */

@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { afterResponse } from "@/lib/after-response";
+import { refreshFsmSchedule } from "@/lib/fsm-schedule";
 import { personActor, recordAudit } from "@/lib/audit";
 import { getAppUrl } from "@/lib/env";
 import { JOBBER_OAUTH_COOKIE, connectJobber, openOAuthState } from "@/lib/jobber";
@@ -25,6 +27,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const connection = await connectJobber({ businessId: business.id, code, verifier: pending.verifier });
+    await afterResponse(() => refreshFsmSchedule(business.id).then(() => undefined));
     await recordAudit({
       businessId: business.id,
       entityType: "shop",

@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { afterResponse } from "@/lib/after-response";
+import { refreshFsmSchedule } from "@/lib/fsm-schedule";
 import { personActor, recordAudit } from "@/lib/audit";
 import { logWarn } from "@/lib/logger";
 import {
@@ -29,6 +31,7 @@ export async function POST(request: Request) {
 
   try {
     const conn = await connectServiceTitan({ businessId: business.id, tenantId, clientId, clientSecret });
+    await afterResponse(() => refreshFsmSchedule(business.id).then(() => undefined));
     await recordAudit({
       businessId: business.id,
       entityType: "shop",
@@ -57,6 +60,7 @@ export async function DELETE() {
   const { business } = authResult;
 
   await disconnectServiceTitan(business.id);
+  await afterResponse(() => refreshFsmSchedule(business.id).then(() => undefined));
   await recordAudit({
     businessId: business.id,
     entityType: "shop",

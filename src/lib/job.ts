@@ -13,6 +13,7 @@ import {
 } from "@/lib/availability";
 import { ensureBookingDepositForJob } from "@/lib/booking-deposit";
 import { getBusyWindows } from "@/lib/busy-calendar";
+import { getExternalSchedule, type ExternalBooking } from "@/lib/fsm-schedule";
 import { closureWindows, parseClosures } from "@/lib/shop-closures";
 import { createAuditQueue, recordAudit, type AuditActor, type AuditQueue } from "@/lib/audit";
 import { logWarn } from "@/lib/logger";
@@ -168,7 +169,7 @@ export async function findOpenSlots(
   options: { count: number; minGapMin?: number; preference?: SlotPreference; onlyAt?: Date },
 ): Promise<Date[]> {
   const now = new Date();
-  const [existing, technicians, holds, busy, shop] = await Promise.all([
+  const [existing, technicians, holds, busy, shop, outside] = await Promise.all([
     prisma.job.findMany({
       where: {
         businessId: params.businessId,
@@ -203,9 +204,10 @@ export async function findOpenSlots(
     }),
     getBusyWindows(params.businessId, now),
     prisma.business.findUnique({ where: { id: params.businessId }, select: { closedDatesJson: true } }),
+    getExternalSchedule(params.businessId, now),
   ]);
   // A holiday is a full calendar for every booking path: live calls, auto-booking, reschedules.
-  const blocked = [...busy, ...closureWindows(parseClosures(shop?.closedDatesJson), params.timezone, now)];
+  const blocked = [...busy, ...outside.blocked, ...closureWindows(parseClosures(shop?.closedDatesJson), params.timezone, now)];
 
   // Capacity is the people who can do this job — a furnace call cannot use
   // the cooling specialist's free hour. Unassigned jobs may land on any of
@@ -230,6 +232,7 @@ export async function findOpenSlots(
     ...holds.flatMap((hold) =>
       hold.heldSlotAt ? [{ scheduledAt: hold.heldSlotAt, durationMin: hold.heldSlotDurationMin, technicianId: null }] : [],
     ),
+    ...outside.booked,
   ];
 
   return findAvailableSchedules(
@@ -254,6 +257,7 @@ export async function findOpenSlots(
             ? [{ scheduledAt: hold.heldSlotAt, durationMin: hold.heldSlotDurationMin ?? DEFAULT_JOB_DURATION_MIN }]
             : [],
         ),
+        ...outside.booked,
       ],
     },
     options,
@@ -285,13 +289,19 @@ const AUTO_PICK_ATTEMPTS = 12;
 
 type BookingTx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 
-/** The shop's busy calendar and closed days, read once per booking outside the transaction. */
-async function blockedWindows(businessId: string, timezone: string, now = new Date()): Promise<BusyWindow[]> {
-  const [busy, shop] = await Promise.all([
+/** Calendars outside Orvius's own jobs, read once per booking outside the transaction. */
+type OutsideTime = { blocked: BusyWindow[]; booked: ExternalBooking[] };
+
+async function outsideTime(businessId: string, timezone: string, now = new Date()): Promise<OutsideTime> {
+  const [busy, shop, outside] = await Promise.all([
     getBusyWindows(businessId, now),
     prisma.business.findUnique({ where: { id: businessId }, select: { closedDatesJson: true } }),
+    getExternalSchedule(businessId, now),
   ]);
-  return [...busy, ...closureWindows(parseClosures(shop?.closedDatesJson), timezone, now)];
+  return {
+    blocked: [...busy, ...outside.blocked, ...closureWindows(parseClosures(shop?.closedDatesJson), timezone, now)],
+    booked: outside.booked,
+  };
 }
 
 /**
@@ -312,13 +322,13 @@ type SlotCheck = {
     skill: string;
     timezone: string;
     callId: string | null;
-    blocked: BusyWindow[];
+    outside: OutsideTime;
 };
 
 async function slotProblem(tx: BookingTx, params: SlotCheck): Promise<"blocked" | "full" | null> {
   const startMs = params.at.getTime();
   const endMs = startMs + params.durationMin * 60_000;
-  if (params.blocked.some((w) => w.start.getTime() < endMs && startMs < w.end.getTime())) return "blocked";
+  if (params.outside.blocked.some((w) => w.start.getTime() < endMs && startMs < w.end.getTime())) return "blocked";
   const now = Date.now();
   const own = params.callId
     ? await tx.call.findUnique({ where: { id: params.callId }, select: { heldSeq: true, heldSlotAt: true } })
@@ -365,6 +375,7 @@ async function slotProblem(tx: BookingTx, params: SlotCheck): Promise<"blocked" 
     ...holds.flatMap((hold) =>
       hold.heldSlotAt ? [{ scheduledAt: hold.heldSlotAt, durationMin: hold.heldSlotDurationMin, technicianId: null }] : [],
     ),
+    ...params.outside.booked,
   ];
   const open = slotHasRoom({
     pool: pool.map(toShift),
@@ -392,11 +403,11 @@ async function ownerClash(params: {
   timezone: string;
   technicianId: string | null;
 }): Promise<string | null> {
-  const blocked = await blockedWindows(params.businessId, params.timezone);
+  const outside = await outsideTime(params.businessId, params.timezone);
   if (params.technicianId) {
     const startMs = params.at.getTime();
     const endMs = startMs + params.durationMin * 60_000;
-    if (blocked.some((w) => w.start.getTime() < endMs && startMs < w.end.getTime())) {
+    if (outside.blocked.some((w) => w.start.getTime() < endMs && startMs < w.end.getTime())) {
       return "Your busy calendar or a closed day already covers that time.";
     }
     const [tech, theirs] = await Promise.all([
@@ -420,7 +431,7 @@ async function ownerClash(params: {
     });
     return clash ? `${tech.name} already has a job then.` : null;
   }
-  const problem = await slotProblem(prisma, { ...params, callId: null, blocked });
+  const problem = await slotProblem(prisma, { ...params, callId: null, outside });
   if (problem === "blocked") return "Your busy calendar or a closed day already covers that time.";
   if (problem === "full") return "Everyone who can do this job is booked, off, or held by a live caller then.";
   return null;
@@ -580,9 +591,9 @@ export async function createJobFromLead(params: {
     scheduledAt = await pickSlot();
   }
   const checkSlot = !params.scheduledAt || params.enforceCapacity === true;
-  const blocked = checkSlot
-    ? await blockedWindows(lead.businessId!, lead.business?.timezone ?? "America/New_York")
-    : [];
+  const outside = checkSlot
+    ? await outsideTime(lead.businessId!, lead.business?.timezone ?? "America/New_York")
+    : { blocked: [], booked: [] };
 
   const extraNotes = params.notes?.trim();
   const notes = [lead.notes, extraNotes].filter(Boolean).join("\n") || null;
@@ -655,7 +666,7 @@ export async function createJobFromLead(params: {
           skill: playbook.service.skill,
           timezone: lead.business?.timezone ?? "America/New_York",
           callId: lead.callId ?? null,
-          blocked,
+          outside,
         });
       }
       const created = await tx.job.create({
