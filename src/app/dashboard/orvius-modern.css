@@ -1278,6 +1278,7 @@
 
 .os-shell .plan-exit-months button {
   min-height: 32px;
+  white-space: nowrap;
   padding: 0 0.8rem;
   border: 0;
   border-radius: 999px;
@@ -1356,4 +1357,16 @@
     flex-direction: column;
     gap: 0.25rem;
   }
+
+  .os-shell .plan-exit-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .os-shell .plan-exit-months button {
+    padding: 0 0.65rem;
+  }
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.plan-exit-title, .plan-exit-option-title, .plan-paused-title, .plan-exit-lead, .plan-exit-stats dd) {
+  color: var(--ox-text) !important;
 }

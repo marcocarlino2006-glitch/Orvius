@@ -34,7 +34,7 @@ export async function GET() {
     }
   }
 
-  const blocker = cancelScheduled ? "This plan is already set to cancel." : pauseBlocker(business);
+  const blocker = cancelScheduled ? "Your plan is set to cancel. Keep it first, then you can pause instead." : pauseBlocker(business);
   return NextResponse.json({
     headline: keepHeadline(counts),
     rows: keepRows(counts),

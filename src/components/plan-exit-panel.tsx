@@ -17,7 +17,7 @@ type ExitData = {
 
 export type PlanPause = { startsAt: string | null; until: string; started: boolean };
 
-async function openPortal(flow: "cancel" | "switch") {
+async function openPortal(flow: "cancel" | "switch" | "manage") {
   const res = await fetch("/api/billing/portal", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -79,7 +79,7 @@ export function PlanExitPanel({ planName, onChanged }: { planName: string; onCha
   const [data, setData] = useState<ExitData | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [months, setMonths] = useState<PauseMonths>(2);
-  const [busy, setBusy] = useState<"pause" | "switch" | "cancel" | null>(null);
+  const [busy, setBusy] = useState<"pause" | "switch" | "cancel" | "manage" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function load() {
@@ -115,7 +115,7 @@ export function PlanExitPanel({ planName, onChanged }: { planName: string; onCha
     }
   }
 
-  async function portal(flow: "cancel" | "switch") {
+  async function portal(flow: "cancel" | "switch" | "manage") {
     setBusy(flow);
     setError(null);
     try {
@@ -209,21 +209,34 @@ export function PlanExitPanel({ planName, onChanged }: { planName: string; onCha
           </div>
         ) : null}
 
-        <div className="plan-exit-option">
-          <p className="plan-exit-option-title">Cancel</p>
-          <p className="plan-exit-option-body">
-            You cancel on Stripe. The line stops answering when the plan ends, and your number is held {LINE_RETENTION_DAYS}{" "}
-            days in case you come back. Your records stay readable, and you can download them any time.
-          </p>
-          <div className="plan-exit-row">
-            <button type="button" className="sc-btn" disabled={busy !== null} onClick={() => void portal("cancel")}>
-              {busy === "cancel" ? "Opening Stripe…" : "Continue to cancel"}
+        {data?.cancelScheduled ? (
+          <div className="plan-exit-option">
+            <p className="plan-exit-option-title">Already set to cancel</p>
+            <p className="plan-exit-option-body">
+              Your plan ends when this paid period runs out. Changed your mind? Renew it on Stripe and nothing changes:
+              same number, same settings.
+            </p>
+            <button type="button" className="sc-btn sc-btn--primary" disabled={busy !== null} onClick={() => void portal("manage")}>
+              {busy === "manage" ? "Opening Stripe…" : "Keep my plan on Stripe"}
             </button>
-            <a href="/api/account/export" download className="plan-exit-link">
-              Download my data
-            </a>
           </div>
-        </div>
+        ) : (
+          <div className="plan-exit-option">
+            <p className="plan-exit-option-title">Cancel</p>
+            <p className="plan-exit-option-body">
+              You cancel on Stripe. The line stops answering when the plan ends, and your number is held {LINE_RETENTION_DAYS}{" "}
+              days in case you come back. Your records stay readable, and you can download them any time.
+            </p>
+            <div className="plan-exit-row">
+              <button type="button" className="sc-btn" disabled={busy !== null} onClick={() => void portal("cancel")}>
+                {busy === "cancel" ? "Opening Stripe…" : "Continue to cancel"}
+              </button>
+              <a href="/api/account/export" download className="plan-exit-link">
+                Download my data
+              </a>
+            </div>
+          </div>
+        )}
       </div>
 
       {error ? <p className="plan-exit-error" role="alert">{error}</p> : null}
