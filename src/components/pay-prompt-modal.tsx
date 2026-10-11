@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useId, useState } from "react";
 import { CheckoutButton } from "@/components/checkout-button";
-import { pricing } from "@/lib/pricing-plans";
+import { getPlanById, isPaidPlanId, pricing, type PaidPlanId } from "@/lib/pricing-plans";
 import {
   getPayPromptDecision,
   PAY_PROMPT_SNOOZE_KEY,
@@ -33,7 +33,7 @@ type AccountBillingPayload = {
 
 /**
  * Pay loop: soft modal mid-trial; hard lock screen when trial ended / canceled.
- * Active subscribers never see it. One path — Pro, Pay with card.
+ * Active subscribers never see it. One path: the plan the shop picked (Pro if none), pay with card.
  */
 export function PayPromptModal() {
   const titleId = useId();
@@ -41,7 +41,7 @@ export function PayPromptModal() {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [checkoutReady, setCheckoutReady] = useState(false);
-  const [hasStripeCustomer, setHasStripeCustomer] = useState(false);
+  const [planId, setPlanId] = useState<PaidPlanId>("pro");
 
   useEffect(() => {
     let cancelled = false;
@@ -65,7 +65,8 @@ export function PayPromptModal() {
 
         setEmail(data.user?.email ?? "");
         setCheckoutReady(Boolean(data.billing?.configured));
-        setHasStripeCustomer(Boolean(data.business?.stripeCustomerId));
+        const chosen = data.business?.billingPlan ?? data.billing?.planId ?? "";
+        setPlanId(isPaidPlanId(chosen) ? chosen : "pro");
         setDecision(next);
 
         if (!next?.show || data.business?.environment === "demo" || data.business?.environment === "test") {
@@ -128,7 +129,7 @@ export function PayPromptModal() {
 
   if (!open || !decision) return null;
 
-  const featured = pricing.pro;
+  const featured = planId === "pro" ? pricing.pro : getPlanById(planId);
 
   return (
     <div
@@ -158,7 +159,7 @@ export function PayPromptModal() {
         <div className="pay-prompt-actions">
           {checkoutReady ? (
             <CheckoutButton
-              planId="pro"
+              planId={planId}
               email={email}
               label={`${decision.primaryCta} · $${featured.price}/mo`}
               variant="primary"
