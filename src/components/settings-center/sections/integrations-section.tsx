@@ -195,8 +195,10 @@ export function IntegrationsSection({
     }
   }
 
+  const schedule = account.fsmSchedule ?? null;
+  const readingSchedule = Boolean(schedule?.syncedAt && !schedule.error);
   const blindTo =
-    account.business?.bookingMode === "alert" || account.busyCalendar
+    account.business?.bookingMode === "alert" || account.busyCalendar || readingSchedule
       ? null
       : (
           [
@@ -265,9 +267,9 @@ export function IntegrationsSection({
       copy: feedUrl ?? undefined,
       reset: Boolean(feedUrl),
     },
-    jobberRow(jobber, jobberNote),
-    housecallRow(housecall, hcpNote),
-    serviceTitanRow(servicetitan, stNote),
+    jobberRow(jobber, jobberNote, scheduleLine(schedule, "jobber")),
+    housecallRow(housecall, hcpNote, scheduleLine(schedule, "housecall")),
+    serviceTitanRow(servicetitan, stNote, scheduleLine(schedule, "servicetitan")),
     quickbooksRow(quickbooks, qbNote),
   ];
   return (
@@ -438,11 +440,13 @@ export function IntegrationsSection({
       {blindTo ? (
         <div className="sc-row sc-schedule-warning" role="note">
           <div className="sc-row-copy">
-            <p className="sc-row-label">Orvius can&apos;t see your {blindTo} schedule</p>
+            <p className="sc-row-label">Orvius can&apos;t read your {blindTo} schedule yet</p>
             <p className="sc-row-hint">
-              Orvius offers times from its own schedule and your busy-times calendar. If you also book work in {blindTo}, a caller could be
-              offered a time that is already taken there. Put those jobs on a Google, iCloud or Outlook calendar and add it under Busy times
-              below, or set booking to &ldquo;Alert me first&rdquo; so you pick every time.
+              {schedule?.error
+                ? `The last try failed: ${schedule.error}. `
+                : `Orvius checks it every 30 minutes and hasn't read it yet. `}
+              Until it does, a caller could be offered a time that is already taken in {blindTo}. Add a Google, iCloud or Outlook calendar
+              under Busy times below, or set booking to &ldquo;Alert me first&rdquo; so you pick every time.
             </p>
           </div>
           <div className="sc-row-control">
@@ -461,7 +465,14 @@ export function IntegrationsSection({
   );
 }
 
-function jobberRow(jobber: JobberLink, note: string | null) {
+function scheduleLine(schedule: Account["fsmSchedule"], source: string) {
+  if (schedule?.source !== source) return "";
+  if (schedule.error) return ` Can't read its schedule: ${schedule.error}.`;
+  if (!schedule.syncedAt) return " Reading its schedule soon.";
+  return " Orvius reads its schedule and won't offer a time already booked there.";
+}
+
+function jobberRow(jobber: JobberLink, note: string | null, schedule: string) {
   const base = { name: "Jobber", mark: "jobs" as const };
   const connect = { label: "Connect", url: "/api/integrations/jobber/connect" };
   if (jobber?.status === "active") {
@@ -472,7 +483,7 @@ function jobberRow(jobber: JobberLink, note: string | null) {
     return {
       ...base,
       on: true,
-      detail: note ?? `New calls land in ${jobber.accountName ?? "Jobber"} as requests. ${sent} sent in 30 days.${attention}`,
+      detail: note ?? `New calls land in ${jobber.accountName ?? "Jobber"} as requests. ${sent} sent in 30 days.${attention}${schedule}`,
       disconnect: "jobber" as const,
     };
   }
@@ -485,7 +496,7 @@ function jobberRow(jobber: JobberLink, note: string | null) {
   return { ...base, on: false, detail: note ?? "Send every call to Jobber as a request, matched to the client by phone.", href: connect };
 }
 
-function housecallRow(hcp: HousecallLink, note: string | null) {
+function housecallRow(hcp: HousecallLink, note: string | null, schedule: string) {
   const base = { name: "Housecall Pro", mark: "jobs" as const };
   if (hcp?.status === "active") {
     const sent = hcp.sentLast30Days === 1 ? "1 call" : `${hcp.sentLast30Days} calls`;
@@ -493,7 +504,7 @@ function housecallRow(hcp: HousecallLink, note: string | null) {
     return {
       ...base,
       on: true,
-      detail: note ?? `New calls land in ${hcp.companyName ?? "Housecall Pro"} as leads. ${sent} sent in 30 days.${attention}`,
+      detail: note ?? `New calls land in ${hcp.companyName ?? "Housecall Pro"} as leads. ${sent} sent in 30 days.${attention}${schedule}`,
       disconnect: "housecall" as const,
     };
   }
@@ -506,7 +517,7 @@ function housecallRow(hcp: HousecallLink, note: string | null) {
   return { ...base, on: false, detail: note ?? "Send every call to Housecall Pro as a lead, matched to the customer by phone.", keyEntry: { label: "Connect", form: "housecall" as const } };
 }
 
-function serviceTitanRow(st: ServiceTitanLink, note: string | null) {
+function serviceTitanRow(st: ServiceTitanLink, note: string | null, schedule: string) {
   const base = { name: "ServiceTitan", mark: "jobs" as const };
   if (st?.status === "active") {
     const sent = st.sentLast30Days === 1 ? "1 call" : `${st.sentLast30Days} calls`;
@@ -514,7 +525,7 @@ function serviceTitanRow(st: ServiceTitanLink, note: string | null) {
     return {
       ...base,
       on: true,
-      detail: note ?? `New calls land in your ServiceTitan booking queue${st.providerName ? ` as ${st.providerName}` : ""}. ${sent} sent in 30 days.${attention}`,
+      detail: note ?? `New calls land in your ServiceTitan booking queue${st.providerName ? ` as ${st.providerName}` : ""}. ${sent} sent in 30 days.${attention}${schedule}`,
       disconnect: "servicetitan" as const,
     };
   }

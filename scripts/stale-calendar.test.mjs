@@ -96,11 +96,15 @@ test("a fresh calendar copy still offers times without waiting on the provider",
   }
 });
 
-test("a shop that also books in Jobber, Housecall Pro or ServiceTitan is told Orvius can't see that schedule, and how to fix it", async () => {
+test("a shop whose Jobber, Housecall Pro or ServiceTitan schedule isn't being read is told so, and how to fix it", async () => {
   const { readFileSync } = await import("node:fs");
   const section = readFileSync(new URL("../src/components/settings-center/sections/integrations-section.tsx", import.meta.url), "utf8");
-  assert.match(section, /account\.business\?\.bookingMode === "alert" \|\| account\.busyCalendar\s*\? null/, "no warning once busy times or owner-set times cover it");
-  assert.match(section, /Orvius can&apos;t see your \{blindTo\} schedule/);
-  assert.match(section, /add it under Busy times/);
+  assert.match(
+    section,
+    /account\.business\?\.bookingMode === "alert" \|\| account\.busyCalendar \|\| readingSchedule\s*\? null/,
+    "no warning once busy times, owner-set times, or a working schedule read cover it",
+  );
+  assert.match(section, /Orvius can&apos;t read your \{blindTo\} schedule yet/);
+  assert.match(section, /under Busy times below/);
   assert.match(section, /Alert me first/);
 });

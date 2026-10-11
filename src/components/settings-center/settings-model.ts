@@ -48,6 +48,8 @@ export type Account = {
   role?: "owner" | "manager" | "dispatcher" | null;
   calendarFeedUrl?: string | null;
   busyCalendar?: BusyCalendar;
+  /** Orvius reading the schedule of the connected Jobber, Housecall Pro or ServiceTitan. */
+  fsmSchedule?: { source: string; syncedAt: string | null; error: string | null } | null;
   jobber?: JobberLink;
   housecall?: HousecallLink;
   servicetitan?: ServiceTitanLink;
