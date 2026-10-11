@@ -6,7 +6,8 @@ import { getAppUrl } from "@/lib/env";
 import { logInfo } from "@/lib/logger";
 import { enqueueOwnerAlert } from "@/lib/notification-queue";
 import { pageFounderForShop } from "@/lib/platform-pager";
-import { OVERAGE_CENTS_PER_CALL } from "@/lib/pricing-plans";
+import { planAdvice, planAdviceLine } from "@/lib/plan-advice";
+import { getPlanById, OVERAGE_CENTS_PER_CALL, type PlanId } from "@/lib/pricing-plans";
 import { prisma } from "@/lib/prisma";
 
 /*
@@ -163,12 +164,14 @@ async function usageAlerts(now: Date) {
     const used = await countBillableCalls(shop, { gte: since });
     const crossed = USAGE_THRESHOLDS.filter((t) => used >= included * t).at(-1);
     if (!crossed) continue;
+    const advice = planAdvice({ used, planId: shop.billingPlan, now });
+    const pace = advice ? ` ${planAdviceLine(advice, getPlanById(shop.billingPlan as PlanId).name)}` : "";
     const result = await nudge(
       shop,
       `usage:${shop.id}:${period}:${crossed * 100}`,
       crossed >= 1
-        ? `Orvius: ${shop.name} has used all ${included} included calls this month. Every call is still answered; each extra call is ${OVERAGE_CENTS_PER_CALL}¢, invoiced once after the month ends. Plans: ${link("/dashboard?settings=billing")}`
-        : `Orvius: ${shop.name} has used ${used} of ${included} included calls this month. Every call is still answered either way. Plans: ${link("/dashboard?settings=billing")}`,
+        ? `Orvius: ${shop.name} has used all ${included} included calls this month. Every call is still answered; each extra call is ${OVERAGE_CENTS_PER_CALL}¢, invoiced once after the month ends.${pace} Plans: ${link("/dashboard?settings=billing")}`
+        : `Orvius: ${shop.name} has used ${used} of ${included} included calls this month. Every call is still answered either way.${pace} Plans: ${link("/dashboard?settings=billing")}`,
     );
     if (result.queued.length) queued += 1;
   }
