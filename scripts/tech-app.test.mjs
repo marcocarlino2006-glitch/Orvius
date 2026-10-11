@@ -121,6 +121,8 @@ test("the link opens only the technician's own day and jobs", async () => {
   assert.equal(detail.status, 200);
   assert.equal(detail.data.job.officeNotes, "Gate code 4411");
   assert.equal(detail.data.job.customerPhone, CUSTOMER);
+  assert.equal(detail.data.job.customerConfirmed, false, "the office marking it confirmed is not the customer confirming");
+  assert.equal(detail.data.job.officeConfirmed, true);
 
   const theirs = await prisma.job.create({ data: { businessId: shop.id, technicianId: other.id, title: "Not yours", status: "scheduled", scheduledAt: new Date() } });
   assert.equal((await call(jobRoute.GET, "GET", { token, jobId: theirs.id })).status, 404, "another technician's job");

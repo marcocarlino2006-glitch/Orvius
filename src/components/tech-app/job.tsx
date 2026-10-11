@@ -36,6 +36,7 @@ type Detail = {
     officeNotes: string | null;
     etaText: string | null;
     customerConfirmed: boolean;
+    officeConfirmed?: boolean;
     resolutionCode: string | null;
     resolutionSummary: string | null;
     customerName: string | null;
@@ -876,7 +877,13 @@ export function TechJob({ token, jobId }: { token: string; jobId: string }) {
           {job.status === "scheduled" || job.status === "confirmed" ? (
             <div>
               <dt>Time</dt>
-              <dd>{job.customerConfirmed ? "Customer confirmed" : "Not confirmed by the customer yet"}</dd>
+              <dd>
+                {job.customerConfirmed
+                  ? "Customer confirmed"
+                  : job.officeConfirmed
+                    ? "Marked confirmed by the office"
+                    : "Not confirmed by the customer yet"}
+              </dd>
             </div>
           ) : null}
           {job.serviceType && job.serviceType !== job.title ? (
