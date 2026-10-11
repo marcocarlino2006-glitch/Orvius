@@ -18,7 +18,7 @@ import {
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { fetchAccount } from "@/lib/account-client";
+import { fetchAccount, invalidateAccount } from "@/lib/account-client";
 import { callUsageLine, type CallUsage } from "@/lib/call-usage";
 import { MONEY_BACK_DAYS } from "@/lib/money-back";
 import { OVERAGE_CENTS_PER_CALL } from "@/lib/pricing-plans";
@@ -102,7 +102,8 @@ export function BillingContent() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [refundedCents, setRefundedCents] = useState<number | null>(null);
 
-  async function loadAccount() {
+  async function loadAccount({ fresh = false } = {}) {
+    if (fresh) invalidateAccount();
     setLoadState("loading");
     setLoadError(null);
     try {
@@ -223,15 +224,15 @@ export function BillingContent() {
                 </div>
               ) : null}
               {account?.billing.valueLine ? <p className="billing-value-line font-sans">{account.billing.valueLine}</p> : null}
-              {pause ? <PausedPlanNote pause={pause} onChanged={() => void loadAccount()} /> : null}
+              {pause ? <PausedPlanNote pause={pause} onChanged={() => void loadAccount({ fresh: true })} /> : null}
               {status === "active" && hasStripeCustomer ? <MoneyBackPanel
                   onRefunded={(cents) => {
                     setRefundedCents(cents);
-                    void loadAccount();
+                    void loadAccount({ fresh: true });
                   }}
                 /> : null}
               {status === "active" && account?.billing.hasSubscription && !pause ? (
-                <PlanExitPanel planName={account.billing.plan.name} onChanged={() => void loadAccount()} />
+                <PlanExitPanel planName={account.billing.plan.name} onChanged={() => void loadAccount({ fresh: true })} />
               ) : null}
             </section>
           )}
