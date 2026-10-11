@@ -144,10 +144,13 @@ export async function PATCH(request: Request, { params }: Params) {
   ) {
     const tech = await prisma.technician.findFirst({
       where: { id: body.technicianId, businessId: business.id },
-      select: { id: true },
+      select: { id: true, isActive: true, name: true },
     });
     if (!tech) {
       return NextResponse.json({ error: "Technician not found" }, { status: 400 });
+    }
+    if (!tech.isActive) {
+      return NextResponse.json({ error: `${tech.name} is off the team. Bring them back on the Team page first.` }, { status: 400 });
     }
   }
 

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { isLeadQualifiedForBooking } from "@/lib/auto-job";
 import { safeTimezone, shopWallInputToUtc, zonedWallToUtc } from "@/lib/availability";
 import { normalizePhone } from "@/lib/customer";
-import { JOB_INCLUDE, createJobFromLead, createOwnerJob, serializeJob } from "@/lib/job";
+import { JOB_INCLUDE, OwnerClashError, createJobFromLead, createOwnerJob, serializeJob } from "@/lib/job";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
 import { forbiddenResponse, requireEntitledSession } from "@/lib/tenant";
@@ -120,6 +120,7 @@ async function bookOwnerJob(
     customer?: { name?: string | null; phone?: string | null; address?: string | null };
     serviceType?: string | null;
     technicianId?: string | null;
+    allowClash?: boolean;
   },
 ) {
   const phone = normalizePhone(body.customer?.phone);
@@ -148,16 +149,23 @@ async function bookOwnerJob(
     if (!tech) return forbiddenResponse();
   }
 
-  const job = await createOwnerJob({
-    businessId,
-    name: body.customer?.name?.slice(0, 120),
-    phone,
-    serviceType,
-    address: body.customer?.address?.slice(0, 300),
-    notes: body.notes?.slice(0, 1000),
-    scheduledAt,
-    technicianId,
-  });
+  let job;
+  try {
+    job = await createOwnerJob({
+      businessId,
+      name: body.customer?.name?.slice(0, 120),
+      phone,
+      serviceType,
+      address: body.customer?.address?.slice(0, 300),
+      notes: body.notes?.slice(0, 1000),
+      scheduledAt,
+      technicianId,
+      allowClash: body.allowClash === true,
+    });
+  } catch (error) {
+    if (error instanceof OwnerClashError) return NextResponse.json({ error: error.message, clash: true }, { status: 409 });
+    throw error;
+  }
   const full = await prisma.job.findUnique({ where: { id: job.id }, include: JOB_INCLUDE });
   return NextResponse.json({ job: full ? serializeJob(full) : serializeJob(job) });
 }

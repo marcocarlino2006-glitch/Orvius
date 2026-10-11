@@ -8,6 +8,7 @@ import {
   formatShopTime,
   MAX_SCHEDULE_DAYS,
   SLOT_STEP_MIN,
+  type BusyWindow,
   type SlotPreference,
 } from "@/lib/availability";
 import { ensureBookingDepositForJob } from "@/lib/booking-deposit";
@@ -19,7 +20,7 @@ import { notifyTechOnAssign } from "@/lib/notify-tech-assign";
 import { notifyCustomerOnTheWay } from "@/lib/on-the-way";
 import { classifyRequest } from "@/lib/trade-playbooks";
 import { parseSkills, recommendTechnician } from "@/lib/technician-match";
-import { slotHasRoom, type TechShift } from "@/lib/tech-hours";
+import { slotHasRoom, techUnavailable, type TechShift } from "@/lib/tech-hours";
 import { prisma } from "@/lib/prisma";
 import { jobTitle } from "@/lib/job-schedule";
 import {
@@ -284,18 +285,45 @@ const AUTO_PICK_ATTEMPTS = 12;
 
 type BookingTx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 
+/** The shop's busy calendar and closed days, read once per booking outside the transaction. */
+async function blockedWindows(businessId: string, timezone: string, now = new Date()): Promise<BusyWindow[]> {
+  const [busy, shop] = await Promise.all([
+    getBusyWindows(businessId, now),
+    prisma.business.findUnique({ where: { id: businessId }, select: { closedDatesJson: true } }),
+  ]);
+  return [...busy, ...closureWindows(parseClosures(shop?.closedDatesJson), timezone, now)];
+}
+
 /**
  * Re-count the slot inside the booking transaction. The slot was chosen from
  * an earlier read, so two bookings landing together could both see it free;
- * reading again on the write path closes most of that gap.
+ * reading again on the write path closes most of that gap. Another live
+ * caller's hold counts as booked unless this call took its own hold first,
+ * and a busy-calendar block or closed day refuses the time outright.
  */
-async function assertSlotOpen(
-  tx: BookingTx,
-  params: { businessId: string; at: Date; durationMin: number; skill: string; timezone: string },
-) {
+async function assertSlotOpen(tx: BookingTx, params: SlotCheck) {
+  if (await slotProblem(tx, params)) throw new SlotTakenError(params.at);
+}
+
+type SlotCheck = {
+    businessId: string;
+    at: Date;
+    durationMin: number;
+    skill: string;
+    timezone: string;
+    callId: string | null;
+    blocked: BusyWindow[];
+};
+
+async function slotProblem(tx: BookingTx, params: SlotCheck): Promise<"blocked" | "full" | null> {
   const startMs = params.at.getTime();
   const endMs = startMs + params.durationMin * 60_000;
-  const [jobs, technicians] = await Promise.all([
+  if (params.blocked.some((w) => w.start.getTime() < endMs && startMs < w.end.getTime())) return "blocked";
+  const now = Date.now();
+  const own = params.callId
+    ? await tx.call.findUnique({ where: { id: params.callId }, select: { heldSeq: true, heldSlotAt: true } })
+    : null;
+  const [jobs, technicians, holds] = await Promise.all([
     tx.job.findMany({
       where: {
         businessId: params.businessId,
@@ -308,6 +336,19 @@ async function assertSlotOpen(
       where: { businessId: params.businessId, isActive: true },
       select: TECH_SHIFT_SELECT(params.at),
     }),
+    tx.call.findMany({
+      where: {
+        businessId: params.businessId,
+        heldSlotAt: { gte: new Date(Math.max(now, startMs - 7 * 24 * 60 * 60 * 1000)), lt: new Date(endMs) },
+        updatedAt: { gte: new Date(now - HOLD_TTL_MS) },
+        ...(params.callId ? { id: { not: params.callId } } : {}),
+        AND: [
+          { OR: [{ lead: { is: null } }, { lead: { is: { job: { is: null } } } }] },
+          ...(own?.heldSlotAt && own.heldSeq != null ? [{ heldSeq: { lt: own.heldSeq } }] : []),
+        ],
+      },
+      select: { heldSlotAt: true, heldSlotDurationMin: true },
+    }),
   ]);
   const eligible = technicians.filter((t) => {
     const skills = parseSkills(t.skillsJson);
@@ -315,11 +356,16 @@ async function assertSlotOpen(
   });
   const pool = eligible.length ? eligible : technicians;
   const poolIds = new Set(pool.map((t) => t.id));
-  const booked = jobs.flatMap((job) =>
-    job.scheduledAt && !(eligible.length && job.technicianId && !poolIds.has(job.technicianId))
-      ? [{ scheduledAt: job.scheduledAt, durationMin: job.durationMin, technicianId: job.technicianId }]
-      : [],
-  );
+  const booked = [
+    ...jobs.flatMap((job) =>
+      job.scheduledAt && !(eligible.length && job.technicianId && !poolIds.has(job.technicianId))
+        ? [{ scheduledAt: job.scheduledAt, durationMin: job.durationMin, technicianId: job.technicianId }]
+        : [],
+    ),
+    ...holds.flatMap((hold) =>
+      hold.heldSlotAt ? [{ scheduledAt: hold.heldSlotAt, durationMin: hold.heldSlotDurationMin, technicianId: null }] : [],
+    ),
+  ];
   const open = slotHasRoom({
     pool: pool.map(toShift),
     booked,
@@ -327,7 +373,57 @@ async function assertSlotOpen(
     durationMin: params.durationMin,
     timezone: params.timezone,
   });
-  if (!open) throw new SlotTakenError(params.at);
+  return open ? null : "full";
+}
+
+/** An owner-picked time that clashes; the owner can still book it after seeing why. */
+export class OwnerClashError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "OwnerClashError";
+  }
+}
+
+async function ownerClash(params: {
+  businessId: string;
+  at: Date;
+  durationMin: number;
+  skill: string;
+  timezone: string;
+  technicianId: string | null;
+}): Promise<string | null> {
+  const blocked = await blockedWindows(params.businessId, params.timezone);
+  if (params.technicianId) {
+    const startMs = params.at.getTime();
+    const endMs = startMs + params.durationMin * 60_000;
+    if (blocked.some((w) => w.start.getTime() < endMs && startMs < w.end.getTime())) {
+      return "Your busy calendar or a closed day already covers that time.";
+    }
+    const [tech, theirs] = await Promise.all([
+      prisma.technician.findUnique({ where: { id: params.technicianId }, select: { name: true, ...TECH_SHIFT_SELECT(params.at) } }),
+      prisma.job.findMany({
+        where: {
+          businessId: params.businessId,
+          technicianId: params.technicianId,
+          status: { notIn: ["completed", "cancelled"] },
+          scheduledAt: { gte: new Date(startMs - 7 * 24 * 60 * 60 * 1000), lt: new Date(endMs) },
+        },
+        select: { scheduledAt: true, durationMin: true },
+      }),
+    ]);
+    if (!tech) return null;
+    const off = techUnavailable(toShift(tech), params.at, params.durationMin, params.timezone);
+    if (off) return `${tech.name} is ${off === "time_off" ? "on time off" : "off shift"} then.`;
+    const clash = theirs.some((j) => {
+      const s = j.scheduledAt!.getTime();
+      return s < endMs && startMs < s + (j.durationMin ?? DEFAULT_JOB_DURATION_MIN) * 60_000;
+    });
+    return clash ? `${tech.name} already has a job then.` : null;
+  }
+  const problem = await slotProblem(prisma, { ...params, callId: null, blocked });
+  if (problem === "blocked") return "Your busy calendar or a closed day already covers that time.";
+  if (problem === "full") return "Everyone who can do this job is booked, off, or held by a live caller then.";
+  return null;
 }
 
 /** Thrown inside the booking transaction when the same caller's other call booked first. */
@@ -484,6 +580,9 @@ export async function createJobFromLead(params: {
     scheduledAt = await pickSlot();
   }
   const checkSlot = !params.scheduledAt || params.enforceCapacity === true;
+  const blocked = checkSlot
+    ? await blockedWindows(lead.businessId!, lead.business?.timezone ?? "America/New_York")
+    : [];
 
   const extraNotes = params.notes?.trim();
   const notes = [lead.notes, extraNotes].filter(Boolean).join("\n") || null;
@@ -555,6 +654,8 @@ export async function createJobFromLead(params: {
           durationMin,
           skill: playbook.service.skill,
           timezone: lead.business?.timezone ?? "America/New_York",
+          callId: lead.callId ?? null,
+          blocked,
         });
       }
       const created = await tx.job.create({
@@ -737,6 +838,8 @@ export async function createOwnerJob(params: {
   notes?: string | null;
   scheduledAt: Date;
   technicianId?: string | null;
+  /** The owner saw the clash and chose this time anyway. */
+  allowClash?: boolean;
 }) {
   const business = await prisma.business.findUniqueOrThrow({
     where: { id: params.businessId },
@@ -745,6 +848,19 @@ export async function createOwnerJob(params: {
   const name = params.name?.trim() || null;
   const address = params.address?.trim() || null;
   const notes = params.notes?.trim() || null;
+  const playbook = classifyRequest({ business, serviceType: params.serviceType, notes, urgency: null });
+  const durationMin = playbook.service.durationMin;
+  if (!params.allowClash) {
+    const clash = await ownerClash({
+      businessId: business.id,
+      at: params.scheduledAt,
+      durationMin,
+      skill: playbook.service.skill,
+      timezone: business.timezone ?? "America/New_York",
+      technicianId: params.technicianId ?? null,
+    });
+    if (clash) throw new OwnerClashError(clash);
+  }
   const customer = await linkTouchToCustomer({
     businessId: business.id,
     phone: params.phone,
@@ -752,8 +868,6 @@ export async function createOwnerJob(params: {
     address,
     notes,
   });
-  const playbook = classifyRequest({ business, serviceType: params.serviceType, notes, urgency: null });
-  const durationMin = playbook.service.durationMin;
   const demand = deriveDemandSignal({
     serviceType: params.serviceType,
     notes,

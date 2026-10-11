@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { AddTechnician, CrewMember, parseSkills, type CrewTech } from "@/components/crew-editor";
+import { AddTechnician, CrewMember, FormerCrew, parseSkills, type CrewTech } from "@/components/crew-editor";
 import { OsShell } from "@/components/os-shell";
 import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
 import { ProEmptyState } from "@/components/pro-page-chrome";
@@ -24,7 +24,13 @@ type TeamTech = CrewTech & {
   destination: Destination;
 };
 
-type CrewData = { crew: TeamTech[]; timezone: string; today: string; trade: string | null };
+type CrewData = {
+  crew: TeamTech[];
+  former?: { id: string; name: string }[];
+  timezone: string;
+  today: string;
+  trade: string | null;
+};
 
 function destinationLine(tech: TeamTech) {
   const d = tech.destination;
@@ -158,6 +164,7 @@ export default function TeamPage() {
                 ))}
               </ul>
               <AddTechnician onAdded={load} />
+              {data.former?.length ? <FormerCrew former={data.former} onChanged={load} /> : null}
             </>
           ) : null}
         </PlanUpgradeGate>

@@ -6,7 +6,7 @@ import { WEEKDAYS, parseHoursForm, weekdayLabel, type HoursForm } from "@/lib/sh
 
 export type TechTimeOff = { id: string; startsAt: string; endsAt: string; reason: string | null };
 
-type Affected = { id: string; title: string; scheduledAt: string | null };
+type Affected = { id: string; title: string; scheduledAt: string | null; technicianName?: string | null };
 
 const dayFmt = (iso: string, timeZone: string) =>
   new Date(iso).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone });
@@ -201,7 +201,7 @@ export function TechScheduleEditor({
           {affected.length ? (
             <div className="tse-affected" role="alert">
               <p>
-                {affected.length === 1 ? "1 job is" : `${affected.length} jobs are`} already booked on {tech.name} then and needs someone else:
+                {affected.length === 1 ? "1 job was" : `${affected.length} jobs were`} booked on {tech.name} then. They are off {tech.name} now:
               </p>
               <ul>
                 {affected.map((j) => (
@@ -210,6 +210,7 @@ export function TechScheduleEditor({
                       {j.title}
                       {j.scheduledAt ? ` · ${dayFmt(j.scheduledAt, timezone)}` : ""}
                     </a>
+                    {j.technicianName ? ` → ${j.technicianName}` : " → needs a tech"}
                   </li>
                 ))}
               </ul>

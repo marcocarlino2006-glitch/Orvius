@@ -44,7 +44,7 @@ export async function POST(request: Request) {
   const limit = getPlanTechLimit(business);
   if (limit != null) {
     const count = await prisma.technician.count({
-      where: { businessId: business.id },
+      where: { businessId: business.id, isActive: true },
     });
     if (count >= limit) {
       return NextResponse.json(
