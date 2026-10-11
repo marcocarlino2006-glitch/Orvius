@@ -23,7 +23,7 @@ export async function GET() {
   const ids = crew.map((t) => t.id);
   const phones = [...new Set(crew.map((t) => normalizePhone(t.phone)).filter((p): p is string => Boolean(p)))];
 
-  const [jobs, timeOff, texts] = await Promise.all([
+  const [jobs, timeOff, texts, former] = await Promise.all([
     prisma.job.findMany({
       where: { businessId: business.id, technicianId: { in: ids }, status: { notIn: ["completed", "cancelled"] } },
       orderBy: [{ scheduledAt: "asc" }, { createdAt: "asc" }],
@@ -43,6 +43,11 @@ export async function GET() {
           select: { toNormalized: true, deliveryStatus: true, createdAt: true },
         })
       : [],
+    prisma.technician.findMany({
+      where: { businessId: business.id, isActive: false },
+      orderBy: { name: "asc" },
+      select: { id: true, name: true },
+    }),
   ]);
 
   const deliveredTo = new Map<string, Date>();
@@ -56,6 +61,7 @@ export async function GET() {
     timezone: business.timezone ?? "America/New_York",
     today: shopDayBounds(null, business.timezone ?? "America/New_York", now).day,
     trade: business.trade ?? null,
+    former,
     crew: crew.map((tech) => {
       const mine = jobs.filter((j) => j.technicianId === tech.id);
       const next = mine.find((j) => j.scheduledAt && j.scheduledAt >= now) ?? mine[0] ?? null;

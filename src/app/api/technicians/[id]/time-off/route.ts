@@ -5,6 +5,7 @@ import { shopDayBounds } from "@/lib/availability";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
 import { requireEntitledSession } from "@/lib/tenant";
+import { handOffTechnicianJobs } from "@/lib/tech-handoff";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -35,8 +36,9 @@ async function scope(params: Params["params"]): Promise<Scoped> {
 
 /**
  * Whole days off, read in the shop's timezone: "Mon 12 to Wed 14" is midnight
- * Monday through midnight Thursday. The response names jobs already booked on
- * the technician inside the window, because those now need someone else.
+ * Monday through midnight Thursday. Jobs already booked on the technician
+ * inside the window come off them and go to someone else when one person
+ * clearly fits; the response says where each one landed.
  */
 export async function POST(request: Request, { params }: Params) {
   const s = await scope(params);
@@ -60,15 +62,13 @@ export async function POST(request: Request, { params }: Params) {
   const entry = await prisma.technicianTimeOff.create({
     data: { businessId: auth.business.id, technicianId: technician.id, startsAt, endsAt, reason: reason || null },
   });
-  const affected = await prisma.job.findMany({
-    where: {
-      businessId: auth.business.id,
-      technicianId: technician.id,
-      status: { notIn: ["completed", "cancelled"] },
-      scheduledAt: { gte: startsAt, lt: endsAt },
-    },
-    orderBy: { scheduledAt: "asc" },
-    select: { id: true, title: true, scheduledAt: true },
+  const affected = await handOffTechnicianJobs({
+    businessId: auth.business.id,
+    technician,
+    from: startsAt,
+    to: endsAt,
+    why: `${technician.name} is off`,
+    actor: personActor(auth),
   });
 
   await recordAudit({
@@ -83,7 +83,7 @@ export async function POST(request: Request, { params }: Params) {
 
   return NextResponse.json({
     timeOff: { id: entry.id, startsAt: startsAt.toISOString(), endsAt: endsAt.toISOString(), reason: entry.reason },
-    affected: affected.map((j) => ({ id: j.id, title: j.title, scheduledAt: j.scheduledAt?.toISOString() ?? null })),
+    affected,
   });
 }
 

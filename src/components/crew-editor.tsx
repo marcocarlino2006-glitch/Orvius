@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { TechScheduleEditor, type TechTimeOff } from "@/components/tech-schedule-editor";
+import { toast } from "@/components/toaster";
 import { skillOptions } from "@/lib/trade-playbooks";
 import type { Trade } from "@/lib/trades";
 
@@ -197,6 +198,95 @@ export function CrewMember({
       <TechAppLink tech={tech} onChanged={onSaved} />
       </form>
       <TechScheduleEditor tech={tech} timezone={timezone} today={today} onChanged={onSaved} />
+      <RemoveFromTeam tech={tech} onDone={onSaved} />
+    </div>
+  );
+}
+
+type HandedOff = { id: string; title: string; technicianName: string | null };
+
+async function setActive(id: string, active: boolean) {
+  const res = await fetch(`/api/technicians/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ active }),
+  });
+  const data = (await res.json().catch(() => null)) as { error?: string; handedOff?: HandedOff[] } | null;
+  if (!res.ok) throw new Error(data?.error ?? "Could not save");
+  return data?.handedOff ?? [];
+}
+
+function RemoveFromTeam({ tech, onDone }: { tech: Tech; onDone: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function remove() {
+    if (
+      !window.confirm(
+        `Take ${tech.name} off the team? Their upcoming jobs come off them and go to someone else when one person clearly fits; the rest show as "Needs a tech". Their app link stops working.`,
+      )
+    )
+      return;
+    setBusy(true);
+    setError(null);
+    try {
+      const handedOff = await setActive(tech.id, false);
+      const reassigned = handedOff.filter((j) => j.technicianName).length;
+      const open = handedOff.length - reassigned;
+      toast({
+        title: handedOff.length
+          ? `${tech.name} is off the team. ${reassigned} job${reassigned === 1 ? "" : "s"} reassigned${open ? `, ${open} need${open === 1 ? "s" : ""} a tech` : ""}.`
+          : `${tech.name} is off the team. They had no upcoming jobs.`,
+      });
+      onDone();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="dsp-crew-remove">
+      <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => void remove()}>
+        {busy ? "Removing…" : `Take ${tech.name.split(" ")[0]} off the team`}
+      </button>
+      {error ? <span className="dsp-decision-error" role="alert">{error}</span> : null}
+    </div>
+  );
+}
+
+export function FormerCrew({ former, onChanged }: { former: { id: string; name: string }[]; onChanged: () => void }) {
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function bringBack(id: string) {
+    setBusyId(id);
+    setError(null);
+    try {
+      await setActive(id, true);
+      onChanged();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  return (
+    <div className="dsp-former">
+      <p className="tm-help">Off the team. Orvius doesn&apos;t assign them work.</p>
+      <ul>
+        {former.map((t) => (
+          <li key={t.id}>
+            <span>{t.name}</span>
+            <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busyId === t.id} onClick={() => void bringBack(t.id)}>
+              {busyId === t.id ? "Saving…" : "Bring back"}
+            </button>
+          </li>
+        ))}
+      </ul>
+      {error ? <span className="dsp-decision-error" role="alert">{error}</span> : null}
     </div>
   );
 }
