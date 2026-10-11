@@ -13,6 +13,16 @@ export type JobberLink = {
   needsAttention: number;
 } | null;
 
+export type HousecallLink = {
+  available: boolean;
+  status: "none" | "active" | "disconnected" | "reconnect" | string;
+  companyName: string | null;
+  connectedAt: string | null;
+  lastError: string | null;
+  sentLast30Days: number;
+  needsAttention: number;
+} | null;
+
 export type QuickBooksLink = {
   available: boolean;
   status: "none" | "active" | "disconnected" | "reconnect" | string;
@@ -29,6 +39,7 @@ export type Account = {
   calendarFeedUrl?: string | null;
   busyCalendar?: BusyCalendar;
   jobber?: JobberLink;
+  housecall?: HousecallLink;
   quickbooks?: QuickBooksLink;
   user?: { name: string | null; email: string | null; image?: string | null };
   business: {

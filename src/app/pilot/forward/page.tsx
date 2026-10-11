@@ -50,7 +50,7 @@ export default function PilotForwardPage() {
               </Link>{" "}
               (Stripe Connect)
             </li>
-            <li>Sync with ServiceTitan or other field-service suites. Jobber is supported: requests from your calls go into Jobber.</li>
+            <li>Sync with ServiceTitan or other field-service suites. Jobber and Housecall Pro are supported: requests from your calls go into them.</li>
             <li>Guarantee “zero missed jobs” or 100% answer rate</li>
           </ul>
 

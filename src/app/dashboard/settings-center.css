@@ -1893,3 +1893,23 @@ html .os-shell .sc-dialog .sc-plan {
     flex: 1 1 8rem;
   }
 }
+
+.sc-key-entry {
+  align-items: flex-start;
+}
+.sc-key-entry .sc-input {
+  width: 100%;
+  margin-top: 8px;
+}
+.sc-key-entry .sc-row-control {
+  gap: 8px;
+}
+@media (max-width: 560px) {
+  .sc-key-entry {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .sc-key-entry .sc-row-control {
+    justify-content: flex-end;
+  }
+}

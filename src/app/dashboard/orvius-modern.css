@@ -1374,3 +1374,10 @@
 .os-shell .plan-paused--ending {
   border-left-color: var(--m-red);
 }
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .sc-key-entry .sc-field-error {
+  margin-top: 6px !important;
+  font-size: 0.8125rem !important;
+  line-height: 1.45 !important;
+  color: var(--m-red) !important;
+}

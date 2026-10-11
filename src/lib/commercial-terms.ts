@@ -127,7 +127,7 @@ export function commercialTerms(): readonly TermGroup[] {
           id: "integrations",
           label: "Integrations",
           detail:
-            "Stripe for customer payments. Jobber, which receives new requests from your calls. A calendar feed for Google, Apple or Outlook. Text and email alerts to you.",
+            "Stripe for customer payments. Jobber or Housecall Pro (MAX plan), which receive new requests from your calls. QuickBooks Online for payments you collect. A calendar feed for Google, Apple or Outlook. Text and email alerts to you.",
         },
       ],
     },
