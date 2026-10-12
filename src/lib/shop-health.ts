@@ -161,7 +161,7 @@ export async function getShopHealth(businessId: string): Promise<ShopHealth> {
     {
       id: "sms",
       label: "SMS alerts",
-      ok: !smsEnabled || (ownerPhoneOk && !ownerPhoneConflict),
+      ok: smsEnabled && ownerPhoneOk && !ownerPhoneConflict,
       detail: !smsEnabled
         ? "Texts aren't switched on yet"
         : ownerPhoneConflict
@@ -206,8 +206,10 @@ export async function getShopHealth(businessId: string): Promise<ShopHealth> {
     },
   ];
 
+  const alertsReachable = (smsEnabled && ownerPhoneOk && !ownerPhoneConflict) || (ownerEmailOk && emailReady);
   const criticalFailed = !lineOk || !assistantOk;
   const attentionFailed =
+    !alertsReachable ||
     !lineVerified ||
     failedAlerts > 0 ||
     ownerPhoneConflict ||
@@ -230,8 +232,7 @@ export async function getShopHealth(businessId: string): Promise<ShopHealth> {
     lastLeadAt: lastLead?.createdAt.toISOString() ?? null,
     lastAlertAt: lastSuccess?.createdAt.toISOString() ?? null,
     failedAlerts24h: failedAlerts,
-    alertsReachable:
-      (smsEnabled && ownerPhoneOk && !ownerPhoneConflict) || (ownerEmailOk && emailReady),
+    alertsReachable,
     pendingAlerts: alertMetrics.pendingAlerts,
     stuckPendingAlerts: alertMetrics.stuckPendingAlerts,
     alertLatencyP50Sec: alertMetrics.alertLatencyP50Sec,
