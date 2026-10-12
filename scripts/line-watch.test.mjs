@@ -102,4 +102,29 @@ test("a lost call is recovered into a full record, and a second pass changes not
   }
 });
 
+test("a call whose row was written at ring time but whose report never landed is still recovered", async () => {
+  const shop = await prisma.business.create({
+    data: {
+      name: "Ring Row HVAC",
+      slug: `ring-${uid()}`,
+      environment: "test",
+      trade: "HVAC",
+      ownerPhone: "+15550001112",
+      ownerEmail: `owner-${uid()}@example.test`,
+      vapiAssistantId: `asst_${uid()}`,
+    },
+  });
+  try {
+    const rang = vapiCall({ customer: { number: "+13125550179" } });
+    await prisma.call.create({ data: { businessId: shop.id, vapiCallId: rang.id, callerPhone: "+13125550179", status: "in-progress" } });
+    const result = await watchShopLine(shop, { now: NOW, deps: { listCalls: async () => [rang], lineProblem: async () => null } });
+    assert.deepEqual(result.recovered, [rang.id]);
+    const call = await prisma.call.findUniqueOrThrow({ where: { vapiCallId: rang.id }, include: { lead: true } });
+    assert.equal(call.status, "completed");
+    assert.equal(call.lead?.name, "Nina Park");
+  } finally {
+    await prisma.business.delete({ where: { id: shop.id } }).catch(() => {});
+  }
+});
+
 test.after(() => prisma.$disconnect());

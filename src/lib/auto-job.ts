@@ -57,6 +57,7 @@ export type AutoBookSkipReason =
   | "plan_blocked"
   | "out_of_area"
   | "safety_escalation"
+  | "emergency_escalation"
   | "outside_scope"
   | "missing_address"
   | "owner_first"
@@ -240,6 +241,25 @@ export async function maybeAutoBookLead(
       created: false,
       qualified: true,
       skipReason: "safety_escalation",
+      classification,
+      intent,
+    };
+  }
+
+  /*
+    Emergencies go to a person, never to a slot. The caller was told the team
+    will call right back; a booked window hours away would read as handled,
+    send the customer a confirmation for the wrong time, and stand down the
+    unacknowledged-emergency escalation.
+  */
+  if (urgency === "emergency") {
+    await urgencyWrite;
+    await decide("lead.escalated", "Emergency — not booked. The owner calls them back now.", {});
+    return {
+      jobId: null,
+      created: false,
+      qualified: true,
+      skipReason: "emergency_escalation",
       classification,
       intent,
     };

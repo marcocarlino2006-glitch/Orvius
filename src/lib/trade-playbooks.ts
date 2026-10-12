@@ -48,7 +48,9 @@ export type RequestClassification = {
 export const GENERAL_DURATION_MIN = 120;
 
 const HVAC_DOWN =
-  "\\b(ac|a/c|air condition\\w*|cooling|heat|heating|furnace|heat pump)\\b.{0,30}\\b(not working|stopped|died|dead|is out|broke\\w*|quit|won'?t (turn on|start|cool|heat)|not (cooling|heating|blowing|turning on))";
+  "\\b(ac|a/c|air condition\\w*|cooling|heat|heating|(?<!water )heater|furnace|heat pump)\\b.{0,30}\\b(not working|isn'?t working|doesn'?t work|won'?t work|stopped|died|dead|is out|broke\\w*|quit|won'?t (turn on|start|cool|heat)|not (cooling|heating|blowing|turning on))";
+/** Water loose in the house is an emergency whoever the caller rang; for an electrician it's also a shock risk. */
+const WATER_LOOSE = [/\bflood(s|ing|ed)?\b/, /water everywhere/, /\bburst (pipe|line)\b/];
 /** Someone who can't ride out a dead system, or weather nobody can. */
 const AT_RISK =
   "(?<!\\b(no|without|nobody)\\s+(\\w+\\s+){0,2})\\b(baby|infant|newborn|elderly|senior|\\d{2}[- ]year[- ]old (mother|father|mom|dad|parent|grandm\\w*|grandf\\w*)|oxygen|pregnan\\w*|disabled|very hot|extremely hot|heat ?wave|(9\\d|1[01]\\d) ?degrees|freezing|below zero)";
@@ -77,6 +79,7 @@ const HVAC: TradePlaybook = {
     /\b(no (ac|a\/c|cooling)|(ac|a\/c|air conditioner) (died|is dead|is out|quit|stopped))\b.{0,80}\b(baby|infant|elderly|oxygen|heat ?stroke)/,
     new RegExp(`${HVAC_DOWN}[\\s\\S]{0,120}${AT_RISK}`),
     new RegExp(`${AT_RISK}[\\s\\S]{0,120}${HVAC_DOWN}`),
+    ...WATER_LOOSE,
   ],
   sameDay: [
     /\b(ac|a\/c|air conditioner|air conditioning)\b.{0,20}\b(died|dead|out|quit|stopped|not working|broke)/,
@@ -122,7 +125,7 @@ const ELECTRICAL: TradePlaybook = {
     { key: "shock", label: "Someone was shocked", instruction: "If anyone is hurt, the caller should call 911. Call them back now.", keywords: [/(got|was|been) shocked/, /electrocut/] },
     { key: "exposed_wires", label: "Exposed or hot wires", instruction: "Tell the caller to keep everyone away and shut off the breaker. Call them back now.", keywords: [/exposed wire/, /wires? (hanging|exposed|hot)/, /downed (power )?line/] },
   ],
-  emergency: [/no power/, /power (is )?out/],
+  emergency: [/no power/, /power (is )?out/, ...WATER_LOOSE],
   sameDay: [/breaker/, /\basap\b/, /\btoday\b/, /\burgent\b/],
 };
 

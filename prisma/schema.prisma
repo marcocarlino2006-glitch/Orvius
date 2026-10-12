@@ -1002,6 +1002,8 @@ model WebhookEvent {
   error       String?
   /// Sweep retries of a call report that failed to finish.
   attempts    Int       @default(0)
+  /// When the current "processing" claim was taken; a claim older than the lease died with its worker.
+  claimedAt   DateTime?
   createdAt   DateTime  @default(now())
 
   @@unique([source, externalId, eventType])

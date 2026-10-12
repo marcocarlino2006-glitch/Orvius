@@ -219,11 +219,15 @@ export function heldNewTimeReply(at: Date, timezone: string) {
   return `Held ${describeSlot(at, timezone)} as the new time for their existing visit. Tell the caller "I've held ${describeSlot(at, timezone)} for you, and the shop will confirm the change with you." Never say the visit is moved or confirmed.`;
 }
 
-export function safetyAlertReply(params: { texted: boolean; transferring: boolean }) {
-  const told = params.texted ? "The owner has been texted. " : "";
-  return params.transferring
-    ? `${told}Now say "I'm connecting you to the team now" and use the transfer tool in the same reply. If the transfer does not go through, tell them the team will call right back and take their name, number and address.`
-    : `${told}Tell them "The team has been alerted and will call you right back." Then take their name, callback number and address if you don't have them yet.`;
+export function safetyAlertReply(params: { texted: boolean; reached?: boolean; transferring: boolean }) {
+  const reached = params.reached ?? params.texted;
+  const told = params.texted ? "The owner has been texted. " : reached ? "The owner has been alerted. " : "";
+  if (params.transferring) {
+    return `${told}Now say "I'm connecting you to the team now" and use the transfer tool in the same reply. If the transfer does not go through, tell them the team will call right back and take their name, number and address.`;
+  }
+  return reached
+    ? `${told}Tell them "The team has been alerted and will call you right back." Then take their name, callback number and address if you don't have them yet.`
+    : `The alert could not be sent. Do not say the team was alerted. Tell them that if anyone is in danger they should call 911 now, then take their name, callback number and address so the team can call them back.`;
 }
 
 /** Vapi sends arguments as an object, some providers as a JSON string. */

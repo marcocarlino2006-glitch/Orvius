@@ -52,6 +52,21 @@ export function findLostCalls(calls: VapiCallRecord[], savedIds: Set<string>, no
   );
 }
 
+/*
+  A Call row is written when the phone rings and again on any tool call, so a
+  row alone proves nothing. A call is saved once it left the live statuses
+  (its end-of-call report finished) or it produced a request; anything else
+  is a caller who may have reached no one.
+*/
+export async function savedCallIds(vapiCallIds: string[]): Promise<Set<string>> {
+  if (!vapiCallIds.length) return new Set();
+  const rows = await prisma.call.findMany({
+    where: { vapiCallId: { in: vapiCallIds }, OR: [{ status: { notIn: ["queued", "ringing", "in-progress"] } }, { lead: { isNot: null } }] },
+    select: { vapiCallId: true },
+  });
+  return new Set(rows.flatMap((r) => (r.vapiCallId ? [r.vapiCallId] : [])));
+}
+
 export function reportFromVapiCall(call: VapiCallRecord): VapiWebhookMessage["message"] {
   const durationSeconds =
     call.startedAt && call.endedAt ? Math.max(0, (Date.parse(call.endedAt) - Date.parse(call.startedAt)) / 1000) : undefined;
@@ -180,11 +195,7 @@ export async function recoverLostCallsAccountWide(
     fresh.forEach((r) => seen.add(r.id));
     result.checked += fresh.length;
 
-    const saved = await prisma.call.findMany({
-      where: { vapiCallId: { in: fresh.map((c) => c.id) } },
-      select: { vapiCallId: true },
-    });
-    const lost = findLostCalls(fresh, new Set(saved.flatMap((s) => (s.vapiCallId ? [s.vapiCallId] : []))), now);
+    const lost = findLostCalls(fresh, await savedCallIds(fresh.map((c) => c.id)), now);
     result.lost += lost.length;
     if (lost.length) {
       const assistantIds = [...new Set(lost.map((c) => c.assistantId).filter((id): id is string => Boolean(id)))];
@@ -227,11 +238,7 @@ export async function watchShopLine(
 
   const calls = await deps.listCalls(business.vapiAssistantId, new Date(now.getTime() - LOOKBACK_MS));
   result.checked = calls.length;
-  const saved = await prisma.call.findMany({
-    where: { vapiCallId: { in: calls.map((c) => c.id) } },
-    select: { vapiCallId: true },
-  });
-  const lost = findLostCalls(calls, new Set(saved.flatMap((s) => (s.vapiCallId ? [s.vapiCallId] : []))), now);
+  const lost = findLostCalls(calls, await savedCallIds(calls.map((c) => c.id)), now);
 
   for (const call of lost) await recoverLostCall(business, call, result);
 
