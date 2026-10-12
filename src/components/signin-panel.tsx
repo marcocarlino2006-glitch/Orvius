@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
+import { MONEY_BACK_DAYS } from "@/lib/money-back";
 import type { PasswordResetResponse } from "@/app/api/auth/password-reset/route";
 import type { SignUpResponse } from "@/app/api/auth/signup/route";
 
@@ -107,6 +108,10 @@ export function SignInPanel({
       {!selfServeEnabled && mode !== "forgot" ? (
         <p className="ov-signin-sub">
           Use the account connected to your shop. <a href="/pilot">Book a call audit</a>.
+        </p>
+      ) : mode === "signup" ? (
+        <p className="ov-signin-sub">
+          Set up your shop and hear a test call before you pay. First {MONEY_BACK_DAYS} days money back.
         </p>
       ) : null}
 

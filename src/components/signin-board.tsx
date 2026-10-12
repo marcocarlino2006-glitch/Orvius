@@ -125,7 +125,7 @@ export function SignInBoard() {
       </ul>
 
       <p className="ov-signin-board-foot">
-        Example activity from reference shops.
+        Example activity from sample shops, not real customers.
       </p>
     </div>
   );
