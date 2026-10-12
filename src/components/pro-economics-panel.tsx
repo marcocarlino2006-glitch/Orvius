@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { WeeklyTrend } from "@/components/weekly-trend";
 import { formatCents, formatCentsTidy } from "@/lib/money";
@@ -211,27 +210,28 @@ export function ProEconomicsPanel({
         ) : null}
         {outcomes.jobsPerWeekVsBaseline != null ? (
           <li>
-            Jobs/week vs before Orvius:{" "}
+            Jobs a week compared with before Orvius:{" "}
             <strong>
-              {outcomes.jobsPerWeekVsBaseline > 0 ? "+" : ""}
-              {outcomes.jobsPerWeekVsBaseline}
+              {outcomes.jobsPerWeekVsBaseline === 0
+                ? "no change"
+                : `${outcomes.jobsPerWeekVsBaseline > 0 ? "+" : ""}${outcomes.jobsPerWeekVsBaseline}`}
             </strong>
-            {" · owner-reported context, not attribution"}
+            {" · measured against the number you entered"}
           </li>
         ) : null}
         {!outcomes.avgTicketCents ? (
           <li>
-            <Link href="/dashboard?settings=receptionist" className="pro-section-link">
+            <a href="#your-numbers" className="pro-section-link">
               Set avg ticket →
-            </Link>{" "}
+            </a>{" "}
             to estimate captured-demand value
           </li>
         ) : null}
         {!outcomes.economicsReady ? (
           <li>
-            <Link href="/dashboard?settings=receptionist" className="pro-section-link">
+            <a href="#your-numbers" className="pro-section-link">
               Set before-Orvius baseline →
-            </Link>{" "}
+            </a>{" "}
             for measured lift (jobs/week + missed calls)
           </li>
         ) : null}
@@ -252,9 +252,9 @@ export function ProEconomicsPanel({
             {busy ? "Preparing…" : stale ? "Copy weekly proof (due)" : "Copy weekly proof"}
           </button>
         )}
-        <Link href="/dashboard?settings=receptionist" className="pro-section-link text-sm">
+        <a href="#your-numbers" className="pro-section-link text-sm">
           Edit ticket &amp; baseline →
-        </Link>
+        </a>
         {copyState === "ok" ? (
           <span className="pro-economics-status">Copied — paste into your notes</span>
         ) : null}

@@ -49,7 +49,7 @@ export function CommandRecovered({ outcomes }: { outcomes: ShopOutcomes | undefi
       </dl>
 
       {week.needsTicket ? (
-        <Link href="/dashboard?settings=receptionist" className="ox-btn ox-btn--quiet ox-btn--sm rw-action">
+        <Link href="/dashboard?settings=performance" className="ox-btn ox-btn--quiet ox-btn--sm rw-action">
           Set your average ticket to see dollars
         </Link>
       ) : null}
