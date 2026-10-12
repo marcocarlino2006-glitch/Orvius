@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { COLLECTED_STATUSES } from "@/lib/payment-math";
 import { prisma } from "@/lib/prisma";
-import { listShopAccess, type ShopRole } from "@/lib/workspace-access";
+import { can, listShopAccess, type ShopRole } from "@/lib/workspace-access";
 
 export type PortfolioShop = {
   id: string;
@@ -12,7 +12,8 @@ export type PortfolioShop = {
   leads: number;
   booked: number;
   completed: number;
-  collectedCents: number;
+  /** Null where this person's role can't see the shop's money. */
+  collectedCents: number | null;
   /** Leads still waiting on a first callback, at any age. */
   waiting: number;
   waitingEmergencies: number;
@@ -97,7 +98,7 @@ export async function getPortfolio(email: string, days: number, now = new Date()
     leads: m.leads.get(b.id) ?? 0,
     booked: m.booked.get(b.id) ?? 0,
     completed: m.completed.get(b.id) ?? 0,
-    collectedCents: (m.deposits.get(b.id) ?? 0) + (m.invoices.get(b.id) ?? 0),
+    collectedCents: can(role, "reports.view") ? (m.deposits.get(b.id) ?? 0) + (m.invoices.get(b.id) ?? 0) : null,
     waiting: m.waiting.get(b.id) ?? 0,
     waitingEmergencies: m.waitingEmergencies.get(b.id) ?? 0,
     lastCallAt: m.lastCall.get(b.id)?.toISOString() ?? null,
@@ -106,8 +107,10 @@ export async function getPortfolio(email: string, days: number, now = new Date()
     billingStatus: b.billingStatus ?? "none",
   }));
 
-  const sum = (k: "calls" | "leads" | "booked" | "completed" | "collectedCents" | "waiting" | "waitingEmergencies") =>
+  const sum = (k: "calls" | "leads" | "booked" | "completed" | "waiting" | "waitingEmergencies") =>
     shops.reduce((t, s) => t + s[k], 0);
+  // A total over only some shops would read as the whole business, so it shows only when every shop's money is visible.
+  const collectedTotal = shops.every((s) => s.collectedCents != null) ? shops.reduce((t, s) => t + (s.collectedCents ?? 0), 0) : null;
   return {
     days: window,
     since: since.toISOString(),
@@ -120,7 +123,7 @@ export async function getPortfolio(email: string, days: number, now = new Date()
       leads: sum("leads"),
       booked: sum("booked"),
       completed: sum("completed"),
-      collectedCents: sum("collectedCents"),
+      collectedCents: collectedTotal,
       waiting: sum("waiting"),
       waitingEmergencies: sum("waitingEmergencies"),
     },
