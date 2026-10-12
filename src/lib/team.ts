@@ -3,7 +3,8 @@ import { recordAudit } from "@/lib/audit";
 import { isEmailConfigured, sendOwnerEmail } from "@/lib/email";
 import { prisma } from "@/lib/prisma";
 import { getAppBaseUrl } from "@/lib/stripe";
-import { ROLE_DETAILS, ROLE_LABELS, isMemberRole, type MemberRole, type ShopRole } from "@/lib/workspace-access";
+import { resetCalendarFeed } from "@/lib/calendar-feed";
+import { ROLE_DETAILS, ROLE_LABELS, can, isMemberRole, type MemberRole, type ShopRole } from "@/lib/workspace-access";
 
 export const MAX_TEAM_SIZE = 50;
 
@@ -141,6 +142,9 @@ export async function removeTeammate(params: {
   const self = member.email === params.by;
   if (!self && !params.canManage) return { ok: false, status: 403, error: "Your role can't manage the team. Ask the shop owner." };
   await prisma.membership.delete({ where: { id: member.id } });
+  // Access ends with the membership: no more alerts on their devices, and no calendar link they could keep.
+  await prisma.pushSubscription.deleteMany({ where: { businessId: params.businessId, email: member.email } });
+  if (can(member.role as ShopRole, "settings.edit")) await resetCalendarFeed(params.businessId);
   await recordAudit({
     businessId: params.businessId,
     entityType: "shop",

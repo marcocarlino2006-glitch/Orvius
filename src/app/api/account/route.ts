@@ -245,7 +245,8 @@ export async function GET(request: Request) {
       ownerSmsOptedOut: Boolean(businessRecord?.ownerSmsOptOutAt),
     },
     founder,
-    calendarFeedUrl: businessRecord ? calendarFeedUrl(businessRecord.id, businessRecord.calendarFeedVersion) : null,
+    // Dispatchers would keep a working copy after they leave; only roles whose removal rotates it get the link.
+    calendarFeedUrl: businessRecord && role && can(role, "settings.edit") ? calendarFeedUrl(businessRecord.id, businessRecord.calendarFeedVersion) : null,
     busyCalendar: businessRecord?.busyCalendarUrl
       ? {
           source: busyCalendarHost(businessRecord.busyCalendarUrl),
