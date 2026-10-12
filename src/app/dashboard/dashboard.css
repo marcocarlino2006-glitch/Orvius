@@ -2936,7 +2936,7 @@
 }
 
 .os-shell-pro .os-ring-status-module {
-  color: color-mix(in srgb, #d1d1d1 55%, transparent) !important;
+  color: color-mix(in srgb, #d1d1d1 72%, transparent) !important;
 }
 
 /* Night tokens: single source at .os-shell-night above. */
