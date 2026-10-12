@@ -493,7 +493,7 @@ function jobberRow(jobber: JobberLink, note: string | null, schedule: string) {
   if (!jobber?.available) {
     return { ...base, on: false, detail: note ?? "", hidden: !note };
   }
-  return { ...base, on: false, detail: note ?? "Send every call to Jobber as a request, matched to the client by phone.", href: connect };
+  return { ...base, on: false, detail: note ?? "Send every call to Jobber as a request, matched to the client by phone. Orvius also reads your Jobber schedule so it won't offer a time already booked there.", href: connect };
 }
 
 function housecallRow(hcp: HousecallLink, note: string | null, schedule: string) {
@@ -514,7 +514,7 @@ function housecallRow(hcp: HousecallLink, note: string | null, schedule: string)
   if (!hcp?.available) {
     return { ...base, on: false, detail: note ?? "", hidden: !note };
   }
-  return { ...base, on: false, detail: note ?? "Send every call to Housecall Pro as a lead, matched to the customer by phone.", keyEntry: { label: "Connect", form: "housecall" as const } };
+  return { ...base, on: false, detail: note ?? "Send every call to Housecall Pro as a lead, matched to the customer by phone. Orvius also reads your Housecall Pro schedule so it won't offer a time already booked there.", keyEntry: { label: "Connect", form: "housecall" as const } };
 }
 
 function serviceTitanRow(st: ServiceTitanLink, note: string | null, schedule: string) {
@@ -535,7 +535,7 @@ function serviceTitanRow(st: ServiceTitanLink, note: string | null, schedule: st
   if (!st?.available) {
     return { ...base, on: false, detail: note ?? "", hidden: !note };
   }
-  return { ...base, on: false, detail: note ?? "Send every call to your ServiceTitan booking queue, ready for your CSRs to book.", keyEntry: { label: "Connect", form: "servicetitan" as const } };
+  return { ...base, on: false, detail: note ?? "Send every call to your ServiceTitan booking queue, ready for your CSRs to book. Orvius also reads your ServiceTitan appointments so it won't offer a time already booked there.", keyEntry: { label: "Connect", form: "servicetitan" as const } };
 }
 
 function quickbooksRow(qb: QuickBooksLink, note: string | null) {
