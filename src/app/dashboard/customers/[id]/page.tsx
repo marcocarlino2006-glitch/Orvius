@@ -343,11 +343,19 @@ function ForgetCustomerPanel({ customerId, name }: { customerId: string; name: s
           {error ? <ShellAlert tone="error">{error}</ShellAlert> : null}
         </div>
       ) : (
-        <div className="flex flex-wrap items-center justify-between gap-2 font-sans">
-          <span style={{ color: "var(--ox-text-2)" }}>Customer asked you to delete their data?</span>
-          <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" onClick={() => setOpen(true)}>
-            Delete their data
-          </button>
+        <div className="grid gap-3 font-sans">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span style={{ color: "var(--ox-text-2)" }}>Customer asked what you have on them?</span>
+            <a className="ox-btn ox-btn--quiet ox-btn--sm" href={`/api/customers/${customerId}/export`} download>
+              Download their data
+            </a>
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span style={{ color: "var(--ox-text-2)" }}>Customer asked you to delete their data?</span>
+            <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" onClick={() => setOpen(true)}>
+              Delete their data
+            </button>
+          </div>
         </div>
       )}
     </ShellPanel>

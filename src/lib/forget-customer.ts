@@ -15,6 +15,48 @@ export type ForgetResult =
 
 const VOICEMAIL_LINES = /^Voicemail \(\d+s\): \S*\/Recordings\/RE[0-9a-f]{32}\S*$/gim;
 
+/** Every row that is about this customer: matched by link, by phone, or through the call a request came from. */
+export async function findCustomerFootprint(businessId: string, customerId: string) {
+  const customer = await prisma.customer.findFirst({
+    where: { id: customerId, businessId },
+    select: { id: true, phone: true, phoneNormalized: true },
+  });
+  if (!customer) return null;
+  const phoneNormalized = normalizePhone(customer.phone) ?? customer.phoneNormalized;
+  const phones = [...new Set([customer.phone, customer.phoneNormalized, phoneNormalized].filter(Boolean))];
+
+  const leads = await prisma.lead.findMany({
+    where: { businessId, OR: [{ customerId: customer.id }, { phone: { in: phones } }] },
+    select: { id: true, notes: true, callId: true },
+  });
+  const leadIds = leads.map((l) => l.id);
+  const calls = await prisma.call.findMany({
+    where: {
+      businessId,
+      OR: [
+        { customerId: customer.id },
+        { callerPhone: { in: phones } },
+        { id: { in: leads.flatMap((l) => (l.callId ? [l.callId] : [])) } },
+      ],
+    },
+    select: { id: true, vapiCallId: true },
+  });
+  const jobs = await prisma.job.findMany({
+    where: { businessId, OR: [{ customerId: customer.id }, { leadId: { in: leadIds } }] },
+    select: { id: true },
+  });
+  return {
+    customer,
+    phoneNormalized,
+    leads,
+    calls,
+    jobs,
+    leadIds,
+    callIds: calls.map((c) => c.id),
+    jobIds: jobs.map((j) => j.id),
+  };
+}
+
 /*
   A customer asking a shop to delete what it holds about them. What identifies
   or records the person goes: name, number, email, address, notes, call
@@ -37,42 +79,15 @@ export async function forgetCustomer(
         ? deleteTwilioRecording
         : null;
 
-  const customer = await prisma.customer.findFirst({
-    where: { id: params.customerId, businessId: params.businessId },
-    select: { id: true, phone: true, phoneNormalized: true },
-  });
-  if (!customer) return { ok: false, reason: "not_found" };
-  const phoneNormalized = normalizePhone(customer.phone) ?? customer.phoneNormalized;
-  const phones = [...new Set([customer.phone, customer.phoneNormalized, phoneNormalized].filter(Boolean))];
+  const footprint = await findCustomerFootprint(params.businessId, params.customerId);
+  if (!footprint) return { ok: false, reason: "not_found" };
+  const { customer, phoneNormalized, leads, calls, jobs, leadIds, callIds, jobIds } = footprint;
 
   const plan = await prisma.planMember.findFirst({
     where: { businessId: params.businessId, phoneNormalized, status: { in: ["active", "past_due"] } },
     select: { id: true },
   });
   if (plan) return { ok: false, reason: "active_plan" };
-
-  const leads = await prisma.lead.findMany({
-    where: { businessId: params.businessId, OR: [{ customerId: customer.id }, { phone: { in: phones } }] },
-    select: { id: true, notes: true, callId: true },
-  });
-  const leadIds = leads.map((l) => l.id);
-  const calls = await prisma.call.findMany({
-    where: {
-      businessId: params.businessId,
-      OR: [
-        { customerId: customer.id },
-        { callerPhone: { in: phones } },
-        { id: { in: leads.flatMap((l) => (l.callId ? [l.callId] : [])) } },
-      ],
-    },
-    select: { id: true, vapiCallId: true },
-  });
-  const callIds = calls.map((c) => c.id);
-  const jobs = await prisma.job.findMany({
-    where: { businessId: params.businessId, OR: [{ customerId: customer.id }, { leadId: { in: leadIds } }] },
-    select: { id: true },
-  });
-  const jobIds = jobs.map((j) => j.id);
 
   const goneRemote = new Set<string>();
   for (const call of calls) {
