@@ -16,6 +16,9 @@ import { answerDirect, readAskIntent } from "../src/lib/ask-direct.ts";
 import { saveSetupDay, startSetup } from "../src/lib/setup-sandbox.ts";
 import { getShopHealth } from "../src/lib/shop-health.ts";
 import { planDetail, planLabel } from "../src/components/settings-center/settings-model.ts";
+import { isLiveCall, liveCallSince } from "../src/lib/live-call.ts";
+import { weekResultLine } from "../src/lib/command-model.ts";
+import { collectAttention } from "../src/lib/attention-queue.ts";
 
 const prisma = new PrismaClient();
 const read = (path) => readFileSync(path, "utf8");
@@ -115,4 +118,46 @@ test("test mode shows no plan and no charge, with the way to go live", () => {
 test("signup says what happens before paying; sample activity is labelled as samples", () => {
   assert.match(read("src/components/signin-panel.tsx"), /hear a test call before you pay/);
   assert.match(read("src/components/signin-board.tsx"), /not real customers/);
+});
+
+test("a call that lost its hang-up report stops showing as live after the 10-minute cap", async () => {
+  const now = Date.parse("2026-10-12T17:00:00Z");
+  assert.equal(isLiveCall("in-progress", new Date(now - 5 * 60_000), now), true);
+  assert.equal(isLiveCall("in-progress", new Date(now - 30 * 60_000), now), false);
+  assert.equal(isLiveCall("completed", new Date(now - 60_000), now), false);
+  assert.equal(liveCallSince(now).getTime(), now - 11 * 60_000);
+
+  const shop = await prisma.business.create({
+    data: { name: "Stuck Line", slug: `stuck-line-${Date.now()}`, ownerEmail: email(), timezone: TZ },
+  });
+  for (const minutes of [40, 90, 600]) {
+    await prisma.call.create({ data: { businessId: shop.id, direction: "inbound", status: "in-progress", callerPhone: "+13125550194", createdAt: new Date(Date.now() - minutes * 60_000) } });
+  }
+  const items = await collectAttention(shop.id);
+  assert.ok(!items.some((i) => i.kind === "concurrent_calls"), "old stuck calls never read as callers on the line");
+  for (const file of ["src/components/call-record-card.tsx", "src/lib/customer.ts", "src/lib/demo-load.ts"]) {
+    assert.match(read(file), /isLiveCall|liveCallSince/, `${file} uses the shared live-call rule`);
+  }
+});
+
+test("Command leads with what the week produced, from the same numbers as the report", () => {
+  assert.equal(
+    weekResultLine({ windowDays: 7, leads: 16, leadsBooked: 12, collectedCents: 182600 }),
+    "Last 7 days: 12 of 16 requests became jobs, $1,826 collected.",
+  );
+  assert.equal(weekResultLine({ windowDays: 7, leads: 1, leadsBooked: 0, collectedCents: 0 }), "Last 7 days: 0 of 1 request became a job.");
+  assert.equal(weekResultLine({ windowDays: 7, leads: 0, leadsBooked: 0, collectedCents: 5000 }), null, "nothing to report on an empty week");
+  assert.equal(weekResultLine(undefined), null);
+  assert.match(read("src/components/ring1-command-center.tsx"), /weekResultLine\(data\?\.outcomes\)/);
+});
+
+test("no page sends a ready buyer to the waitlist while signup is open", () => {
+  const start = read("src/components/start-actions.tsx");
+  assert.match(start, /signupOpen \? \(/);
+  assert.match(start, /SIGNUP_HREF[\s\S]*Get your line[\s\S]*Book a call audit/, "signup first; the audit only when signup is closed");
+  for (const page of ["src/app/pricing/page.tsx", "src/app/product/page.tsx", "src/app/for/[trade]/page.tsx", "src/app/resources/page.tsx"]) {
+    const src = read(page);
+    assert.match(src, /<StartActions/, `${page} uses the shared start buttons`);
+    assert.doesNotMatch(src, /className="ov-btn[^"]*">\s*Book a call audit/, `${page} has no hard-coded audit button`);
+  }
 });
