@@ -1888,6 +1888,29 @@ html .os-shell .sc-dialog .sc-plan {
   border-radius: 10px;
 }
 
+.os-shell .sc-dialog .sc-signins {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--sc-line);
+  border-radius: 10px;
+}
+
+.os-shell .sc-dialog .sc-signins li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  padding: 0.625rem 0.875rem;
+  color: var(--sc-text);
+  font-size: 0.875rem;
+}
+
+.os-shell .sc-dialog .sc-signins li + li {
+  border-top: 1px solid var(--sc-line);
+}
+
 @media (pointer: coarse) {
   html body .os-shell .sc-dialog .sc-security-form .sc-input {
     height: 44px !important;

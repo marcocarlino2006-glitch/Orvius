@@ -7,6 +7,7 @@ import { normalizeEmail } from "@/lib/magic-link";
 import { passwordProblem, setVerifiedPassword, hashPassword, verifyPasswordHash } from "@/lib/password-auth";
 import { prisma } from "@/lib/prisma";
 import { sharedRateLimit } from "@/lib/rate-limit";
+import { recentSignIns } from "@/lib/sign-in-history";
 import {
   confirmTwoStep,
   disableTwoStep,
@@ -28,7 +29,7 @@ async function signedInEmail() {
 
 async function status(email: string) {
   const login = await prisma.passwordLogin.findUnique({ where: { email }, select: { id: true } });
-  return { password: { set: Boolean(login) }, twoStep: await twoStepStatus(email) };
+  return { password: { set: Boolean(login) }, twoStep: await twoStepStatus(email), signIns: await recentSignIns(email) };
 }
 
 export async function GET() {

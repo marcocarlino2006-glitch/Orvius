@@ -6,7 +6,11 @@ import { ScGroup, ScRow } from "./settings-primitives";
 type Status = {
   password: { set: boolean };
   twoStep: { enabled: boolean; enabledAt: string | null; recoveryLeft: number };
+  signIns?: { method: string; device: string; place: string | null; createdAt: string }[];
 };
+
+const signedInAt = (iso: string) =>
+  new Date(iso).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 
 type Setup = { setupKey: string; uri: string; qr: string };
 
@@ -295,6 +299,24 @@ export function SecurityGroup() {
             </button>
           )}
         </ScRow>
+        {status.signIns?.length ? (
+          <div className="sc-security-form">
+            <p className="sc-muted">
+              Recent sign-ins. A device that hasn&apos;t signed in for 90 days gets you an email. If one here isn&apos;t
+              you, sign out everywhere and change your password.
+            </p>
+            <ul className="sc-signins" aria-label="Recent sign-ins">
+              {status.signIns.map((s) => (
+                <li key={s.createdAt + s.device}>
+                  <span>{s.device}</span>
+                  <span className="sc-muted">
+                    {[s.place, s.method, signedInAt(s.createdAt)].filter(Boolean).join(" · ")}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
       </ScGroup>
     </>
   );

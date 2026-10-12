@@ -1042,6 +1042,18 @@ model SessionRevocation {
   updatedAt DateTime @updatedAt
 }
 
+/** Recent sign-ins per email, shown under Devices; a device not seen in 90 days gets an email. No IP is kept. */
+model SignInEvent {
+  id        String   @id @default(cuid())
+  email     String
+  method    String
+  device    String
+  place     String?
+  createdAt DateTime @default(now())
+
+  @@index([email, createdAt])
+}
+
 /** Two-step sign-in with an authenticator app, per sign-in email. */
 model TwoStep {
   id                String    @id @default(cuid())

@@ -24,7 +24,14 @@ export async function sessionRevoked(rawEmail: string, signedInAt: number | unde
   return Boolean(row && (signedInAt ?? 0) < row.revokedAt.getTime());
 }
 
-export type SecurityChange = "password_set" | "password_changed" | "two_step_on" | "two_step_off" | "recovery_codes" | "signed_out_everywhere";
+export type SecurityChange =
+  | "password_set"
+  | "password_changed"
+  | "two_step_on"
+  | "two_step_off"
+  | "recovery_codes"
+  | "signed_out_everywhere"
+  | "new_sign_in";
 
 const NOTICE: Record<SecurityChange, { subject: string; text: string }> = {
   password_set: { subject: "Password added", text: "A password was added to your Orvius sign-in." },
@@ -36,6 +43,7 @@ const NOTICE: Record<SecurityChange, { subject: string; text: string }> = {
     text: "New two-step recovery codes were made for your Orvius account. The old ones no longer work.",
   },
   signed_out_everywhere: { subject: "Signed out everywhere", text: "Your Orvius account was signed out on every device." },
+  new_sign_in: { subject: "New sign-in", text: "Your Orvius account was signed in to from a device it hasn't seen before." },
 };
 
 /*
@@ -43,7 +51,12 @@ const NOTICE: Record<SecurityChange, { subject: string; text: string }> = {
   person who took over a session can't quietly lock the owner out. A failed
   email never blocks the change; it is logged.
 */
-export async function sendSecurityNotice(rawEmail: string, change: SecurityChange, now = new Date()): Promise<void> {
+export async function sendSecurityNotice(
+  rawEmail: string,
+  change: SecurityChange,
+  options: { now?: Date; detail?: string } = {},
+): Promise<void> {
+  const now = options.now ?? new Date();
   const email = normalizeEmail(rawEmail);
   if (!email || !isEmailConfigured()) return;
   const when = now.toLocaleString("en-US", { timeZone: "UTC", dateStyle: "medium", timeStyle: "short" });
@@ -55,7 +68,7 @@ export async function sendSecurityNotice(rawEmail: string, change: SecurityChang
     await sendOwnerEmail({
       to: email,
       subject: `${company.productName} security: ${NOTICE[change].subject}`,
-      text: [NOTICE[change].text, `When: ${when} UTC`, "", notYou, "", `Questions: ${company.supportEmail}`, "", "— Orvius"].join("\n"),
+      text: [NOTICE[change].text, ...(options.detail ? [options.detail] : []), `When: ${when} UTC`, "", notYou, "", `Questions: ${company.supportEmail}`, "", "— Orvius"].join("\n"),
     });
   } catch (error) {
     logWarn("account_security.notice_failed", { change, error: error instanceof Error ? error.message : String(error) });
