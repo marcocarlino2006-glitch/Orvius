@@ -102,6 +102,8 @@ export type Account = {
     status?: string;
     plan?: { name: string; price: number; period?: string };
     pilotEndsAt?: string | null;
+    hasSubscription?: boolean;
+    planEndsAt?: string | null;
   };
   alerts: {
     smsEnabled: boolean;

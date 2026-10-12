@@ -5,9 +5,15 @@ export type DeletionCheck =
   | { ok: true }
   | { ok: false; status: number; error: string; reason: "not_owner" | "confirm_mismatch" | "active_subscription" };
 
-/** Only the owner, naming the workspace exactly, with no live subscription still billing them. */
+/** Only the owner, naming the workspace exactly, with no subscription that will bill them again. */
 export function checkWorkspaceDeletion(params: {
-  business: { name: string; ownerEmail: string | null; billingStatus: string; stripeSubscriptionId: string | null };
+  business: {
+    name: string;
+    ownerEmail: string | null;
+    billingStatus: string;
+    stripeSubscriptionId: string | null;
+    planEndsAt?: Date | null;
+  };
   requesterEmail: string;
   confirm: string;
 }): DeletionCheck {
@@ -23,7 +29,8 @@ export function checkWorkspaceDeletion(params: {
     };
   }
   const billing = params.business.billingStatus.toLowerCase();
-  if (params.business.stripeSubscriptionId && (billing === "active" || billing === "past_due")) {
+  const willRenew = !params.business.planEndsAt;
+  if (params.business.stripeSubscriptionId && willRenew && (billing === "active" || billing === "past_due")) {
     return {
       ok: false,
       status: 409,
