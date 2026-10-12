@@ -6,7 +6,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Resources",
-  description: `Guides, trust, and company resources for ${company.productName}.`,
+  description: `Guides, security and privacy, status, and how to reach us: everything an HVAC, plumbing or electrical shop needs to run on ${company.productName}.`,
 };
 
 const groups = [

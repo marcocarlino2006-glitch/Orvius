@@ -5887,3 +5887,8 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
     inset: -12px -4px;
   }
 }
+
+/* The night shell's light reds read under 3:1 on the day theme's white. */
+html[data-theme="day"] .os-shell-night :is(.status-pill-flare, .text-flare-dim, .owner-alert--critical .owner-alert-kicker) {
+  color: var(--os-flare, #b42318) !important;
+}

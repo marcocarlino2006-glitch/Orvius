@@ -5,7 +5,9 @@
 }
 .pc-note a,
 .pc-members a {
-  color: var(--ox-amber-hi);
+  color: var(--ox-amber);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 .pc-link {
   display: flex;
