@@ -7,7 +7,7 @@ import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { findOpenSlots } from "@/lib/job";
 import { recordAudit } from "@/lib/audit";
 import { logError, logInfo } from "@/lib/logger";
-import { enqueueOwnerAlert } from "@/lib/notification-queue";
+import { enqueueOwnerAlert, processNotificationQueue } from "@/lib/notification-queue";
 import { findNetworkPartners, zip3From } from "@/lib/orvius-network";
 import { prisma } from "@/lib/prisma";
 import { classifyRequest } from "@/lib/trade-playbooks";
@@ -206,10 +206,11 @@ async function alertTeamNow(shop: ShopForTools, call: CallForTools, args: Record
   const rawNumber = str(args.callbackNumber) ?? call.callerPhone ?? null;
   const number = rawNumber ? displayPhone(rawNumber) : null;
   const transferring = Boolean(shop.transferPhone?.trim());
-  const canReach = Boolean(shop.ownerPhone || shop.ownerEmail);
+  let texted = false;
+  let reached = false;
 
-  if (canReach) {
-    await enqueueOwnerAlert({
+  if (shop.ownerPhone || shop.ownerEmail) {
+    const alert = await enqueueOwnerAlert({
       businessId: shop.id,
       businessName: shop.name,
       ownerPhone: shop.ownerPhone,
@@ -224,8 +225,22 @@ async function alertTeamNow(shop: ShopForTools, call: CallForTools, args: Record
         .filter(Boolean)
         .join(" "),
     });
+    // A repeated tool call finds the first one's rows; what they were is what was sent.
+    const channels = alert.duplicate
+      ? (
+          await prisma.ownerNotification.findMany({
+            where: { businessId: shop.id, dedupeKey: `safety-live:${call.vapiCallId ?? call.id}`, status: { not: "failed" } },
+            select: { channel: true },
+          })
+        ).map((row) => row.channel)
+      : alert.queued;
+    texted = channels.includes("sms");
+    reached = channels.length > 0;
     await afterResponse(() =>
-      drainOwnerAlerts({ at: "in-call.alert_team_now", businessId: shop.id }).catch((error) =>
+      // This shop's safety text goes first, ahead of any other shop's backlog and the sweeps.
+      processNotificationQueue(5, { businessId: shop.id })
+        .then(() => drainOwnerAlerts({ at: "in-call.alert_team_now", businessId: shop.id }))
+        .catch((error) =>
         logError("in_call.safety_alert_drain_failed", {
           businessId: shop.id,
           error: error instanceof Error ? error.message : String(error),
@@ -235,7 +250,7 @@ async function alertTeamNow(shop: ShopForTools, call: CallForTools, args: Record
     logInfo("in_call.safety_alert", { businessId: shop.id, callId: call.id, transferring });
   }
 
-  return safetyAlertReply({ texted: canReach, transferring });
+  return safetyAlertReply({ texted, reached, transferring });
 }
 
 export async function handleInCallToolCalls(params: {

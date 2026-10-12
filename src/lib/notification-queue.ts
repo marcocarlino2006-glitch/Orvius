@@ -186,14 +186,13 @@ export async function enqueueOwnerAlert(params: {
   if (sms) queued.push("sms");
   if (email) queued.push("email");
 
-  if (queued.length > 0) {
-    // The owner's phone is a best-effort nudge on top of the queued text and
-    // email; the caller's webhook should not wait on a push service.
-    await afterResponse(() =>
-      sendOwnerPush(params.businessId, pushFromAlert(params.businessName, params.message, params.leadId)),
-    );
-    return { queued, duplicate: false };
-  }
+  /* The owner's phone is a best-effort nudge on top of the queued text and
+     email, and the only route left when neither can be sent. The caller's
+     webhook should not wait on a push service. */
+  await afterResponse(() =>
+    sendOwnerPush(params.businessId, pushFromAlert(params.businessName, params.message, params.leadId)),
+  );
+  if (queued.length > 0) return { queued, duplicate: false };
 
   const existing = await prisma.ownerNotification.findFirst({
     where: {
