@@ -10,7 +10,7 @@ type Status = {
 
 type Setup = { setupKey: string; uri: string; qr: string };
 
-type Panel = "none" | "password" | "setup" | "codes" | "disable" | "regenerate";
+type Panel = "none" | "password" | "setup" | "codes" | "disable" | "regenerate" | "signout";
 
 async function call(body: Record<string, unknown>) {
   const res = await fetch("/api/account/security", {
@@ -125,7 +125,7 @@ export function SecurityGroup() {
               : "Add a 6-digit code from an authenticator app (Google Authenticator, 1Password, Authy) when you sign in with a password or an email link."
           }
         >
-          {panel === "none" || panel === "password" ? (
+          {panel === "none" || panel === "password" || panel === "signout" ? (
             twoStep.enabled ? (
               <span className="sc-security-actions">
                 <button type="button" className="sc-btn" onClick={() => open("regenerate")}>
@@ -263,6 +263,38 @@ export function SecurityGroup() {
         </p>
         {error ? <p className="sc-banner sc-banner--error" role="alert">{error}</p> : null}
         {notice ? <p className="sc-banner" role="status">{notice}</p> : null}
+      </ScGroup>
+
+      <ScGroup title="Devices">
+        <ScRow
+          label="Sign out of all devices"
+          hint="Ends every session on every phone and computer, this one included. Use it if a device is lost or someone else may be signed in."
+        >
+          {panel === "signout" ? (
+            <span className="sc-security-actions">
+              <button
+                type="button"
+                className="sc-btn sc-btn--danger"
+                disabled={busy}
+                onClick={() =>
+                  void run(async () => {
+                    await call({ action: "sign_out_everywhere" });
+                    window.location.href = "/signin";
+                  })
+                }
+              >
+                {busy ? "Signing out…" : "Yes, sign out everywhere"}
+              </button>
+              <button type="button" className="sc-btn" disabled={busy} onClick={() => open("none")}>
+                Cancel
+              </button>
+            </span>
+          ) : (
+            <button type="button" className="sc-btn" onClick={() => open("signout")}>
+              Sign out everywhere
+            </button>
+          )}
+        </ScRow>
       </ScGroup>
     </>
   );

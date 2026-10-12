@@ -500,6 +500,11 @@
   filter: brightness(1.08);
 }
 
+.sc-btn--danger {
+  color: #b42318;
+  border-color: rgba(180, 35, 24, 0.35);
+}
+
 .sc-link {
   border: 0;
   background: none;

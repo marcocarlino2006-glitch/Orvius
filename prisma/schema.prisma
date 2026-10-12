@@ -1031,6 +1031,13 @@ model PasswordLogin {
   updatedAt    DateTime  @updatedAt
 }
 
+/** "Sign out of all devices", per sign-in email: any session that started before revokedAt is refused. */
+model SessionRevocation {
+  email     String   @id
+  revokedAt DateTime
+  updatedAt DateTime @updatedAt
+}
+
 /** Two-step sign-in with an authenticator app, per sign-in email. */
 model TwoStep {
   id                String    @id @default(cuid())

@@ -1101,3 +1101,8 @@ ALTER TABLE "Business" ADD COLUMN "fsmScheduleError" TEXT;
 ALTER TABLE "PushSubscription" ADD COLUMN "email" TEXT;
 ALTER TABLE "WebhookEvent" ADD COLUMN "claimedAt" DATETIME;
 ALTER TABLE "Invoice" ADD COLUMN "openCheckoutSessionId" TEXT;
+CREATE TABLE IF NOT EXISTS "SessionRevocation" (
+    "email" TEXT NOT NULL PRIMARY KEY,
+    "revokedAt" DATETIME NOT NULL,
+    "updatedAt" DATETIME NOT NULL
+);
