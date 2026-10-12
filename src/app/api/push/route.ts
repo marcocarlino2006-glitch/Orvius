@@ -2,10 +2,10 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireBusinessSession } from "@/lib/tenant";
-import { pushPublicKey, sendOwnerPush } from "@/lib/web-push";
+import { isBrowserPushEndpoint, pushPublicKey, sendOwnerPush } from "@/lib/web-push";
 
 const subscriptionSchema = z.object({
-  endpoint: z.string().url().max(1000),
+  endpoint: z.string().url().max(1000).refine(isBrowserPushEndpoint, "Not a browser push endpoint"),
   keys: z.object({ p256dh: z.string().min(10).max(200), auth: z.string().min(8).max(100) }),
 });
 
@@ -38,8 +38,8 @@ export async function POST(request: Request) {
   const userAgent = request.headers.get("user-agent")?.slice(0, 200) ?? null;
   await prisma.pushSubscription.upsert({
     where: { endpoint },
-    create: { businessId, endpoint, p256dh: keys.p256dh, auth: keys.auth, userAgent },
-    update: { businessId, p256dh: keys.p256dh, auth: keys.auth, userAgent },
+    create: { businessId, endpoint, p256dh: keys.p256dh, auth: keys.auth, userAgent, email: authResult.email },
+    update: { businessId, p256dh: keys.p256dh, auth: keys.auth, userAgent, email: authResult.email },
   });
   return NextResponse.json({ ok: true });
 }

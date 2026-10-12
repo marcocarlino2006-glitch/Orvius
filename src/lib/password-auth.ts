@@ -175,3 +175,18 @@ export async function setVerifiedPassword(
   });
   return { ok: true };
 }
+
+/**
+ * A session from a password nobody has proven stays valid only while the
+ * address still holds nothing it didn't hold at signup. Without this, a
+ * signup on someone else's address would pick up their invite or shop the
+ * moment it arrived, without ever signing in again. A missing row means the
+ * real owner proved the address and the password was dropped.
+ */
+export async function passwordSessionStillValid(rawEmail: string): Promise<boolean> {
+  const email = normalizeEmail(rawEmail);
+  const login = await prisma.passwordLogin.findUnique({ where: { email }, select: { verifiedAt: true, createdAt: true } });
+  if (!login) return false;
+  if (login.verifiedAt) return true;
+  return !(await heldByAddress(email, login.createdAt));
+}

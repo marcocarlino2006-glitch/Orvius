@@ -10,8 +10,8 @@ import type { Portfolio, PortfolioShop } from "@/lib/portfolio";
 import { ROLE_LABELS } from "@/lib/workspace-access-labels";
 import { useEffect, useState } from "react";
 
-const money = (cents: number) =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(cents / 100);
+const money = (cents: number | null) =>
+  cents == null ? "—" : new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(cents / 100);
 
 function lastCall(iso: string | null) {
   if (!iso) return "no calls yet";
@@ -76,7 +76,7 @@ export default function PortfolioPage() {
       ? a.name.localeCompare(b.name)
       : sort === "waiting"
         ? b.waitingEmergencies - a.waitingEmergencies || b.waiting - a.waiting || a.name.localeCompare(b.name)
-        : b[sort] - a[sort],
+        : (b[sort] ?? -1) - (a[sort] ?? -1),
   );
 
   return (

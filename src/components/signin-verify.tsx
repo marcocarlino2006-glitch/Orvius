@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { safeCallbackUrl } from "@/lib/safe-callback";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 
@@ -38,7 +39,7 @@ export function SignInVerify({
       setFailed(true);
       return;
     }
-    window.location.href = callbackUrl;
+    window.location.href = safeCallbackUrl(callbackUrl);
   }
 
   useEffect(() => {

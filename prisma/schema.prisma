@@ -1100,6 +1100,8 @@ model PushSubscription {
   p256dh      String
   auth        String
   userAgent   String?
+  /** Who turned it on, so removing them from the team stops their alerts. */
+  email       String?
   lastSentAt  DateTime?
   createdAt   DateTime  @default(now())
 

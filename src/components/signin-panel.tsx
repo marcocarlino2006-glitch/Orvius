@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { safeCallbackUrl } from "@/lib/safe-callback";
 import { signIn } from "next-auth/react";
 import { MONEY_BACK_DAYS } from "@/lib/money-back";
 import type { PasswordResetResponse } from "@/app/api/auth/password-reset/route";
@@ -65,7 +66,7 @@ export function SignInPanel({
       setStatus({ kind: "error", message: "Wrong email or password." });
       return;
     }
-    window.location.href = callbackUrl;
+    window.location.href = safeCallbackUrl(callbackUrl);
   }
 
   async function submit(event: React.FormEvent) {

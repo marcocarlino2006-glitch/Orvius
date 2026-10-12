@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { safeCallbackUrl } from "@/lib/safe-callback";
 import Link from "next/link";
 import { DevSignInButton } from "@/components/dev-sign-in-button";
 import { OrviusLogo } from "@/components/orvius-logo";
@@ -40,7 +41,7 @@ export default async function SignInPage({
   searchParams: Promise<{ callbackUrl?: string; error?: string; dev?: string; mode?: string }>;
 }) {
   const params = await searchParams;
-  const callbackUrl = params.callbackUrl ?? "/dashboard";
+  const callbackUrl = safeCallbackUrl(params.callbackUrl);
   const error = params.error ? (ERRORS[params.error] ?? ERRORS.Default) : null;
   const showDevChrome =
     isDevAuthBypassEnabled() && (params.dev === "1" || params.dev === "true");

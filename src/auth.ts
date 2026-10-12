@@ -91,6 +91,22 @@ const nextAuth = NextAuth({
   providers,
   callbacks: {
     ...authConfig.callbacks,
+    /*
+     * Runs on every server-side session read. A password session is re-checked
+     * each time, because access granted to the address after signup (an invite,
+     * a shop) must not reach someone who never proved they own it.
+     */
+    async jwt({ token, account }) {
+      if (account) {
+        token.viaPassword = account.provider === "password";
+        return token;
+      }
+      if (token.viaPassword === true && typeof token.email === "string") {
+        const { passwordSessionStillValid } = await import("@/lib/password-auth");
+        if (!(await passwordSessionStillValid(token.email))) return null;
+      }
+      return token;
+    },
     async signIn({ user, account, profile }) {
       if (account?.provider === "dev") {
         return isDevAuthBypassEnabled();

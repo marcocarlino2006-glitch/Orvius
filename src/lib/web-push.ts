@@ -19,6 +19,20 @@ function configured() {
   return true;
 }
 
+/* Browsers hand out endpoints on these services only. Anything else is not a
+   browser, and posting alerts to it would send caller details, or a request
+   from our servers, wherever the subscriber chose. */
+const PUSH_HOSTS = [/^fcm\.googleapis\.com$/, /^android\.googleapis\.com$/, /^updates\.push\.services\.mozilla\.com$/, /(^|\.)push\.apple\.com$/, /(^|\.)notify\.windows\.com$/];
+
+export function isBrowserPushEndpoint(endpoint: string): boolean {
+  try {
+    const url = new URL(endpoint);
+    return url.protocol === "https:" && !url.port && PUSH_HOSTS.some((host) => host.test(url.hostname));
+  } catch {
+    return false;
+  }
+}
+
 export type OwnerPush = { title: string; body: string; url?: string; tag?: string; urgent?: boolean };
 
 /** First line of an owner alert, trimmed for a lock screen. */
@@ -36,7 +50,7 @@ export function pushFromAlert(businessName: string, message: string, leadId?: st
 
 export async function sendOwnerPush(businessId: string, push: OwnerPush): Promise<number> {
   if (!configured()) return 0;
-  const subscriptions = await prisma.pushSubscription.findMany({ where: { businessId } });
+  const subscriptions = (await prisma.pushSubscription.findMany({ where: { businessId } })).filter((sub) => isBrowserPushEndpoint(sub.endpoint));
   let delivered = 0;
   await Promise.all(
     subscriptions.map(async (sub) => {
