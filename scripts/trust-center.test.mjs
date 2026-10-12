@@ -101,7 +101,7 @@ test("support, incidents and leaving each have a page an owner can find", () => 
   }
   const security = read("src/app/security/page.tsx");
   assert.match(security, /title="7\. Incidents"/);
-  assert.match(security, /title="8\. Leaving"/);
+  assert.match(security, /title="\d+\. Leaving"/);
   assert.match(security, /\/help\/leaving-orvius/);
   assert.match(security, /href="\/status"/);
   assert.doesNotMatch(security, /Approve-before-send patterns/);

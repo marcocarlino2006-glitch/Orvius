@@ -80,6 +80,12 @@ export default function SecurityPage() {
           </li>
           <li>Settings → Receptionist lists what Orvius does on its own, what waits for you, and what it never does</li>
           <li>Audit trail of calls, transcripts, and key workspace actions</li>
+          <li>
+            Each person&apos;s sign-in: password, two-step codes, a list of recent sign-ins, an email when a new device
+            signs in or a sign-in setting changes, and one button that signs out every device
+          </li>
+          <li>Teammate roles: only the owner can manage billing or delete a customer&apos;s data, and dispatchers can&apos;t export the shop&apos;s data</li>
+          <li>Deleting one customer&apos;s data on request, including the recording copies at our voice and phone providers</li>
         </ul>
         <p>
           You remain responsible for how the Service is deployed on your lines, including recording
@@ -128,14 +134,29 @@ export default function SecurityPage() {
           happened, what it affected and what we changed, and we refund billing affected by an outage we caused.
         </p>
         <p>
-          Report security concerns to {company.legalEmail}. We investigate good-faith reports. For confirmed
+          For confirmed
           personal-data breaches affecting Customer Content, we notify affected business customers without undue delay
           where legally required or when we determine notification is appropriate, and we cooperate with customer
           notification duties as processor.
         </p>
       </LegalSection>
 
-      <LegalSection title="8. Leaving">
+      <LegalSection title="8. Reporting a vulnerability">
+        <p>
+          Email {company.securityEmail} with what you found and how to reproduce it. We aim to reply within three
+          business days and to tell you when it&apos;s fixed. The same address is in{" "}
+          <a href="/.well-known/security.txt">/.well-known/security.txt</a>.
+        </p>
+        <p>
+          If you act in good faith, we won&apos;t take legal action against you for research that: uses only accounts
+          you own or have permission to test; stops as soon as you reach someone else&apos;s data, and doesn&apos;t
+          keep or share it; doesn&apos;t degrade the service, place real calls or send texts to people who didn&apos;t
+          agree; and gives us a reasonable time to fix the issue before you publish.
+        </p>
+        <p>Out of scope: denial of service, spam, social engineering of our staff or customers, and physical attacks.</p>
+      </LegalSection>
+
+      <LegalSection title="9. Leaving">
         <p>
           You can download all of your shop&apos;s records at any time, including after you cancel. If you forwarded
           your number, it never left your carrier: turn forwarding off and calls ring as before. If you moved your
@@ -144,7 +165,7 @@ export default function SecurityPage() {
         </p>
       </LegalSection>
 
-      <LegalSection title="9. Contact">
+      <LegalSection title="10. Contact">
         <p>
           {company.legalName}
           <br />

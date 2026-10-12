@@ -14,6 +14,7 @@ export const company = {
   contactEmail: "hello@orvius.im",
   supportEmail: "hello@orvius.im",
   legalEmail: "hello@orvius.im",
+  securityEmail: "hello@orvius.im",
   dmcaEmail: "hello@orvius.im",
   foundedYear: 2026,
   trades: ["HVAC"] as const,
