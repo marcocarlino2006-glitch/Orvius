@@ -309,7 +309,8 @@ export async function finishCallReport(input: Omit<Captured, "duplicate">): Prom
     const wantsHuman = leadWantsHuman({ notes: `${freshLead.notes ?? ""} ${spoken}`, serviceType: freshLead.serviceType });
     /* Sales reps routinely ask for the owner, so a request for a person does not rescue a non-service call.
        An address or a known customer does: that's someone with a property, and the label is the model's guess. */
-    const looksLikeWork = Boolean(freshLead.address?.trim() || freshLead.customerId);
+    // Every caller gets a customer row, so only a returning one counts here.
+    const looksLikeWork = Boolean(freshLead.address?.trim() || (link && !link.created));
     const nonService = !safety && !autoBook.jobId && freshLead.categoryCode === "other.non_service" && !looksLikeWork;
 
     // A time read out after hold_appointment came from the schedule, not the model.
