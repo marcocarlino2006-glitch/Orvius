@@ -88,6 +88,8 @@ test("a late status event can't make a finished call live again", () => {
   assert.doesNotMatch(upsert.slice(upsert.indexOf("update: {"), upsert.indexOf("update: {") + 120), /status: "in-progress"/);
 });
 
-test("a call labelled non-service still reaches the owner when the caller gave an address or is a customer", () => {
-  assert.match(read("src/lib/call-ingest.ts"), /=== "other\.non_service" && !looksLikeWork/);
+test("a call labelled non-service still reaches the owner when the caller gave an address or is a returning customer", () => {
+  const ingest = read("src/lib/call-ingest.ts");
+  assert.match(ingest, /=== "other\.non_service" && !looksLikeWork/);
+  assert.match(ingest, /looksLikeWork = Boolean\(freshLead\.address\?\.trim\(\) \|\| \(link && !link\.created\)\)/);
 });
