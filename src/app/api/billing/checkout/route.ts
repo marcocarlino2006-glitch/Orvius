@@ -46,6 +46,22 @@ const checkoutSchema = z.object({
   shop: shopDraftSchema.merge(consentSchema).optional(),
 });
 
+async function expireOpenPlanCheckouts(stripe: ReturnType<typeof getStripe>, email: string, customerId: string | null) {
+  try {
+    const lists = await Promise.all([
+      stripe.checkout.sessions.list({ status: "open", customer_details: { email }, limit: 10 }),
+      customerId ? stripe.checkout.sessions.list({ status: "open", customer: customerId, limit: 10 }) : null,
+    ]);
+    const open = new Map(lists.flatMap((list) => list?.data ?? []).map((s) => [s.id, s]));
+    for (const session of open.values()) {
+      if (session.mode !== "subscription" || !session.metadata?.planId) continue;
+      await stripe.checkout.sessions.expire(session.id).catch(() => null);
+    }
+  } catch (error) {
+    console.warn("[billing.checkout] could not expire earlier sessions", error instanceof Error ? error.message : error);
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = checkoutSchema.parse(await request.json());
@@ -144,6 +160,14 @@ export async function POST(request: NextRequest) {
     const acquisition = business && !turningOn ? null : parseAcquisition(request.cookies.get(ACQUISITION_COOKIE)?.value);
     const referralCoupon = process.env.ORVIUS_REFERRAL_COUPON_ID?.trim();
     const referred = Boolean(referralCoupon && acquisition?.ref && (await findReferrer(acquisition.ref)));
+
+    /*
+      Until the webhook lands, nothing here knows a checkout was paid, and an
+      open session stays payable for a day. An owner who retries in a second
+      tab would otherwise be able to pay both and run two subscriptions. Only
+      the newest session can be paid.
+    */
+    await expireOpenPlanCheckouts(stripe, sessionEmail, business?.stripeCustomerId ?? null);
 
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: "subscription",

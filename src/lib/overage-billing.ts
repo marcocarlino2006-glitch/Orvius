@@ -1,3 +1,4 @@
+import type Stripe from "stripe";
 import { recordAudit } from "@/lib/audit";
 import { countBillableCalls } from "@/lib/billable-calls";
 import { summarizeCallUsage } from "@/lib/call-usage";
@@ -131,16 +132,33 @@ export async function billPreviousMonthOverage(now = new Date(), { budgetMs = 40
 
     try {
       const key = `overage:${shop.id}:${period.key}`;
-      await stripe.invoiceItems.create(
-        {
-          customer: shop.stripeCustomerId!,
-          currency: "usd",
-          amount: decision.amountCents,
-          description: `${decision.overCalls} answered calls past the ${decision.included} included in ${period.key} × ${OVERAGE_CENTS_PER_CALL}¢`,
-          metadata: { orvius: "call_overage", businessId: shop.id, period: period.key },
-        },
-        { idempotencyKey: `${key}:item` },
+      /* Idempotency keys last a day and this runs daily, so a run that died
+         between Stripe and the stamp would bill the month again. Stripe's own
+         record of this month's overage is what decides. */
+      const isThisMonth = (metadata: Stripe.Metadata | null | undefined) =>
+        metadata?.orvius === "call_overage" && metadata.period === period.key && metadata.businessId === shop.id;
+      const already = (await stripe.invoices.list({ customer: shop.stripeCustomerId!, limit: 24 })).data.find((i) =>
+        isThisMonth(i.metadata),
       );
+      if (already) {
+        await prisma.business.update({ where: { id: shop.id }, data: { overageBilledPeriod: period.key } });
+        continue;
+      }
+      const pendingItem = (await stripe.invoiceItems.list({ customer: shop.stripeCustomerId!, pending: true, limit: 24 })).data.find((i) =>
+        isThisMonth(i.metadata),
+      );
+      if (!pendingItem) {
+        await stripe.invoiceItems.create(
+          {
+            customer: shop.stripeCustomerId!,
+            currency: "usd",
+            amount: decision.amountCents,
+            description: `${decision.overCalls} answered calls past the ${decision.included} included in ${period.key} × ${OVERAGE_CENTS_PER_CALL}¢`,
+            metadata: { orvius: "call_overage", businessId: shop.id, period: period.key },
+          },
+          { idempotencyKey: `${key}:item` },
+        );
+      }
       const invoice = await stripe.invoices.create(
         {
           customer: shop.stripeCustomerId!,
