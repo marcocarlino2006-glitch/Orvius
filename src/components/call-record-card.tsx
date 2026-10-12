@@ -5,6 +5,7 @@ import { StatusDot, type StatusTone } from "@/components/status-dot";
 import { displayPhone, normalizePhone } from "@/lib/customer";
 import { CALL_OUTCOME_LABEL, type CallOutcome } from "@/lib/call-outcome";
 import { isEmergency } from "@/lib/urgency";
+import { isLiveCall } from "@/lib/live-call";
 
 type CallRecordCardProps = {
   id: string;
@@ -73,7 +74,7 @@ export function CallRecordCard({
   const need = [serviceType, summaryAddsSomething(summary, serviceType, leadName) ? summary : null]
     .filter(Boolean)
     .join(". ");
-  const live = status === "in-progress" || status === "ringing";
+  const live = isLiveCall(status, createdAt);
   const kind: CallOutcome = outcomeKind ?? (booked ? "booked" : "held");
   const outcome: { tone: StatusTone; label: string } = live
     ? { tone: "live", label: "On the call now" }

@@ -1,3 +1,4 @@
+import { isLiveCall } from "@/lib/live-call";
 import { prisma } from "@/lib/prisma";
 import { collectedCents, isCollected } from "@/lib/payment-math";
 import { estimateTitle } from "@/lib/estimate-options";
@@ -310,7 +311,7 @@ export async function getCustomerTimeline(
       id: call.id,
       type: "call" as const,
       at: call.createdAt.toISOString(),
-      title: ["in-progress", "ringing", "queued"].includes(call.status) ? "Call in progress" : "Inbound call",
+      title: isLiveCall(call.status, call.createdAt) ? "Call in progress" : "Inbound call",
       summary: call.summary,
       source: "call",
       urgency: null,

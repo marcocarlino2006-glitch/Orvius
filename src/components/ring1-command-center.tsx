@@ -9,7 +9,7 @@ import { OrviusPulse } from "@/components/orvius-pulse";
 import { SupportContact } from "@/components/support-contact";
 import { TestAlertButton } from "@/components/test-alert-button";
 import { WorkCard } from "@/components/work-card";
-import { buildCommandSignals, groupWorkItems } from "@/lib/command-model";
+import { buildCommandSignals, groupWorkItems, weekResultLine } from "@/lib/command-model";
 import type { Handled } from "@/lib/autopilot";
 import { useRing1, type Ring1Data } from "@/lib/ring1-context";
 import { formatWhen } from "@/lib/when";
@@ -169,6 +169,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
   const blocking = shopIssues.filter((issue) => issue.severity === "critical" || issue.severity === "high");
   const minor = shopIssues.filter((issue) => issue.severity !== "critical" && issue.severity !== "high");
   const handled = data?.handled;
+  const week = weekResultLine(data?.outcomes);
 
   const issueList = (list: typeof shopIssues) => (
     <ul>
@@ -212,6 +213,14 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
             <span key={line}> {line}</span>
           ))}
         </p>
+        {week ? (
+          <p className="cmd-week os-own-color">
+            {week}{" "}
+            <Link href="/dashboard/reports" className="cmd-week-link">
+              See the report →
+            </Link>
+          </p>
+        ) : null}
       </header>
 
       <CommandSignals signals={signals} loading={loading} />

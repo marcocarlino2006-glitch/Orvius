@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
+import { StartActions } from "@/components/start-actions";
 import { demoLineHref } from "@/lib/demo-line";
 import { getLowestPaidPrice } from "@/lib/pricing-plans";
 import { TRADE_PAGES, tradePage } from "@/lib/trade-pages";
@@ -120,12 +121,7 @@ export default async function TradePage({ params }: Props) {
             Call the live line and ask for {page.noun} work, the way your customers do.
           </p>
           <div className="tier1-actions tier1-close-actions">
-            <a href={demoLineHref()} className="ov-btn ov-btn--solid">
-              Call the live line
-            </a>
-            <Link href="/pilot" className="ov-btn ov-btn--quiet">
-              Book a call audit
-            </Link>
+            <StartActions />
           </div>
         </div>
       </section>

@@ -1,9 +1,9 @@
 import { HomeLiveCall } from "@/components/home-live-call";
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
+import { StartActions } from "@/components/start-actions";
 import { company } from "@/lib/company";
-import { demoLineHref } from "@/lib/demo-line";
+import { getPublicLaunchReadiness } from "@/lib/public-launch-readiness";
 import type { Metadata } from "next";
-import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Product",
@@ -34,6 +34,7 @@ const steps = [
 ] as const;
 
 export default function ProductPage() {
+  const signupOpen = getPublicLaunchReadiness().ready;
   return (
     <MarketingShell>
       <section className="tier1-hero tier1-hero-compact ov-product-hero">
@@ -44,14 +45,7 @@ export default function ProductPage() {
             subline="The receptionist brings in the work. Command runs it from there."
             description="Calls are answered and booked on your real schedule. Command assigns the job to someone free with the right skill, texts them the address, confirms with the customer, follows up when nobody called back, and shows you each step."
             actions={
-              <>
-                <a href={demoLineHref()} className="ov-btn ov-btn--solid">
-                  Call the live line
-                </a>
-                <Link href="/pilot" className="ov-btn ov-btn--quiet">
-                  Book a call audit
-                </Link>
-              </>
+              <StartActions signupOpen={signupOpen} />
             }
           />
           <div className="ov-product-stage">
@@ -85,16 +79,14 @@ export default function ProductPage() {
               Hear it on a real line.
             </h2>
             <p className="tier1-section-lead font-sans">
-              Dial the live line and play a customer, or book a call audit for your business.
+              Dial the live line and play a customer.{" "}
+              {signupOpen
+                ? "Then set up your own and hear a test call before you pay."
+                : "Or book a call audit for your business."}
             </p>
           </div>
           <div className="tier1-actions">
-            <a href={demoLineHref()} className="ov-btn ov-btn--solid">
-              Call the live line
-            </a>
-            <Link href="/pilot" className="ov-btn ov-btn--quiet">
-              Book a call audit
-            </Link>
+            <StartActions signupOpen={signupOpen} />
           </div>
         </div>
       </section>

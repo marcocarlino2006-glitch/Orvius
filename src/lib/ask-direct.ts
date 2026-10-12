@@ -148,7 +148,7 @@ export async function answerDirect(
 
   if (intent.kind === "jobs") {
     const jobs = await prisma.job.findMany({
-      where: { businessId, scheduledAt: { gte: w.start, lt: w.end }, status: { notIn: ["canceled", "cancelled"] } },
+      where: { businessId, scheduledAt: { gte: w.start, lt: w.end }, status: { not: "cancelled" } },
       orderBy: { scheduledAt: "asc" },
       take: 200,
       select: { id: true, title: true, serviceType: true, scheduledAt: true, status: true, urgency: true, customer: { select: { name: true } }, technician: { select: { name: true } } },
@@ -173,7 +173,7 @@ export async function answerDirect(
         summary: `${clock(j.scheduledAt!, timezone, true)}${j.technician ? ` · ${j.technician.name}` : " · unassigned"}`,
         score: 1 - i * 0.01,
         observedAt: j.scheduledAt!.toISOString(),
-        actionable: !["completed", "canceled"].includes(j.status),
+        actionable: !["completed", "cancelled"].includes(j.status),
       })),
     };
   }
