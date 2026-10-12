@@ -761,9 +761,6 @@ body {
 
 .ov-signin-row:last-child {
   border-bottom: 0;
-  /* The tail of the feed fades out, so the list reads as continuing rather
-     than as five hand-picked rows. */
-  opacity: 0.45;
 }
 
 .ov-signin-row.is-newest {
@@ -2862,7 +2859,7 @@ body {
 
 /* Ruled night rules: tighter index, quieter body */
 .ov-public .mkt-law-index {
-  opacity: 0.62;
+  opacity: 0.75;
   font-size: 0.75rem;
 }
 

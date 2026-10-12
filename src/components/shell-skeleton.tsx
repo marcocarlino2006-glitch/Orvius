@@ -74,7 +74,7 @@ export function AdminSkeleton() {
 
 export function DashboardSkeleton() {
   return (
-    <div aria-busy="true" aria-label="Loading dashboard">
+    <div role="status" aria-busy="true" aria-label="Loading dashboard">
       <ul className="os-lead-rail dashboard-list-skeleton">
         {[1, 2, 3, 4, 5].map((item) => (
           <li key={item}>

@@ -35,7 +35,7 @@ html .ov-signin .ov-signin-eyebrow {
 }
 
 /* The sign-in card is dark in every theme; the light theme's muted grey read at under 3:1 on it. */
-html .ov-signin :is(.ov-signin-eyebrow, .ov-signin-label) {
+html .ov-signin :is(.ov-signin-eyebrow, .ov-signin-label, .ov-signin-board-title) {
   color: #aaa8a0 !important;
 }
 
