@@ -313,83 +313,103 @@ export function visitReminderBody(params: { first: string | null; businessName: 
  * in the second half of the cycle) rolls forward instead of being texted; one
  * with a visit already on the books is left alone.
  */
-export async function runVisitReminders(options: { now?: Date; budgetMs?: number; send?: SendFn; limit?: number } = {}) {
-  const now = options.now ?? new Date();
-  const stopAt = Date.now() + (options.budgetMs ?? 20_000);
-  const send = options.send ?? sendCustomerSms;
-  const tally = { sent: 0, rolled: 0, skipped: 0 };
-  const due = await prisma.planMember.findMany({
+function duePlanMembers(params: { now: Date; daytime: string[]; after: { at: Date; id: string } | null; take: number }) {
+  const { after } = params;
+  return prisma.planMember.findMany({
     where: {
       status: "active",
       visitReminderSentAt: null,
-      nextVisitDueAt: { lte: new Date(now.getTime() + VISIT_REMINDER_LEAD_MS) },
-      business: { isActive: true, environment: { not: "test" } },
+      nextVisitDueAt: { lte: new Date(params.now.getTime() + VISIT_REMINDER_LEAD_MS) },
+      business: { isActive: true, environment: { not: "test" }, timezone: { in: params.daytime } },
+      ...(after ? { OR: [{ nextVisitDueAt: { gt: after.at } }, { nextVisitDueAt: after.at, id: { gt: after.id } }] } : {}),
     },
-    orderBy: { nextVisitDueAt: "asc" },
-    take: options.limit ?? 200,
+    orderBy: [{ nextVisitDueAt: "asc" }, { id: "asc" }],
+    take: params.take,
     include: {
       plan: { select: { name: true, visitsPerYear: true } },
       business: { select: { name: true, slug: true, timezone: true, bookingPageOn: true } },
     },
   });
-  for (const member of due) {
-    if (Date.now() > stopAt) break;
-    if (!isShopDaytime(now, member.business.timezone)) continue;
-    const cycle = visitCycleMs(member.plan.visitsPerYear);
-    if (!cycle || !member.nextVisitDueAt) {
-      tally.skipped += 1;
-      continue;
-    }
-    const jobs = await prisma.job.findMany({
-      where: {
-        businessId: member.businessId,
-        customer: { phoneNormalized: member.phoneNormalized },
-        OR: [
-          { status: "completed", completedAt: { gte: new Date(member.nextVisitDueAt.getTime() - cycle / 2) } },
-          { status: { notIn: ["completed", "cancelled"] }, scheduledAt: { gte: now } },
-        ],
-      },
-      orderBy: { completedAt: "desc" },
-      select: { status: true, completedAt: true },
-    });
-    const done = jobs.find((j) => j.status === "completed" && j.completedAt);
-    if (done?.completedAt) {
-      await prisma.planMember.update({
-        where: { id: member.id },
-        data: { nextVisitDueAt: new Date(done.completedAt.getTime() + cycle), visitReminderSentAt: null },
-      });
-      tally.rolled += 1;
-      continue;
-    }
-    if (jobs.length) {
-      tally.skipped += 1;
-      continue;
-    }
-    const claim = await prisma.planMember.updateMany({
-      where: { id: member.id, visitReminderSentAt: null },
-      data: { visitReminderSentAt: now },
-    });
-    if (!claim.count) continue;
-    const first = member.name?.trim().split(/\s+/)[0] ?? null;
-    const link = member.business.bookingPageOn && member.business.slug ? `${getAppUrl()}/b/${member.business.slug}` : null;
-    const result = await send({
-      businessId: member.businessId,
-      to: member.phone,
-      body: visitReminderBody({
-        first: first && /^[\p{L}'-]{2,}$/u.test(first) ? first : null,
-        businessName: member.business.name,
-        planName: member.plan.name,
-        link,
-      }),
-    }).catch(() => ({ sent: false as const, reason: "send_failed" }));
-    if (result.sent) {
-      tally.sent += 1;
-    } else {
-      if (result.reason !== "customer_opted_out") {
-        await prisma.planMember.update({ where: { id: member.id }, data: { visitReminderSentAt: null } });
+}
+
+export async function runVisitReminders(options: { now?: Date; budgetMs?: number; send?: SendFn; limit?: number } = {}) {
+  const now = options.now ?? new Date();
+  const stopAt = Date.now() + (options.budgetMs ?? 20_000);
+  const send = options.send ?? sendCustomerSms;
+  const tally = { sent: 0, rolled: 0, skipped: 0 };
+  const zones = await prisma.business.groupBy({ by: ["timezone"], where: { isActive: true, environment: { not: "test" } } });
+  const daytime = zones.map((z) => z.timezone).filter((tz) => isShopDaytime(now, tz));
+  if (!daytime.length) return tally;
+  const page = options.limit ?? 200;
+  /*
+    Members whose next visit is already booked stay due until it's done, so a
+    single first page would fill with them and starve everyone behind; this
+    walks on, oldest due first, until the budget runs out.
+  */
+  let after: { at: Date; id: string } | null = null;
+  while (Date.now() <= stopAt) {
+    const due = await duePlanMembers({ now, daytime, after, take: page });
+    for (const member of due) {
+      if (Date.now() > stopAt) break;
+      const cycle = visitCycleMs(member.plan.visitsPerYear);
+      if (!cycle || !member.nextVisitDueAt) {
+        tally.skipped += 1;
+        continue;
       }
-      tally.skipped += 1;
+      const jobs = await prisma.job.findMany({
+        where: {
+          businessId: member.businessId,
+          customer: { phoneNormalized: member.phoneNormalized },
+          OR: [
+            { status: "completed", completedAt: { gte: new Date(member.nextVisitDueAt.getTime() - cycle / 2) } },
+            { status: { notIn: ["completed", "cancelled"] }, scheduledAt: { gte: now } },
+          ],
+        },
+        orderBy: { completedAt: "desc" },
+        select: { status: true, completedAt: true },
+      });
+      const done = jobs.find((j) => j.status === "completed" && j.completedAt);
+      if (done?.completedAt) {
+        await prisma.planMember.update({
+          where: { id: member.id },
+          data: { nextVisitDueAt: new Date(done.completedAt.getTime() + cycle), visitReminderSentAt: null },
+        });
+        tally.rolled += 1;
+        continue;
+      }
+      if (jobs.length) {
+        tally.skipped += 1;
+        continue;
+      }
+      const claim = await prisma.planMember.updateMany({
+        where: { id: member.id, visitReminderSentAt: null },
+        data: { visitReminderSentAt: now },
+      });
+      if (!claim.count) continue;
+      const first = member.name?.trim().split(/\s+/)[0] ?? null;
+      const link = member.business.bookingPageOn && member.business.slug ? `${getAppUrl()}/b/${member.business.slug}` : null;
+      const result = await send({
+        businessId: member.businessId,
+        to: member.phone,
+        body: visitReminderBody({
+          first: first && /^[\p{L}'-]{2,}$/u.test(first) ? first : null,
+          businessName: member.business.name,
+          planName: member.plan.name,
+          link,
+        }),
+      }).catch(() => ({ sent: false as const, reason: "send_failed" }));
+      if (result.sent) {
+        tally.sent += 1;
+      } else {
+        if (result.reason !== "customer_opted_out") {
+          await prisma.planMember.update({ where: { id: member.id }, data: { visitReminderSentAt: null } });
+        }
+        tally.skipped += 1;
+      }
     }
+    const last = due.at(-1);
+    if (due.length < page || !last?.nextVisitDueAt) break;
+    after = { at: last.nextVisitDueAt, id: last.id };
   }
   return tally;
 }

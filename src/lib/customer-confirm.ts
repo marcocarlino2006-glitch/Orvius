@@ -4,6 +4,7 @@ import { sendCustomerSms } from "@/lib/customer-sms";
 import { formatShopTime } from "@/lib/availability";
 import { getAppBaseUrl } from "@/lib/domains";
 import { logInfo, logWarn } from "@/lib/logger";
+import { isShopDaytime } from "@/lib/lead-follow-up";
 import { enqueueOwnerAlert } from "@/lib/notification-queue";
 import { prisma } from "@/lib/prisma";
 import { withSmsOptOutFooter } from "@/lib/sms-keywords";
@@ -266,13 +267,18 @@ export async function sendDueCustomerConfirmationReminders(
   now = new Date(),
   limit = 25,
 ) {
+  // A reminder never wakes anyone: only shops where it's daytime are queried, so night zones can't crowd the batch.
+  const zones = await prisma.business.groupBy({ by: ["timezone"], where: { isActive: true, environment: { not: "test" } } });
+  const daytime = zones.map((z) => z.timezone).filter((tz) => isShopDaytime(now, tz));
+  if (!daytime.length) return { checked: 0, sent: 0, skipped: 0 };
   const candidates = await prisma.job.findMany({
     where: {
       status: "scheduled",
       customerConfirmedAt: null,
-      customerConfirmSentAt: { not: null },
+      customerConfirmSentAt: { not: null, lte: new Date(now.getTime() - CONFIRM_REMINDER_AFTER_HOURS * 60 * 60_000) },
       customerConfirmReminderSentAt: null,
-      scheduledAt: { gt: now },
+      scheduledAt: { gt: new Date(now.getTime() + CONFIRM_REMINDER_MIN_LEAD_HOURS * 60 * 60_000) },
+      business: { isActive: true, environment: { not: "test" }, timezone: { in: daytime } },
     },
     orderBy: { customerConfirmSentAt: "asc" },
     take: Math.max(1, Math.min(limit * 4, 100)),

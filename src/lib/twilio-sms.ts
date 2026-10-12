@@ -1,7 +1,7 @@
 import { getTwilioClient } from "@/lib/twilio-client";
 import { normalizePhone } from "@/lib/customer";
 import { getWebhookUrl } from "@/lib/env";
-import { logWarn } from "@/lib/logger";
+import { logInfo, logWarn } from "@/lib/logger";
 import { recordMessage, type MessageAuthor } from "@/lib/messages";
 import { prisma } from "@/lib/prisma";
 import { shopTextSender } from "@/lib/shop-texting";
@@ -72,6 +72,62 @@ export async function recordOutboundSms(params: {
   }
 }
 
+/** Twilio refuses these for the recipient, whichever number sends. */
+const UNSUBSCRIBED_RECIPIENT = 21610;
+const RECIPIENT_REFUSED = new Set([UNSUBSCRIBED_RECIPIENT, 21211, 21408, 21612, 21614]);
+
+export function twilioErrorCode(error: unknown): number | null {
+  const code = (error as { code?: unknown } | null)?.code;
+  return typeof code === "number" ? code : typeof code === "string" && /^\d+$/.test(code) ? Number(code) : null;
+}
+
+/** One of our own lines answers a text with a text; sending to it starts two auto-replies talking to each other. */
+async function isOrviusNumber(to: string): Promise<boolean> {
+  if (normalizePhone(process.env.TWILIO_PHONE_NUMBER) === to) return true;
+  const line = await prisma.business.findFirst({
+    where: { OR: [{ twilioPhone: to }, { vapiPhoneNumber: to }] },
+    select: { id: true },
+  });
+  return Boolean(line);
+}
+
+async function recipientOptedOut(businessId: string, to: string, audience: SmsAudience): Promise<boolean> {
+  const [row, shop] = await Promise.all([
+    prisma.smsOptOut.findUnique({
+      where: { businessId_phoneNormalized: { businessId, phoneNormalized: to } },
+      select: { clearedAt: true },
+    }),
+    audience === "owner"
+      ? prisma.business.findUnique({ where: { id: businessId }, select: { ownerPhone: true, ownerSmsOptOutAt: true } })
+      : null,
+  ]);
+  if (row && !row.clearedAt) return true;
+  return Boolean(shop?.ownerSmsOptOutAt && normalizePhone(shop.ownerPhone) === to);
+}
+
+/** The carrier holds a STOP we never saw (sent to another number, or before routing existed); keep our record in step. */
+async function recordCarrierOptOut(businessId: string, to: string, audience: SmsAudience): Promise<void> {
+  try {
+    await prisma.smsOptOut.upsert({
+      where: { businessId_phoneNormalized: { businessId, phoneNormalized: to } },
+      create: { businessId, phone: to, phoneNormalized: to, source: "carrier", clearedAt: null },
+      update: { source: "carrier", clearedAt: null },
+    });
+    if (audience === "owner") {
+      const shop = await prisma.business.findUnique({ where: { id: businessId }, select: { ownerPhone: true } });
+      if (normalizePhone(shop?.ownerPhone) === to) {
+        await prisma.business.updateMany({
+          where: { id: businessId, ownerSmsOptOutAt: null },
+          data: { ownerSmsOptOutAt: new Date() },
+        });
+      }
+    }
+    logWarn("sms.carrier_opt_out_recorded", { businessId, audience });
+  } catch (error) {
+    logWarn("sms.carrier_opt_out_record_failed", { businessId, error: error instanceof Error ? error.message : "unknown" });
+  }
+}
+
 /** Fire-and-forget SMS. Returns null when Twilio isn't configured or phone is bad. */
 export async function sendSms(params: {
   to: string;
@@ -99,6 +155,15 @@ export async function sendSms(params: {
     return null;
   }
 
+  if (await isOrviusNumber(to)) {
+    logWarn("sms.destination_is_orvius_line", { businessId: params.businessId, audience: params.audience });
+    return null;
+  }
+  if (params.businessId && (await recipientOptedOut(params.businessId, to, params.audience))) {
+    logInfo("sms.suppressed_opt_out", { businessId: params.businessId, audience: params.audience });
+    return null;
+  }
+
   const create = (from: NonNullable<typeof sender>) =>
     getTwilioClient().messages.create({
       body: params.body.trim(),
@@ -107,22 +172,31 @@ export async function sendSms(params: {
       statusCallback: smsStatusCallback(),
     });
   let sms: { sid: string };
-  if (simulated) {
-    sms = simulateSend(to);
-  } else if (ownSender) {
-    try {
-      sms = await create(ownSender);
-    } catch (error) {
-      logWarn("sms.own_sender_failed", {
-        businessId: params.businessId,
-        error: error instanceof Error ? error.message : "unknown",
-      });
-      const shared = smsSender();
-      if (!shared) throw error;
-      sms = await create(shared);
+  try {
+    if (simulated) {
+      sms = simulateSend(to);
+    } else if (ownSender) {
+      try {
+        sms = await create(ownSender);
+      } catch (error) {
+        // The person refused or can't take texts; another number would only route around them.
+        if (RECIPIENT_REFUSED.has(twilioErrorCode(error) ?? 0)) throw error;
+        logWarn("sms.own_sender_failed", {
+          businessId: params.businessId,
+          error: error instanceof Error ? error.message : "unknown",
+        });
+        const shared = smsSender();
+        if (!shared) throw error;
+        sms = await create(shared);
+      }
+    } else {
+      sms = await create(sender!);
     }
-  } else {
-    sms = await create(sender!);
+  } catch (error) {
+    if (params.businessId && twilioErrorCode(error) === UNSUBSCRIBED_RECIPIENT) {
+      await recordCarrierOptOut(params.businessId, to, params.audience);
+    }
+    throw error;
   }
 
   if (params.businessId) {

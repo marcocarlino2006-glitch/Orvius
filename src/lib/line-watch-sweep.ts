@@ -1,6 +1,7 @@
 import { refreshStaleBusyCalendars } from "@/lib/busy-calendar";
 import { refreshStaleFsmSchedules } from "@/lib/fsm-schedule";
 import { retryLostConfirmations } from "@/lib/confirm-sweep";
+import { sendDueCustomerConfirmationReminders } from "@/lib/customer-confirm";
 import { markCronRan } from "@/lib/cron-runs";
 import { drainJobberSyncs } from "@/lib/jobber";
 import { drainHousecallSyncs } from "@/lib/housecall";
@@ -25,7 +26,7 @@ export async function runLineWatchSweep(at: string) {
   };
   // On the 30-minute schedule: a Jobber retry waits minutes, and a caller hears back hours after calling, not the next day.
   // Retention rides along too: one daily pass cannot keep up once a day's expiring calls outnumber it.
-  const [jobber, housecall, servicetitan, quickbooks, followUps, calendars, fsmSchedules, reviews, planVisits, confirmations, texting, weeklyTexts, retention, prunedLogs] = await Promise.all([
+  const [jobber, housecall, servicetitan, quickbooks, followUps, calendars, fsmSchedules, reviews, planVisits, confirmations, confirmReminders, texting, weeklyTexts, retention, prunedLogs] = await Promise.all([
     drainJobberSyncs({ limit: 25, budgetMs: 25_000 }).catch(failed("jobber_sync")),
     drainHousecallSyncs({ limit: 25, budgetMs: 25_000 }).catch(failed("housecall_sync")),
     drainServiceTitanSyncs({ limit: 25, budgetMs: 25_000 }).catch(failed("servicetitan_sync")),
@@ -36,10 +37,11 @@ export async function runLineWatchSweep(at: string) {
     runReviewRequests({ budgetMs: 25_000 }).catch(failed("review_requests")),
     runVisitReminders({ budgetMs: 20_000 }).catch(failed("plan_visits")),
     retryLostConfirmations().catch(failed("lost_confirmations")),
+    sendDueCustomerConfirmationReminders(new Date(), 25).catch(failed("customer_confirmations")),
     advancePendingTexting({ budgetMs: 20_000 }).catch(failed("shop_texting")),
     sendDueWeeklyTexts({ budgetMs: 25_000 }).catch(failed("weekly_texts")),
     purgeExpiredCallContent({ budgetMs: 20_000 }).catch(failed("call_content_retention")),
     pruneOperationalLogs({ budgetMs: 10_000 }).catch(failed("log_retention")),
   ]);
-  return { ...lines, jobber, housecall, servicetitan, quickbooks, followUps, calendars, fsmSchedules, reviews, planVisits, confirmations, texting, weeklyTexts, retention, prunedLogs };
+  return { ...lines, jobber, housecall, servicetitan, quickbooks, followUps, calendars, fsmSchedules, reviews, planVisits, confirmations, confirmReminders, texting, weeklyTexts, retention, prunedLogs };
 }
