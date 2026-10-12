@@ -1,9 +1,9 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
+import { StartActions } from "@/components/start-actions";
 import { PricingPagePlans } from "@/components/pricing-page-plans";
 import { PricingTerms } from "@/components/pricing-terms";
-import { demoLineHref } from "@/lib/demo-line";
 import { getLowestPaidPrice } from "@/lib/company";
 import { getPaidPlans, OVERAGE_CENTS_PER_CALL, perCallCents } from "@/lib/pricing-plans";
 import { EXAMPLE_BILL_CENTS, PAYMENT_STEPS, STRIPE_STANDARD_LABEL, paymentExample, usd } from "@/lib/payments-intro";
@@ -32,14 +32,7 @@ export default function PricingPage() {
             subline={`Or $${getLowestPaidPrice("year")} a month when you pay for the year up front, which is two months free.`}
             description={`Each plan includes a set number of answered calls every month. Past that, the line keeps answering and each extra call is ${OVERAGE_CENTS_PER_CALL}¢.`}
             actions={
-              <>
-                <a href={demoLineHref()} className="ov-btn ov-btn--solid">
-                  Call the live line
-                </a>
-                <Link href="/pilot" className="ov-btn ov-btn--quiet">
-                  Book a call audit
-                </Link>
-              </>
+              <StartActions signupOpen={selfServeReady} />
             }
           />
           {!selfServeReady ? (
@@ -115,12 +108,7 @@ export default function PricingPage() {
             close rate and margin decide the actual payback.
           </p>
           <div className="tier1-actions tier1-close-actions">
-            <a href={demoLineHref()} className="ov-btn ov-btn--solid">
-              Call the live line
-            </a>
-            <Link href="/pilot" className="ov-btn ov-btn--quiet">
-              Book a call audit
-            </Link>
+            <StartActions signupOpen={selfServeReady} />
           </div>
         </div>
       </section>

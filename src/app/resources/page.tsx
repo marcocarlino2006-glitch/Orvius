@@ -1,6 +1,6 @@
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
+import { StartActions } from "@/components/start-actions";
 import { company } from "@/lib/company";
-import { demoLineHref } from "@/lib/demo-line";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -50,14 +50,7 @@ export default function ResourcesPage() {
             subline="Guides, trust, and the company behind the line."
             description="Call the live line, read how we handle your data, or reach us."
             actions={
-              <>
-                <a href={demoLineHref()} className="ov-btn ov-btn--solid">
-                  Call the live line
-                </a>
-                <Link href="/pilot" className="ov-btn ov-btn--quiet">
-                  Book a call audit
-                </Link>
-              </>
+              <StartActions />
             }
           />
         </div>
