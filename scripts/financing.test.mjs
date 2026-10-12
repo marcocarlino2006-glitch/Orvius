@@ -88,7 +88,7 @@ test("pay links and estimates carry it through checkout and say it plainly", () 
   for (const file of ["src/lib/invoice-pay.ts", "src/lib/estimate-pay.ts"]) {
     assert.match(read(file), /\.\.\.\(paymentMethods \? \{ payment_method_types: paymentMethods \} : \{\}\)/, file);
   }
-  assert.match(read("src/app/api/public/invoice/[token]/route.ts"), /financingLine\(financingFor\(invoice\.business, invoice\.amountCents\)\)/);
+  assert.match(read("src/app/api/public/invoice/[token]/route.ts"), /financingLine\(financingFor\(invoice\.business, balanceCents\)\)/);
   assert.match(read("src/app/api/public/estimate/[token]/route.ts"), /financingLine\(financingFor\(estimate\.business, estimate\.amountCents\)\)/);
   const route = read("src/app/api/connect/financing/route.ts");
   assert.match(route, /requirePermission\("billing\.manage"/);

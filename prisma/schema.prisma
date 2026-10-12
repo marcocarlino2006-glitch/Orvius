@@ -229,7 +229,7 @@ model Referral {
   referrer    Business  @relation("ReferralReferrer", fields: [referrerId], references: [id], onDelete: Cascade)
   referredId  String    @unique
   referred    Business  @relation("ReferralReferred", fields: [referredId], references: [id], onDelete: Cascade)
-  /// pending → crediting → credited, or void when the referrer had stopped paying.
+  /// pending → crediting → credited, void when the referrer had stopped paying, reversed when the referred shop was refunded.
   status      String    @default("pending")
   creditCents Int?
   creditedAt  DateTime?
@@ -863,6 +863,8 @@ model Invoice {
   paidAt      DateTime?
   /** Direct-charge Checkout session on the connected account; unique so a replay cannot pay twice. */
   stripeSessionId     String? @unique
+  /** The Checkout session open for this bill, reused so one bill can't be paid in two sessions. */
+  openCheckoutSessionId String?
   /** What Orvius earned here, stamped at fulfilment and never recomputed. */
   applicationFeeCents Int?
   createdAt   DateTime  @default(now())

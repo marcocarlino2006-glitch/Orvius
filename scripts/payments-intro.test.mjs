@@ -37,7 +37,7 @@ test("the worked bill adds up: Stripe standard, the Orvius fee, the rest to the 
 test("the example text is worded exactly like the bill customers get", () => {
   const sender = read("src/lib/invoice-pay.ts");
   assert.match(sender, /`\$\{params\.business\.name\}: thanks for choosing us\. Your balance is `/);
-  assert.match(sender, /`\$\{formatCentsExact\(params\.invoice\.amountCents\)\}\. Pay securely here: ` \+/);
+  assert.match(sender, /`\$\{formatCentsExact\(balance\)\}\. Pay securely here: ` \+/);
   assert.equal(formatCentsExact(40_000), "$400.00", "same amount format as the real text");
   assert.equal(
     exampleBillText("Summit Heating & Air", 40_000),
