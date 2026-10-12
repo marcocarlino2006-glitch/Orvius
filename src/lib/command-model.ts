@@ -164,6 +164,18 @@ function plural(n: number, one: string, many = `${one}s`) {
   return `${n} ${n === 1 ? one : many}`;
 }
 
+/**
+ * What the week produced, from the same outcomes the reports read, so the
+ * line on Command and the report never disagree. Money appears only when it
+ * was actually collected; nothing here is estimated.
+ */
+export function weekResultLine(o: { windowDays: number; leads: number; leadsBooked: number; collectedCents: number } | undefined): string | null {
+  if (!o || o.leads === 0) return null;
+  const span = o.windowDays === 7 ? "Last 7 days" : `Last ${o.windowDays} days`;
+  const money = o.collectedCents > 0 ? `, ${formatWholeDollars(o.collectedCents)} collected` : "";
+  return `${span}: ${o.leadsBooked} of ${plural(o.leads, "request")} became ${o.leads === 1 ? "a job" : "jobs"}${money}.`;
+}
+
 export function formatWholeDollars(cents: number): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
