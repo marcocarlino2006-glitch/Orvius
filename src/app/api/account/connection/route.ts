@@ -6,7 +6,7 @@ import { CARRIER_PATHS, connectionHealth, type Coverage } from "@/lib/number-con
 import { getShopLine } from "@/lib/owner-setup-state";
 import { prisma } from "@/lib/prisma";
 import { isSetupSandbox } from "@/lib/setup-flow";
-import { requireEntitledSession } from "@/lib/tenant";
+import { requireEntitledSession, requirePermission } from "@/lib/tenant";
 
 const CARRIER_IDS = ["verizon", "att", "tmobile", "other", "voip"] as const;
 const COVERAGES = ["missed", "all", "after_hours", "main"] as const;
@@ -46,7 +46,7 @@ const patchSchema = z.object({
 });
 
 export async function PATCH(request: NextRequest) {
-  const auth = await requireEntitledSession();
+  const auth = await requirePermission("settings.edit");
   if ("error" in auth) return auth.error;
   let body: z.infer<typeof patchSchema>;
   try {

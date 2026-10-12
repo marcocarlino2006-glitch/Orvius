@@ -9,7 +9,7 @@ import {
   isConnectConfigured,
   refreshConnectAccount,
 } from "@/lib/stripe-connect";
-import { requireBusinessSession } from "@/lib/tenant";
+import { requireBusinessSession, requirePermission } from "@/lib/tenant";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -69,7 +69,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const authResult = await requireBusinessSession();
+  // Whoever completes onboarding chooses the bank that customer payments land in, so only the owner may.
+  const authResult = await requirePermission("billing.manage", { entitled: false });
   if ("error" in authResult) return authResult.error;
   const { business } = authResult;
 

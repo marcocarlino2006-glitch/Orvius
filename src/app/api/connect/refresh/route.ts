@@ -4,7 +4,7 @@ import {
   createConnectOnboardingLink,
   ensureConnectAccount,
 } from "@/lib/stripe-connect";
-import { requireBusinessSession } from "@/lib/tenant";
+import { requirePermission } from "@/lib/tenant";
 
 export const runtime = "nodejs";
 
@@ -15,10 +15,13 @@ export const runtime = "nodejs";
   error page — this is a normal part of the flow, not a failure.
 */
 export async function GET() {
-  const authResult = await requireBusinessSession();
+  const authResult = await requirePermission("billing.manage", { entitled: false });
   if ("error" in authResult) {
     return NextResponse.redirect(
-      new URL("/login", process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
+      new URL(
+        authResult.error?.status === 403 ? "/dashboard/billing" : "/login",
+        process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+      ),
     );
   }
 

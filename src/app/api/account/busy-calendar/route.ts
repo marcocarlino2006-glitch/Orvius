@@ -2,12 +2,12 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { busyCalendarHost, normalizeBusyCalendarUrl, refreshBusyCalendar } from "@/lib/busy-calendar";
 import { prisma } from "@/lib/prisma";
-import { requireEntitledSession } from "@/lib/tenant";
+import { requirePermission } from "@/lib/tenant";
 
 const bodySchema = z.object({ url: z.string().min(8).max(2000) });
 
 export async function POST(request: Request) {
-  const authResult = await requireEntitledSession();
+  const authResult = await requirePermission("settings.edit");
   if ("error" in authResult) return authResult.error;
   const business = authResult.business;
 
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE() {
-  const authResult = await requireEntitledSession();
+  const authResult = await requirePermission("settings.edit");
   if ("error" in authResult) return authResult.error;
   await prisma.business.update({
     where: { id: authResult.business.id },
