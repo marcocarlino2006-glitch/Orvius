@@ -401,7 +401,7 @@ function DayStep({
 
   return (
     <>
-      <Heading title="How does your day work?" lead="Orvius only offers times inside these hours, and never one your calendar says you're busy." />
+      <Heading title="How does your day work?" lead="Orvius only offers times inside these hours, and won't offer one your calendar says you're busy." />
 
       <fieldset className="ton-group">
         <legend className="ton-group-title">Your hours</legend>
