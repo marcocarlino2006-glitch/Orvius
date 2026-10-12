@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { safeCallbackUrl } from "@/lib/safe-callback";
 import { SignInVerify } from "@/components/signin-verify";
 
 export const metadata: Metadata = {
@@ -21,7 +22,7 @@ export default async function VerifyPage({
     <main className="ov-signin ov-signin--verify">
       <SignInVerify
         token={params.token ?? ""}
-        callbackUrl={params.callbackUrl ?? "/dashboard"}
+        callbackUrl={safeCallbackUrl(params.callbackUrl)}
       />
     </main>
   );
