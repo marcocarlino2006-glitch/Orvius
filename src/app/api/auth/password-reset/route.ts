@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revokeAllSessions, sendSecurityNotice } from "@/lib/account-security";
 import { company } from "@/lib/company";
 import { isEmailConfigured, sendOwnerEmail } from "@/lib/email";
 import { getAppUrl } from "@/lib/env";
@@ -113,5 +114,8 @@ export async function PUT(request: NextRequest) {
   if (!saved.ok) {
     return NextResponse.json({ ok: false, message: saved.message } satisfies PasswordResetResponse, { status: 400 });
   }
+  // Someone resets when they've lost control of the account, so every older session ends with it.
+  await revokeAllSessions(email);
+  await sendSecurityNotice(email, "password_changed");
   return NextResponse.json({ ok: true, message: "Password saved.", email } satisfies PasswordResetResponse);
 }

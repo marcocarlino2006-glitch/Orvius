@@ -4,7 +4,9 @@ import { getCustomerProperties, getCustomerTimeline, customerDisplayName } from 
 import { parseAddresses, parseEquipment, serializeAddresses, serializeEquipment } from "@/lib/customer-record";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
-import { requireEntitledSession } from "@/lib/tenant";
+import { requireEntitledSession, requirePermission } from "@/lib/tenant";
+import { forgetCustomer } from "@/lib/forget-customer";
+import { can } from "@/lib/workspace-access-labels";
 import { recordAudit } from "@/lib/audit";
 
 type Params = { params: Promise<{ id: string }> };
@@ -12,7 +14,7 @@ type Params = { params: Promise<{ id: string }> };
 export async function GET(_request: Request, { params }: Params) {
   const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
-  const { business } = authResult;
+  const { business, role } = authResult;
 
   const planGate = requirePlanModule(business, "customers");
   if ("error" in planGate) return planGate.error;
@@ -66,6 +68,7 @@ export async function GET(_request: Request, { params }: Params) {
     },
     timeline,
     properties,
+    canForget: can(role, "customers.forget"),
   });
 }
 
@@ -142,4 +145,23 @@ export async function PATCH(request: Request, { params }: Params) {
     equipment: parseEquipment(customer.equipmentJson),
     address: customer.address,
   });
+}
+
+/** A customer asked the shop to delete their data. Owner only: it can't be undone. */
+export async function DELETE(_request: Request, { params }: Params) {
+  const authResult = await requirePermission("customers.forget", { entitled: false });
+  if ("error" in authResult) return authResult.error;
+  const { business, email, role } = authResult;
+  const { id } = await params;
+
+  const result = await forgetCustomer({ businessId: business.id, customerId: id, actorEmail: email, role });
+  if (!result.ok) {
+    return result.reason === "not_found"
+      ? NextResponse.json({ error: "Customer not found" }, { status: 404 })
+      : NextResponse.json(
+          { error: "This customer is on an active service plan. Cancel the plan first, then delete their data." },
+          { status: 409 },
+        );
+  }
+  return NextResponse.json(result);
 }

@@ -28,10 +28,11 @@ export type Permission =
   | "ownership.transfer"
   | "audit.view"
   | "reports.view"
-  | "calls.publish";
+  | "calls.publish"
+  | "customers.forget";
 
 const GRANTS: Record<ShopRole, ReadonlySet<Permission>> = {
-  owner: new Set(["settings.edit", "team.manage", "data.export", "billing.manage", "workspace.delete", "ownership.transfer", "audit.view", "reports.view", "calls.publish"]),
+  owner: new Set(["settings.edit", "team.manage", "data.export", "billing.manage", "workspace.delete", "ownership.transfer", "audit.view", "reports.view", "calls.publish", "customers.forget"]),
   manager: new Set(["settings.edit", "team.manage", "data.export", "audit.view", "reports.view"]),
   dispatcher: new Set(),
 };

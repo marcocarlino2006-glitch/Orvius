@@ -248,7 +248,12 @@ export default function PrivacyPage() {
         <p>
           <strong>Callers.</strong> If you are a caller seeking deletion or access to data collected
           by a shop using {company.productName}, contact that business first as controller. We will
-          assist that business as processor when they instruct us or when law requires.
+          assist that business as processor when they instruct us or when law requires. The shop&apos;s
+          owner can delete a caller&apos;s data from the customer&apos;s page in {company.productName}: their
+          name, number, email, addresses, notes, texts, call recordings and transcripts (including the
+          copies at our voice and telephony providers), and job photos and signatures. The shop keeps
+          that the calls and jobs happened, without those details, and keeps the caller&apos;s opt-out
+          from texts so they are never texted again.
         </p>
         <p>
           We will not discriminate against you for exercising privacy rights available under

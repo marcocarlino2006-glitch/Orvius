@@ -11,7 +11,7 @@ import {
 } from "@/components/shell-primitives";
 import { displayPhone } from "@/lib/customer";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { formatDay, formatWhen } from "@/lib/when";
 
@@ -59,6 +59,7 @@ export default function CustomerDetailPage() {
   const [failure, setFailure] = useState<ReturnType<typeof recordFailureFrom> | null>(null);
   const [loading, setLoading] = useState(true);
   const [attempt, setAttempt] = useState(0);
+  const [canForget, setCanForget] = useState(false);
 
   useEffect(() => {
     if (!customerId) return;
@@ -71,6 +72,7 @@ export default function CustomerDetailPage() {
       .then((data) => {
         setCustomer(data.customer);
         setTimeline(data.timeline ?? []);
+        setCanForget(Boolean(data.canForget));
         setFailure(null);
       })
       .catch((err) => setFailure(recordFailureFrom("customer", err)))
@@ -198,6 +200,7 @@ export default function CustomerDetailPage() {
             </dl>
           </ShellPanel>
           <CustomerRecordEditor customerId={customer.id} addresses={customer.addresses ?? []} equipment={customer.equipment ?? []} onSaved={(next) => setCustomer((c) => (c ? { ...c, ...next } : c))} />
+          {canForget ? <ForgetCustomerPanel customerId={customer.id} name={customer.displayName} /> : null}
         </div>
 
         <div className="os-detail-side">
@@ -290,6 +293,63 @@ function CustomerRecordEditor({
         </button>
       </form>
       {error ? <p className="cb-error">{error}</p> : null}
+    </ShellPanel>
+  );
+}
+
+/** For a customer who asks the shop to delete what it has on them. */
+function ForgetCustomerPanel({ customerId, name }: { customerId: string; name: string }) {
+  const [open, setOpen] = useState(false);
+  const [typed, setTyped] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  async function forget() {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/customers/${customerId}`, { method: "DELETE" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "Nothing was deleted. Try again.");
+      router.replace("/dashboard/customers?forgotten=1");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Nothing was deleted. Try again.");
+      setBusy(false);
+    }
+  }
+
+  return (
+    <ShellPanel title="Privacy" dense>
+      {open ? (
+        <div className="font-sans">
+          <p style={{ margin: "0 0 0.5rem", color: "var(--ox-text-2)" }}>
+            This deletes {name}&apos;s name, number, email, addresses, notes, texts, call recordings and transcripts,
+            job photos and signatures. Calls, jobs and invoices stay in your records without their details. Their
+            opt-out from texts is kept. This can&apos;t be undone.
+          </p>
+          <label htmlFor="forget-confirm" style={{ display: "block", margin: "0 0 0.25rem", color: "var(--ox-text-2)" }}>
+            Type DELETE to confirm
+          </label>
+          <div className="flex flex-wrap gap-2">
+            <input id="forget-confirm" className="sc-input" value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" />
+            <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm ox-btn--danger" disabled={busy || typed.trim() !== "DELETE"} onClick={() => void forget()}>
+              {busy ? "Deleting…" : "Delete their data"}
+            </button>
+            <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => { setOpen(false); setTyped(""); }}>
+              Cancel
+            </button>
+          </div>
+          {error ? <ShellAlert tone="error">{error}</ShellAlert> : null}
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center justify-between gap-2 font-sans">
+          <span style={{ color: "var(--ox-text-2)" }}>Customer asked you to delete their data?</span>
+          <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" onClick={() => setOpen(true)}>
+            Delete their data
+          </button>
+        </div>
+      )}
     </ShellPanel>
   );
 }

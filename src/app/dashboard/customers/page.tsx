@@ -36,6 +36,13 @@ export default function CustomersPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [forgotten, setForgotten] = useState(false);
+
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("forgotten") !== "1") return;
+    setForgotten(true);
+    window.history.replaceState(null, "", "/dashboard/customers");
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -91,6 +98,7 @@ export default function CustomersPage() {
       title="Customers"
     >
       <PlanUpgradeGate module="customers">
+      {forgotten ? <ShellAlert tone="success">Their data is deleted. Calls and jobs stay in your records without their details.</ShellAlert> : null}
       {loading && !customers.length ? (
         <DashboardSkeleton />
       ) : (

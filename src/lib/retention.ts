@@ -22,7 +22,7 @@ import {
 export { CALL_CONTENT_RETENTION_MONTHS, OWNER_NOTIFICATION_RETENTION_DAYS, WEBHOOK_EVENT_RETENTION_DAYS };
 const BATCH = 200;
 const REMOTE_CONCURRENCY = 8;
-const RECORDING_SID = /\/Recordings\/(RE[0-9a-f]{32})/gi;
+export const RECORDING_SID = /\/Recordings\/(RE[0-9a-f]{32})/gi;
 const VOICEMAIL_LINE = /^(Voicemail \(\d+s\)): \S*\/Recordings\/RE[0-9a-f]{32}\S*$/gim;
 
 export function callContentCutoff(now: Date) {
@@ -33,7 +33,7 @@ export function callContentCutoff(now: Date) {
 
 type RemoteDelete = (id: string) => Promise<"deleted" | "missing">;
 
-async function deleteTwilioRecording(sid: string): Promise<"deleted" | "missing"> {
+export async function deleteTwilioRecording(sid: string): Promise<"deleted" | "missing"> {
   try {
     await getTwilioClient().recordings(sid).remove();
     return "deleted";
@@ -93,7 +93,10 @@ export async function purgeExpiredCallContent(
   let lastCall: Keyset | undefined;
   while (!outOfTime()) {
     const calls = await prisma.call.findMany({
-      where: { createdAt: { lt: cutoff }, contentPurgedAt: null, ...after(lastCall) },
+      where: {
+        contentPurgedAt: null,
+        AND: [{ OR: [{ createdAt: { lt: cutoff } }, { forgetRequestedAt: { not: null } }] }, after(lastCall)],
+      },
       select: { id: true, vapiCallId: true, createdAt: true },
       orderBy: [{ createdAt: "asc" }, { id: "asc" }],
       take: BATCH,
@@ -128,8 +131,11 @@ export async function purgeExpiredCallContent(
   let lastLead: Keyset | undefined;
   while (!outOfTime()) {
     const voicemails = await prisma.lead.findMany({
-      where: { createdAt: { lt: cutoff }, notes: { contains: "/Recordings/RE" }, ...after(lastLead) },
-      select: { id: true, notes: true, createdAt: true },
+      where: {
+        notes: { contains: "/Recordings/RE" },
+        AND: [{ OR: [{ createdAt: { lt: cutoff } }, { forgetRequestedAt: { not: null } }] }, after(lastLead)],
+      },
+      select: { id: true, notes: true, createdAt: true, forgetRequestedAt: true },
       orderBy: [{ createdAt: "asc" }, { id: "asc" }],
       take: BATCH,
     });
@@ -157,7 +163,10 @@ export async function purgeExpiredCallContent(
         where: { id: lead.id },
         data: {
           notes: notes
-            .replace(VOICEMAIL_LINE, `$1: deleted after ${CALL_CONTENT_RETENTION_MONTHS} months`)
+            .replace(
+              VOICEMAIL_LINE,
+              lead.forgetRequestedAt ? "$1: deleted at the customer's request" : `$1: deleted after ${CALL_CONTENT_RETENTION_MONTHS} months`,
+            )
             .replace(RECORDING_SID, "/Recordings/deleted"),
         },
       });

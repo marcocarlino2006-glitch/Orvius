@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { auth } from "@/auth";
+import { revokeAllSessions, sendSecurityNotice } from "@/lib/account-security";
 import { normalizeEmail } from "@/lib/magic-link";
 import { passwordProblem, setVerifiedPassword, hashPassword, verifyPasswordHash } from "@/lib/password-auth";
 import { prisma } from "@/lib/prisma";
@@ -42,6 +43,7 @@ const bodySchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("two_step_confirm"), code: z.string().max(20) }),
   z.object({ action: z.literal("two_step_disable"), code: z.string().max(20) }),
   z.object({ action: z.literal("recovery_codes"), code: z.string().max(20) }),
+  z.object({ action: z.literal("sign_out_everywhere") }),
 ]);
 
 export async function POST(request: Request) {
@@ -72,7 +74,14 @@ export async function POST(request: Request) {
       const saved = await setVerifiedPassword(email, body.next);
       if (!saved.ok) return NextResponse.json({ error: saved.message }, { status: 400 });
     }
+    await sendSecurityNotice(email, login ? "password_changed" : "password_set");
     return NextResponse.json({ ok: true, ...(await status(email)) });
+  }
+
+  if (body.action === "sign_out_everywhere") {
+    await revokeAllSessions(email);
+    await sendSecurityNotice(email, "signed_out_everywhere");
+    return NextResponse.json({ ok: true, signedOut: true });
   }
 
   if (body.action === "two_step_start") {
@@ -88,5 +97,9 @@ export async function POST(request: Request) {
         ? await disableTwoStep(email, body.code)
         : await regenerateRecoveryCodes(email, body.code);
   if (!result.ok) return NextResponse.json({ error: result.error }, { status: 400 });
+  await sendSecurityNotice(
+    email,
+    body.action === "two_step_confirm" ? "two_step_on" : body.action === "two_step_disable" ? "two_step_off" : "recovery_codes",
+  );
   return NextResponse.json({ ...result, ...(await status(email)) });
 }

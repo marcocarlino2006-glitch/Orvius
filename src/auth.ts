@@ -99,9 +99,13 @@ const nextAuth = NextAuth({
     async jwt({ token, account }) {
       if (account) {
         token.viaPassword = account.provider === "password";
+        token.signedInAt = Date.now();
         return token;
       }
-      if (token.viaPassword === true && typeof token.email === "string") {
+      if (typeof token.email !== "string") return token;
+      const { sessionRevoked } = await import("@/lib/account-security");
+      if (await sessionRevoked(token.email, typeof token.signedInAt === "number" ? token.signedInAt : undefined)) return null;
+      if (token.viaPassword === true) {
         const { passwordSessionStillValid } = await import("@/lib/password-auth");
         if (!(await passwordSessionStillValid(token.email))) return null;
       }

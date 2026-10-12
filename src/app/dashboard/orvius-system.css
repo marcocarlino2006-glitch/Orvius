@@ -382,6 +382,12 @@ body:has(.os-shell.os-shell-night) {
   color: var(--ox-text) !important;
 }
 
+:is(.os-shell.os-shell-night, .rd-root) .ox-btn--danger,
+:is(.os-shell.os-shell-night, .rd-root) .ox-btn--danger:hover:not(:disabled) {
+  color: #f97066 !important;
+  border-color: rgba(249, 112, 102, 0.4) !important;
+}
+
 /* One filled action per view: only the top queue item keeps amber. */
 .os-shell.os-shell-night .wq-row .attention-item-btn-primary,
 .os-shell.os-shell-night .wq-row .assign-tech-btn,
