@@ -1,3 +1,4 @@
+import { liveCallSince } from "@/lib/live-call";
 import { prisma } from "@/lib/prisma";
 
 /*
@@ -11,8 +12,6 @@ import { prisma } from "@/lib/prisma";
 
 export const DEFAULT_DEMO_LIVE_CALL_CAP = 6;
 export const DEFAULT_DEMO_DAILY_CEILING = 1500;
-/** A demo call is ended by the assistant at 10 minutes, so anything older is a lost end-of-call report. */
-const LIVE_WINDOW_MS = 11 * 60_000;
 
 const envInt = (raw: string | undefined, fallback: number) => {
   const n = Number(raw);
@@ -46,7 +45,7 @@ const PHONE_ONLY = { OR: [{ channel: null }, { channel: { not: "web_demo" } }] }
 export async function readDemoLoad(businessId: string, now = new Date()): Promise<DemoLoad> {
   const [live, today] = await Promise.all([
     prisma.call.count({
-      where: { businessId, status: "in-progress", createdAt: { gte: new Date(now.getTime() - LIVE_WINDOW_MS) }, ...PHONE_ONLY },
+      where: { businessId, status: "in-progress", createdAt: { gte: liveCallSince(now) }, ...PHONE_ONLY },
     }),
     prisma.call.count({ where: { businessId, createdAt: { gte: new Date(now.getTime() - 24 * 60 * 60_000) }, ...PHONE_ONLY } }),
   ]);

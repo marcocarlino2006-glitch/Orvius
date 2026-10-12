@@ -23,6 +23,7 @@ import { estimateNeedsOwnerFollowUp } from "@/lib/estimate-fail";
 import { ownerAlertsAreMuted } from "@/lib/owner-alerts-muted";
 import { leadWantsHuman } from "@/lib/lead-wants-human";
 import { ownerSetupHref } from "@/lib/owner-setup-state";
+import { liveCallSince } from "@/lib/live-call";
 import { prisma } from "@/lib/prisma";
 import type {
   AttentionImpact,
@@ -293,7 +294,7 @@ export async function collectAttention(businessId: string, now = new Date()): Pr
         },
       }),
       prisma.call.findMany({
-        where: { businessId, status: "in-progress" },
+        where: { businessId, status: "in-progress", createdAt: { gte: liveCallSince(now) } },
         take: 8,
         orderBy: { createdAt: "desc" },
         select: {
