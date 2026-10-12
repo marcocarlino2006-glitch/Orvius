@@ -1108,3 +1108,12 @@ CREATE TABLE IF NOT EXISTS "SessionRevocation" (
 );
 ALTER TABLE "Call" ADD COLUMN "forgetRequestedAt" DATETIME;
 ALTER TABLE "Lead" ADD COLUMN "forgetRequestedAt" DATETIME;
+CREATE TABLE IF NOT EXISTS "SignInEvent" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "email" TEXT NOT NULL,
+    "method" TEXT NOT NULL,
+    "device" TEXT NOT NULL,
+    "place" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS "SignInEvent_email_createdAt_idx" ON "SignInEvent"("email", "createdAt");

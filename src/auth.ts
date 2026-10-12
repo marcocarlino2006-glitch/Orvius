@@ -96,10 +96,15 @@ const nextAuth = NextAuth({
      * each time, because access granted to the address after signup (an invite,
      * a shop) must not reach someone who never proved they own it.
      */
-    async jwt({ token, account }) {
+    async jwt({ token, account, user }) {
       if (account) {
         token.viaPassword = account.provider === "password";
         token.signedInAt = Date.now();
+        const email = user?.email ?? token.email;
+        if (typeof email === "string") {
+          const { recordSignInSafely } = await import("@/lib/sign-in-history");
+          await recordSignInSafely(email, account.provider);
+        }
         return token;
       }
       if (typeof token.email !== "string") return token;

@@ -253,7 +253,8 @@ export default function PrivacyPage() {
           name, number, email, addresses, notes, texts, call recordings and transcripts (including the
           copies at our voice and telephony providers), and job photos and signatures. The shop keeps
           that the calls and jobs happened, without those details, and keeps the caller&apos;s opt-out
-          from texts so they are never texted again.
+          from texts so they are never texted again. From the same page the owner can download a copy of
+          everything the shop holds about a caller, to answer an access request.
         </p>
         <p>
           We will not discriminate against you for exercising privacy rights available under

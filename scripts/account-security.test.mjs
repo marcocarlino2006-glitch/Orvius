@@ -16,6 +16,9 @@ const { revokeAllSessions, sessionRevoked } = await import("../src/lib/account-s
 const { forgetCustomer, FORGOTTEN } = await import("../src/lib/forget-customer.ts");
 const { purgeExpiredCallContent } = await import("../src/lib/retention.ts");
 const { can } = await import("../src/lib/workspace-access-labels.ts");
+const { deviceLabel, placeLabel, recordSignIn } = await import("../src/lib/sign-in-history.ts");
+const { exportCustomerData } = await import("../src/lib/customer-data-export.ts");
+const securityTxt = await import("../src/app/.well-known/security.txt/route.ts");
 
 const prisma = new PrismaClient();
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
@@ -193,5 +196,97 @@ test("a customer on an active plan can't be forgotten until the plan is cancelle
   } finally {
     await drop(business.id);
     await drop(elsewhere.id);
+  }
+});
+
+test("a sign-in is named by browser and device, and placed by city without keeping the IP", () => {
+  const ua = {
+    mac: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36",
+    iphone: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+    edge: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36 Edg/129.0",
+    android: "Mozilla/5.0 (Linux; Android 14; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/25.0 Chrome/121.0 Mobile Safari/537.36",
+  };
+  assert.equal(deviceLabel(ua.mac), "Chrome on Mac");
+  assert.equal(deviceLabel(ua.iphone), "Safari on iPhone");
+  assert.equal(deviceLabel(ua.edge), "Edge on Windows");
+  assert.equal(deviceLabel(ua.android), "Samsung Internet on Android");
+  assert.equal(deviceLabel(null), "Unknown device");
+  const h = (o) => new Headers(o);
+  assert.equal(placeLabel(h({ "x-vercel-ip-city": "San%20Antonio", "x-vercel-ip-country-region": "TX" })), "San Antonio, TX");
+  assert.equal(placeLabel(h({ "x-vercel-ip-country": "US" })), "US");
+  assert.equal(placeLabel(h({})), null);
+  assert.doesNotMatch(read("prisma/schema.prisma").match(/model SignInEvent \{[^}]+\}/)[0], /\bip\b/i);
+});
+
+test("only a device not seen in 90 days counts as new, the first sign-in never does, and old history is dropped", async () => {
+  const email = `hist-${stamp()}@example.test`;
+  const mac = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36";
+  const phone = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1";
+  const DAY = 24 * 60 * 60 * 1000;
+  const t0 = new Date(Date.now() - 200 * DAY);
+  try {
+    assert.deepEqual(await recordSignIn({ email, provider: "google", userAgent: mac, place: null, now: t0 }), { newDevice: false });
+    assert.deepEqual(await recordSignIn({ email, provider: "password", userAgent: mac, place: null, now: new Date(t0.getTime() + DAY) }), { newDevice: false });
+    assert.deepEqual(await recordSignIn({ email, provider: "password", userAgent: phone, place: "Austin, TX", now: new Date(t0.getTime() + 2 * DAY) }), { newDevice: true });
+    const later = new Date(t0.getTime() + 150 * DAY);
+    assert.deepEqual(await recordSignIn({ email, provider: "google", userAgent: mac, place: null, now: later }), { newDevice: false }, "nothing left to compare with after 90 days");
+    const rows = await prisma.signInEvent.findMany({ where: { email } });
+    assert.equal(rows.length, 1, "sign-ins older than 90 days are deleted");
+    assert.equal(rows[0].method, "Google");
+  } finally {
+    await prisma.signInEvent.deleteMany({ where: { email } });
+  }
+});
+
+test("each new session records its sign-in, a history failure can't block it, and the Devices list shows it", () => {
+  const auth = read("src/auth.ts");
+  assert.match(auth, /recordSignInSafely\(email, account\.provider\)/);
+  assert.match(read("src/lib/sign-in-history.ts"), /export async function recordSignInSafely[\s\S]+?catch/);
+  assert.match(read("src/app/api/account/security/route.ts"), /signIns: await recentSignIns\(email\)/);
+  assert.match(read("src/components/settings-center/security-group.tsx"), /Recent sign-ins/);
+});
+
+test("researchers have a published way to report a vulnerability", async () => {
+  const body = await securityTxt.GET().text();
+  assert.match(body, /^Contact: mailto:\S+@orvius\.im$/m);
+  const expires = new Date(body.match(/^Expires: (.+)$/m)[1]);
+  assert.ok(expires > new Date() && expires < new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), "RFC 9116: under a year out");
+  assert.match(body, /^Policy: \S+\/security$/m);
+  const page = read("src/app/security/page.tsx");
+  assert.match(page, /Reporting a vulnerability/);
+  assert.match(page, /won&apos;t take legal action/);
+});
+
+test("the owner can download everything the shop holds about one customer, and nothing about anyone else", async () => {
+  const business = await shop();
+  try {
+    const phone = randomPhone();
+    const other = randomPhone();
+    const { customer } = await customerWithHistory(business, phone);
+    await customerWithHistory(business, other);
+    await prisma.smsOptOut.create({ data: { businessId: business.id, phone, phoneNormalized: phone } });
+
+    const data = await exportCustomerData({ businessId: business.id, customerId: customer.id, actorEmail: business.ownerEmail, role: "owner" });
+    assert.equal(data.customer.phone, phone);
+    assert.equal(data.calls.length, 1);
+    assert.match(data.calls[0].transcript, /Dana Reyes/);
+    assert.equal(data.requests[0].address, "14 Elm St");
+    assert.equal(data.jobs[0].notes, "Dog in yard");
+    assert.deepEqual(data.texts.map((t) => t.body), ["Is 3pm ok?"]);
+    assert.ok(data.textingOptOut);
+    assert.doesNotMatch(JSON.stringify(data), new RegExp(other.slice(2)));
+    assert.doesNotMatch(JSON.stringify(data), /vapiCallId|publicToken|techToken|costMicros/);
+    assert.ok(await prisma.auditEvent.findFirst({ where: { businessId: business.id, action: "customer.exported" } }));
+
+    const elsewhere = await shop();
+    try {
+      assert.equal(await exportCustomerData({ businessId: elsewhere.id, customerId: customer.id, actorEmail: "x@example.test", role: "owner" }), null);
+    } finally {
+      await drop(elsewhere.id);
+    }
+    assert.equal(can("dispatcher", "data.export"), false);
+    assert.match(read("src/app/api/customers/[id]/export/route.ts"), /requirePermission\("data\.export"/);
+  } finally {
+    await drop(business.id);
   }
 });
