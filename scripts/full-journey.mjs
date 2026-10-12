@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Full product journey — beginning to end without a live phone.
- * Shop setup → inbound call → lead → auto job → assign tech → dispatch → ask
+ * Shop setup → emergency call → lead (never auto-booked) → owner books → assign tech → dispatch → ask
  */
 import { encode } from "@auth/core/jwt";
 import { waitForCallReport } from "./lib/call-report-outcome.mjs";
@@ -115,7 +115,7 @@ async function main() {
   let jobId;
 
   results.push(
-    await check("Call ended → lead + auto job + owner alert", async () => {
+    await check("Emergency call ended → lead for the owner, never auto-booked", async () => {
       const res = await fetch(`${appUrl}/api/webhooks/vapi`, {
         method: "POST",
         headers: {
@@ -151,11 +151,23 @@ async function main() {
       if (!res.ok) return { ok: false, message: JSON.stringify(data) };
       Object.assign(data, await waitForCallReport(prisma, vapiCallId));
       leadId = data.leadId;
-      jobId = data.jobId;
       return {
-        ok: Boolean(leadId && jobId && data.autoBooked),
-        message: `lead ${leadId}, job ${jobId}, queued=${data.queued}`,
+        ok: Boolean(leadId && !data.jobId && !data.autoBooked),
+        message: `lead ${leadId}, auto job ${data.jobId ?? "none"}, queued=${data.queued}`,
       };
+    }),
+  );
+
+  results.push(
+    await check("Owner books the emergency", async () => {
+      const res = await authed("/api/jobs", {
+        method: "POST",
+        body: JSON.stringify({ leadId, scheduledAt: new Date(Date.now() + 2 * 3600_000).toISOString() }),
+      });
+      const data = await res.json();
+      if (!res.ok) return { ok: false, message: data.error ?? res.status };
+      jobId = data.job?.id;
+      return { ok: Boolean(jobId), message: `job ${jobId}` };
     }),
   );
 
@@ -189,10 +201,10 @@ async function main() {
         include: { job: { select: { id: true } } },
       });
       return {
-        ok: Boolean(smsLead?.job),
-        message: smsLead?.job
-          ? `lead ${smsLead.id}, job ${smsLead.job.id}`
-          : "SMS lead missing job",
+        ok: Boolean(smsLead),
+        message: smsLead
+          ? `lead ${smsLead.id}${smsLead.job ? `, job ${smsLead.job.id}` : ", waiting on the owner"}`
+          : "SMS lead missing",
       };
     }),
   );
