@@ -514,6 +514,8 @@ model Call {
   /** Vapi's endedReason, e.g. "assistant-forwarded-call" when the caller was transferred to a person. */
   endedReason String?
   createdAt        DateTime  @default(now())
+  /** The customer asked to be forgotten; retention keeps retrying the remote recording deletes until they land. */
+  forgetRequestedAt DateTime?
   updatedAt        DateTime  @updatedAt
 
   lead Lead?
@@ -560,6 +562,8 @@ model Lead {
   /** The teammate responsible for this request (owner or member email); null means the shop owner. */
   assigneeEmail    String?
   createdAt   DateTime  @default(now())
+  /** The customer asked to be forgotten; retention keeps retrying the remote recording deletes until they land. */
+  forgetRequestedAt DateTime?
   updatedAt   DateTime  @updatedAt
 
   job      Job?

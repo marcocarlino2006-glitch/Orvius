@@ -1106,3 +1106,5 @@ CREATE TABLE IF NOT EXISTS "SessionRevocation" (
     "revokedAt" DATETIME NOT NULL,
     "updatedAt" DATETIME NOT NULL
 );
+ALTER TABLE "Call" ADD COLUMN "forgetRequestedAt" DATETIME;
+ALTER TABLE "Lead" ADD COLUMN "forgetRequestedAt" DATETIME;
