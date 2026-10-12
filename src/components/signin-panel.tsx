@@ -42,6 +42,7 @@ export function SignInPanel({
   const [code, setCode] = useState("");
   const [needsCode, setNeedsCode] = useState(false);
   const [status, setStatus] = useState<Status>({ kind: "idle" });
+  const [googleBusy, setGoogleBusy] = useState(false);
   const copy = COPY[mode];
 
   function switchTo(next: SignInMode) {
@@ -121,10 +122,18 @@ export function SignInPanel({
           <button
             type="button"
             className="ov-signin-sso"
-            onClick={() => signIn("google", { callbackUrl })}
+            disabled={googleBusy}
+            aria-busy={googleBusy}
+            onClick={() => {
+              setGoogleBusy(true);
+              void signIn("google", { callbackUrl }).catch(() => {
+                setGoogleBusy(false);
+                setStatus({ kind: "error", message: "Couldn't reach Google. Check your connection and try again." });
+              });
+            }}
           >
             <GoogleMark />
-            Continue with Google
+            {googleBusy ? "Opening Google…" : "Continue with Google"}
           </button>
           <div className="ov-signin-or">
             <span>or</span>
@@ -134,7 +143,7 @@ export function SignInPanel({
 
       <form className="ov-signin-form" onSubmit={submit}>
         <label className="ov-signin-label" htmlFor="signin-email">
-          Work email
+          Email
         </label>
         <input
           id="signin-email"
@@ -143,7 +152,7 @@ export function SignInPanel({
           name="email"
           value={email}
           autoComplete={mode === "signup" ? "email" : "username"}
-          placeholder="you@yourshop.com"
+          placeholder="you@example.com"
           required
           onChange={(event) => {
             setEmail(event.target.value);

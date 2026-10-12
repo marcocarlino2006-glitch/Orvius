@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 
 const ERRORS: Record<string, string> = {
   Configuration: "Sign-in is temporarily unavailable. Try again shortly.",
-  AccessDenied: "That account is not authorized for this workspace.",
+  AccessDenied: "That Google account isn’t connected to a shop yet. Sign in with the email your shop uses, or ask the owner to invite you.",
   CredentialsSignin: "That sign-in didn’t work. Check your email and password, or reset your password below.",
   Verification: "That sign-in link has expired. Request a new one below.",
   OAuthAccountNotLinked:
