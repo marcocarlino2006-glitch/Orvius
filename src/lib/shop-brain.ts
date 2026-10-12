@@ -13,6 +13,7 @@ import {
   type ShopOperateNext,
 } from "@/lib/shop-operate";
 import { answerFromRecords } from "@/lib/ask-answer";
+import { answerDirect } from "@/lib/ask-direct";
 import { answerWithModel } from "@/lib/ask-model";
 import {
   composeMemoryAnswer,
@@ -159,7 +160,7 @@ async function loadOperateNext(businessId: string): Promise<{
 
 export type AskResult = {
   answer: string;
-  source: "memory" | "memory+model" | "outcomes" | "operate";
+  source: "memory" | "memory+model" | "outcomes" | "operate" | "records";
   hits: MemoryHit[];
   stats: ShopMemory["stats"];
   /** Present when the answer rests on individual records. */
@@ -195,6 +196,16 @@ export async function askShop(question: string, businessId: string): Promise<Ask
       answer: formatOperateAnswer(next, top?.title, top?.action),
       source: "operate",
       hits,
+      stats: { customers: 0, jobs: 0, leads: 0, calls: 0 },
+    };
+  }
+
+  const exact = await answerDirect(question, businessId);
+  if (exact) {
+    return {
+      answer: exact.answer,
+      source: "records",
+      hits: exact.hits,
       stats: { customers: 0, jobs: 0, leads: 0, calls: 0 },
     };
   }
