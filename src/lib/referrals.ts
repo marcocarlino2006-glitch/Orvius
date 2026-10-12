@@ -118,7 +118,8 @@ export async function creditReferralOnPayment(
   if (claimed.count === 0) return { status: "skipped" as const };
 
   const planId = referrer.billingPlan && isPaidPlanId(referrer.billingPlan) ? referrer.billingPlan : "line";
-  const creditCents = getPlanById(planId).price * 100;
+  // Never more than the referred shop paid, or a cheap plan referred from an expensive one earns more than it brought in.
+  const creditCents = Math.min(getPlanById(planId).price * 100, params.amountPaidCents);
   try {
     await (deps.stripe ?? getStripe()).customers.createBalanceTransaction(
       referrer.stripeCustomerId,
@@ -160,6 +161,51 @@ export async function creditReferralOnPayment(
     }).catch(() => null);
   }
   return { status: "credited" as const, creditCents };
+}
+
+/**
+ * A referred shop that took its money back never paid, so the credit it
+ * earned its referrer comes back off the referrer's balance.
+ */
+export async function reverseReferralCredit(
+  referredId: string,
+  deps: { client?: typeof prisma; stripe?: CreditStripe } = {},
+) {
+  const client = deps.client ?? prisma;
+  const referral = await client.referral.findUnique({
+    where: { referredId },
+    include: { referrer: { select: { id: true, stripeCustomerId: true } }, referred: { select: { name: true } } },
+  });
+  if (!referral) return { status: "none" as const };
+  if (referral.status === "pending" || referral.status === "crediting") {
+    await client.referral.updateMany({ where: { id: referral.id, status: { in: ["pending", "crediting"] } }, data: { status: "void" } });
+    return { status: "void" as const };
+  }
+  if (referral.status !== "credited" || !referral.creditCents || !referral.referrer.stripeCustomerId) {
+    return { status: "none" as const };
+  }
+  await (deps.stripe ?? getStripe()).customers.createBalanceTransaction(
+    referral.referrer.stripeCustomerId,
+    {
+      amount: referral.creditCents,
+      currency: "usd",
+      description: `Referral credit reversed: ${referral.referred.name} was refunded`,
+      metadata: { referralId: referral.id, referredBusinessId: referredId },
+    },
+    { idempotencyKey: `referral-reverse:${referral.id}` },
+  );
+  await client.referral.update({ where: { id: referral.id }, data: { status: "reversed" } });
+  await recordAudit({
+    businessId: referral.referrer.id,
+    entityType: "shop",
+    entityId: referral.referrer.id,
+    action: "referral.reversed",
+    actor: "system",
+    summary: `${referral.referred.name} took its money back, so its referral credit was removed.`,
+    detail: { referralId: referral.id, creditCents: referral.creditCents },
+    idempotencyKey: `referral-reverse:${referral.id}`,
+  });
+  return { status: "reversed" as const, creditCents: referral.creditCents };
 }
 
 export async function referralSummary(businessId: string, client = prisma) {

@@ -1,11 +1,13 @@
-import { calculatePlatformFeeCents, isChargeableAmount } from "@/lib/platform-fee";
+import { calculateNetworkFeeCents, calculatePlatformFeeCents, isChargeableAmount } from "@/lib/platform-fee";
 import { getAppBaseUrl, getStripe } from "@/lib/stripe";
 import { checkoutPaymentMethods } from "@/lib/financing";
 import { getConnectStatus } from "@/lib/stripe-connect";
 import { prisma } from "@/lib/prisma";
 import type Stripe from "stripe";
-import { pricedInvoice } from "@/lib/invoice-tax";
+import { pricedJobInvoice } from "@/lib/invoice-tax";
 import { feeBaseCents } from "@/lib/sales-tax";
+import { checkoutSessionPaid, reuseOpenCheckoutSession } from "@/lib/checkout-guard";
+import { applyCardPaymentToInvoice, invoiceOpenBalanceCents, isNetworkJob } from "@/lib/invoice-pay";
 
 type ConnectableShop = Parameters<typeof getConnectStatus>[0];
 
@@ -31,12 +33,15 @@ export async function ensureInvoiceForEstimate(estimate: {
   acceptedAt: Date | null;
   invoice?: { id: string } | null;
 }) {
+  const select = {
+    id: true,
+    amountCents: true,
+    taxCents: true,
+    openCheckoutSessionId: true,
+    payments: { select: { amountCents: true, status: true } },
+  } as const;
   if (estimate.invoice?.id) {
-    const existing = await prisma.invoice.findUniqueOrThrow({
-      where: { id: estimate.invoice.id },
-      select: { id: true, amountCents: true, taxCents: true },
-    });
-    return existing;
+    return prisma.invoice.findUniqueOrThrow({ where: { id: estimate.invoice.id }, select });
   }
 
   await prisma.estimate.update({
@@ -52,10 +57,10 @@ export async function ensureInvoiceForEstimate(estimate: {
       businessId: estimate.businessId,
       estimateId: estimate.id,
       jobId: estimate.jobId,
-      ...(await pricedInvoice(estimate.businessId, estimate.amountCents)),
+      ...(await pricedJobInvoice(estimate.businessId, estimate.jobId, estimate.amountCents)),
       status: "open",
     },
-    select: { id: true, amountCents: true, taxCents: true },
+    select,
   });
   return created;
 }
@@ -70,11 +75,14 @@ export async function createEstimateCheckoutSession(params: {
   estimateId: string;
   businessId: string;
   businessName: string;
-  /** What the customer pays: the estimate plus any sales tax on its invoice. */
+  /** The invoice total: the estimate plus any sales tax, less a paid deposit. */
   amountCents: number;
   taxCents?: number;
   publicToken: string;
   invoiceId: string;
+  jobId?: string | null;
+  openCheckoutSessionId?: string | null;
+  payments?: Array<{ amountCents: number; status: string }> | null;
   jobTitle?: string | null;
   business: ConnectableShop & { financingEnabled?: boolean | null; financingMethods?: string | null };
 }) {
@@ -82,14 +90,25 @@ export async function createEstimateCheckoutSession(params: {
   if (!connect.canAcceptPayments || !connect.accountId) {
     throw new Error("Shop is not cleared to accept card payments");
   }
-  if (!isChargeableAmount(params.amountCents)) {
-    throw new Error(`Estimate below Stripe minimum: ${params.amountCents}`);
+  const balanceCents = invoiceOpenBalanceCents({ amountCents: params.amountCents, payments: params.payments });
+  if (!isChargeableAmount(balanceCents)) {
+    throw new Error(`Estimate below Stripe minimum: ${balanceCents}`);
   }
+  const reused = await reuseOpenCheckoutSession({
+    sessionId: params.openCheckoutSessionId,
+    stripeAccount: connect.accountId,
+    amountCents: balanceCents,
+  });
+  if (reused) return reused;
 
   const stripe = getStripe();
   const baseUrl = getAppBaseUrl();
   const title = params.jobTitle?.trim() || "Service estimate";
-  const applicationFeeCents = calculatePlatformFeeCents(feeBaseCents(params));
+  const network = await isNetworkJob(params.jobId);
+  const workCents = params.amountCents > 0
+    ? feeBaseCents({ amountCents: balanceCents, taxCents: Math.round(((params.taxCents ?? 0) * balanceCents) / params.amountCents) })
+    : 0;
+  const applicationFeeCents = network ? calculateNetworkFeeCents(workCents) : calculatePlatformFeeCents(workCents);
 
   const metadata = {
     kind: "estimate_pay",
@@ -97,9 +116,11 @@ export async function createEstimateCheckoutSession(params: {
     invoiceId: params.invoiceId,
     businessId: params.businessId,
     publicToken: params.publicToken,
+    applicationFeeCents: String(applicationFeeCents),
+    ...(network ? { network: "1" } : {}),
   };
 
-  const paymentMethods = checkoutPaymentMethods(params.business, params.amountCents);
+  const paymentMethods = checkoutPaymentMethods(params.business, balanceCents);
   const session = await stripe.checkout.sessions.create(
     {
       mode: "payment",
@@ -109,7 +130,7 @@ export async function createEstimateCheckoutSession(params: {
           quantity: 1,
           price_data: {
             currency: "usd",
-            unit_amount: params.amountCents,
+            unit_amount: balanceCents,
             product_data: {
               name: `${params.businessName} — ${title}`,
               description: "Estimate payment via Orvius",
@@ -127,18 +148,19 @@ export async function createEstimateCheckoutSession(params: {
     },
     { stripeAccount: connect.accountId },
   );
+  await prisma.invoice.update({ where: { id: params.invoiceId }, data: { openCheckoutSessionId: session.id } });
 
   return session;
 }
 
-/** Mark invoice paid after a successful estimate Checkout session. */
+/** Record a card payment made from an estimate, through the same exactly-once path as any invoice. */
 export async function fulfillEstimateCheckoutSession(
   session: Stripe.Checkout.Session,
 ): Promise<{ ok: boolean; reason?: string }> {
   if (session.metadata?.kind !== "estimate_pay") {
     return { ok: false, reason: "not_estimate_pay" };
   }
-  if (session.payment_status !== "paid" && session.status !== "complete") {
+  if (!checkoutSessionPaid(session)) {
     return { ok: false, reason: "not_paid" };
   }
 
@@ -148,54 +170,21 @@ export async function fulfillEstimateCheckoutSession(
   if (!invoiceId || !businessId) {
     return { ok: false, reason: "missing_metadata" };
   }
-
-  const invoice = await prisma.invoice.findFirst({
-    where: { id: invoiceId, businessId },
-    include: { payments: true },
+  const chargedFee = Number(session.metadata.applicationFeeCents);
+  return applyCardPaymentToInvoice({
+    session,
+    invoiceId,
+    businessId,
+    network: session.metadata.network === "1",
+    chargedFeeCents: Number.isInteger(chargedFee) && chargedFee >= 0 ? chargedFee : null,
+    onRecorded: estimateId
+      ? (tx) =>
+          tx.estimate.updateMany({
+            where: { id: estimateId, businessId },
+            data: { status: "accepted", acceptedAt: new Date() },
+          })
+      : undefined,
   });
-  if (!invoice) return { ok: false, reason: "invoice_not_found" };
-  if (invoice.status === "paid") return { ok: true, reason: "already_paid" };
-
-  const amountCents = session.amount_total ?? invoice.amountCents;
-  const existingCard = invoice.payments.find(
-    (p) => p.method === `stripe:${session.id}`,
-  );
-  if (existingCard) {
-    if (invoice.status !== "paid") {
-      await prisma.invoice.update({
-        where: { id: invoice.id },
-        data: { status: "paid" },
-      });
-    }
-    return { ok: true, reason: "already_recorded" };
-  }
-
-  await prisma.$transaction(async (tx) => {
-    await tx.payment.create({
-      data: {
-        businessId,
-        invoiceId: invoice.id,
-        amountCents,
-        status: "recorded",
-        method: `stripe:${session.id}`,
-      },
-    });
-    await tx.invoice.update({
-      where: { id: invoice.id },
-      data: { status: "paid" },
-    });
-    if (estimateId) {
-      await tx.estimate.update({
-        where: { id: estimateId },
-        data: {
-          status: "accepted",
-          acceptedAt: new Date(),
-        },
-      });
-    }
-  });
-
-  return { ok: true };
 }
 
 /**

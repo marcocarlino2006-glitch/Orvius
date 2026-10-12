@@ -6,7 +6,9 @@ import {
   createInvoiceCheckoutSession,
   fulfillInvoiceCheckoutSession,
   getInvoiceByToken,
+  invoiceOpenBalanceCents,
 } from "@/lib/invoice-pay";
+import { collectedCents } from "@/lib/payment-math";
 import { formatCentsExact } from "@/lib/money";
 import { isChargeableAmount } from "@/lib/platform-fee";
 import { publicTokenLimited } from "@/lib/rate-limit";
@@ -22,29 +24,36 @@ type LoadedInvoice = NonNullable<Awaited<ReturnType<typeof getInvoiceByToken>>>;
 
 /** Work, tax and any deposit, so the total on the page adds up line by line. */
 function breakdown(invoice: LoadedInvoice) {
-  if (invoice.subtotalCents == null || invoice.taxCents <= 0) return null;
+  const paidSoFar = invoice.status === "paid" ? 0 : collectedCents(invoice.payments);
+  const paidLine = paidSoFar > 0 ? [{ label: "Paid so far", value: `−${formatCentsExact(paidSoFar)}` }] : [];
+  if (invoice.subtotalCents == null || invoice.taxCents <= 0) {
+    return paidLine.length ? [{ label: "Invoice total", value: formatCentsExact(invoice.amountCents) }, ...paidLine] : null;
+  }
   const credited = invoice.subtotalCents + invoice.taxCents - invoice.amountCents;
   return [
     { label: "Work", value: formatCentsExact(invoice.subtotalCents) },
     { label: `Sales tax (${formatTaxRate(invoice.taxBps)})`, value: formatCentsExact(invoice.taxCents) },
     ...(credited > 0 ? [{ label: "Deposit paid", value: `−${formatCentsExact(credited)}` }] : []),
+    ...paidLine,
   ];
 }
 
 function serializePublic(invoice: LoadedInvoice) {
+  const balanceCents = invoiceOpenBalanceCents(invoice);
+  const paid = invoice.status === "paid" || balanceCents === 0;
   return {
-    status: invoice.status,
-    amountLabel: formatCentsExact(invoice.amountCents),
+    status: paid ? "paid" : invoice.status,
+    amountLabel: formatCentsExact(paid ? invoice.amountCents : balanceCents),
     lines: breakdown(invoice),
     jobTitle: invoice.job?.title ?? null,
     shopName: invoice.business.name,
     shopPhone: invoice.business.phone,
-    paid: invoice.status === "paid",
+    paid,
     cardPayAvailable:
-      getConnectStatus(invoice.business).canAcceptPayments && isChargeableAmount(invoice.amountCents),
+      !paid && getConnectStatus(invoice.business).canAcceptPayments && isChargeableAmount(balanceCents),
     financing:
-      getConnectStatus(invoice.business).canAcceptPayments && invoice.status !== "paid"
-        ? financingLine(financingFor(invoice.business, invoice.amountCents))
+      getConnectStatus(invoice.business).canAcceptPayments && !paid
+        ? financingLine(financingFor(invoice.business, balanceCents))
         : null,
     paidAt: invoice.paidAt?.toISOString() ?? null,
   };
@@ -98,7 +107,7 @@ export async function POST(request: Request, { params }: Params) {
       return NextResponse.json({ ok: true, invoice: fresh ? serializePublic(fresh) : null });
     }
 
-    if (invoice.status === "paid") {
+    if (invoice.status === "paid" || invoiceOpenBalanceCents(invoice) === 0) {
       return NextResponse.json({ ok: true, alreadyPaid: true, invoice: serializePublic(invoice) });
     }
 

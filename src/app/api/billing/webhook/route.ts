@@ -92,6 +92,8 @@ export async function POST(request: Request) {
 
   try {
     switch (event.type) {
+      // A bank debit completes unpaid and clears days later; fulfilment only counts it then.
+      case "checkout.session.async_payment_succeeded":
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
 
@@ -178,7 +180,16 @@ export async function POST(request: Request) {
       }
       case "customer.subscription.updated":
       case "customer.subscription.deleted": {
-        const subscription = event.data.object as Stripe.Subscription;
+        /*
+          Stripe doesn't deliver in order and retries for days, so the event's
+          snapshot can be older than what was already applied: a stale
+          "active" landing after the cancel would reopen a canceled shop.
+          The subscription as it stands now is the only safe thing to apply.
+        */
+        const snapshot = event.data.object as Stripe.Subscription;
+        const subscription = event.account
+          ? await stripe.subscriptions.retrieve(snapshot.id, {}, { stripeAccount: event.account })
+          : await stripe.subscriptions.retrieve(snapshot.id);
         // A customer's maintenance plan on the shop's account, not the shop's Orvius plan.
         if (event.account) {
           await syncPlanSubscription(subscription);
@@ -244,19 +255,21 @@ export async function POST(request: Request) {
         const intentId = typeof charge.payment_intent === "string" ? charge.payment_intent : charge.payment_intent?.id;
         if (!intentId) break;
         // Customer payments are direct charges, so the intent lives on the shop's connected account.
-        const intent = await stripe.paymentIntents.retrieve(
-          intentId,
-          undefined,
-          event.account ? { stripeAccount: event.account } : undefined,
-        );
+        const onAccount = event.account ? { stripeAccount: event.account } : undefined;
+        const intent = await stripe.paymentIntents.retrieve(intentId, undefined, onAccount);
+        // The session names which payment on the bill this was; a bill can hold several.
+        const sessions = await stripe.checkout.sessions.list({ payment_intent: intentId, limit: 1 }, onAccount);
         await applyChargeRefund({
           metadata: intent.metadata,
           amountRefundedCents: charge.amount_refunded,
           fullyRefunded: charge.refunded,
           chargeId: charge.id,
+          paymentIntentId: intentId,
+          sessionId: sessions.data[0]?.id ?? null,
         });
         break;
       }
+      case "checkout.session.async_payment_failed":
       case "checkout.session.expired": {
         const session = event.data.object as Stripe.Checkout.Session;
         if (session.metadata?.kind === "booking_deposit") {

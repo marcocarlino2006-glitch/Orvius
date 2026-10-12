@@ -1,5 +1,6 @@
 import { recordAudit } from "@/lib/audit";
 import { logWarn } from "@/lib/logger";
+import { OWNER_METHODS, collectedCents } from "@/lib/payment-math";
 import { prisma } from "@/lib/prisma";
 
 export type RefundInput = {
@@ -8,16 +9,21 @@ export type RefundInput = {
   amountRefundedCents: number;
   fullyRefunded: boolean;
   chargeId: string;
+  /** The refunded charge's PaymentIntent and Checkout session, which say which payment it was. */
+  paymentIntentId?: string | null;
+  sessionId?: string | null;
 };
 
 export type RefundOutcome =
   | { applied: "deposit" | "invoice"; id: string; full: boolean }
-  | { applied: null; reason: "not_ours" | "not_found" | "already_refunded" };
+  | { applied: null; reason: "not_ours" | "not_found" | "already_refunded" | "duplicate_charge" | "unmatched_payment" };
 
 /**
  * A refund issued in Stripe has to reach Orvius's records, or a refunded
  * deposit keeps reading "paid" and counts as money in. Only a full refund
  * changes the status; a partial one is recorded on the timeline for the owner.
+ * A refund touches only the payment it was for: cash on the same invoice stays
+ * collected, and refunding a second, never-recorded charge changes nothing.
  */
 export async function applyChargeRefund(input: RefundInput): Promise<RefundOutcome> {
   const meta = input.metadata ?? {};
@@ -29,6 +35,9 @@ export async function applyChargeRefund(input: RefundInput): Promise<RefundOutco
     const deposit = await prisma.deposit.findFirst({ where: { id: meta.depositId, businessId } });
     if (!deposit) return { applied: null, reason: "not_found" };
     if (deposit.status === "refunded") return { applied: null, reason: "already_refunded" };
+    if (input.paymentIntentId && deposit.stripePaymentIntentId && input.paymentIntentId !== deposit.stripePaymentIntentId) {
+      return { applied: null, reason: "duplicate_charge" };
+    }
     if (input.fullyRefunded) {
       await prisma.deposit.updateMany({ where: { id: deposit.id, status: "paid" }, data: { status: "refunded" } });
     }
@@ -47,13 +56,28 @@ export async function applyChargeRefund(input: RefundInput): Promise<RefundOutco
   }
 
   if ((meta.kind === "invoice_pay" || meta.kind === "estimate_pay") && meta.invoiceId) {
-    const invoice = await prisma.invoice.findFirst({ where: { id: meta.invoiceId, businessId } });
+    const invoice = await prisma.invoice.findFirst({ where: { id: meta.invoiceId, businessId }, include: { payments: true } });
     if (!invoice) return { applied: null, reason: "not_found" };
     if (invoice.status === "refunded") return { applied: null, reason: "already_refunded" };
-    if (input.fullyRefunded) {
+    const target = refundedPayment(invoice.payments, input.sessionId);
+    if (!target) {
+      // A charge with no payment row is a duplicate Orvius refunded itself; without a session it's ambiguous.
+      if (!input.sessionId) logWarn("billing.refund_payment_ambiguous", { chargeId: input.chargeId, invoiceId: invoice.id });
+      return { applied: null, reason: input.sessionId ? "duplicate_charge" : "unmatched_payment" };
+    }
+    if (input.fullyRefunded && target.status !== "refunded") {
+      const remaining = collectedCents(invoice.payments.filter((p) => p.id !== target.id));
+      const status =
+        invoice.status !== "paid" && invoice.status !== "partial"
+          ? invoice.status
+          : remaining >= invoice.amountCents
+            ? "paid"
+            : remaining > 0
+              ? "partial"
+              : "refunded";
       await prisma.$transaction([
-        prisma.invoice.updateMany({ where: { id: invoice.id, status: "paid" }, data: { status: "refunded" } }),
-        prisma.payment.updateMany({ where: { invoiceId: invoice.id, status: { not: "refunded" } }, data: { status: "refunded" } }),
+        prisma.payment.update({ where: { id: target.id }, data: { status: "refunded" } }),
+        prisma.invoice.update({ where: { id: invoice.id }, data: { status } }),
       ]);
     }
     await recordAudit({
@@ -71,4 +95,12 @@ export async function applyChargeRefund(input: RefundInput): Promise<RefundOutco
 
   logWarn("billing.refund_unmatched", { chargeId: input.chargeId, kind: meta.kind ?? null });
   return { applied: null, reason: "not_ours" };
+}
+
+/** The card payment a refund was for: its session's row, or the only card-like row when the session is unknown. */
+function refundedPayment<P extends { id: string; method: string | null; status: string }>(payments: P[], sessionId?: string | null): P | null {
+  if (sessionId) return payments.find((p) => p.method === `stripe:${sessionId}`) ?? null;
+  const owner = new Set<string>([...OWNER_METHODS, "customer_attested", "customer_said"]);
+  const card = payments.filter((p) => !owner.has((p.method ?? "").toLowerCase()));
+  return card.length === 1 ? card[0]! : null;
 }

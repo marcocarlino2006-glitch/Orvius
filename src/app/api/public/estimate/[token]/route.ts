@@ -200,6 +200,9 @@ export async function POST(request: Request, { params }: Params) {
         taxCents: due.taxCents,
         publicToken: estimate.publicToken,
         invoiceId: due.id,
+        jobId: estimate.jobId,
+        openCheckoutSessionId: due.openCheckoutSessionId,
+        payments: due.payments,
         jobTitle: estimate.job?.title,
         business: estimate.business,
       });

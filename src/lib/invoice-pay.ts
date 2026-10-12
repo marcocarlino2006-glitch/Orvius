@@ -8,8 +8,11 @@ import { logWarn } from "@/lib/logger";
 import { creditNetworkSender } from "@/lib/orvius-network";
 import { calculateNetworkFeeCents, calculatePlatformFeeCents, isChargeableAmount } from "@/lib/platform-fee";
 import { checkoutPaymentMethods } from "@/lib/financing";
+import { checkoutSessionPaid, refundDuplicateCheckout, reuseOpenCheckoutSession } from "@/lib/checkout-guard";
+import { collectedCents } from "@/lib/payment-math";
+import { claimWebhookEvent, completeWebhookEvent } from "@/lib/webhook-events";
 import { prisma } from "@/lib/prisma";
-import { shopTaxBps } from "@/lib/invoice-tax";
+import { paidDepositCents, shopTaxBps } from "@/lib/invoice-tax";
 import { feeBaseCents, withSalesTax } from "@/lib/sales-tax";
 import { mintPublicToken } from "@/lib/public-tokens";
 import { withSmsOptOutFooter } from "@/lib/sms-keywords";
@@ -30,6 +33,18 @@ export function invoicePayUrl(publicToken: string) {
   return `${getAppBaseUrl()}/i/${publicToken}`;
 }
 
+/** What is still owed on an invoice once cash, checks and earlier card payments are taken off. */
+export function invoiceOpenBalanceCents(invoice: { amountCents: number; payments?: Array<{ amountCents: number; status: string }> | null }) {
+  return Math.max(0, invoice.amountCents - collectedCents(invoice.payments));
+}
+
+/** The work share of a part payment; Orvius' fee is never charged on sales tax. */
+function workShareCents(amountCents: number, invoice: { amountCents: number; taxCents?: number | null }) {
+  const tax = Math.max(0, invoice.taxCents ?? 0);
+  if (!tax || invoice.amountCents <= 0) return amountCents;
+  return Math.max(0, amountCents - Math.round((tax * amountCents) / invoice.amountCents));
+}
+
 /**
  * What the customer still owes on a job: the final bill plus the shop's sales
  * tax, less any booking deposit already paid. `totalCents` is the work before
@@ -40,20 +55,7 @@ export async function balanceDueForJob(params: {
   jobId: string;
   totalCents: number;
 }) {
-  const job = await prisma.job.findFirst({
-    where: { id: params.jobId, businessId: params.businessId },
-    select: { leadId: true },
-  });
-  /* A deposit taken at booking is stamped with the lead, the job, or both. */
-  const deposits = await prisma.deposit.findMany({
-    where: {
-      businessId: params.businessId,
-      status: "paid",
-      OR: [{ jobId: params.jobId }, ...(job?.leadId ? [{ leadId: job.leadId }] : [])],
-    },
-    select: { amountCents: true },
-  });
-  const depositPaidCents = deposits.reduce((sum, d) => sum + d.amountCents, 0);
+  const depositPaidCents = await paidDepositCents(params.businessId, params.jobId);
   const priced = withSalesTax(params.totalCents, await shopTaxBps(params.businessId));
   return {
     totalCents: params.totalCents,
@@ -121,12 +123,14 @@ export async function sendInvoiceLink(params: {
   if (!params.invoice.publicToken) {
     return { sent: false as const, reason: "no_token" as const };
   }
+  const payments = await prisma.payment.findMany({ where: { invoiceId: params.invoice.id }, select: { amountCents: true, status: true } });
+  const balance = invoiceOpenBalanceCents({ amountCents: params.invoice.amountCents, payments });
   const result = await sendCustomerSms({
     businessId: params.business.id,
     to: params.toPhone,
     body: withSmsOptOutFooter(
       `${params.business.name}: thanks for choosing us. Your balance is ` +
-        `${formatCentsExact(params.invoice.amountCents)}. Pay securely here: ` +
+        `${formatCentsExact(balance)}. Pay securely here: ` +
         invoicePayUrl(params.invoice.publicToken),
     ),
   });
@@ -145,6 +149,7 @@ export async function getInvoiceByToken(token: string) {
     where: { publicToken: token },
     include: {
       job: { select: { title: true, completedAt: true } },
+      payments: { select: { amountCents: true, status: true } },
       business: {
         select: {
           id: true,
@@ -170,7 +175,12 @@ export async function isNetworkJob(jobId: string | null | undefined) {
 }
 
 export async function createInvoiceCheckoutSession(params: {
-  invoice: Pick<Invoice, "id" | "amountCents" | "publicToken"> & { jobId?: string | null; taxCents?: number | null };
+  invoice: Pick<Invoice, "id" | "amountCents" | "publicToken"> & {
+    jobId?: string | null;
+    taxCents?: number | null;
+    openCheckoutSessionId?: string | null;
+    payments?: Array<{ amountCents: number; status: string }> | null;
+  };
   business: Pick<Business, "id" | "name"> & ConnectableShop & Partial<Pick<Business, "financingEnabled" | "financingMethods">>;
   jobTitle?: string | null;
 }) {
@@ -179,16 +189,26 @@ export async function createInvoiceCheckoutSession(params: {
     throw new Error("Shop is not cleared to accept card payments");
   }
   if (!params.invoice.publicToken) throw new Error("Invoice has no public token");
-  if (!isChargeableAmount(params.invoice.amountCents)) {
-    throw new Error(`Invoice below Stripe minimum: ${params.invoice.amountCents}`);
+  const payments =
+    params.invoice.payments ??
+    (await prisma.payment.findMany({ where: { invoiceId: params.invoice.id }, select: { amountCents: true, status: true } }));
+  const balanceCents = invoiceOpenBalanceCents({ amountCents: params.invoice.amountCents, payments });
+  if (!isChargeableAmount(balanceCents)) {
+    throw new Error(`Invoice balance below Stripe minimum: ${balanceCents}`);
   }
+
+  const reused = await reuseOpenCheckoutSession({
+    sessionId: params.invoice.openCheckoutSessionId,
+    stripeAccount: connect.accountId,
+    amountCents: balanceCents,
+  });
+  if (reused) return reused;
 
   const token = params.invoice.publicToken;
   const baseUrl = getAppBaseUrl();
   const network = await isNetworkJob(params.invoice.jobId);
-  const applicationFeeCents = network
-    ? calculateNetworkFeeCents(feeBaseCents(params.invoice))
-    : calculatePlatformFeeCents(feeBaseCents(params.invoice));
+  const workCents = workShareCents(balanceCents, params.invoice);
+  const applicationFeeCents = network ? calculateNetworkFeeCents(workCents) : calculatePlatformFeeCents(workCents);
   const metadata = {
     kind: "invoice_pay",
     invoiceId: params.invoice.id,
@@ -198,8 +218,8 @@ export async function createInvoiceCheckoutSession(params: {
     ...(network ? { network: "1" } : {}),
   };
 
-  const paymentMethods = checkoutPaymentMethods(params.business, params.invoice.amountCents);
-  return getStripe().checkout.sessions.create(
+  const paymentMethods = checkoutPaymentMethods(params.business, balanceCents);
+  const session = await getStripe().checkout.sessions.create(
     {
       mode: "payment",
       ...(paymentMethods ? { payment_method_types: paymentMethods } : {}),
@@ -208,7 +228,7 @@ export async function createInvoiceCheckoutSession(params: {
           quantity: 1,
           price_data: {
             currency: "usd",
-            unit_amount: params.invoice.amountCents,
+            unit_amount: balanceCents,
             product_data: {
               name: `${params.business.name} — ${params.jobTitle?.trim() || "Service invoice"}`,
             },
@@ -225,6 +245,8 @@ export async function createInvoiceCheckoutSession(params: {
     },
     { stripeAccount: connect.accountId },
   );
+  await prisma.invoice.update({ where: { id: params.invoice.id }, data: { openCheckoutSessionId: session.id } });
+  return session;
 }
 
 /**
@@ -236,58 +258,105 @@ export async function fulfillInvoiceCheckoutSession(
   session: Stripe.Checkout.Session,
 ): Promise<{ ok: boolean; reason?: string }> {
   if (session.metadata?.kind !== "invoice_pay") return { ok: false, reason: "not_invoice_pay" };
-  if (session.payment_status !== "paid" && session.status !== "complete") {
-    return { ok: false, reason: "not_paid" };
-  }
+  if (!checkoutSessionPaid(session)) return { ok: false, reason: "not_paid" };
   const invoiceId = session.metadata.invoiceId;
   const businessId = session.metadata.businessId;
   if (!invoiceId || !businessId) return { ok: false, reason: "missing_metadata" };
-
-  const invoice = await prisma.invoice.findFirst({ where: { id: invoiceId, businessId } });
-  if (!invoice) return { ok: false, reason: "invoice_not_found" };
-  if (invoice.status === "paid") return { ok: true, reason: "already_paid" };
-
-  const amountCents = session.amount_total ?? invoice.amountCents;
-  const workCents = feeBaseCents({ amountCents, taxCents: invoice.taxCents });
-  const network = session.metadata.network === "1";
   const chargedFee = Number(session.metadata.applicationFeeCents);
-  const claimed = await prisma.invoice.updateMany({
-    where: { id: invoice.id, status: { not: "paid" } },
-    data: {
-      status: "paid",
-      paidAt: new Date(),
-      stripeSessionId: session.id,
-      applicationFeeCents: Number.isInteger(chargedFee) && chargedFee >= 0
-        ? chargedFee
-        : network
-          ? calculateNetworkFeeCents(workCents)
-          : calculatePlatformFeeCents(workCents),
-    },
+  return applyCardPaymentToInvoice({
+    session,
+    invoiceId,
+    businessId,
+    network: session.metadata.network === "1",
+    chargedFeeCents: Number.isInteger(chargedFee) && chargedFee >= 0 ? chargedFee : null,
   });
-  if (claimed.count === 0) return { ok: true, reason: "already_paid" };
-
-  await prisma.payment.create({
-    data: {
-      businessId,
-      invoiceId: invoice.id,
-      amountCents,
-      status: "recorded",
-      method: `stripe:${session.id}`,
-    },
-  });
-  await textOwnerPaid({ businessId, jobId: invoice.jobId, amountCents }).catch(() => null);
-  if (network && invoice.jobId) {
-    await creditNetworkSender({ jobId: invoice.jobId, amountCents: workCents }).catch((error) =>
-      logWarn("network.credit_failed", {
-        invoiceId: invoice.id,
-        error: error instanceof Error ? error.message : "unknown",
-      }),
-    );
-  }
-  return { ok: true };
 }
 
-/* Runs once per invoice: only the caller that won the paid claim gets here. */
+/**
+ * Record one cleared card payment against an invoice, exactly once per
+ * session. The invoice is paid only when the money in covers it; anything
+ * less leaves it part-paid with the rest still owed. A payment on an invoice
+ * that was already settled is refunded rather than kept.
+ */
+export async function applyCardPaymentToInvoice(params: {
+  session: Pick<Stripe.Checkout.Session, "id" | "amount_total" | "payment_intent">;
+  invoiceId: string;
+  businessId: string;
+  network: boolean;
+  chargedFeeCents: number | null;
+  /** Runs in the same transaction as the first record of this payment. */
+  onRecorded?: (tx: Parameters<Parameters<typeof prisma.$transaction>[0]>[0]) => Promise<unknown>;
+}): Promise<{ ok: boolean; reason?: string }> {
+  const { session, invoiceId, businessId } = params;
+  const method = `stripe:${session.id}`;
+  const claim = { source: "stripe-checkout", externalId: session.id, eventType: "invoice_payment", businessId };
+  if (!(await claimWebhookEvent(claim)).claimed) return { ok: true, reason: "already_paid" };
+
+  try {
+    const outcome = await prisma.$transaction(async (tx) => {
+      const invoice = await tx.invoice.findFirst({ where: { id: invoiceId, businessId }, include: { payments: true } });
+      if (!invoice) return { kind: "missing" as const };
+      if (invoice.payments.some((p) => p.method === method)) return { kind: "replay" as const };
+      const before = collectedCents(invoice.payments);
+      if (invoice.status === "paid" || before >= invoice.amountCents) return { kind: "duplicate" as const, invoice };
+
+      const amountCents = session.amount_total ?? invoiceOpenBalanceCents(invoice);
+      const workCents = workShareCents(amountCents, invoice);
+      const fee = params.chargedFeeCents ?? (params.network ? calculateNetworkFeeCents(workCents) : calculatePlatformFeeCents(workCents));
+      const full = before + amountCents >= invoice.amountCents;
+      await tx.payment.create({
+        data: { businessId, invoiceId: invoice.id, amountCents, status: "recorded", method },
+      });
+      await tx.invoice.update({
+        where: { id: invoice.id },
+        data: {
+          status: full ? "paid" : "partial",
+          ...(full ? { paidAt: new Date(), stripeSessionId: session.id } : {}),
+          openCheckoutSessionId: null,
+          applicationFeeCents: (invoice.applicationFeeCents ?? 0) + fee,
+        },
+      });
+      await params.onRecorded?.(tx);
+      return { kind: "recorded" as const, invoice, amountCents, workCents };
+    });
+
+    if (outcome.kind === "missing") {
+      await completeWebhookEvent({ ...claim, status: "failed", error: "invoice_not_found" });
+      return { ok: false, reason: "invoice_not_found" };
+    }
+    if (outcome.kind === "replay") {
+      await completeWebhookEvent({ ...claim, status: "processed" });
+      return { ok: true, reason: "already_paid" };
+    }
+    if (outcome.kind === "duplicate") {
+      await refundDuplicateCheckout({ session, businessId, entityType: "invoice", entityId: invoiceId, what: "invoice" });
+      await completeWebhookEvent({ ...claim, status: "processed" });
+      return { ok: true, reason: "duplicate_refunded" };
+    }
+
+    await completeWebhookEvent({ ...claim, status: "processed" });
+    const { invoice, amountCents, workCents } = outcome;
+    await textOwnerPaid({ businessId, jobId: invoice.jobId, amountCents }).catch(() => null);
+    if (params.network && invoice.jobId) {
+      await creditNetworkSender({ jobId: invoice.jobId, amountCents: workCents }).catch((error) =>
+        logWarn("network.credit_failed", {
+          invoiceId: invoice.id,
+          error: error instanceof Error ? error.message : "unknown",
+        }),
+      );
+    }
+    return { ok: true };
+  } catch (error) {
+    await completeWebhookEvent({
+      ...claim,
+      status: "failed",
+      error: error instanceof Error ? error.message.slice(0, 280) : "unknown",
+    }).catch(() => null);
+    throw error;
+  }
+}
+
+/* Runs once per card payment: only the caller that won the session claim gets here. */
 async function textOwnerPaid(params: { businessId: string; jobId: string | null; amountCents: number }) {
   const business = await prisma.business.findUnique({
     where: { id: params.businessId },

@@ -1,4 +1,5 @@
 import type { Business, Deposit } from "@prisma/client";
+import { checkoutSessionPaid, refundDuplicateCheckout, reuseOpenCheckoutSession, sessionPaymentIntentId } from "@/lib/checkout-guard";
 import type Stripe from "stripe";
 
 import { sendCustomerSms } from "@/lib/customer-sms";
@@ -308,7 +309,7 @@ export async function ensureBookingDepositForJob(params: {
  * have changed in between.
  */
 export async function createDepositCheckoutSession(params: {
-  deposit: Pick<Deposit, "id" | "amountCents" | "publicToken">;
+  deposit: Pick<Deposit, "id" | "amountCents" | "publicToken"> & Partial<Pick<Deposit, "stripeSessionId">>;
   business: Pick<Business, "id" | "name"> &
     Parameters<typeof getConnectStatus>[0];
 }) {
@@ -324,6 +325,13 @@ export async function createDepositCheckoutSession(params: {
       `Deposit below Stripe minimum: ${params.deposit.amountCents}`,
     );
   }
+
+  const reused = await reuseOpenCheckoutSession({
+    sessionId: params.deposit.stripeSessionId,
+    stripeAccount: connect.accountId,
+    amountCents: params.deposit.amountCents,
+  });
+  if (reused) return reused;
 
   const stripe = getStripe();
   const baseUrl = getAppBaseUrl();
@@ -388,7 +396,7 @@ export async function fulfillDepositCheckoutSession(
   if (session.metadata?.kind !== "booking_deposit") {
     return { ok: false, reason: "not_booking_deposit" };
   }
-  if (session.payment_status !== "paid" && session.status !== "complete") {
+  if (!checkoutSessionPaid(session)) {
     return { ok: false, reason: "not_paid" };
   }
 
@@ -402,17 +410,13 @@ export async function fulfillDepositCheckoutSession(
     where: { id: depositId, businessId },
   });
   if (!deposit) return { ok: false, reason: "deposit_not_found" };
-  if (deposit.status === "paid") {
-    return { ok: true, reason: "already_paid", depositId: deposit.id };
-  }
+  if (deposit.status === "paid") return settledDeposit(deposit, session, businessId);
 
-  const paymentIntentId =
-    typeof session.payment_intent === "string"
-      ? session.payment_intent
-      : (session.payment_intent?.id ?? null);
+  const paymentIntentId = sessionPaymentIntentId(session);
 
-  await prisma.deposit.update({
-    where: { id: deposit.id },
+  // Only one session can turn a deposit paid; a second one racing it is a double charge.
+  const claimed = await prisma.deposit.updateMany({
+    where: { id: deposit.id, status: { not: "paid" } },
     data: {
       status: "paid",
       paidAt: new Date(),
@@ -423,8 +427,23 @@ export async function fulfillDepositCheckoutSession(
         calculatePlatformFeeCents(session.amount_total ?? deposit.amountCents),
     },
   });
+  if (!claimed.count) {
+    const now = await prisma.deposit.findUniqueOrThrow({ where: { id: deposit.id } });
+    return settledDeposit(now, session, businessId);
+  }
 
   return { ok: true, depositId: deposit.id };
+}
+
+/** A paid deposit seen again: the same session is a replay, any other is a second charge to hand back. */
+async function settledDeposit(
+  deposit: Pick<Deposit, "id" | "stripeSessionId">,
+  session: Stripe.Checkout.Session,
+  businessId: string,
+): Promise<{ ok: boolean; reason?: string; depositId?: string }> {
+  if (deposit.stripeSessionId === session.id) return { ok: true, reason: "already_paid", depositId: deposit.id };
+  await refundDuplicateCheckout({ session, businessId, entityType: "deposit", entityId: deposit.id, what: "deposit" });
+  return { ok: true, reason: "duplicate_refunded", depositId: deposit.id };
 }
 
 /**

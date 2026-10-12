@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { reverseReferralCredit } from "@/lib/referrals";
 import type Stripe from "stripe";
 import { personActor, recordAudit } from "@/lib/audit";
 import { syncSubscriptionToBusiness } from "@/lib/billing-sync";
@@ -44,6 +45,12 @@ export async function POST() {
     if (!claim.ok) return NextResponse.json({ error: moneyBackRefusal(claim.reason) }, { status: 409 });
 
     await syncSubscriptionToBusiness(claim.subscription as unknown as Stripe.Subscription, email);
+    await reverseReferralCredit(business.id).catch((error: unknown) =>
+      logError("billing.money_back_referral_reverse_failed", {
+        businessId: business.id,
+        error: error instanceof Error ? error.message : String(error),
+      }),
+    );
     const dollars = `$${(claim.refundedCents / 100).toFixed(2)}`;
     await recordAudit({
       businessId: business.id,
