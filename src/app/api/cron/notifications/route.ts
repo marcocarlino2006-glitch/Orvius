@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { runAutopilot } from "@/lib/autopilot";
 import { ensureAssistantCurrent } from "@/lib/sync-business-assistant";
 import { prisma } from "@/lib/prisma";
-import { sendDueCustomerConfirmationReminders } from "@/lib/customer-confirm";
 import { sweepUnfinishedCallReports } from "@/lib/call-ingest";
 import { getBearerToken, secretsMatch, verifyAdminRequest } from "@/lib/env";
 import { releaseLapsedLines, suspendUnpaidLines } from "@/lib/line-lifecycle";
@@ -117,10 +116,7 @@ export async function GET(request: NextRequest) {
     step("stranded_text_leads", () => alertStrandedTextLeads()),
     step("unfinished_call_reports", () => sweepUnfinishedCallReports()),
   ]);
-  const [notifications, customerConfirmations] = await Promise.all([
-    step("notifications", () => processNotificationQueue(50)),
-    step("customer_confirmations", () => sendDueCustomerConfirmationReminders(new Date(), 25)),
-  ]);
+  const notifications = await step("notifications", () => processNotificationQueue(50));
 
   const overage = await step("overage_billing", () => billPreviousMonthOverage());
   const unpaidLines = await step("unpaid_lines", () => suspendUnpaidLines());
@@ -186,7 +182,6 @@ export async function GET(request: NextRequest) {
     billingMismatches: billingReconcile?.checked ? billingReconcile.mismatches.length : null,
     stalledPorts,
     overage,
-    customerConfirmations,
     strandedTextLeads,
     lateCallReports,
     lapsedLines,
