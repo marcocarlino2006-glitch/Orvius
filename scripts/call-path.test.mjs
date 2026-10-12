@@ -1,0 +1,93 @@
+#!/usr/bin/env node
+/*
+ * The inbound call path keeps its promises: emergencies reach a person rather
+ * than a slot, everyday emergency phrasing is recognised, the caller is never
+ * told the owner was texted when no text went out, a stuck claim is retried,
+ * and a late status event can't make a finished call look live.
+ */
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import test, { after } from "node:test";
+
+import { classifyRequest } from "../src/lib/trade-playbooks.ts";
+import { safetyAlertReply } from "../src/lib/in-call-tool-defs.ts";
+import { ownerAlertContextLine } from "../src/lib/owner-alert-message.ts";
+import { claimWebhookEvent } from "../src/lib/webhook-events.ts";
+import { prisma } from "../src/lib/prisma.ts";
+
+const read = (path) => readFileSync(path, "utf8");
+const tag = `cp-${Date.now()}`;
+
+after(async () => {
+  await prisma.webhookEvent.deleteMany({ where: { externalId: { startsWith: tag } } });
+  await prisma.$disconnect();
+});
+
+test("everyday emergency phrasing is an emergency; routine calls are not", () => {
+  const urgency = (trade, text) => classifyRequest({ business: { trade }, serviceType: text }).urgency;
+  for (const [trade, text] of [
+    ["HVAC", "furnace isn't working and it's freezing in here"],
+    ["HVAC", "Our heater isn't working, it's freezing and we have a newborn"],
+    ["HVAC", "furnace doesn't work, house is freezing, my elderly mom lives here"],
+    ["HVAC", "my basement is flooding from the water heater"],
+    ["Electrical", "basement is flooding near the panel"],
+    ["Plumbing", "pipe burst, water everywhere"],
+  ]) {
+    assert.equal(urgency(trade, text), "emergency", `${trade}: ${text}`);
+  }
+  for (const [trade, text] of [
+    ["HVAC", "need a tune-up next week"],
+    ["HVAC", "AC isn't working, can someone come tomorrow"],
+    ["HVAC", "water heater isn't working"],
+    ["Plumbing", "toilet keeps running"],
+  ]) {
+    assert.notEqual(urgency(trade, text), "emergency", `${trade}: ${text}`);
+  }
+});
+
+test("an emergency is never booked after the call, and the owner is told to call now", () => {
+  const autoJob = read("src/lib/auto-job.ts");
+  const escalate = autoJob.indexOf('if (urgency === "emergency")');
+  assert.ok(escalate > 0 && escalate < autoJob.indexOf("createJobFromLead({"), "the emergency stop runs before any booking");
+  assert.match(autoJob.slice(escalate, escalate + 600), /skipReason: "emergency_escalation"/);
+  assert.equal(ownerAlertContextLine({ skipReason: "emergency_escalation", timezone: "America/Chicago" }), "Call them now · not booked");
+});
+
+test("the caller hears the owner was texted only when a text went out", () => {
+  assert.match(safetyAlertReply({ texted: true, reached: true, transferring: false }), /^The owner has been texted\./);
+  assert.match(safetyAlertReply({ texted: false, reached: true, transferring: false }), /^The owner has been alerted\./);
+  const none = safetyAlertReply({ texted: false, reached: false, transferring: false });
+  assert.doesNotMatch(none, /has been (texted|alerted)\./);
+  assert.match(none, /Do not say the team was alerted/);
+  assert.match(none, /911/);
+  assert.doesNotMatch(safetyAlertReply({ texted: false, reached: false, transferring: true }), /has been/);
+  const tools = read("src/lib/in-call-tools.ts");
+  assert.match(tools, /processNotificationQueue\(5, \{ businessId: shop\.id \}\)/, "the shop's safety text sends before the global drain");
+  assert.doesNotMatch(tools, /texted: canReach/);
+});
+
+test("a claim left in processing by a dead worker is retaken once, by one worker", async () => {
+  const key = { source: "vapi", externalId: `${tag}-stuck`, eventType: "end-of-call-report" };
+  await prisma.webhookEvent.create({ data: { ...key, status: "processing", claimedAt: new Date(Date.now() - 20 * 60_000) } });
+  const [a, b] = await Promise.all([claimWebhookEvent(key), claimWebhookEvent(key)]);
+  assert.equal([a.claimed, b.claimed].filter(Boolean).length, 1);
+  assert.equal((await claimWebhookEvent(key)).claimed, false, "a fresh claim is respected");
+
+  const captured = { ...key, externalId: `${tag}-captured` };
+  await prisma.webhookEvent.create({ data: { ...captured, status: "captured" } });
+  assert.equal((await claimWebhookEvent(captured)).claimed, false, "a captured report is left to the sweep");
+
+  const ingest = read("src/lib/call-ingest.ts");
+  assert.match(ingest, /status: "processing", claimedAt: \{ lt: leaseCut \}/, "the sweep retries expired claims");
+});
+
+test("a late status event can't make a finished call live again", () => {
+  const route = read("src/app/api/webhooks/vapi/route.ts");
+  const upsert = route.slice(route.indexOf('if (type === "call-started" || type === "status-update")'));
+  assert.match(upsert, /where: \{ id: call\.id, status: \{ not: "completed" \} \}/);
+  assert.doesNotMatch(upsert.slice(upsert.indexOf("update: {"), upsert.indexOf("update: {") + 120), /status: "in-progress"/);
+});
+
+test("a call labelled non-service still reaches the owner when the caller gave an address or is a customer", () => {
+  assert.match(read("src/lib/call-ingest.ts"), /=== "other\.non_service" && !looksLikeWork/);
+});
