@@ -1,105 +1,138 @@
 # Orvius public launch kit
 
+Every line below is something orvius.im does today. Check the publish gate at
+the bottom before posting.
+
 ## Positioning
 
-**For:** HVAC, plumbing, and electrical owners who cannot answer every call.
+**One line:** The operating system for businesses that run on the phone.
+Trades first: HVAC, plumbing and electrical.
 
-**Immediate product:** An AI night shift that answers after-hours and overflow
-calls, captures service / urgency / address / callback details, proposes an
-available service window, texts for confirmation, alerts the owner, and writes
-the work to one operational record.
+**What it does today:** Orvius answers the shop's calls in the shop's name,
+qualifies the job, offers an open time from the shop's real schedule, books it,
+texts the customer to confirm and the owner what happened. Command then runs
+the day: who's on which job, who hasn't confirmed, what's at risk, and what got
+paid.
 
-**Primary proof:** Call the live product at **+1 844 643 9170**.
+**Proof anyone can check:** Call the live line, **+1 844 643 9170**. It's the
+same receptionist a shop's callers get. Or press "Talk to it in your browser" on the
+homepage: it uses the microphone, needs no account, and ends after 3 minutes.
 
-**Primary conversion:** Book a live call audit at
-**https://orvius.im/pilot**.
+**Conversion:** Sign up and get a line at **orvius.im** (self-serve, card
+checkout). Plans from $199 a month, or $166 a month billed yearly. First 30
+days money back, once per shop.
 
-This is design-partner access, not a claim of broad adoption. Summit HVAC is a
-labeled reference implementation, not a third-party customer case study.
-
----
-
-## X / Threads launch post
-
-Contractors do not lose every missed call.
-
-They lose the caller who reaches the next shop first.
-
-Today I’m opening design-partner access to **Orvius** — the AI night shift for
-HVAC, plumbing, and electrical.
-
-It answers after-hours and overflow calls, captures the job, proposes an open
-service window, texts for confirmation, alerts the owner, and puts the request
-on one board.
-
-No prerecorded demo. Call the live product:
-
-**+1 844 643 9170**
-
-Or book a call audit: **https://orvius.im/pilot**
+Summit HVAC on the site is a labeled sample shop, not a customer. Don't call it
+one.
 
 ---
 
-## LinkedIn launch post
+## Manus-style launch post (X / Threads)
 
-Most service businesses do not need another dashboard. They need the phone
-handled while the crew is driving, working, or asleep.
+> I'm 20. I built Orvius, the operating system for trade shops that run on the phone.
+>
+> Call it right now: +1 844 643 9170
+>
+> It answers like your receptionist, books the job into a real open time, texts the customer to confirm and texts you what happened.
+>
+> Then it runs the day: who's on which job, who hasn't confirmed, what got paid.
+>
+> HVAC, plumbing, electrical. Live today: orvius.im
 
-Today I’m opening design-partner access to **Orvius**, the AI night shift for
-HVAC, plumbing, and electrical shops.
+Thread follow-ups, one per post:
 
-When an after-hours or overflow call arrives, Orvius:
+1. **The problem.** A shop owner is on a roof when the phone rings. The caller
+   doesn't leave a voicemail. They call the next shop. Orvius picks up in the
+   shop's name and gets the job on the board.
+2. **It books real times.** It checks the shop's hours, each technician's
+   schedule and time off, a connected Google/iCloud/Outlook calendar, and
+   Jobber, Housecall Pro or ServiceTitan before offering a time. If it can't
+   read the calendar, it says so and takes details instead of guessing.
+3. **Safety first.** A gas smell, a carbon monoxide alarm or sparking wires
+   isn't booked for Tuesday. The caller is told to get out and call 911 or the
+   utility, and the owner is alerted to call back now.
+4. **It's honest.** Every call is recorded and summarized. Every booking, text
+   and change is in the activity log. No made-up numbers on the site, no fake
+   customers.
+5. **Try it.** Call +1 844 643 9170 and pretend your AC died, or talk to it in
+   your browser on orvius.im. Then get your own line there.
 
-- answers with the shop’s identity and rules;
-- captures the service request, urgency, address, and callback number;
-- checks shop hours and capacity before proposing a service window;
-- texts the customer for confirmation;
-- alerts the owner and creates the job record; and
-- keeps the call, customer, job, outcome, and recorded money connected.
+## LinkedIn
 
-This is early product access. I am not publishing invented recovery numbers or
-calling a reference implementation a customer case study. The proof is the
-product itself.
+> Trade shops don't lose work because they're bad at the trade. They lose it because the owner is on a job when the phone rings, and the caller calls the next shop.
+>
+> I built Orvius to fix that, and then to run the rest of the day.
+>
+> When a call comes in, Orvius:
+> - answers in the shop's name, in English or Spanish;
+> - captures the job, urgency, address and callback number;
+> - offers an open time from the shop's real schedule and books it;
+> - texts the customer to confirm and the owner what happened;
+> - tells a caller with a gas smell or sparking wires to get safe and call 911, and alerts the owner to call back now.
+>
+> Then Command shows the owner the day: who's on which job, who hasn't confirmed, what's at risk and what got paid.
+>
+> It's live today for HVAC, plumbing and electrical shops. Call the same receptionist your customers would get: +1 844 643 9170.
+>
+> orvius.im
 
-Call the live line: **+1 844 643 9170**
+## Short caption (video or image)
 
-Book a live call audit: **https://orvius.im/pilot**
+> Your crew shouldn't have to stop working to answer the phone. Call Orvius: +1 844 643 9170. orvius.im
 
 ---
 
-## Short founder caption
+## Assets
 
-Your crew should not have to stop working to keep the phone working.
+1. **Social card:** the homepage preview image (orvius.im/opengraph-image),
+   1200 × 630, black with the live number.
+2. **Product video:** a 41-second walkthrough of the homepage, from the live
+   call panel to the closing live number. The labeled sample shop is fine to
+   show. Recorded from orvius.im on Oct 12, 2026; re-record if the homepage
+   changes.
+3. **Best possible clip:** your own phone screen recording a real call to the
+   live line, followed by the owner text arriving. Only you can record this,
+   and it's the strongest proof you can post.
 
-Orvius is the AI night shift for the trades. Call the live product:
-**+1 844 643 9170**.
+Lead with the phone ringing. Don't lead with Settings, a pricing table or AI
+buzzwords.
+
+## Never write
+
+- "Never miss a call", "answers every call", "guaranteed", "100%", "24/7
+  coverage" as a promise, "fully autonomous".
+- Customer counts, revenue, "recovered $X" or any number we haven't measured.
+- "Summit HVAC" as a customer or case study.
+- That Orvius books into Jobber/Housecall Pro/ServiceTitan calendars. It
+  sends them each call and reads their schedules; it doesn't write visits into
+  them.
 
 ---
 
-## Asset order
+## Publish gate
 
-1. Social card: homepage OpenGraph image.
-2. Product clip: live call → structured request → proposed window → owner board.
-3. Optional second image: charcoal command dashboard with Attention visible.
+Automated, from any machine:
 
-Do not lead with the settings page, a pricing table, roadmap rings, or generic
-AI language. Lead with the ringing phone and show the resulting job record.
+```bash
+PROD_URL=https://orvius.im npm run -s prod:verify
+```
 
----
+Must show 0 failed. It checks hostnames, that private data stays behind
+sign-in, that call providers, owner texts, Stripe checkout and signup are
+live, and that production runs the latest merged code.
 
-## Final publish gate
+Founder only, before the first post:
 
-- [ ] Production homepage serves the commit being announced.
-- [ ] OpenGraph card renders at 1200 × 630 with readable mobile text.
-- [ ] Live line answers as Orvius and gives the automation / recording disclosure.
-- [ ] Gas-smell scenario tells the caller to leave the area and call 911.
-- [ ] The line never invents a price, technician, or guaranteed arrival time.
-- [ ] A normal service call creates one lead and no duplicate job.
-- [ ] Proposed window respects configured hours and capacity.
-- [ ] Customer confirmation and owner alert are accepted by their providers.
-- [ ] `/pilot` submission persists and its success state appears.
-- [ ] Founder can retrieve the submitted prospect from the admin pipeline.
-- [ ] Desktop and mobile launch journeys have been checked.
-
-If any provider-dependent line item is not verified, post the product preview
-but do not invite people to call the line yet.
+- [ ] Call +1 844 643 9170 from your own phone. It answers as Orvius, gives the
+      recording disclosure, and books a time without inventing a price.
+- [ ] Say you smell gas. It tells you to leave and call 911.
+- [ ] Press "Talk to it in your browser" on the homepage and have a short
+      conversation. It's the easiest way for people to try it from the post.
+- [ ] Sign up a test shop with a real card, then refund it in Stripe.
+- [ ] Set `ORVIUS_ADMIN_KEY` in Vercel so you can watch signups and calls on
+      `/admin` while the post is up.
+- [ ] Twilio shows the live number's texting registration (toll-free
+      verification for the 844 number) as approved. Unregistered texts get
+      filtered by carriers.
+- [ ] hello@orvius.im is forwarding to an inbox you check. It's the only support
+      channel.
