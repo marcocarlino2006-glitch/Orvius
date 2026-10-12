@@ -223,7 +223,8 @@ test("a real text lead with no alert gets one, once, and seeded or fresh leads a
 test("a failure after an inbound text is saved can't stop its owner alert", () => {
   const route = read("src/app/api/webhooks/twilio/sms/route.ts");
   const guard = route.indexOf('logError("twilio.sms.post_capture_failed"');
-  assert.ok(guard > 0 && guard < route.indexOf("await enqueueOwnerAlert("));
+  const leadAlert = route.indexOf("await enqueueOwnerAlert(", route.indexOf("const ownerMessage = buildOwnerLeadAlertMessage("));
+  assert.ok(guard > 0 && leadAlert > 0 && guard < leadAlert);
 });
 
 // B10

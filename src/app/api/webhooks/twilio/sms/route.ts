@@ -18,6 +18,7 @@ import {
 import { isOwnerCaptureDoneKeyword } from "@/lib/carrier-forward";
 import { phonesEqual } from "@/lib/owner-alerts";
 import {
+  isBareYes,
   parseSmsKeyword,
   smsHelpReply,
   smsStartConfirmation,
@@ -38,9 +39,12 @@ import { hasActiveOwnerConversation, inboundMediaFromForm, PHOTO_ONLY_BODY, reco
 import { hasOpenWebChat } from "@/lib/web-chat";
 import { handleOwnerText } from "@/lib/owner-text-commands";
 import { answerNetworkConsent } from "@/lib/orvius-network";
+import { classifyRequest } from "@/lib/trade-playbooks";
 
 const SMS_REPLY =
   "Thanks for contacting us! We received your message and will get back to you shortly. For urgent service, call us directly.";
+const HAZARD_REPLY =
+  "If there is immediate danger, leave the area and call 911. We received your service request and will follow up shortly.";
 
 export async function POST(request: NextRequest) {
   const form = await request.formData();
@@ -154,8 +158,11 @@ export async function POST(request: NextRequest) {
     return twimlResponse(text);
   };
 
-  const keyword = parseSmsKeyword(body);
+  const keyword = parseSmsKeyword(body) ?? (isBareYes(body) && (await isOptedOut(business.id, from)) ? "start" : null);
   if (keyword) {
+    if (keyword === "stop" && !fromOwner) {
+      await warnOwnerOfCancelWord({ business, from, body, messageSid });
+    }
     const keywordReply = await handleSmsKeyword({
       keyword,
       businessId: business.id,
@@ -196,6 +203,28 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const tech = await technicianTexting(business.id, from);
+  if (tech) {
+    await enqueueOwnerAlert({
+      businessId: business.id,
+      ownerPhone: business.ownerPhone,
+      ownerEmail: business.ownerEmail,
+      businessName: business.name,
+      message: `${tech.name} (your tech) texted: ${body.slice(0, 300)}\nReply in Inbox → Messages or call ${from}.`,
+      dedupeKey: `tech-text:${messageSid || `${tech.id}:${body.slice(0, 40)}`}`,
+    });
+    await recordWebhookEvent({
+      source: "twilio-sms",
+      externalId: messageSid || `${business.id}:${from}:tech:${Date.now()}`,
+      eventType: "inbound-tech",
+      businessId: business.id,
+      status: "processed",
+      payload: { from, to, technicianId: tech.id },
+    });
+    await afterResponse(() => drainOwnerAlerts({ at: "twilio.sms.tech", messageSid, businessId: business.id }));
+    return twimlResponse("");
+  }
+
   const networkReply = await answerNetworkConsent({ business, from, body });
   if (networkReply) return reply(networkReply);
 
@@ -233,6 +262,9 @@ export async function POST(request: NextRequest) {
 
   const followUpReply = await answerFollowUpReply({ business, from, to, body, messageSid });
   if (followUpReply) return reply(followUpReply);
+
+  const burst = await addToRecentTextLead({ business, from, body, messageSid });
+  if (burst) return burst.hazard ? reply(HAZARD_REPLY) : twimlResponse("");
 
   // A text says "SMS inquiry" in serviceType and everything real in the body,
   // so the widened pass is what classifies these.
@@ -378,9 +410,82 @@ export async function POST(request: NextRequest) {
     autoBook.skipReason === "safety_escalation" ||
     demand.categoryCode === "plumb.gas" ||
     demand.categoryCode === "elec.hazard"
-      ? "If there is immediate danger, leave the area and call 911. We received your service request and will follow up shortly."
+      ? HAZARD_REPLY
       : SMS_REPLY;
   return reply(safetyReply);
+}
+
+/*
+  People send a request in several texts ("hi", "furnace is out", the
+  address), and another business's auto-responder answers every reply it
+  gets. Texts within the window join the first one's lead, get no second
+  auto-reply (which is what ends an auto-responder loop), and stop alerting
+  the owner after a handful; everything stays in Inbox → Messages.
+*/
+const TEXT_BURST_WINDOW_MS = 30 * 60_000;
+const TEXT_BURST_ALERT_LIMIT = 6;
+
+async function addToRecentTextLead(params: {
+  business: { id: string; name: string; ownerPhone: string | null; ownerEmail: string | null; trade?: string | null; servicesJson?: string | null };
+  from: string;
+  body: string;
+  messageSid: string;
+}): Promise<{ hazard: boolean } | null> {
+  const since = new Date(Date.now() - TEXT_BURST_WINDOW_MS);
+  const lead = await prisma.lead.findFirst({
+    where: { businessId: params.business.id, phone: params.from, source: "sms", createdAt: { gte: since } },
+    orderBy: { createdAt: "desc" },
+    select: { id: true, notes: true },
+  });
+  if (!lead) return null;
+
+  const phoneNormalized = normalizePhone(params.from);
+  const [inbound] = await Promise.all([
+    phoneNormalized
+      ? prisma.message.count({
+          where: { businessId: params.business.id, phoneNormalized, direction: "in", createdAt: { gte: since } },
+        })
+      : 0,
+    prisma.lead.update({
+      where: { id: lead.id },
+      data: { notes: [lead.notes, params.body].filter(Boolean).join("\n").slice(-4000) },
+    }),
+  ]);
+  const demand = deriveDemandSignal({ serviceType: "SMS inquiry", notes: params.body, trade: tradeForCapture(params.business) });
+  const hazard =
+    Boolean(classifyRequest({ business: params.business, notes: params.body, callerWords: params.body }).safety) ||
+    demand.categoryCode === "plumb.gas" ||
+    demand.categoryCode === "elec.hazard";
+
+  if (hazard || inbound <= TEXT_BURST_ALERT_LIMIT) {
+    await enqueueOwnerAlert({
+      businessId: params.business.id,
+      ownerPhone: params.business.ownerPhone,
+      ownerEmail: params.business.ownerEmail,
+      businessName: params.business.name,
+      message: [
+        hazard ? "SAFETY — the text mentions a hazard. Call them now." : null,
+        `More from ${params.from}: ${params.body.slice(0, 300)}`,
+        "Answer it in Inbox → Messages.",
+      ]
+        .filter(Boolean)
+        .join("\n"),
+      leadId: lead.id,
+      dedupeKey: `sms-more:${params.messageSid || `${lead.id}:${params.body.slice(0, 40)}`}`,
+    });
+    await afterResponse(() => drainOwnerAlerts({ at: "twilio.sms.burst", messageSid: params.messageSid, businessId: params.business.id }));
+  } else {
+    logInfo("twilio.sms.burst_quiet", { businessId: params.business.id, leadId: lead.id, inbound });
+  }
+  await recordWebhookEvent({
+    source: "twilio-sms",
+    externalId: params.messageSid || `${lead.id}:more:${Date.now()}`,
+    eventType: "inbound-more",
+    businessId: params.business.id,
+    status: "processed",
+    payload: { leadId: lead.id, inbound },
+  });
+  return { hazard };
 }
 
 async function alertOwnerOfReply(params: {
@@ -473,6 +578,79 @@ async function handleSmsKeyword(params: {
     });
   }
   return smsStartConfirmation(program);
+}
+
+/** A technician answering a job text is crew, not a new customer. */
+async function technicianTexting(businessId: string, from: string) {
+  const phone = normalizePhone(from);
+  if (!phone) return null;
+  const crew = await prisma.technician.findMany({
+    where: { businessId, isActive: true, phone: { not: null } },
+    select: { id: true, name: true, phone: true },
+    take: 200,
+  });
+  return crew.find((t) => normalizePhone(t.phone) === phone) ?? null;
+}
+
+async function isOptedOut(businessId: string, from: string): Promise<boolean> {
+  const phoneNormalized = normalizePhone(from);
+  if (!phoneNormalized) return false;
+  const row = await prisma.smsOptOut.findUnique({
+    where: { businessId_phoneNormalized: { businessId, phoneNormalized } },
+    select: { clearedAt: true },
+  });
+  return Boolean(row && !row.clearedAt);
+}
+
+/*
+  "Cancel" alone is a carrier opt-out keyword, so the number is unsubscribed
+  either way. A customer with a visit coming up most likely meant the visit,
+  and after this no reminder or text can reach them, so the owner hears it.
+*/
+async function warnOwnerOfCancelWord(params: {
+  business: { id: string; name: string; ownerPhone: string | null; ownerEmail: string | null; timezone: string };
+  from: string;
+  body: string;
+  messageSid: string;
+}) {
+  const phoneNormalized = normalizePhone(params.from);
+  if (!phoneNormalized) return;
+  const job = await prisma.job.findFirst({
+    where: {
+      businessId: params.business.id,
+      status: { in: ["scheduled", "confirmed", "en_route", "on_site"] },
+      OR: [{ scheduledAt: null }, { scheduledAt: { gte: new Date(Date.now() - 6 * 60 * 60_000) } }],
+      AND: [{ OR: [{ customer: { phoneNormalized } }, { lead: { phone: params.from } }] }],
+    },
+    orderBy: { scheduledAt: "asc" },
+    select: { id: true, title: true, scheduledAt: true, leadId: true, customer: { select: { name: true } } },
+  });
+  if (!job) return;
+  const when = job.scheduledAt
+    ? job.scheduledAt.toLocaleString("en-US", {
+        timeZone: params.business.timezone,
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      })
+    : null;
+  await enqueueOwnerAlert({
+    businessId: params.business.id,
+    ownerPhone: params.business.ownerPhone,
+    ownerEmail: params.business.ownerEmail,
+    businessName: params.business.name,
+    leadId: job.leadId ?? undefined,
+    message: [
+      `${job.customer?.name ?? "A customer"} texted "${params.body.slice(0, 40)}" and is now unsubscribed from texts.`,
+      `They have ${job.title}${when ? ` on ${when}` : ""}. If they meant the visit, call them: ${params.from}`,
+    ].join("\n"),
+    dedupeKey: `cancel-word:${params.messageSid || `${job.id}:${phoneNormalized}`}`,
+  }).catch((error) =>
+    logWarn("twilio.sms.cancel_word_alert_failed", { error: error instanceof Error ? error.message : String(error) }),
+  );
+  await afterResponse(() => drainOwnerAlerts({ at: "twilio.sms.cancel_word", messageSid: params.messageSid, businessId: params.business.id }));
 }
 
 export async function GET() {
