@@ -90,7 +90,7 @@
   padding: 0 8px;
   font-size: 12px;
   font-weight: 500;
-  color: #8d8d8d;
+  color: var(--sc-mute);
 }
 
 .sc-nav-list .sc-nav-item-wrap:first-child .sc-nav-heading {
@@ -281,7 +281,7 @@
   max-width: 34rem;
   font-size: 13px;
   line-height: 1.4;
-  color: #8d8d8d;
+  color: var(--sc-mute);
 }
 
 .sc-row-control {
@@ -587,7 +587,7 @@
   padding: 0.1875rem 0.5rem;
   border-radius: 999px;
   background: rgb(var(--ox-tint) / 0.06);
-  color: var(--ox-mute);
+  color: var(--sc-mute, var(--ox-mute));
   font-size: 0.75rem;
   font-weight: 500;
   white-space: nowrap;
@@ -886,7 +886,7 @@
 .os-shell .sc-dialog .sc-plan-kicker,
 .os-shell .sc-dialog .sc-log-meta,
 .os-shell .sc-dialog .sc-muted {
-  color: #8d8d8d !important;
+  color: var(--sc-mute) !important;
   font-size: 13px !important;
 }
 

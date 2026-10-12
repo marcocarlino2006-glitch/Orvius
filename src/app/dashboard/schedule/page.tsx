@@ -505,8 +505,8 @@ export default function DispatchPage() {
                 </h2>
                 <div className="dsp-grid" role="table" aria-label={`Schedule for ${dayLabel}`}>
                   <div className="dsp-lane dsp-lane--axis" role="row">
-                    <span className="dsp-lane-name" />
-                    <div className="dsp-track dsp-axis">
+                    <span className="dsp-lane-name" role="columnheader" aria-label="Technician" />
+                    <div className="dsp-track dsp-axis" role="columnheader" aria-label="Time of day">
                       {ticks.map((t) => (
                         <span
                           key={t}
@@ -520,11 +520,11 @@ export default function DispatchPage() {
                   </div>
                   {openScheduled.length ? (
                     <div className="dsp-lane dsp-lane--open" role="row">
-                      <div className="dsp-lane-name">
+                      <div className="dsp-lane-name" role="rowheader">
                         <span className="dsp-lane-tech">Unassigned</span>
                         <span className="dsp-lane-meta">{openScheduled.length} waiting</span>
                       </div>
-                      <div className={`dsp-track ${dropLane === "" ? "is-drop" : ""}`} {...dropTarget(null, "Unassigned")}>
+                      <div role="cell" className={`dsp-track ${dropLane === "" ? "is-drop" : ""}`} {...dropTarget(null, "Unassigned")}>
                         {openScheduled.map((u) => (
                           <Block
                             key={u.id}
@@ -539,7 +539,7 @@ export default function DispatchPage() {
                   ) : null}
                   {schedule.lanes.map((lane) => (
                     <div key={lane.technician.id} className={`dsp-lane${lane.offAllDay ? " is-off" : ""}`} role="row">
-                      <div className="dsp-lane-name">
+                      <div className="dsp-lane-name" role="rowheader">
                         <span className="dsp-lane-tech">{lane.technician.name}</span>
                         {lane.availability ? <span className="dsp-lane-off">{lane.availability}</span> : null}
                         <span className="dsp-lane-meta">
@@ -548,6 +548,7 @@ export default function DispatchPage() {
                         </span>
                       </div>
                       <div
+                        role="cell"
                         className={`dsp-track ${dropLane === lane.technician.id ? "is-drop" : ""}`}
                         {...dropTarget(lane.technician.id, lane.technician.name)}
                       >

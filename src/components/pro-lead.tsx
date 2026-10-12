@@ -24,7 +24,8 @@ export function ProLead({ figure, caption, detail, facts, action, loading = fals
   const metrics: LeadFact[] = [{ label: caption, value: figure }, ...(facts ?? [])];
   return (
     <section className="ms font-sans" aria-label="Summary">
-      <div className="ms-row">
+      {/* Scrolls sideways on a phone, so it takes focus for keyboard scrolling. */}
+      <div className="ms-row" tabIndex={0} role="group" aria-label="Summary figures">
         <dl className="ms-facts">
           {metrics.map((metric, index) => (
             <div key={metric.label} className={`ms-cell${index === 0 ? " is-primary" : ""}${metric.live ? " is-live" : ""}`}>

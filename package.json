@@ -19,6 +19,7 @@
     "e2e:loop": "node scripts/e2e-loop.mjs",
     "demo:seed": "node scripts/demo-seed.mjs",
     "audit:a11y": "node scripts/a11y-csp-audit.mjs",
+    "audit:pages": "node scripts/page-audit.mjs",
     "vapi:webhook": "node scripts/configure-vapi-webhook.mjs",
     "vapi:phone": "node scripts/import-vapi-phone.mjs",
     "go-live": "node scripts/go-live.mjs",

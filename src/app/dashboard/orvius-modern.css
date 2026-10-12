@@ -65,7 +65,7 @@
   --m-line-2: rgb(0 0 0 / 0.14);
   --m-text: #18181b;
   --m-text-2: #52525b;
-  --m-mute: #67676f;
+  --m-mute: #5f5f67;
   --m-solid: #18181b;
   --m-on-solid: #ffffff;
   --m-red: #dc2626;
@@ -548,7 +548,7 @@
 /* Row buttons stay out of the way until the row is pointed at. */
 @media (hover: hover) {
   :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .dt-row .dt-actions {
-    opacity: 0.55;
+    opacity: 0.8;
     transition: opacity var(--ox-dur-fast) var(--ox-ease);
   }
 

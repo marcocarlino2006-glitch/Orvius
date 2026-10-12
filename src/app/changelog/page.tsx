@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Changelog",
-  description: `What changed in ${company.productName}, newest first.`,
+  description: `Every change to ${company.productName}, the AI receptionist for HVAC, plumbing and electrical shops, newest first. Only what is in the product today.`,
 };
 
 function formatDate(iso: string): string {

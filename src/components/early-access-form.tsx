@@ -106,7 +106,7 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
               className="input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@company.com"
+              placeholder="you@example.com"
               autoComplete="email"
               inputMode="email"
             />
