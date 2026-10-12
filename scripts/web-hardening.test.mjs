@@ -53,6 +53,29 @@ test("a violation report is logged without its query string, and junk is ignored
 
 test("the loading skeleton is a live status region and the light dashboard's muted grey passes 4.5:1", () => {
   assert.match(read("src/components/shell-skeleton.tsx"), /role="status" aria-busy="true" aria-label="Loading dashboard"/);
-  assert.match(read("src/app/dashboard/orvius-modern.css"), /--m-mute: #67676f;/);
+  assert.match(read("src/app/dashboard/orvius-modern.css"), /--m-mute: #5f5f67;/);
   assert.match(read("package.json"), /"audit:a11y": "node scripts\/a11y-csp-audit\.mjs"/);
+});
+
+test("sign-in asks for an email, not a work email, and the Google button can't be pressed twice", () => {
+  const panel = read("src/components/signin-panel.tsx");
+  assert.doesNotMatch(panel, /work email/i);
+  assert.match(panel, />\s*Email\s*<\/label>/);
+  assert.match(panel, /placeholder="you@example\.com"/);
+  assert.match(panel, /disabled=\{googleBusy\}/);
+  assert.match(panel, /Opening Google…/);
+  for (const file of ["src/components/interest-list-form.tsx", "src/components/early-access-form.tsx"]) assert.doesNotMatch(read(file), /you@company\.com/);
+  assert.match(read("src/app/signin/page.tsx"), /AccessDenied: "That Google account isn’t connected to a shop yet/);
+});
+
+test("the page audit found nothing: schedule grid cells have roles, quiet text passes 4.5:1, and the audit stays runnable", () => {
+  const schedule = read("src/app/dashboard/schedule/page.tsx");
+  assert.equal((schedule.match(/role="rowheader"/g) ?? []).length, 2);
+  assert.equal((schedule.match(/role="cell"/g) ?? []).length, 2);
+  assert.equal((schedule.match(/role="columnheader"/g) ?? []).length, 2);
+  assert.doesNotMatch(read("src/app/dashboard/settings-center.css"), /#8d8d8d/i);
+  assert.match(read("src/app/dashboard/orvius-modern.css"), /--m-mute: #5f5f67;/);
+  assert.match(read("src/app/globals.css"), /html\[data-theme="day"\] \.os-shell-night :is\(\.status-pill-flare/);
+  assert.match(read("src/components/pro-lead.tsx"), /className="ms-row" tabIndex=\{0\}/);
+  assert.match(read("package.json"), /"audit:pages": "node scripts\/page-audit\.mjs"/);
 });
