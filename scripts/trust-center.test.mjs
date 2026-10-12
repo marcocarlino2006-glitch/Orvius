@@ -28,6 +28,7 @@ const PUBLIC = [
   "src/app/api/preview/",
   "src/app/api/status/",
   "src/app/api/health/",
+  "src/app/api/csp-report/",
 ];
 
 test("every API route is guarded, or is public on purpose", () => {
