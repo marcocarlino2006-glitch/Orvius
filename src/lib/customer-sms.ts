@@ -2,6 +2,7 @@ import { recordAudit } from "@/lib/audit";
 import { normalizePhone } from "@/lib/customer";
 import { prisma } from "@/lib/prisma";
 import { isTextableNumber } from "@/lib/sms-destination";
+import { withSmsOptOutFooter } from "@/lib/sms-keywords";
 import { sendSms } from "@/lib/twilio-sms";
 
 export type CustomerSmsResult =
@@ -63,11 +64,13 @@ export async function sendCustomerSms(params: {
     return { sent: false, reason: "human_takeover" };
   }
 
+  const body = params.author === "owner" ? await signedOwnerText(params.businessId, normalized, params.body) : params.body;
+
   let result: { sid: string } | null;
   try {
     result = await sendSms({
       to: normalized,
-      body: params.body,
+      body,
       businessId: params.businessId,
       audience: "customer",
       author: params.author,
@@ -86,4 +89,25 @@ export async function sendCustomerSms(params: {
   }
   if (!result) return { sent: false, reason: "sms_not_configured" };
   return { sent: true, sid: result.sid };
+}
+
+const FOOTER_AFTER_MS = 30 * 24 * 60 * 60_000;
+
+/*
+  A person typing in Inbox writes "Running 10 min late", but the customer may
+  get it from a number they've never seen. The shop's name goes on every text,
+  and the opt-out line on the first one in a month, as carriers require.
+*/
+async function signedOwnerText(businessId: string, phoneNormalized: string, body: string): Promise<string> {
+  const [shop, recent] = await Promise.all([
+    prisma.business.findUnique({ where: { id: businessId }, select: { name: true } }),
+    prisma.message.findFirst({
+      where: { businessId, phoneNormalized, direction: "out", createdAt: { gte: new Date(Date.now() - FOOTER_AFTER_MS) } },
+      select: { id: true },
+    }),
+  ]);
+  const text = body.trim();
+  const name = shop?.name?.trim();
+  const signed = name && !text.toLowerCase().includes(name.toLowerCase()) ? `${name}: ${text}` : text;
+  return recent ? signed : withSmsOptOutFooter(signed);
 }
