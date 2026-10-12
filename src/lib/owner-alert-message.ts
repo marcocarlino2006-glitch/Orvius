@@ -74,6 +74,8 @@ export function ownerAlertContextLine(context: OwnerAlertContext): string | null
   let line: string | null = null;
   if (context.silentHangup) {
     line = "Hung up without saying anything · worth a call back if the number looks real";
+  } else if (skipReason === "emergency_escalation") {
+    line = "Call them now · not booked";
   } else if (skipReason === "complaint") {
     line = "Unhappy about a past visit or bill · call them yourself — not booked";
   } else if (skipReason === "existing_job" && existingJob) {

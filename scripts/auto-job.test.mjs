@@ -124,12 +124,14 @@ test("a Pro shop books a qualified lead whatever the hurry", async () => {
   }
 });
 
-test("Line books every qualified lead — urgency does not gate the front door", async () => {
+test("Line books every qualified lead; an emergency goes to the owner instead of a slot", async () => {
   /* Life-changing wedge: Line answers + books. Dispatch UI stays Pro. */
   const shop = await makeShop({ billingStatus: "active", billingPlan: "line" });
   try {
     const urgent = await makeLead(shop.id, { urgency: "emergency" });
-    assert.equal((await maybeAutoBookLead(urgent.id)).created, true);
+    const escalated = await maybeAutoBookLead(urgent.id);
+    assert.equal(escalated.created, false, "the help center promises emergencies are never booked into a slot");
+    assert.equal(escalated.skipReason, "emergency_escalation");
 
     const later = await makeLead(shop.id, { urgency: "this-week", phone: "+15551234568" });
     const laterResult = await maybeAutoBookLead(later.id);
@@ -218,7 +220,7 @@ test("the reason a lead was passed over is specific", async () => {
 test("booking the same lead twice returns the first job", async () => {
   const shop = await makeShop({ billingStatus: "active", billingPlan: "pro" });
   try {
-    const lead = await makeLead(shop.id, { urgency: "emergency" });
+    const lead = await makeLead(shop.id, { urgency: "same-day" });
     const first = await maybeAutoBookLead(lead.id);
     const second = await maybeAutoBookLead(lead.id);
 
@@ -238,7 +240,7 @@ test("out-of-area ZIPs stay on the board when the owner set an allowlist", async
   });
   try {
     const outside = await makeLead(shop.id, {
-      urgency: "emergency",
+      urgency: "same-day",
       address: "500 Brickell Ave, Miami FL 33131",
     });
     const blocked = await maybeAutoBookLead(outside.id);
