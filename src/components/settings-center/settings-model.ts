@@ -81,6 +81,7 @@ export type Account = {
     servicesJson?: string | null;
     serviceZipsJson?: string | null;
     billingStatus?: string;
+    environment?: string;
     autopilot?: boolean;
     bookingMode?: "book" | "alert";
     followUpMode?: "off" | "ask" | "auto";
@@ -136,6 +137,7 @@ export function parseCert(raw: string | null | undefined): boolean[] {
 }
 
 export function planLabel(account: Account): string {
+  if (account.business?.environment === "test") return "No plan yet";
   const status = account.billing?.status ?? account.business?.billingStatus ?? "none";
   if (account.billing?.entitled === false && (status === "pilot" || status === "none")) return "Access ended";
   if (status === "pilot") return pricing.pilot.name;
@@ -145,6 +147,7 @@ export function planLabel(account: Account): string {
 }
 
 export function planDetail(account: Account): string {
+  if (account.business?.environment === "test") return "Test mode. Nothing is charged until you go live.";
   const status = account.billing?.status ?? "none";
   if (status === "active") return "Your subscription is active.";
   if (status === "past_due") return "Payment failed — update your card to keep the line live.";

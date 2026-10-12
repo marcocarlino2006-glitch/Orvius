@@ -48,6 +48,7 @@ type BillingAccount = {
     stripeCustomerId: string | null;
     pilotEndsAt?: string | null;
     createdAt?: string;
+    environment?: string;
   } | null;
   billing: {
     configured: boolean;
@@ -156,6 +157,7 @@ export function BillingContent() {
   const planEndsAt = status === "active" ? (account?.billing.planEndsAt ?? null) : null;
   const locked = !entitled && !pause?.started;
   const hasStripeCustomer = Boolean(account?.business?.stripeCustomerId);
+  const testMode = account?.business?.environment === "test";
 
   return (
     <>
@@ -177,6 +179,22 @@ export function BillingContent() {
           {refundedCents != null ? <MoneyBackDone cents={refundedCents} /> : null}
           {loading ? (
             <ShellLoading />
+          ) : testMode ? (
+            <section className="billing-summary" aria-label="Your plan">
+              <div className="sc-plan">
+                <div>
+                  <p className="sc-plan-kicker">Plan</p>
+                  <p className="sc-plan-name">No plan yet</p>
+                  <p className="sc-plan-detail">
+                    You&apos;re in test mode, so nothing is charged. You pick a plan when you go live, and the first{" "}
+                    {MONEY_BACK_DAYS} days are money back.
+                  </p>
+                </div>
+                <Link href="/dashboard/onboarding?step=live" className="sc-btn sc-btn--primary">
+                  Go live
+                </Link>
+              </div>
+            </section>
           ) : (
             <section className="billing-summary" aria-label="Your plan">
               <div className="sc-plan">
@@ -244,7 +262,7 @@ export function BillingContent() {
             </section>
           )}
 
-          {loading || status === "active" || (status === "past_due" && hasStripeCustomer) ? null : (
+          {loading || testMode || status === "active" || (status === "past_due" && hasStripeCustomer) ? null : (
           <ShellPanel title="Pay" dense>
             {checkoutReady ? (
               <>
