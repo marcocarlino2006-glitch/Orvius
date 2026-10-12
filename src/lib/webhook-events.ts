@@ -105,6 +105,7 @@ export async function claimWebhookEvent(input: {
         eventType: input.eventType,
         businessId: input.businessId ?? null,
         status: "processing",
+        claimedAt: new Date(),
         payloadJson: input.payload ? JSON.stringify(input.payload) : null,
       },
     });
@@ -114,7 +115,7 @@ export async function claimWebhookEvent(input: {
 
     const existing = await prisma.webhookEvent.findUnique({
       where,
-      select: { status: true, createdAt: true },
+      select: { status: true, createdAt: true, claimedAt: true },
     });
 
     if (!existing) return { claimed: false };
@@ -122,22 +123,25 @@ export async function claimWebhookEvent(input: {
 
     const stale =
       existing.status === "processing" &&
-      Date.now() - existing.createdAt.getTime() > STALE_CLAIM_MS;
+      Date.now() - (existing.claimedAt ?? existing.createdAt).getTime() > STALE_CLAIM_MS;
 
     if (!stale && existing.status === "processing") {
       return { claimed: false };
     }
+    if (!["processing", "failed", "error"].includes(existing.status)) return { claimed: false };
 
-    // Reclaim failed or stale processing claims.
+    // Reclaim failed or stale processing claims. Matching the claim we read means two reclaimers can't both win.
     const updated = await prisma.webhookEvent.updateMany({
       where: {
         source: input.source,
         externalId: input.externalId,
         eventType: input.eventType,
-        status: { in: ["processing", "failed", "error"] },
+        status: existing.status,
+        claimedAt: existing.claimedAt,
       },
       data: {
         status: "processing",
+        claimedAt: new Date(),
         businessId: input.businessId ?? null,
         payloadJson: input.payload ? JSON.stringify(input.payload) : null,
         error: null,

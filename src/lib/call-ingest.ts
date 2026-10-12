@@ -307,8 +307,10 @@ export async function finishCallReport(input: Omit<Captured, "duplicate">): Prom
     const phoneMismatch =
       Boolean(callerId && freshLead.phone) && normalizePhone(callerId) !== normalizePhone(freshLead.phone);
     const wantsHuman = leadWantsHuman({ notes: `${freshLead.notes ?? ""} ${spoken}`, serviceType: freshLead.serviceType });
-    // Sales reps routinely ask for the owner, so a request for a person does not rescue a non-service call.
-    const nonService = !safety && !autoBook.jobId && freshLead.categoryCode === "other.non_service";
+    /* Sales reps routinely ask for the owner, so a request for a person does not rescue a non-service call.
+       An address or a known customer does: that's someone with a property, and the label is the model's guess. */
+    const looksLikeWork = Boolean(freshLead.address?.trim() || freshLead.customerId);
+    const nonService = !safety && !autoBook.jobId && freshLead.categoryCode === "other.non_service" && !looksLikeWork;
 
     // A time read out after hold_appointment came from the schedule, not the model.
     const promises = detectAssistantPromises(transcript).filter(
@@ -489,6 +491,7 @@ export async function finishCallReport(input: Omit<Captured, "duplicate">): Prom
 
 const FINISH_GRACE_MS = 5 * 60_000;
 const FINISH_LOOKBACK_MS = 24 * 60 * 60_000;
+const FINISH_CLAIM_LEASE_MS = 10 * 60_000;
 
 /**
  * Vapi is answered once the call is saved, so a function that dies before
@@ -500,10 +503,17 @@ const FINISH_MAX_ATTEMPTS = 12;
 
 export async function sweepUnfinishedCallReports(now = new Date()): Promise<number> {
   const eventType = "end-of-call-report";
+  /* A sweep killed mid-finish (function timeout, deploy) leaves its row in
+     "processing" for good unless the claim can expire. */
+  const leaseCut = new Date(now.getTime() - FINISH_CLAIM_LEASE_MS);
   const where = {
     source: "vapi",
     eventType,
-    status: { in: [CAPTURED, "failed"] },
+    OR: [
+      { status: { in: [CAPTURED, "failed"] } },
+      { status: "processing", claimedAt: { lt: leaseCut } },
+      { status: "processing", claimedAt: null, createdAt: { lt: leaseCut } },
+    ],
     createdAt: { gte: new Date(now.getTime() - FINISH_LOOKBACK_MS), lte: new Date(now.getTime() - FINISH_GRACE_MS) },
   };
   // Events whose call was never saved are skipped but stay in the window for a
@@ -513,14 +523,14 @@ export async function sweepUnfinishedCallReports(now = new Date()): Promise<numb
   const SCAN_PAGE = 100;
   const SCAN_LIMIT = 1000;
   const finishable: Array<{
-    event: { id: string; externalId: string; status: string; attempts: number };
+    event: { id: string; externalId: string; status: string; attempts: number; claimedAt: Date | null };
     call: Call & { lead: Lead; business: Business };
   }> = [];
   let cursor: string | undefined;
   for (let scanned = 0; scanned < SCAN_LIMIT && finishable.length < FINISH_BATCH; ) {
     const page = await prisma.webhookEvent.findMany({
       where,
-      select: { id: true, externalId: true, status: true, attempts: true },
+      select: { id: true, externalId: true, status: true, attempts: true, claimedAt: true },
       orderBy: [{ createdAt: "asc" }, { id: "asc" }],
       take: SCAN_PAGE,
       ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
@@ -545,8 +555,8 @@ export async function sweepUnfinishedCallReports(now = new Date()): Promise<numb
   let finished = 0;
   for (const { event, call } of finishable) {
     const claimed = await prisma.webhookEvent.updateMany({
-      where: { id: event.id, status: event.status },
-      data: { status: "processing" },
+      where: { id: event.id, status: event.status, claimedAt: event.claimedAt },
+      data: { status: "processing", claimedAt: new Date() },
     });
     if (!claimed.count) continue;
     const { business, lead, ...row } = call;

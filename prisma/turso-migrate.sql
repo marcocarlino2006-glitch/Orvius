@@ -1099,3 +1099,4 @@ ALTER TABLE "Business" ADD COLUMN "fsmScheduleSyncedAt" DATETIME;
 ALTER TABLE "Business" ADD COLUMN "fsmScheduleSource" TEXT;
 ALTER TABLE "Business" ADD COLUMN "fsmScheduleError" TEXT;
 ALTER TABLE "PushSubscription" ADD COLUMN "email" TEXT;
+ALTER TABLE "WebhookEvent" ADD COLUMN "claimedAt" DATETIME;
