@@ -134,6 +134,11 @@ async function signedInEmail(): Promise<string | null> {
   return session?.user?.email?.toLowerCase() ?? null;
 }
 
+async function signedInName(): Promise<string | null> {
+  const session = await auth();
+  return session?.user?.name?.trim() || null;
+}
+
 export async function GET() {
   const email = await signedInEmail();
   if (!email) return NextResponse.json({ error: "Sign in first" }, { status: 401 });
@@ -171,6 +176,7 @@ export async function POST(request: Request) {
           zips: body.zips,
           team: body.team,
           crew: body.crew,
+          ownerName: await signedInName(),
         });
         break;
       case "permissions":

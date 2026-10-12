@@ -128,6 +128,7 @@ export async function saveSetupDay(
     zips?: string[];
     team?: "solo" | "crew";
     crew?: Array<{ name: string; phone: string }>;
+    ownerName?: string | null;
   },
 ): Promise<Business> {
   const business = await requireSandbox(email);
@@ -135,6 +136,22 @@ export async function saveSetupDay(
   if (!preset) throw new SetupError("Pick the hours that fit your week.");
   const servicesJson = input.services && business.trade ? chosenServicesJson(business.trade as Trade, input.services) : undefined;
   if (input.services && !servicesJson) throw new SetupError("Pick at least one kind of work you take.");
+  /*
+    "Just me" puts the owner on the books as the one person who goes out, so
+    bookings land on them instead of reading as unassigned work. No phone: the
+    owner already gets lead alerts and shouldn't also get tech-assignment texts.
+  */
+  if (input.team === "solo") {
+    const crewCount = await prisma.technician.count({ where: { businessId: business.id, isActive: true } });
+    if (!crewCount) {
+      await prisma.technician.create({
+        data: { businessId: business.id, name: (input.ownerName?.trim() || business.name).slice(0, 60), role: "owner" },
+      });
+    }
+  }
+  if (input.team === "crew") {
+    await prisma.technician.deleteMany({ where: { businessId: business.id, role: "owner", jobs: { none: {} } } });
+  }
   if (input.team === "crew" && input.crew?.length) {
     const existing = await prisma.technician.findMany({ where: { businessId: business.id }, select: { phone: true } });
     const known = new Set(existing.map((t) => normalizePhone(t.phone)).filter(Boolean));

@@ -370,6 +370,15 @@ a.dt-row:focus-visible,
   color: var(--ox-text-2);
 }
 
+.dt-row [role="cell"] {
+  min-width: 0;
+}
+
+.dt-row .sd {
+  max-width: 100%;
+  white-space: normal;
+}
+
 .sd-dot {
   flex: none;
   width: 0.4375rem;
