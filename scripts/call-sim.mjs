@@ -260,7 +260,7 @@ const scenarios = [
         structured: { name: "Lucía Ramírez", serviceType: "Sin calefacción, bebé en casa", address: "1840 Oak Ave, Evanston IL 60201" },
       },
     ],
-    expect: { jobs: 1, urgency: "emergency" },
+    expect: { jobs: 0, skip: "emergency_escalation", urgency: "emergency", alert: /not booked/i },
   },
   {
     id: "elderly-freezing",
@@ -272,7 +272,7 @@ const scenarios = [
         structured: { name: "Walter Grant", serviceType: "No heat, house freezing, elderly caller", address: "418 Elm St, Evanston IL 60201" },
       },
     ],
-    expect: { jobs: 1, urgency: "emergency" },
+    expect: { jobs: 0, skip: "emergency_escalation", urgency: "emergency", alert: /not booked/i },
   },
   {
     id: "urgency-asap",
@@ -296,7 +296,7 @@ const scenarios = [
         structured: { name: "Nora Walsh", serviceType: "Water pouring from the indoor unit", address: "77 Main St, Evanston IL 60202" },
       },
     ],
-    expect: { jobs: 1, urgency: "emergency" },
+    expect: { jobs: 0, skip: "emergency_escalation", urgency: "emergency", alert: /not booked/i },
   },
   {
     id: "no-structured-data",
@@ -333,7 +333,7 @@ const scenarios = [
         structured: { name: "Dana Kim", serviceType: "AC not working", address: "1810 Asbury Ave, Evanston IL 60201" },
       },
     ],
-    expect: { jobs: 1, urgency: ["same-day", "emergency"] },
+    expect: { jobs: 0, skip: "emergency_escalation", urgency: "emergency", alert: /not booked/i },
   },
   {
     id: "assistant-quoted-price",
