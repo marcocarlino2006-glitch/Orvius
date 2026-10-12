@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
+import { displayPhone } from "@/lib/customer";
 import { notifyOwner } from "@/lib/notifications";
 import {
   getShopLines,
   validateOwnerPhoneForAlerts,
 } from "@/lib/owner-alerts";
 import { sharedRateLimit, tooManyRequests } from "@/lib/rate-limit";
+import { describeTestAlert } from "@/lib/test-alert-message";
 import { requireEntitledSession } from "@/lib/tenant";
 
 export async function POST() {
@@ -40,11 +42,16 @@ export async function POST() {
     dedupeKey: `test-alert:${business.id}:${Math.floor(Date.now() / 60_000)}`,
   });
 
-  const delivered =
-    result.sms?.status === "sent" || result.email?.status === "sent";
+  const { ok, partial, message } = describeTestAlert(result, {
+    phone: business.ownerPhone ? displayPhone(business.ownerPhone) : null,
+    email: business.ownerEmail,
+  });
 
   return NextResponse.json({
-    ok: delivered,
+    ok,
+    partial,
+    message,
+    error: ok ? undefined : message,
     sms: result.sms,
     email: result.email,
   });
