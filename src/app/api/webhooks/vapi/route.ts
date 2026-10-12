@@ -269,9 +269,14 @@ export async function POST(request: NextRequest) {
       },
       update: {
         callerPhone: callerPhone ?? undefined,
-        status: "in-progress",
       },
     });
+    /* Status updates arrive out of order. An "ended" one, or any that lands
+       after the end-of-call report, must not mark a finished call live again. */
+    const live = type === "call-started" || ["queued", "ringing", "in-progress"].includes(String(message.status ?? ""));
+    if (live) {
+      await prisma.call.updateMany({ where: { id: call.id, status: { not: "completed" } }, data: { status: "in-progress" } });
+    }
 
     // Ring 2 starts at ring — recognize returning customers immediately
     if (callerPhone) {
