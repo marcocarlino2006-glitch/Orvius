@@ -44,9 +44,18 @@ export function NotificationsSection({
         </ScRow>
       </ScGroup>
       <ScGroup title="How alerts reach you">
-        <ScRow label="Text alerts" hint={`Target: on your phone within ${ownerSlAs.alertP95TargetSec} seconds of the call.`}>
-          <ScStatus on={account.alerts.smsEnabled && !account.alerts.ownerSmsOptedOut}>
-            {account.alerts.ownerSmsOptedOut ? "Opted out" : account.alerts.smsEnabled ? "On" : "Off"}
+        <ScRow
+          label="Text alerts"
+          hint={
+            !account.alerts.smsEnabled
+              ? `Texting is paused on Orvius's side.${account.alerts.emailConfigured ? ` New leads go to ${b.ownerEmail ?? email} until it's back.` : ""} Leads always show in Command.`
+              : !b.ownerPhone
+                ? "Add your mobile above to get a text for every new lead."
+                : `Target: on your phone within ${ownerSlAs.alertP95TargetSec} seconds of the call.`
+          }
+        >
+          <ScStatus on={account.alerts.smsEnabled && !account.alerts.ownerSmsOptedOut && Boolean(b.ownerPhone)}>
+            {account.alerts.ownerSmsOptedOut ? "Opted out" : account.alerts.smsEnabled && b.ownerPhone ? "On" : "Off"}
           </ScStatus>
         </ScRow>
         {account.alerts.emailConfigured ? (

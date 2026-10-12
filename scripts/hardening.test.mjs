@@ -97,6 +97,15 @@ test("only the owner, naming the workspace, with no live subscription, can delet
     }).reason,
     "active_subscription",
   );
+  assert.equal(
+    checkWorkspaceDeletion({
+      business: { ...business, billingStatus: "active", stripeSubscriptionId: "sub_1", planEndsAt: new Date("2026-11-01") },
+      requesterEmail: "owner@x.test",
+      confirm: "Summit Air",
+    }).ok,
+    true,
+    "a plan already set to cancel will not bill again, so it does not block deleting",
+  );
   assert.equal(checkWorkspaceDeletion({ business, requesterEmail: "OWNER@x.test", confirm: " summit air " }).ok, true);
 });
 

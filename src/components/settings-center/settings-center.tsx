@@ -6,6 +6,7 @@ import { BillingContent } from "@/components/billing-content";
 import { ConnectNumber } from "@/components/connect-number";
 import { OperatingMetricsPanel } from "@/components/operating-metrics-panel";
 import { ProEconomicsPanel } from "@/components/pro-economics-panel";
+import { NumbersGroup } from "./sections/numbers-group";
 import { fetchAccount, invalidateAccount } from "@/lib/account-client";
 import type { CaptureMode, CarrierId } from "@/lib/carrier-forward";
 import { displayPhone } from "@/lib/customer";
@@ -209,9 +210,10 @@ export function SettingsCenter({
     setNotice(null);
     try {
       const res = await fetch("/api/account/test-alert", { method: "POST" });
-      const data = (await res.json()) as { error?: string; ok?: boolean; message?: string };
-      if (!res.ok || !data.ok) throw new Error(data.error ?? "Alert queued but not delivered. Check your mobile number.");
-      setNotice(data.message ?? "Test alert sent.");
+      const data = (await res.json()) as { error?: string; ok?: boolean; partial?: boolean; message?: string };
+      if (!res.ok || !data.ok) throw new Error(data.error ?? "Nothing was delivered. Check your mobile number.");
+      if (data.partial) setError(data.message ?? "Only part of the test alert was delivered.");
+      else setNotice(data.message ?? "Test alert sent.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Test failed");
     } finally {
@@ -329,6 +331,7 @@ export function SettingsCenter({
       case "performance":
         return (
           <>
+            <NumbersGroup b={b} patch={patch} setError={setError} />
             <div className="sc-embed">
               <ProEconomicsPanel
                 outcomes={ring1?.data?.outcomes}
@@ -346,7 +349,19 @@ export function SettingsCenter({
         return <ActivitySection role={account.role ?? null} />;
 
       case "data":
-        return <DataSection shopName={b.name} exporting={exporting} exportShopData={exportShopData} />;
+        return (
+          <DataSection
+            shopName={b.name}
+            planRenews={
+              Boolean(account.billing?.hasSubscription) &&
+              !account.billing?.planEndsAt &&
+              ["active", "past_due"].includes((account.billing?.status ?? b.billingStatus ?? "").toLowerCase())
+            }
+            exporting={exporting}
+            exportShopData={exportShopData}
+            go={go}
+          />
+        );
 
       case "internal":
         return <InternalSection account={account} certChecks={certChecks} toggleCert={toggleCert} manusNext={manusNext} />;
@@ -377,7 +392,7 @@ export function SettingsCenter({
               </span>
               <span className="sc-nav-user-copy">
                 <span className="sc-nav-user-name">{name}</span>
-                <span className="sc-nav-user-sub">Personal</span>
+                <span className="sc-nav-user-sub">{b?.name ?? "Your shop"}</span>
               </span>
               <SettingsIcon name="updown" />
             </button>

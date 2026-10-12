@@ -7,6 +7,7 @@ import { requirePermission } from "@/lib/tenant";
 /**
  * Shop data export — switching-cost trust: owners can leave with their records.
  * JSON download of customers, leads, jobs, estimates, invoices, payments.
+ * Link tokens stay out: the file gets emailed around, and each one opens a live page.
  */
 export async function GET() {
   const session = await requirePermission("data.export", { entitled: false });
@@ -88,9 +89,9 @@ export async function GET() {
     },
     customers,
     leads,
-    jobs,
-    estimates,
-    invoices,
+    jobs: jobs.map(({ techToken: _t, customerConfirmToken: _c, ...job }) => job),
+    estimates: estimates.map(({ publicToken: _p, ...estimate }) => estimate),
+    invoices: invoices.map(({ publicToken: _p, ...invoice }) => invoice),
     payments,
     technicians: technicians.map(publicTechnician),
     auditEvents,
