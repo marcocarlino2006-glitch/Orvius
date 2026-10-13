@@ -215,7 +215,7 @@ export function PremiumNav() {
             <Link href="/signin" className="mkt-nav-login" data-i18n="nav.signin">
               Sign in
             </Link>
-            <a href="mailto:hello@orvius.im" className="mkt-nav-login mkt-nav-contact" data-i18n="nav.contact">
+            <a href="mailto:support@orvius.im" className="mkt-nav-login mkt-nav-contact" data-i18n="nav.contact">
               Talk to us
             </a>
             <a
@@ -315,7 +315,7 @@ export function PremiumNav() {
                 Security
               </Link>
               <span aria-hidden>·</span>
-              <a href="mailto:hello@orvius.im">Contact</a>
+              <a href="mailto:support@orvius.im">Contact</a>
             </p>
           </div>
         </div>

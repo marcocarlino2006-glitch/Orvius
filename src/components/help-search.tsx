@@ -31,7 +31,7 @@ export function HelpSearch({ articles, categories }: { articles: HelpIndexEntry[
       {matches.length === 0 ? (
         <p className="help-empty">
           Nothing matches “{query}”. Try another word, or email{" "}
-          <a href="mailto:hello@orvius.im">hello@orvius.im</a>.
+          <a href="mailto:support@orvius.im">support@orvius.im</a>.
         </p>
       ) : (
         categories.map((category) => {

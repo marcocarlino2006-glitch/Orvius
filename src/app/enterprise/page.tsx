@@ -47,7 +47,7 @@ export default function EnterprisePage() {
             actions={
               <>
                 <a
-                  href="mailto:hello@orvius.im?subject=Enterprise%20%E2%80%94%20multi-location"
+                  href="mailto:support@orvius.im?subject=Enterprise%20%E2%80%94%20multi-location"
                   className="ov-btn ov-btn--solid"
                 >
                   Talk to us
@@ -94,7 +94,7 @@ export default function EnterprisePage() {
           </div>
           <div className="tier1-actions">
             <a
-              href="mailto:hello@orvius.im?subject=Enterprise%20%E2%80%94%20multi-location"
+              href="mailto:support@orvius.im?subject=Enterprise%20%E2%80%94%20multi-location"
               className="ov-btn ov-btn--solid"
             >
               Talk to us

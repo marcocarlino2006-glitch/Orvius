@@ -14,7 +14,7 @@ The founder launch card at `/admin` shows the live status once it's submitted.
 | Business registration number (EIN) | **(owner)** |
 | Business address | **(owner)** — must match the EIN record |
 | Website | https://orvius.im |
-| Contact name / email / phone | **(owner)** / hello@orvius.im / **(owner)** |
+| Contact name / email / phone | **(owner)** / support@orvius.im / **(owner)** |
 | Use case categories | Account Notifications, Customer Care |
 | Estimated monthly volume | 1,000 (the lowest band; raise it as shops grow) |
 | Opt-in type | Verbal (customers) and Web form (owners) |

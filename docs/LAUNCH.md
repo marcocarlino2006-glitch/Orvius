@@ -154,7 +154,7 @@ call is up to 3 minutes of Vapi time.
 
 - `/admin`: signups, calls and their source, live.
 - `/status`: provider status; if Vapi or Twilio is down, say so in a reply.
-- `hello@orvius.im`: answer every email the same day.
+- `support@orvius.im`: answer every email the same day.
 - Reply to every comment with the number. Answer criticism plainly; never
   argue or invent numbers.
 
@@ -195,5 +195,5 @@ Founder only, before the first post:
 - [ ] Twilio shows the live number's texting registration (toll-free
       verification for the 844 number) as approved. Unregistered texts get
       filtered by carriers.
-- [ ] hello@orvius.im is forwarding to an inbox you check. It's the only support
+- [ ] support@orvius.im is forwarding to an inbox you check. It's the only support
       channel.

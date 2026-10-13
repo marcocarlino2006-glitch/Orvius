@@ -153,7 +153,7 @@ export const pricingPlans: readonly PricingPlan[] = [
     limit: "3 or more locations",
     includedCalls: 750,
     cta: "Talk to us",
-    href: "mailto:hello@orvius.im?subject=Orvius%20Multi-shop",
+    href: "mailto:support@orvius.im?subject=Orvius%20Multi-shop",
     contactSales: true,
     idealFor: "Owners running multiple brands or locations",
     /*

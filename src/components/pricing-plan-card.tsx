@@ -63,7 +63,7 @@ export function PricingPlanCard({
 
   const action = isPilot || isMulti ? (
     <Link
-      href={plan.href ?? (isMulti ? "mailto:hello@orvius.im" : "/pilot")}
+      href={plan.href ?? (isMulti ? "mailto:support@orvius.im" : "/pilot")}
       className={
         layout === "dashboard"
           ? "btn btn-secondary text-sm"
