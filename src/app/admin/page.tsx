@@ -1,6 +1,7 @@
 "use client";
 
 import { OsShell } from "@/components/os-shell";
+import { TollFreeForm } from "@/components/toll-free-form";
 import { LiveStatusBar } from "@/components/live-status-bar";
 import { FormField, ShellBadge } from "@/components/shell-primitives";
 import { AdminSkeleton, SkeletonBar } from "@/components/shell-skeleton";
@@ -47,7 +48,7 @@ type HealthStatus = {
 type LaunchGate = {
   signupOpen: boolean;
   blockers: number;
-  items: Array<{ key: string; label: string; ready: boolean; blocksSignup: boolean; fix: string[] }>;
+  items: Array<{ key: string; label: string; ready: boolean; blocksSignup: boolean; fix: string[]; canSubmit?: boolean }>;
 };
 
 const PIPELINE_STATUSES = [
@@ -947,6 +948,7 @@ function LaunchGateCard({ gate }: { gate: LaunchGate }) {
                 {step}
               </p>
             ))}
+            {item.key === "textDelivery" && item.canSubmit ? <TollFreeForm /> : null}
           </li>
         ))}
       </ul>
