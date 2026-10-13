@@ -76,7 +76,7 @@ export function summarizeFlow(input: { requests: number; jobs: CohortJob[]; wind
       },
       {
         key: "confirmed",
-        label: "Customer confirmed",
+        label: "Confirmed",
         count: confirmed.length,
         waiting: waitingCustomer,
         waitingLabel: waitingCustomer ? `${waitingCustomer} waiting on the ${people(waitingCustomer, "customer", "customers")}` : null,
@@ -84,7 +84,7 @@ export function summarizeFlow(input: { requests: number; jobs: CohortJob[]; wind
       },
       {
         key: "accepted",
-        label: "Tech accepted",
+        label: "Accepted",
         count: accepted.length,
         waiting: waitingTech + unassigned,
         waitingLabel:
