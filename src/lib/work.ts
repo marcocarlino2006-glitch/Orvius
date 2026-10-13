@@ -81,6 +81,8 @@ export type WorkJob = {
   scheduledAt: Date | null;
   customerConfirmedAt: Date | null;
   customerConfirmSentAt?: Date | null;
+  techAcceptedAt?: Date | null;
+  techDeclinedBy?: string | null;
   assigneeEmail: string | null;
   technician: { id: string; name: string; phone?: string | null } | null;
   customer: { name: string | null; phone: string | null } | null;
@@ -208,18 +210,20 @@ export function jobWorkItem(job: WorkJob): WorkItem {
   const stage = jobStage(job);
   const owed = unpaidInvoices(job);
   const who = job.customer?.name?.trim() || "the customer";
+  const assign: [string, WaitingOn] = job.techDeclinedBy ? [`Assign someone else — ${job.techDeclinedBy} can't take it`, "you"] : ["Assign a technician", "you"];
+  const techAnswer: [string | null, WaitingOn] = job.techAcceptedAt || !job.technician ? [null, null] : [`Waiting on ${job.technician.name} to accept`, "technician"];
   const [nextAction, waitingOn] = ((): [string | null, WaitingOn] => {
     switch (stage) {
       case "needs_time":
         return ["Set the time", "you"];
       case "scheduled":
-        if (!job.technician) return ["Assign a technician", "you"];
-        if (job.customerConfirmedAt) return [null, null];
+        if (!job.technician) return assign;
+        if (job.customerConfirmedAt) return techAnswer;
         return job.customerConfirmSentAt
           ? [`Waiting on ${who} to confirm`, "customer"]
           : ["Confirm the time with the customer", "you"];
       case "confirmed":
-        return job.technician ? [null, null] : ["Assign a technician", "you"];
+        return job.technician ? techAnswer : assign;
       case "on_the_way":
         return ["Mark arrived", "technician"];
       case "on_site":
@@ -285,6 +289,8 @@ const EXCEPTION_PROBLEM: Partial<Record<ExceptionKind, { label: string; severity
   emergency: { label: "Safety call", severity: "critical" },
   failed_message: { label: "Text failed", severity: "high" },
   unconfirmed_soon: { label: "Starts soon, not confirmed", severity: "high" },
+  tech_declined: { label: "Technician can't take it", severity: "critical" },
+  tech_unanswered: { label: "Technician hasn't accepted", severity: "high" },
   stale: { label: "Window passed", severity: "high" },
   duplicate: { label: "Possible duplicate", severity: "med" },
   takeover: { label: "You have the conversation", severity: "med" },
@@ -422,6 +428,8 @@ const jobSelect = {
   scheduledAt: true,
   customerConfirmedAt: true,
   customerConfirmSentAt: true,
+  techAcceptedAt: true,
+  techDeclinedBy: true,
   assigneeEmail: true,
   createdAt: true,
   updatedAt: true,

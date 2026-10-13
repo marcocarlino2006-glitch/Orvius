@@ -9,7 +9,16 @@ import { findDuplicateJobs } from "@/lib/workspace-hygiene";
  */
 export type BoardLane = "requests" | "proposed" | "confirmed" | "exceptions" | "approvals";
 
-export type ExceptionKind = "emergency" | "stale" | "duplicate" | "failed_message" | "alert_setup" | "takeover" | "unconfirmed_soon";
+export type ExceptionKind =
+  | "emergency"
+  | "stale"
+  | "duplicate"
+  | "failed_message"
+  | "alert_setup"
+  | "takeover"
+  | "unconfirmed_soon"
+  | "tech_declined"
+  | "tech_unanswered";
 
 export type BoardItem = {
   id: string;
@@ -39,6 +48,51 @@ export type CommandBoard = {
 const OPEN_JOB = ["scheduled", "confirmed", "en_route", "on_site"];
 const DAY = 24 * 60 * 60_000;
 const DECISIONS = ["lead.escalated", "lead.held", "lead.follow_up", "lead.answered", "service_area.checked", "owner.alert_skipped"];
+
+/* A job text Twilio hasn't taken a couple of minutes after assigning did not go out. */
+const NOTIFY_GRACE_MS = 2 * 60_000;
+/* An unanswered assignment becomes the owner's problem this long after it was made, or this close to the visit. */
+const ANSWER_WAIT_MS = 2 * 60 * 60_000;
+const ANSWER_LEAD_MS = 4 * 60 * 60_000;
+
+type CrewFacts = {
+  scheduledAt: Date | null;
+  technician: { name: string } | null;
+  techAssignedAt: Date | null;
+  techNotifiedAt: Date | null;
+  techAcceptedAt: Date | null;
+  techDeclinedAt: Date | null;
+  techDeclinedBy: string | null;
+  techDeclineReason: string | null;
+};
+
+/**
+ * Whether the technician side of a booked job needs the owner: someone said
+ * they can't take it, the job text never went out, or nobody has answered
+ * and the visit is getting close. Jobs assigned before technicians could
+ * answer carry no assignment time and are left alone.
+ */
+export function techIssue(job: CrewFacts, now = new Date()): { kind: "tech_declined" | "tech_unanswered"; title: string; detail: string; at: Date } | null {
+  if (!job.technician) {
+    if (!job.techDeclinedAt) return null;
+    const by = job.techDeclinedBy ?? "The technician";
+    return {
+      kind: "tech_declined",
+      title: `${by} can't take it`,
+      detail: `${job.techDeclineReason ? `"${job.techDeclineReason}" · ` : ""}nobody is on it now, assign someone else`,
+      at: job.techDeclinedAt,
+    };
+  }
+  if (job.techAcceptedAt || !job.techAssignedAt) return null;
+  const name = job.technician.name;
+  if (!job.techNotifiedAt && now.getTime() - job.techAssignedAt.getTime() > NOTIFY_GRACE_MS) {
+    return { kind: "tech_unanswered", title: `${name} wasn't told`, detail: `the job text to ${name} didn't go out, call them`, at: job.techAssignedAt };
+  }
+  const waited = now.getTime() - job.techAssignedAt.getTime() > ANSWER_WAIT_MS;
+  const close = job.scheduledAt != null && job.scheduledAt.getTime() - now.getTime() < ANSWER_LEAD_MS;
+  if (!waited && !close) return null;
+  return { kind: "tech_unanswered", title: `${name} hasn't accepted`, detail: `call ${name} to make sure they're going`, at: job.techAssignedAt };
+}
 
 function who(name: string | null | undefined, phone: string | null | undefined) {
   return name?.trim() || phone || "Unknown caller";
@@ -85,6 +139,12 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
         customerConfirmedAt: true,
         customerConfirmSentAt: true,
         customerConfirmFailedAt: true,
+        techAssignedAt: true,
+        techNotifiedAt: true,
+        techAcceptedAt: true,
+        techDeclinedAt: true,
+        techDeclinedBy: true,
+        techDeclineReason: true,
         technician: { select: { name: true, phone: true } },
         customer: { select: { name: true, phone: true } },
         lead: { select: { name: true, phone: true } },
@@ -190,6 +250,19 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
       continue;
     }
     if (started) continue;
+
+    const crewIssue = techIssue(job, now);
+    if (crewIssue) {
+      exceptions.push({
+        ...base,
+        id: `${crewIssue.kind}:${job.id}`,
+        lane: "exceptions",
+        exception: crewIssue.kind,
+        title: `${person} · ${crewIssue.title}`,
+        detail: `${slot} · ${crewIssue.detail}`,
+        at: crewIssue.at.toISOString(),
+      });
+    }
 
     if (isConfirmed) {
       confirmed.push({
@@ -353,7 +426,7 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
     });
   }
 
-  const order: Record<ExceptionKind, number> = { emergency: 0, alert_setup: 1, failed_message: 2, unconfirmed_soon: 3, stale: 4, duplicate: 5, takeover: 6 };
+  const order: Record<ExceptionKind, number> = { emergency: 0, alert_setup: 1, tech_declined: 2, failed_message: 3, tech_unanswered: 4, unconfirmed_soon: 5, stale: 6, duplicate: 7, takeover: 8 };
   exceptions.sort((a, b) => order[a.exception!] - order[b.exception!] || b.at.localeCompare(a.at));
   requests.sort((a, b) => Number(Boolean(b.urgent)) - Number(Boolean(a.urgent)) || b.at.localeCompare(a.at));
 

@@ -32,6 +32,9 @@ export type JobLifecycleInput = {
   technician?: { name: string } | null;
   outcomeCapturedAt?: string | Date | null;
   resolutionCode?: string | null;
+  techAcceptedAt?: string | Date | null;
+  techDeclinedAt?: string | Date | null;
+  techDeclinedBy?: string | null;
 };
 
 export type JobLifecycle = {
@@ -61,15 +64,22 @@ export function jobLifecycle(job: JobLifecycleInput): JobLifecycle {
   if (job.status === "on_site") return make("in_progress", tech ? `${tech} is on site` : "On site", "live");
 
   const confirmed = job.status === "confirmed" || Boolean(job.customerConfirmedAt);
+  const accepted = Boolean(job.techAcceptedAt);
+  const declined = !tech && job.techDeclinedAt ? `${job.techDeclinedBy ?? "The technician"} can't take it` : null;
   if (!confirmed) {
     return make(
       "awaiting_confirmation",
-      tech ? `${tech} is lined up · waiting on the customer` : "Waiting on the customer to confirm the time",
+      tech
+        ? `${tech} ${accepted ? "accepted" : "assigned, hasn't accepted yet"} · waiting on the customer`
+        : declined
+          ? `${declined} · assign someone else`
+          : "Waiting on the customer to confirm the time",
       "attention",
     );
   }
-  if (!tech) return make("confirmed", "Customer confirmed · nobody assigned yet", "attention");
-  return make("assigned", `${tech} is going`, "neutral");
+  if (!tech) return make("confirmed", declined ? `Customer confirmed · ${declined}, assign someone else` : "Customer confirmed · nobody assigned yet", "attention");
+  if (!accepted) return make("assigned", `${tech} hasn't accepted yet`, "attention");
+  return make("assigned", `${tech} accepted · going`, "neutral");
 }
 
 /** "9:00–10:30 AM" on the shop's clock, or null with no time set. */
@@ -87,4 +97,96 @@ export function appointmentWindow(
   const [aTime, aMer] = a.split(" ");
   const [, bMer] = b.split(" ");
   return aMer === bMer ? `${aTime}–${b}` : `${a}–${b}`;
+}
+
+export type JobStepState = "done" | "waiting" | "problem";
+
+export type JobStep = {
+  key: "booked" | "customer" | "technician" | "en_route" | "on_site" | "done";
+  label: string;
+  state: JobStepState;
+  /** What the record shows, in the owner's words; never a step that hasn't happened. */
+  detail: string;
+  at: string | null;
+};
+
+export type JobStepsInput = JobLifecycleInput & {
+  createdAt: string | Date;
+  scheduledAt?: string | Date | null;
+  customerConfirmSentAt?: string | Date | null;
+  customerConfirmFailedAt?: string | Date | null;
+  techAssignedAt?: string | Date | null;
+  techNotifiedAt?: string | Date | null;
+  techDeclineReason?: string | null;
+  dispatchedAt?: string | Date | null;
+  onSiteAt?: string | Date | null;
+  completedAt?: string | Date | null;
+};
+
+/* A job text that Twilio hasn't taken a couple of minutes after assigning did not go out. */
+const NOTIFY_GRACE_MS = 2 * 60_000;
+
+const iso = (at: string | Date | null | undefined) => (at ? new Date(at).toISOString() : null);
+
+/**
+ * The visit as separate facts, each read from its own field: booked, the
+ * customer's yes, the technician's yes, on the way, on site, done. A later
+ * step never fills in an earlier one; a technician who rolled without
+ * tapping accept shows as having started, not as having accepted.
+ */
+export function jobSteps(job: JobStepsInput, now = new Date()): JobStep[] {
+  const tech = job.technician?.name ?? null;
+  const started = Boolean(job.dispatchedAt || job.onSiteAt || job.completedAt) || ["en_route", "on_site", "completed"].includes(job.status);
+  const steps: JobStep[] = [
+    { key: "booked", label: "Booked", state: "done", detail: job.scheduledAt ? "On the schedule" : "Booked, no time set yet", at: iso(job.createdAt) },
+  ];
+
+  if (job.customerConfirmedAt) {
+    steps.push({ key: "customer", label: "Customer confirmed", state: "done", detail: "They confirmed the time", at: iso(job.customerConfirmedAt) });
+  } else if (job.status === "confirmed") {
+    steps.push({ key: "customer", label: "Customer confirmed", state: "done", detail: "Marked confirmed by your team", at: null });
+  } else if (job.customerConfirmFailedAt) {
+    steps.push({ key: "customer", label: "Customer confirmed", state: "problem", detail: "The confirm text didn't go through. Call them.", at: iso(job.customerConfirmFailedAt) });
+  } else if (job.customerConfirmSentAt) {
+    steps.push({ key: "customer", label: "Customer confirmed", state: "waiting", detail: "Confirm text sent, no reply yet", at: iso(job.customerConfirmSentAt) });
+  } else {
+    steps.push({ key: "customer", label: "Customer confirmed", state: "waiting", detail: started ? "Never confirmed" : "Not asked yet", at: null });
+  }
+
+  if (job.techAcceptedAt && tech) {
+    steps.push({ key: "technician", label: "Technician accepted", state: "done", detail: `${tech} accepted`, at: iso(job.techAcceptedAt) });
+  } else if (tech && started) {
+    steps.push({ key: "technician", label: "Technician accepted", state: "done", detail: `${tech} started without tapping accept`, at: null });
+  } else if (tech) {
+    const assignedAt = job.techAssignedAt ? new Date(job.techAssignedAt).getTime() : null;
+    const textMissing = assignedAt != null && !job.techNotifiedAt && now.getTime() - assignedAt > NOTIFY_GRACE_MS;
+    steps.push(
+      textMissing
+        ? { key: "technician", label: "Technician accepted", state: "problem", detail: `The job text to ${tech} didn't go out. Call them.`, at: iso(job.techAssignedAt) }
+        : { key: "technician", label: "Technician accepted", state: "waiting", detail: `${tech} assigned, hasn't answered yet`, at: iso(job.techAssignedAt) },
+    );
+  } else if (job.techDeclinedAt) {
+    const why = job.techDeclineReason ? ` ("${job.techDeclineReason}")` : "";
+    steps.push({ key: "technician", label: "Technician accepted", state: "problem", detail: `${job.techDeclinedBy ?? "The technician"} can't take it${why}. Assign someone else.`, at: iso(job.techDeclinedAt) });
+  } else {
+    steps.push({ key: "technician", label: "Technician accepted", state: "waiting", detail: "Nobody assigned yet", at: null });
+  }
+
+  const reached = (at: string | Date | null | undefined, statuses: string[]) => Boolean(at) || statuses.includes(job.status);
+  steps.push(
+    reached(job.dispatchedAt, ["en_route", "on_site", "completed"])
+      ? { key: "en_route", label: "On the way", state: "done", detail: job.dispatchedAt ? `${tech ?? "The technician"} left` : "Skipped straight to arriving", at: iso(job.dispatchedAt) }
+      : { key: "en_route", label: "On the way", state: "waiting", detail: "Not yet", at: null },
+  );
+  steps.push(
+    reached(job.onSiteAt, ["on_site", "completed"])
+      ? { key: "on_site", label: "On site", state: "done", detail: job.onSiteAt ? "Arrived" : "Arrival wasn't marked", at: iso(job.onSiteAt) }
+      : { key: "on_site", label: "On site", state: "waiting", detail: "Not yet", at: null },
+  );
+  steps.push(
+    job.status === "completed"
+      ? { key: "done", label: "Done", state: "done", detail: job.outcomeCapturedAt || job.resolutionCode ? "Outcome recorded" : "Marked done, outcome not recorded", at: iso(job.completedAt) }
+      : { key: "done", label: "Done", state: "waiting", detail: "Not yet", at: null },
+  );
+  return steps;
 }

@@ -14,7 +14,7 @@ import {
 import { WorkPanel } from "@/components/work-panel";
 import { displayPhone } from "@/lib/customer";
 import { nextJobStatus } from "@/lib/job-status";
-import { jobLifecycle } from "@/lib/job-lifecycle";
+import { jobLifecycle, jobSteps } from "@/lib/job-lifecycle";
 import { StatusDot } from "@/components/status-dot";
 import { formatShopTime, shopWallInput } from "@/lib/when";
 import Link from "next/link";
@@ -62,6 +62,15 @@ type JobDetail = {
   scheduledAt: string | null;
   confirmedAt: string | null;
   customerConfirmedAt: string | null;
+  customerConfirmSentAt?: string | null;
+  customerConfirmFailedAt?: string | null;
+  techAssignedAt?: string | null;
+  techNotifiedAt?: string | null;
+  techAcceptedAt?: string | null;
+  techDeclinedAt?: string | null;
+  techDeclinedBy?: string | null;
+  techDeclineReason?: string | null;
+  createdAt: string;
   dispatchedAt: string | null;
   onSiteAt: string | null;
   completedAt: string | null;
@@ -208,6 +217,9 @@ export default function JobDetailPage() {
   const open = job.status !== "completed" && job.status !== "cancelled";
   const needsConfirm = open && Boolean(job.scheduledAt) && !job.customerConfirmedAt && job.status !== "confirmed";
   const lifecycle = jobLifecycle(job);
+  const steps = job.status === "cancelled" ? [] : jobSteps(job);
+  const techStep = steps.find((s) => s.key === "technician");
+  const callTech = open && job.technician?.phone && techStep && techStep.state !== "done" ? job.technician.phone : null;
   const reasonBody = changeReason.trim() ? { reason: changeReason.trim() } : {};
   const whenNote =
     job.status === "completed"
@@ -371,6 +383,31 @@ export default function JobDetailPage() {
                 ) : null}
               </dl>
 
+              {steps.length ? (
+                <ol className="jv-steps font-sans" aria-label="Where this job stands">
+                  {steps.map((step) => (
+                    <li key={step.key} className={`jv-step is-${step.state}`}>
+                      <span className="jv-step-mark" aria-hidden />
+                      <span className="jv-step-body">
+                        <span className="jv-step-label">
+                          {step.label}
+                          <span className="sr-only">{step.state === "done" ? " (done)" : step.state === "problem" ? " (needs you)" : " (not yet)"}</span>
+                        </span>
+                        <span className="jv-sub">
+                          {step.detail}
+                          {step.at && step.state !== "waiting" ? ` · ${formatShopTime(step.at, tz)}` : ""}
+                        </span>
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+              ) : null}
+              {callTech ? (
+                <p className="jv-sub jv-msg">
+                  <a href={`tel:${callTech}`}>Call {job.technician?.name}</a>
+                </p>
+              ) : null}
+
               {open && changing ? (
                 <div className="jv-change font-sans">
                   <div className="jv-change-row">
@@ -445,7 +482,11 @@ export default function JobDetailPage() {
 
               {open ? (
                 <div className="jv-next">
-                  {next ? (
+                  {next?.status === "en_route" && !job.technician ? (
+                    <button type="button" className="ox-btn ox-btn--primary" onClick={() => setChanging(true)}>
+                      Assign a technician
+                    </button>
+                  ) : next ? (
                     <button
                       type="button"
                       disabled={saving}
