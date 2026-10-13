@@ -78,7 +78,8 @@ test("toll-free status is read from Twilio and each state says what to do", asyn
   let item = (await getLaunchGate({ textDelivery: delivery })).items.find((i) => i.key === "textDelivery");
   assert.equal(item.ready, false);
   assert.match(item.fix.join(" "), /not verified/);
-  assert.match(item.fix.join(" "), /TOLL-FREE-VERIFICATION\.md/);
+  assert.match(item.fix.join(" "), /Fill in the form below/);
+  assert.equal(item.canSubmit, true);
 
   twilio.verifications = [
     { status: "TWILIO_REJECTED", rejection_reason: "Opt-in URL unreachable", date_created: "2026-09-01T00:00:00Z" },
@@ -92,6 +93,8 @@ test("toll-free status is read from Twilio and each state says what to do", asyn
   twilio.verifications = [{ status: "TWILIO_REJECTED", rejection_reason: "Opt-in URL unreachable", date_created: "2026-09-21T00:00:00Z" }];
   item = (await getLaunchGate()).items.find((i) => i.key === "textDelivery");
   assert.match(item.fix[0], /Opt-in URL unreachable/);
+  assert.match(item.fix.join(" "), /Correct the field it names below/);
+  assert.equal(item.canSubmit, true);
 
   twilio.verifications = [{ status: "TWILIO_APPROVED", date_created: "2026-09-22T00:00:00Z" }];
   item = (await getLaunchGate()).items.find((i) => i.key === "textDelivery");

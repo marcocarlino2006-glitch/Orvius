@@ -18,6 +18,8 @@ export type GateItem = {
   /** Blocks public signup. Text delivery does not, but a filtered alert loses the shop. */
   blocksSignup: boolean;
   fix: string[];
+  /** The founder can file this from /admin instead of the provider's console. */
+  canSubmit?: boolean;
 };
 
 const TOLL_FREE = /^\+18(00|33|44|55|66|77|88)\d{7}$/;
@@ -87,15 +89,21 @@ function textDeliveryItem(delivery: TextDelivery): GateItem {
     return item(false, [`Toll-free verification for ${delivery.number} is ${delivery.status.toLowerCase().replace("_", " ")}. Nothing to do but wait; carriers may filter texts until it is approved.`]);
   }
   if (delivery.status === "TWILIO_REJECTED") {
-    return item(false, [
-      `Twilio rejected the verification${delivery.rejectionReason ? `: ${delivery.rejectionReason}` : ""}.`,
-      "Fix the field it names and resubmit, using docs/TOLL-FREE-VERIFICATION.md.",
-    ]);
+    return {
+      ...item(false, [
+        `Twilio rejected the verification${delivery.rejectionReason ? `: ${delivery.rejectionReason}` : ""}.`,
+        "Correct the field it names below and send it again.",
+      ]),
+      canSubmit: true,
+    };
   }
-  return item(false, [
-    `${delivery.number} is toll-free and not verified, so carriers can filter every alert and confirmation it sends.`,
-    "Submit it in Twilio Console → Messaging → Regulatory Compliance → Toll-Free Verifications. Every field is written out in docs/TOLL-FREE-VERIFICATION.md.",
-  ]);
+  return {
+    ...item(false, [
+      `${delivery.number} is toll-free and not verified, so carriers can filter every alert and confirmation it sends.`,
+      "Fill in the form below; Orvius files everything else with Twilio. It's free and usually takes a few business days.",
+    ]),
+    canSubmit: true,
+  };
 }
 
 const missing = (names: string[]) => names.filter((name) => !isConfigured(name));
