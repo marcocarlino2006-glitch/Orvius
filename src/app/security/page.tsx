@@ -82,7 +82,8 @@ export default function SecurityPage() {
           <li>Audit trail of calls, transcripts, and key workspace actions</li>
           <li>
             Each person&apos;s sign-in: password, two-step codes, a list of recent sign-ins, an email when a new device
-            signs in or a sign-in setting changes, and one button that signs out every device
+            signs in or a sign-in setting changes, one button that signs out every device, and a sign-in email change
+            that only goes through once the new inbox confirms it
           </li>
           <li>Teammate roles: only the owner can manage billing or delete a customer&apos;s data, and dispatchers can&apos;t export the shop&apos;s data</li>
           <li>Deleting one customer&apos;s data on request, including the recording copies at our voice and phone providers</li>

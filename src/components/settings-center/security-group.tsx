@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ScGroup, ScRow } from "./settings-primitives";
 
 type Status = {
+  email?: string;
   password: { set: boolean };
   twoStep: { enabled: boolean; enabledAt: string | null; recoveryLeft: number };
   signIns?: { method: string; device: string; place: string | null; createdAt: string }[];
@@ -14,7 +15,7 @@ const signedInAt = (iso: string) =>
 
 type Setup = { setupKey: string; uri: string; qr: string };
 
-type Panel = "none" | "password" | "setup" | "codes" | "disable" | "regenerate" | "signout";
+type Panel = "none" | "email" | "password" | "setup" | "codes" | "disable" | "regenerate" | "signout";
 
 async function call(body: Record<string, unknown>) {
   const res = await fetch("/api/account/security", {
@@ -38,6 +39,8 @@ export function SecurityGroup() {
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
   const [code, setCode] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [emailNotice, setEmailNotice] = useState<string | null>(null);
   const [setup, setSetup] = useState<Setup | null>(null);
   const [codes, setCodes] = useState<string[]>([]);
 
@@ -56,6 +59,7 @@ export function SecurityGroup() {
     setCurrent("");
     setNext("");
     setConfirm("");
+    setNewEmail("");
   }
 
   async function run(work: () => Promise<void>) {
@@ -75,6 +79,51 @@ export function SecurityGroup() {
 
   return (
     <>
+      <ScGroup title="Sign-in email">
+        <ScRow
+          label={status.email ?? "Your email"}
+          hint="The address you sign in with and where security notices go. Changing it keeps your shop, calls and settings as they are."
+        >
+          {panel === "email" ? null : (
+            <button type="button" className="sc-btn" onClick={() => open("email")}>
+              Change email
+            </button>
+          )}
+        </ScRow>
+        {panel === "email" ? (
+          <form
+            className="sc-security-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void run(async () => {
+                const data = await call({ action: "email_change", next: newEmail, password: current || undefined, code: code || undefined });
+                open("none");
+                setEmailNotice(`Check ${data.pendingEmail} and open the link within an hour. Nothing changes until you do.`);
+              });
+            }}
+          >
+            <input className="sc-input" type="email" autoComplete="email" aria-label="New sign-in email" placeholder="New email address" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} required />
+            {status.password.set ? (
+              <input className="sc-input" type="password" autoComplete="current-password" aria-label="Current password" placeholder="Current password" value={current} onChange={(e) => setCurrent(e.target.value)} required />
+            ) : null}
+            {twoStep.enabled ? (
+              <input className="sc-input sc-input--code" autoComplete="one-time-code" aria-label="Two-step code" placeholder="123456" maxLength={12} value={code} onChange={(e) => setCode(e.target.value)} required />
+            ) : null}
+            <p className="sc-muted">We&apos;ll email a link to the new address. Your current address gets a heads-up too.</p>
+            <div className="sc-security-actions">
+              <button type="submit" className="sc-btn sc-btn--primary" disabled={busy}>
+                {busy ? "Sending…" : "Send confirmation link"}
+              </button>
+              <button type="button" className="sc-btn" disabled={busy} onClick={() => open("none")}>
+                Cancel
+              </button>
+            </div>
+          </form>
+        ) : null}
+        {emailNotice && panel !== "email" ? <p className="sc-banner" role="status">{emailNotice}</p> : null}
+        {panel === "email" && error ? <p className="sc-banner sc-banner--error" role="alert">{error}</p> : null}
+      </ScGroup>
+
       <ScGroup title="Password">
         <ScRow
           label="Password"
@@ -129,7 +178,7 @@ export function SecurityGroup() {
               : "Add a 6-digit code from an authenticator app (Google Authenticator, 1Password, Authy) when you sign in with a password or an email link."
           }
         >
-          {panel === "none" || panel === "password" || panel === "signout" ? (
+          {panel === "none" || panel === "password" || panel === "signout" || panel === "email" ? (
             twoStep.enabled ? (
               <span className="sc-security-actions">
                 <button type="button" className="sc-btn" onClick={() => open("regenerate")}>
@@ -265,7 +314,7 @@ export function SecurityGroup() {
         <p className="sc-muted sc-group-note">
           Signing in with Google uses your Google account&apos;s own 2-Step Verification instead.
         </p>
-        {error ? <p className="sc-banner sc-banner--error" role="alert">{error}</p> : null}
+        {error && panel !== "email" ? <p className="sc-banner sc-banner--error" role="alert">{error}</p> : null}
         {notice ? <p className="sc-banner" role="status">{notice}</p> : null}
       </ScGroup>
 

@@ -31,7 +31,9 @@ export type SecurityChange =
   | "two_step_off"
   | "recovery_codes"
   | "signed_out_everywhere"
-  | "new_sign_in";
+  | "new_sign_in"
+  | "email_change_requested"
+  | "email_changed";
 
 const NOTICE: Record<SecurityChange, { subject: string; text: string }> = {
   password_set: { subject: "Password added", text: "A password was added to your Orvius sign-in." },
@@ -44,6 +46,14 @@ const NOTICE: Record<SecurityChange, { subject: string; text: string }> = {
   },
   signed_out_everywhere: { subject: "Signed out everywhere", text: "Your Orvius account was signed out on every device." },
   new_sign_in: { subject: "New sign-in", text: "Your Orvius account was signed in to from a device it hasn't seen before." },
+  email_change_requested: {
+    subject: "Sign-in email change requested",
+    text: "Someone signed in to your Orvius account asked to move it to a new email address. Nothing changes unless the link sent to that address is opened within an hour.",
+  },
+  email_changed: {
+    subject: "Sign-in email changed",
+    text: "Your Orvius sign-in moved to a new email address. This address no longer signs in, and every device signed in with it was signed out.",
+  },
 };
 
 /*
@@ -63,7 +73,9 @@ export async function sendSecurityNotice(
   const notYou =
     change === "signed_out_everywhere"
       ? `If this wasn't you, sign in again and change your password: ${getAppUrl()}/signin`
-      : `If this wasn't you, sign in, choose "Sign out of all devices" and change your password: ${getAppUrl()}/dashboard?settings=account`;
+      : change === "email_changed"
+        ? `If this wasn't you, email ${company.supportEmail} right away from this address and we'll help you get the account back.`
+        : `If this wasn't you, sign in, choose "Sign out of all devices" and change your password: ${getAppUrl()}/dashboard?settings=account`;
   try {
     await sendOwnerEmail({
       to: email,

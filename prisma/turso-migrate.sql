@@ -1117,3 +1117,14 @@ CREATE TABLE IF NOT EXISTS "SignInEvent" (
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS "SignInEvent_email_createdAt_idx" ON "SignInEvent"("email", "createdAt");
+CREATE TABLE IF NOT EXISTS "EmailChange" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "fromEmail" TEXT NOT NULL,
+    "toEmail" TEXT NOT NULL,
+    "tokenHash" TEXT NOT NULL,
+    "expiresAt" DATETIME NOT NULL,
+    "usedAt" DATETIME,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "EmailChange_tokenHash_key" ON "EmailChange"("tokenHash");
+CREATE INDEX IF NOT EXISTS "EmailChange_fromEmail_createdAt_idx" ON "EmailChange"("fromEmail", "createdAt");
