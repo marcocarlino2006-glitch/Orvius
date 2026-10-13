@@ -77,6 +77,10 @@ test("the schedules don't depend on GitHub firing every five minutes", () => {
   assert.match(beat, /call alert-drain/);
   assert.match(beat, /call line-watch/);
   assert.match(beat, /cancel-in-progress: false/);
+  assert.match(beat, /actions: write/);
+  assert.match(beat, /gh workflow run sweep-heartbeat\.yml/, "each run queues the next, so coverage has no multi-hour gaps");
+  assert.match(beat, /gh workflow run uptime\.yml/, "the uptime probe runs near every ten minutes, not when GitHub gets to it");
+  assert.doesNotMatch(beat, /Queue the next heartbeat\n\s+if: always\(\)/, "a failing run must not re-queue itself in a loop");
   assert.match(read("src/app/api/status/route.ts"), /scheduleBackstop\("status"\)/);
   assert.match(read("src/app/api/webhooks/twilio/sms/route.ts"), /scheduleBackstop\("twilio\.sms"\)/);
   const backup = read(".github/workflows/backup.yml");

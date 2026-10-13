@@ -27,7 +27,7 @@ const APP = [
   "/dashboard/reports", "/dashboard/billing", "/dashboard/price-book", "/dashboard/portfolio", "/dashboard/pricing",
   "/dashboard?settings=account", "/dashboard?settings=business", "/dashboard?settings=notifications", "/dashboard?settings=billing",
 ];
-const VIEWPORTS = { desktop: { width: 1280, height: 900 }, phone: { width: 390, height: 844 } };
+const VIEWPORTS = { desktop: { width: 1280, height: 900 }, phone: { width: 360, height: 780 } };
 
 const browser = await chromium.launch();
 const findings = [];
@@ -78,9 +78,23 @@ for (const [vp, size] of Object.entries(VIEWPORTS)) {
         description: document.querySelector('meta[name="description"]')?.getAttribute("content") ?? "",
         h1: document.querySelectorAll("h1").length,
         hrefs: [...document.querySelectorAll("a[href]")].map((a) => a.getAttribute("href")),
+        headerOverlap: (() => {
+          const header = document.querySelector("header");
+          if (!header) return [];
+          const items = [...header.querySelectorAll("a, button")].filter((el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== "hidden" && !el.closest("[hidden], .mkt-nav-sheet, .mkt-nav-panel"); });
+          const hits = [];
+          for (let i = 0; i < items.length; i++) for (let j = i + 1; j < items.length; j++) {
+            if (items[i].contains(items[j]) || items[j].contains(items[i])) continue;
+            const a = items[i].getBoundingClientRect(), b = items[j].getBoundingClientRect();
+            const x = Math.min(a.right, b.right) - Math.max(a.left, b.left), y = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+            if (x > 2 && y > 2) hits.push(`${(items[i].textContent || items[i].getAttribute("aria-label") || "").trim().slice(0, 20)} / ${(items[j].textContent || items[j].getAttribute("aria-label") || "").trim().slice(0, 20)}`);
+          }
+          return hits.slice(0, 3);
+        })(),
         tinyTargets: vp === "phone" ? [...document.querySelectorAll("a, button")].filter((el) => { const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 && (r.height < 24 || r.width < 24) && getComputedStyle(el).display !== "inline"; }).length : 0,
       }), vp).catch((e) => (note(path, vp, "inspect-failed", e.message), null));
       if (facts) {
+        for (const hit of facts.headerOverlap) note(path, vp, "header-overlap", hit);
         if (facts.overflow > 1) note(path, vp, "sideways-scroll", `${facts.overflow}px: ${facts.wide.join(", ")}`);
         if (group === "public" && !expect404) {
           if (!facts.title || /^Orvius$/.test(facts.title.trim())) note(path, vp, "title", facts.title || "(none)");

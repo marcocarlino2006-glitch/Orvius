@@ -551,3 +551,20 @@ html.hx-motion [data-reveal-stagger].is-in > * {
     padding-block: 1rem;
   }
 }
+
+/*
+  On phones the two hero buttons stack at full width. Side by side they fit
+  with the fallback face and wrap once Inter loads, which jumped the hero.
+*/
+@media (max-width: 440px) {
+  .ov-public .ov-hero--center .ov-hero-inner--poster .ov-hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+    max-width: 22rem;
+    margin-inline: auto;
+  }
+
+  .ov-public .ov-hero--center .ov-hero-inner--poster .ov-hero-actions > * {
+    justify-content: center;
+  }
+}

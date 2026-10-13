@@ -5,6 +5,7 @@ import { logInfo, logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { getShopOutcomes, type ShopOutcomes } from "@/lib/shop-outcomes";
 import { sendSms } from "@/lib/twilio-sms";
+import { weeklyEmailUnsubscribe } from "@/lib/weekly-email-optout";
 
 /**
  * What the owner reads on Monday morning: what the line did last week, in
@@ -18,7 +19,7 @@ const money = (cents: number) =>
   `$${Math.round(cents / 100).toLocaleString("en-US")}`;
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
-export function buildWeeklyReportEmail(outcomes: ShopOutcomes, shopName: string, dashboardUrl: string) {
+export function buildWeeklyReportEmail(outcomes: ShopOutcomes, shopName: string, dashboardUrl: string, unsubscribeUrl?: string) {
   const subject =
     outcomes.calls === 0
       ? `${shopName}: no calls reached your line last week`
@@ -62,6 +63,7 @@ export function buildWeeklyReportEmail(outcomes: ShopOutcomes, shopName: string,
   }
 
   lines.push("", `See every call: ${dashboardUrl}`, "", "— Orvius");
+  if (unsubscribeUrl) lines.push("", `Stop these Monday emails: ${unsubscribeUrl}`);
   return { subject, text: lines.join("\n") };
 }
 
@@ -78,6 +80,7 @@ export async function sendDueWeeklyReports(now = new Date(), limit = 50) {
       isActive: true,
       environment: { notIn: ["test", "demo"] },
       ownerEmail: { not: null },
+      weeklyEmailOffAt: null,
       createdAt: { lte: new Date(now.getTime() - 7 * 24 * 60 * 60_000) },
       OR: [{ weeklyReportSentAt: null }, { weeklyReportSentAt: { lte: new Date(now.getTime() - WEEKLY_REPORT_INTERVAL_MS) } }],
     },
@@ -95,8 +98,15 @@ export async function sendDueWeeklyReports(now = new Date(), limit = 50) {
     if (!claimed.count) continue;
     try {
       const outcomes = await getShopOutcomes(shop.id, 7);
-      const email = buildWeeklyReportEmail(outcomes, shop.name, `${getAppBaseUrl()}/dashboard`);
-      await sendOwnerEmail({ to: shop.ownerEmail, ...email });
+      const unsubscribe = weeklyEmailUnsubscribe(shop.id);
+      const email = buildWeeklyReportEmail(outcomes, shop.name, `${getAppBaseUrl()}/dashboard`, unsubscribe?.page);
+      await sendOwnerEmail({
+        to: shop.ownerEmail,
+        ...email,
+        ...(unsubscribe
+          ? { headers: { "List-Unsubscribe": `<${unsubscribe.oneClick}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" } }
+          : {}),
+      });
       sent += 1;
       logInfo("weekly_report.sent", { businessId: shop.id, calls: outcomes.calls });
     } catch (error) {

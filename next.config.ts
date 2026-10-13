@@ -14,6 +14,14 @@ const nextConfig: NextConfig = {
       { source: "/for/:trade(roofing|garage-doors|pest-control|locksmith|appliance-repair)", destination: "/", permanent: true },
     ];
   },
+  // Browsers, iOS and link unfurlers ask for these fixed paths without reading the page's icon tags.
+  async rewrites() {
+    return [
+      { source: "/favicon.ico", destination: "/icon" },
+      { source: "/apple-touch-icon.png", destination: "/apple-icon" },
+      { source: "/apple-touch-icon-precomposed.png", destination: "/apple-icon" },
+    ];
+  },
   async headers() {
     return [
       {
