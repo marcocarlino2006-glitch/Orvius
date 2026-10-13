@@ -256,6 +256,9 @@ function formatMoney(cents: number): string {
   }).format(cents / 100);
 }
 
+/** A long-standing commercial customer can have hundreds of calls; the page shows the most recent of each kind. */
+const TIMELINE_LIMIT = 100;
+
 export async function getCustomerTimeline(
   customerId: string,
 ): Promise<TimelineEvent[]> {
@@ -267,14 +270,19 @@ export async function getCustomerTimeline(
     prisma.call.findMany({
       where: { customerId },
       orderBy: { createdAt: "desc" },
+      take: TIMELINE_LIMIT,
+      select: { id: true, createdAt: true, status: true, summary: true },
     }),
     prisma.lead.findMany({
       where: { customerId },
       orderBy: { createdAt: "desc" },
+      take: TIMELINE_LIMIT,
+      select: { id: true, createdAt: true, serviceType: true, notes: true, source: true, urgency: true, status: true },
     }),
     prisma.job.findMany({
       where: { customerId },
       orderBy: { createdAt: "desc" },
+      take: TIMELINE_LIMIT,
       include: {
         estimate: {
           include: {

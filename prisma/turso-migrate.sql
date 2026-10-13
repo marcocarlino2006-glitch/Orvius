@@ -1128,3 +1128,15 @@ CREATE TABLE IF NOT EXISTS "EmailChange" (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "EmailChange_tokenHash_key" ON "EmailChange"("tokenHash");
 CREATE INDEX IF NOT EXISTS "EmailChange_fromEmail_createdAt_idx" ON "EmailChange"("fromEmail", "createdAt");
+CREATE INDEX IF NOT EXISTS "PlanMember_planId_idx" ON "PlanMember"("planId");
+CREATE INDEX IF NOT EXISTS "Call_customerId_idx" ON "Call"("customerId");
+CREATE INDEX IF NOT EXISTS "Lead_customerId_idx" ON "Lead"("customerId");
+CREATE INDEX IF NOT EXISTS "Job_customerId_idx" ON "Job"("customerId");
+CREATE INDEX IF NOT EXISTS "JobNote_businessId_idx" ON "JobNote"("businessId");
+CREATE INDEX IF NOT EXISTS "JobLineItem_businessId_idx" ON "JobLineItem"("businessId");
+CREATE INDEX IF NOT EXISTS "Estimate_leadId_idx" ON "Estimate"("leadId");
+CREATE INDEX IF NOT EXISTS "Payment_invoiceId_idx" ON "Payment"("invoiceId");
+CREATE INDEX IF NOT EXISTS "Deposit_leadId_idx" ON "Deposit"("leadId");
+CREATE INDEX IF NOT EXISTS "Deposit_jobId_idx" ON "Deposit"("jobId");
+CREATE INDEX IF NOT EXISTS "Message_sid_idx" ON "Message"("sid");
+ALTER TABLE "Business" ADD COLUMN "weeklyEmailOffAt" DATETIME;

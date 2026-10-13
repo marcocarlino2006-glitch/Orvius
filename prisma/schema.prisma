@@ -94,6 +94,8 @@ model Business {
   lastWeeklyProofAt    DateTime?
   /** Last automatic Monday results email. */
   weeklyReportSentAt DateTime?
+  /** Set when the owner stops the Monday email (one-click unsubscribe); null sends it. */
+  weeklyEmailOffAt   DateTime?
   /** Last weekly value text to the owner's phone. */
   weeklyTextSentAt   DateTime?
   /// Owner's private iCal address; busy times there are never offered to callers.
@@ -369,6 +371,7 @@ model PlanMember {
   @@index([businessId, status])
   @@index([businessId, phoneNormalized])
   @@index([status, nextVisitDueAt])
+  @@index([planId])
 }
 
 /** Every customer text in and out, so the owner reads and answers one thread per phone. */
@@ -394,6 +397,7 @@ model Message {
   @@unique([businessId, sid])
   @@index([businessId, phoneNormalized, createdAt])
   @@index([businessId, createdAt])
+  @@index([sid])
 }
 
 model SmsOptOut {
@@ -524,6 +528,7 @@ model Call {
   @@index([businessId, updatedAt])
   @@index([contentPurgedAt, createdAt])
   @@index([businessId, heldSlotAt])
+  @@index([customerId])
 }
 
 model Lead {
@@ -576,6 +581,7 @@ model Lead {
   @@index([businessId, postalCode])
   @@index([businessId, updatedAt])
   @@index([businessId, status, createdAt])
+  @@index([customerId])
 }
 
 model Job {
@@ -652,6 +658,7 @@ model Job {
   @@index([businessId, categoryCode])
   @@index([customerConfirmSid])
   @@index([businessId, updatedAt])
+  @@index([customerId])
 }
 
 model Technician {
@@ -778,6 +785,7 @@ model JobNote {
   createdAt    DateTime @default(now())
 
   @@index([jobId, createdAt])
+  @@index([businessId])
 }
 
 /** One line of work on a job. A job with lines is billed their total. */
@@ -797,6 +805,7 @@ model JobLineItem {
   createdAt       DateTime @default(now())
 
   @@index([jobId, position])
+  @@index([businessId])
 }
 
 /** The shop's saved services, labor and parts with prices. */
@@ -843,6 +852,7 @@ model Estimate {
 
   @@index([businessId, status])
   @@index([businessId, createdAt])
+  @@index([leadId])
 }
 
 /** What the customer owes for finished work; paid by card on the shop's own Stripe account or recorded by hand. */
@@ -891,6 +901,7 @@ model Payment {
   createdAt   DateTime @default(now())
 
   @@index([businessId, createdAt])
+  @@index([invoiceId])
 }
 
 /**
@@ -931,6 +942,8 @@ model Deposit {
 
   @@index([businessId, status])
   @@index([businessId, createdAt])
+  @@index([leadId])
+  @@index([jobId])
 }
 
 /** Approve-then-execute Copilot actions. */
