@@ -14,6 +14,7 @@ import {
 import type { CoverageState } from "@/lib/coverage-state";
 import type { AttentionItem } from "@/lib/attention-types";
 import type { CommandCounts } from "@/lib/command-model";
+import type { CommandFlow, CommandMoney } from "@/lib/command-depth";
 import type { PersonalBrief } from "@/lib/personal-brief";
 import type { ShopHealth } from "@/lib/shop-health";
 import type { ReceptionistWeek } from "@/lib/receptionist-week";
@@ -32,6 +33,32 @@ import type {
 export type Ring1Lock = {
   reason: "past_due" | "canceled" | "trial_ended" | "unpaid" | "paused";
   message: string;
+};
+
+export type CrewBlock = {
+  id: string;
+  title: string;
+  customerName: string | null;
+  startMin: number;
+  endMin: number;
+  status: string;
+  step: "completed" | "on_site" | "en_route" | "accepted" | "waiting_tech";
+  customerConfirmed: boolean;
+  emergency: boolean;
+  conflict: string | null;
+};
+
+export type CrewBoard = {
+  isToday: boolean;
+  dayStart: string;
+  window: { startMin: number; endMin: number };
+  lanes: Array<{
+    technician: { id: string; name: string; phone: string | null };
+    availability: string | null;
+    offAllDay: boolean;
+    blocks: CrewBlock[];
+  }>;
+  unassigned: Array<{ id: string; title: string; customerName: string | null; startMin: number; endMin: number; emergency: boolean }>;
 };
 
 export type Ring1Data = {
@@ -73,6 +100,9 @@ export type Ring1Data = {
       lead?: { name: string | null; phone: string | null } | null;
     }>;
   };
+  flow?: CommandFlow;
+  money?: CommandMoney;
+  crewBoard?: CrewBoard;
   technicians?: Array<{ id: string; name: string }>;
   health?: ShopHealth;
   wedge?: WedgeReadiness;

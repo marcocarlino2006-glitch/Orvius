@@ -8,6 +8,7 @@ import { shopDayBounds } from "@/lib/availability";
 import { isAfterHours } from "@/lib/business";
 import { getShopLineForBusiness, isDemoBusiness } from "@/lib/demo-business";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
+import { getCommandFlow, getCommandMoney } from "@/lib/command-depth";
 import { getDispatchBoard } from "@/lib/field";
 import { parseSince } from "@/lib/personal-brief";
 import { loadPersonalBrief } from "@/lib/personal-brief-data";
@@ -101,6 +102,8 @@ export async function GET(request: Request) {
     work,
     awaitingResponse,
     upcomingJobs,
+    flow,
+    money,
   ] = await Promise.all([
     prisma.call.count({ where: { ...businessFilter, createdAt: { gte: today } } }),
     prisma.lead.count({ where: { ...businessFilter, createdAt: { gte: today } } }),
@@ -184,6 +187,8 @@ export async function GET(request: Request) {
         scheduledAt: { gte: now, lt: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000) },
       },
     }),
+    getCommandFlow(business.id, now),
+    getCommandMoney(business.id, now),
   ]);
   const crew = dispatchBoard.crew;
   const boardJobs = [...dispatchBoard.unassigned, ...dispatchBoard.columns.flatMap((c) => c.jobs)];
@@ -354,6 +359,9 @@ export async function GET(request: Request) {
         },
       ),
     },
+    flow,
+    money,
+    crewBoard: crewBoard(dispatchBoard, boardJobs),
     technicians: crew.map((tech) => ({ id: tech.id, name: tech.name })),
     health,
     wedge,
@@ -363,4 +371,43 @@ export async function GET(request: Request) {
     /** Sent back as `v` on the next poll to skip the rebuild when nothing changed. */
     version: await versionP,
   });
+}
+
+type Board = Awaited<ReturnType<typeof getDispatchBoard>>;
+
+/** Today's lanes with each block's real step, so Command can draw where the crew is without a second read. */
+function crewBoard(board: Board, jobs: Board["unassigned"]) {
+  const byId = new Map(jobs.map((j) => [j.id, j]));
+  const step = (id: string, status: string) => {
+    const job = byId.get(id);
+    if (status === "completed" || status === "on_site" || status === "en_route") return status;
+    if (job?.techAcceptedAt) return "accepted";
+    return "waiting_tech";
+  };
+  const block = (b: { id: string; title: string; status: string; startMin: number; endMin: number; customerName: string | null; urgency: string | null; conflict?: string | null }) => ({
+    id: b.id,
+    title: b.title,
+    customerName: b.customerName,
+    startMin: b.startMin,
+    endMin: b.endMin,
+    status: b.status,
+    step: step(b.id, b.status),
+    customerConfirmed: Boolean(byId.get(b.id)?.customerConfirmedAt),
+    emergency: b.urgency === "emergency",
+    conflict: b.conflict ?? null,
+  });
+  return {
+    isToday: board.day === board.today,
+    dayStart: board.dayStart,
+    window: board.schedule.window,
+    lanes: board.schedule.lanes.map((lane) => ({
+      technician: { id: lane.technician.id, name: lane.technician.name, phone: lane.technician.phone ?? null },
+      availability: lane.availability,
+      offAllDay: lane.offAllDay,
+      blocks: lane.blocks.map(block),
+    })),
+    unassigned: board.schedule.unassigned
+      .filter((u) => u.startMin != null && u.endMin != null)
+      .map((u) => ({ id: u.id, title: u.title, customerName: u.customerName, startMin: u.startMin!, endMin: u.endMin!, emergency: u.urgency === "emergency" })),
+  };
 }

@@ -1747,3 +1747,410 @@ a.cmd-feed-text:hover {
 .jv-step.is-problem .jv-step-label {
   color: var(--ox-amber);
 }
+
+/* Command depth: the flow of work, the money, and the crew on one time axis. */
+.cmd-depth {
+  display: grid;
+  gap: 0.875rem;
+  margin-bottom: 1.25rem;
+}
+
+.cmd-flow {
+  padding: 1rem 1.125rem 1.125rem;
+  border: 1px solid var(--ox-line);
+  border-radius: var(--ox-radius);
+  background: var(--ox-s1);
+}
+
+.cmd-flow-stages {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cmd-flow-link {
+  position: relative;
+  display: grid;
+  gap: 0.25rem;
+  height: 100%;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid var(--ox-line);
+  border-radius: var(--ox-radius-sm, 8px);
+  background: var(--ox-s2);
+  color: var(--ox-text);
+  text-decoration: none;
+  transition: border-color var(--ox-dur-fast) var(--ox-ease), background var(--ox-dur-fast) var(--ox-ease);
+}
+
+.cmd-flow-link:hover {
+  border-color: var(--ox-line-strong);
+  background: var(--ox-fill-light);
+}
+
+.cmd-flow-stage + .cmd-flow-stage .cmd-flow-link::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -0.4375rem;
+  width: 0.375rem;
+  height: 1px;
+  background: var(--ox-line-strong);
+}
+
+.cmd-flow-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ox-mute);
+}
+
+.cmd-flow-count {
+  font-size: 1.625rem;
+  font-weight: 650;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.cmd-flow-bar {
+  display: block;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--ox-line);
+  overflow: hidden;
+}
+
+.cmd-flow-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--ox-green);
+}
+
+.cmd-flow-wait {
+  font-size: 0.75rem;
+  color: var(--ox-mute);
+}
+
+.cmd-flow-stage.has-waiting .cmd-flow-wait {
+  color: var(--ox-amber);
+  font-weight: 600;
+}
+
+.cmd-money {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid var(--ox-line);
+  border-radius: var(--ox-radius);
+  background: var(--ox-s1);
+  overflow: hidden;
+}
+
+.cmd-money-cell {
+  display: grid;
+  gap: 0.125rem;
+  padding: 0.875rem 1.125rem;
+  color: var(--ox-text);
+  text-decoration: none;
+}
+
+.cmd-money-cell + .cmd-money-cell {
+  border-left: 1px solid var(--ox-line);
+}
+
+a.cmd-money-cell:hover {
+  background: var(--ox-fill-light);
+}
+
+.cmd-money-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ox-mute);
+}
+
+.cmd-money-value {
+  font-size: 1.25rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.cmd-money-note {
+  font-size: 0.75rem;
+  color: var(--ox-mute);
+}
+
+.cmd-money-cell.is-owed .cmd-money-value,
+.cmd-money-cell.is-owed .cmd-money-note {
+  color: var(--ox-amber);
+}
+
+.cmd-money-empty {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 0.625rem 1.125rem;
+  border-top: 1px solid var(--ox-line);
+  font-size: 0.8125rem;
+  color: var(--ox-mute);
+}
+
+.cmd-crew {
+  display: grid;
+  gap: 0.375rem;
+}
+
+.cmd-crew-narrow {
+  display: none;
+}
+
+.cmd-crew-lane {
+  display: grid;
+  grid-template-columns: 12rem minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.cmd-crew-who {
+  display: grid;
+  min-width: 0;
+}
+
+.cmd-crew-name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ox-text);
+  text-decoration: none;
+}
+
+a.cmd-crew-name:hover {
+  text-decoration: underline;
+}
+
+.cmd-crew-now {
+  overflow: hidden;
+  font-size: 0.75rem;
+  color: var(--ox-mute);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cmd-crew-now.is-on_site,
+.cmd-crew-now.is-en_route {
+  color: var(--ox-green);
+  font-weight: 600;
+}
+
+.cmd-crew-now.is-late {
+  color: var(--ox-amber);
+  font-weight: 600;
+}
+
+.cmd-crew-track {
+  position: relative;
+  height: 2.25rem;
+  border: 1px solid var(--ox-line);
+  border-radius: var(--ox-radius-sm, 8px);
+  background: var(--ox-s1);
+}
+
+.cmd-crew-axis .cmd-crew-track {
+  height: 1.25rem;
+  border: 0;
+  background: none;
+}
+
+.cmd-crew-tick,
+.cmd-crew-nowtag {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ox-mute);
+  white-space: nowrap;
+}
+
+.cmd-crew-nowtag {
+  padding: 0 0.3125rem;
+  border-radius: 4px;
+  background: var(--ox-red);
+  color: #fff;
+  font-weight: 700;
+}
+
+.cmd-crew-grid {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--ox-line);
+}
+
+.cmd-crew-nowline {
+  position: absolute;
+  top: -0.25rem;
+  bottom: -0.25rem;
+  z-index: 2;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--ox-red);
+  pointer-events: none;
+}
+
+.cmd-crew-block {
+  position: absolute;
+  top: 0.25rem;
+  bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+  padding: 0 0.5rem;
+  border: 1px solid var(--ox-line-strong);
+  border-left-width: 3px;
+  border-radius: 6px;
+  background: var(--ox-s3);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ox-text);
+  text-decoration: none;
+  overflow: hidden;
+}
+
+.cmd-crew-block span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cmd-crew-block:hover {
+  z-index: 1;
+  border-color: var(--ox-text-2);
+}
+
+.cmd-crew-block.is-waiting_tech,
+.cmd-crew-key .is-waiting_tech::before {
+  border-color: var(--ox-amber);
+  background: var(--ox-amber-soft);
+}
+
+.cmd-crew-block.is-accepted,
+.cmd-crew-key .is-accepted::before {
+  border-color: var(--ox-text-2);
+  background: var(--ox-s3);
+}
+
+.cmd-crew-block.is-en_route,
+.cmd-crew-key .is-en_route::before {
+  border-color: var(--ox-green);
+  background: var(--ox-green-soft);
+}
+
+.cmd-crew-block.is-on_site,
+.cmd-crew-key .is-on_site::before {
+  border-color: var(--ox-green);
+  background: var(--ox-green);
+  color: #06140d;
+}
+
+.cmd-crew-block.is-completed,
+.cmd-crew-key .is-completed::before {
+  border-color: var(--ox-line);
+  background: var(--ox-s2);
+  color: var(--ox-mute);
+  font-weight: 500;
+}
+
+.cmd-crew-block.is-open,
+.cmd-crew-block.is-conflict {
+  border-style: dashed;
+  border-color: var(--ox-red);
+  background: var(--ox-red-soft);
+}
+
+.cmd-crew-block.is-emergency {
+  box-shadow: inset 0 0 0 1px var(--ox-red);
+}
+
+.cmd-crew-unconfirmed,
+.cmd-crew-key .is-unconfirmed::before {
+  flex: none;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 999px;
+  background: var(--ox-amber);
+}
+
+.cmd-crew-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem 1rem;
+  margin: 0.375rem 0 0 12.75rem;
+  font-size: 0.75rem;
+  color: var(--ox-mute);
+}
+
+.cmd-crew-key span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.cmd-crew-key span::before {
+  content: "";
+  width: 0.75rem;
+  height: 0.5rem;
+  border: 1px solid;
+  border-left-width: 3px;
+  border-radius: 2px;
+}
+
+.cmd-crew-key .is-unconfirmed::before {
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border: 0;
+}
+
+@media (max-width: 1023px) {
+  .cmd-flow-stages {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .cmd-flow-stage + .cmd-flow-stage .cmd-flow-link::before {
+    display: none;
+  }
+
+  .cmd-money {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cmd-money-cell:nth-child(3) {
+    border-left: 0;
+  }
+
+  .cmd-money-cell:nth-child(n + 3) {
+    border-top: 1px solid var(--ox-line);
+  }
+}
+
+@media (max-width: 720px) {
+  .cmd-crew-wide {
+    display: none;
+  }
+
+  .cmd-crew-narrow {
+    display: block;
+  }
+}
+
+@media (max-width: 640px) {
+  .cmd-flow-stages {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cmd-flow-count {
+    font-size: 1.375rem;
+  }
+}

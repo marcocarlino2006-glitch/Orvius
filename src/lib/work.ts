@@ -409,7 +409,14 @@ function attach(item: WorkItem, problems: WorkProblem[], approvalId: string | nu
     .map((p) => ({ ...p, detail: withoutRepeats(p.detail, item) }))
     .sort((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]);
   const open = item.open || list.length > 0 || Boolean(approvalId);
-  return finish({ ...item, open, problems: list, approvalId, takenOver });
+  const action = list[0] ? problemAction(list[0].kind, item) : null;
+  return finish({ ...item, ...(action ? { nextAction: action[0], waitingOn: action[1] } : {}), open, problems: list, approvalId, takenOver });
+}
+
+/** The worst problem's own fix, when it is not the step the stage would suggest. */
+function problemAction(kind: WorkProblem["kind"], item: WorkItem): [string, WaitingOn] | null {
+  if (kind === "tech_unanswered" && item.technician) return [`Call ${item.technician.name}`, "you"];
+  return null;
 }
 
 /* ---------------- Reading a shop's work ---------------- */
