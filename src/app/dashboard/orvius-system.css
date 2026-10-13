@@ -269,7 +269,7 @@ html[data-theme="day"] .os-shell-night {
   height: 36px !important;
   padding: 0 12px !important;
   border: 0 !important;
-  border-radius: 8px !important;
+  border-radius: 4px !important;
   background: var(--ox-fill) !important;
   color: var(--ox-text-2) !important;
   font-size: 0.875rem !important;
@@ -334,7 +334,7 @@ body:has(.os-shell.os-shell-night) {
   gap: 0.4rem;
   min-height: 36px !important;
   padding: 0 12px !important;
-  border-radius: 8px !important;
+  border-radius: 4px !important;
   font-size: 14px !important;
   font-weight: 500 !important;
   letter-spacing: 0 !important;
@@ -435,7 +435,7 @@ body:has(.os-shell.os-shell-night) {
 .os-shell.os-shell-night textarea {
   min-height: 36px;
   border: 1px solid var(--ox-line-strong) !important;
-  border-radius: 8px !important;
+  border-radius: 4px !important;
   background: var(--ox-fill-light) !important;
   color: var(--ox-text) !important;
   font-size: 14px !important;
