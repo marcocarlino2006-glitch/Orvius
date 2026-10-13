@@ -142,6 +142,7 @@
 
 .cmd-crew-block {
   min-width: 6.5rem;
+  max-width: 100%;
   top: 0.3125rem;
   bottom: 0.3125rem;
   padding: 0 0.5rem;
@@ -221,4 +222,8 @@
   :root body .os-shell.os-shell-pro.os-shell-pro.os-shell-night .cmd .cmd-headline {
     font-size: 1.5rem !important;
   }
+}
+
+.cmd-crew-track {
+  overflow-x: clip;
 }
