@@ -221,6 +221,7 @@ async function runWindowProposal(
       scheduledAt: at,
       status: job.status === "confirmed" ? "scheduled" : job.status,
       customerConfirmedAt: null,
+      techAcceptedAt: null,
       customerConfirmSentAt: null,
       customerConfirmFailedAt: null,
       customerConfirmReminderSentAt: null,

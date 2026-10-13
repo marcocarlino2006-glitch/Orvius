@@ -2,6 +2,7 @@ import { ensureJobTechToken, retireTechLink } from "@/lib/ensure-tech-token";
 import { JOB_INCLUDE, serializeJob } from "@/lib/job";
 import { prisma } from "@/lib/prisma";
 import { buildTechJobAssignMessage } from "@/lib/tech-assign-sms";
+import { markTechNotified, resetTechAnswer } from "@/lib/tech-response";
 import { ensureTechAppToken, techAppUrl } from "@/lib/tech-app-link";
 import { sendSms } from "@/lib/twilio-sms";
 
@@ -19,6 +20,10 @@ export async function notifyTechOnAssign(params: {
 
   if (previousTechnicianId && previousTechnicianId !== nextTechnicianId) {
     await retireTechLink(jobId).catch((err) => console.error("[tech-assign-sms] retire link", err));
+  }
+
+  if (nextTechnicianId !== previousTechnicianId) {
+    await resetTechAnswer(jobId, nextTechnicianId).catch((err) => console.error("[tech-assign-sms] reset answer", err));
   }
 
   if (!nextTechnicianId || nextTechnicianId === previousTechnicianId) {
@@ -62,6 +67,7 @@ export async function notifyTechOnAssign(params: {
       return { sent: false, reason: "sms_unavailable", techToken };
     }
 
+    await markTechNotified(job.id, nextTechnicianId);
     return { sent: true, techToken };
   } catch (err) {
     console.error("[tech-assign-sms]", err);

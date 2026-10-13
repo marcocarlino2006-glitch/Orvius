@@ -15,6 +15,7 @@ import { mintPublicToken } from "@/lib/public-tokens";
 import { withSmsOptOutFooter } from "@/lib/sms-keywords";
 import { getConnectStatus } from "@/lib/stripe-connect";
 import { ensureTechAppToken, techAppUrl } from "@/lib/tech-app-link";
+import { acceptJob, declineJob } from "@/lib/tech-response";
 import { sendSms } from "@/lib/twilio-sms";
 
 /**
@@ -99,6 +100,7 @@ const JOB_SELECT = {
   scheduledAt: true,
   completedAt: true,
   createdAt: true,
+  techAcceptedAt: true,
   address: true,
   urgency: true,
   serviceType: true,
@@ -133,6 +135,8 @@ export type TechDayJob = {
   customerName: string | null;
   customerPhone: string | null;
   hasNotes: boolean;
+  /** Assigned and not answered yet: the technician still owes the office a yes or a no. */
+  needsAnswer: boolean;
 };
 
 /**
@@ -171,6 +175,7 @@ export async function techDay(tech: TechSession, now = new Date()) {
     urgency: j.urgency,
     ...customerOf(j),
     hasNotes: Boolean(j.notes?.trim()),
+    needsAnswer: !j.techAcceptedAt && (j.status === "scheduled" || j.status === "confirmed"),
     key: j.scheduledAt ? dayKey(j.scheduledAt, tz) : todayKey,
   }));
   const now_ = jobs.filter((j) => j.status === "en_route" || j.status === "on_site");
@@ -254,6 +259,7 @@ export async function techJobDetail(tech: TechSession, jobId: string) {
       officeNotes: job.notes,
       etaText: job.etaText,
       customerConfirmed: Boolean(job.customerConfirmedAt),
+      accepted: Boolean(job.techAcceptedAt),
       officeConfirmed: !job.customerConfirmedAt && job.status === "confirmed",
       resolutionCode: job.resolutionCode,
       resolutionSummary: job.resolutionSummary,
@@ -288,7 +294,7 @@ async function customerText(jobId: string, businessId: string, body: string, act
   }
 }
 
-const TECH_STATUSES = ["confirmed", "en_route", "on_site", "completed"] as const;
+const TECH_STATUSES = ["en_route", "on_site", "completed"] as const;
 
 /* Past this, an "on my way" or "I've arrived" text would reach the customer after the fact. */
 export const LATE_FIELD_UPDATE_MS = 15 * 60_000;
@@ -307,7 +313,7 @@ export function fieldTime(happenedAt: unknown, now = new Date()) {
 export async function techUpdateJob(
   tech: TechSession,
   jobId: string,
-  body: { status?: unknown; etaText?: unknown; resolutionCode?: unknown; resolutionSummary?: unknown; finalAmountCents?: unknown; happenedAt?: unknown },
+  body: { status?: unknown; accept?: unknown; decline?: unknown; reason?: unknown; etaText?: unknown; resolutionCode?: unknown; resolutionSummary?: unknown; finalAmountCents?: unknown; happenedAt?: unknown },
   now = new Date(),
 ) {
   const job = await techJob(tech, jobId);
@@ -317,6 +323,15 @@ export async function techUpdateJob(
   const who = firstName(tech.name) ?? "Your technician";
   const actor = { actor: "technician" as const, actorEmail: null };
 
+  if (body.decline === true) {
+    await declineJob({ job: { id: job.id, businessId: tech.businessId, technicianId: tech.id }, technician: tech, reason: body.reason, now });
+    return { declined: true };
+  }
+  /* "confirmed" from the field is the technician's yes, never the customer's. */
+  if (body.accept === true || body.status === "confirmed") {
+    await acceptJob({ job: { id: job.id, businessId: tech.businessId, technicianId: tech.id }, technician: tech, at });
+    if (body.status === "confirmed") return techJobDetail(tech, job.id);
+  }
   if (typeof body.etaText === "string") {
     await prisma.job.update({ where: { id: job.id }, data: { etaText: body.etaText.trim().slice(0, 80) || null } });
   }
@@ -357,7 +372,8 @@ export async function techUpdateJob(
       );
     }
   } else if (status) {
-    await updateJobStatus(job.id, status as "confirmed" | "en_route", { at, notifyCustomer: !late });
+    await updateJobStatus(job.id, "en_route", { at, notifyCustomer: !late });
+    await acceptJob({ job: { id: job.id, businessId: tech.businessId, technicianId: tech.id }, technician: tech, at });
     await recordAudit({
       businessId: tech.businessId,
       entityType: "job",
@@ -365,7 +381,7 @@ export async function techUpdateJob(
       jobId: job.id,
       action: "job.status",
       ...actor,
-      summary: (status === "en_route" ? `${tech.name} is on the way` : `${tech.name} confirmed the job`) + lateNote,
+      summary: `${tech.name} is on the way${lateNote}`,
     });
   }
   return techJobDetail(tech, job.id);

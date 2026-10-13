@@ -171,7 +171,7 @@ export async function PATCH(request: Request, { params }: Params) {
                   (next?.getTime() ?? null) !== (prev?.getTime() ?? null);
                 return {
                   scheduledAt: next,
-                  ...(changed ? { customerConfirmedAt: null } : {}),
+                  ...(changed ? { customerConfirmedAt: null, techAcceptedAt: null } : {}),
                   ...(changed && !body.status && existing.status === "confirmed" ? { status: "scheduled" } : {}),
                 };
               })()
@@ -270,8 +270,9 @@ export async function PATCH(request: Request, { params }: Params) {
     techChange = await notifyTechJobChanged({ jobId: id, technicianId: job.technicianId, change: "moved" });
   }
 
+  const answered = assigningTech ? await prisma.job.findUnique({ where: { id }, include: JOB_INCLUDE }) : null;
   return NextResponse.json({
-    job: serializeJob(job),
+    job: serializeJob(answered ?? job),
     ...(techSms ? { techSms } : {}),
     ...(techChange ? { techChange } : {}),
     ...(invoiceSent !== undefined ? { invoiceSent } : {}),
