@@ -13,6 +13,7 @@ type TechJob = {
   serviceType: string | null;
   notes: string | null;
   etaText: string | null;
+  accepted: boolean;
   resolutionCode: string | null;
   resolutionSummary: string | null;
   finalAmountCents: number | null;
@@ -25,7 +26,7 @@ type TechJob = {
 };
 
 const ADVANCES: Record<string, { label: string; status: string } | null> = {
-  scheduled: { label: "Confirm job", status: "confirmed" },
+  scheduled: { label: "Heading there", status: "en_route" },
   confirmed: { label: "Heading there", status: "en_route" },
   en_route: { label: "I'm on site", status: "on_site" },
   on_site: { label: "Complete job", status: "completed" },
@@ -35,7 +36,7 @@ const ADVANCES: Record<string, { label: string; status: string } | null> = {
 
 const STATUS_LABEL: Record<string, string> = {
   scheduled: "Scheduled",
-  confirmed: "Confirmed",
+  confirmed: "Time confirmed",
   en_route: "On the way",
   on_site: "On site",
   completed: "Complete",
@@ -72,6 +73,9 @@ export function TechFieldClient({ token }: { token: string }) {
   const [resolutionCode, setResolutionCode] = useState("");
   const [resolutionSummary, setResolutionSummary] = useState("");
   const [finalAmount, setFinalAmount] = useState("");
+  const [declining, setDeclining] = useState(false);
+  const [declineReason, setDeclineReason] = useState("");
+  const [declined, setDeclined] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -94,7 +98,7 @@ export function TechFieldClient({ token }: { token: string }) {
     void load();
   }, [load]);
 
-  async function patch(body: Record<string, string | number | null>) {
+  async function patch(body: Record<string, string | number | boolean | null>) {
     setBusy(true);
     setError(null);
     try {
@@ -105,6 +109,10 @@ export function TechFieldClient({ token }: { token: string }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Update failed");
+      if (data.declined) {
+        setDeclined(true);
+        return true;
+      }
       setJob(data.job);
       if (data.job?.etaText != null) setEtaText(data.job.etaText);
       return true;
@@ -120,6 +128,15 @@ export function TechFieldClient({ token }: { token: string }) {
     return (
       <main className="pf">
         <p className="pf-muted">Loading job…</p>
+      </main>
+    );
+  }
+
+  if (declined) {
+    return (
+      <main className="pf">
+        <h1 className="pf-title">Sent to the office</h1>
+        <p className="pf-muted">You&apos;re off this job. The office was told so they can give it to someone else.</p>
       </main>
     );
   }
@@ -226,7 +243,54 @@ export function TechFieldClient({ token }: { token: string }) {
         ) : null}
       </dl>
 
-      {job.status === "confirmed" || job.status === "en_route" ? (
+      {!job.accepted && (job.status === "scheduled" || job.status === "confirmed") ? (
+        <section className="pf-card pf-answer" aria-labelledby="pf-answer-title">
+          <h2 id="pf-answer-title" className="pf-h2">
+            Can you take this job?
+          </h2>
+          <p className="pf-muted">The office sees your answer right away.</p>
+          {declining ? (
+            <>
+              <label className="pf-label" htmlFor="pf-decline">
+                Why not? <em>Optional</em>
+              </label>
+              <input
+                id="pf-decline"
+                className="pf-input"
+                value={declineReason}
+                maxLength={200}
+                onChange={(e) => setDeclineReason(e.target.value)}
+                placeholder="e.g. Still on another job"
+                disabled={busy}
+              />
+              <div className="pf-inline">
+                <button type="button" className="pf-btn" disabled={busy} onClick={() => setDeclining(false)}>
+                  Back
+                </button>
+                <button
+                  type="button"
+                  className="pf-btn pf-btn--primary"
+                  disabled={busy}
+                  onClick={() => void patch({ decline: true, ...(declineReason.trim() ? { reason: declineReason.trim() } : {}) })}
+                >
+                  {busy ? "Sending…" : "Tell the office"}
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="pf-inline">
+              <button type="button" className="pf-btn pf-btn--primary" disabled={busy} onClick={() => void patch({ accept: true })}>
+                {busy ? "Saving…" : "I'll take it"}
+              </button>
+              <button type="button" className="pf-btn" disabled={busy} onClick={() => setDeclining(true)}>
+                I can&apos;t take it
+              </button>
+            </div>
+          )}
+        </section>
+      ) : null}
+
+      {job.status === "scheduled" || job.status === "confirmed" || job.status === "en_route" ? (
         <form
           className="pf-card pf-eta"
           onSubmit={(e) => {
@@ -236,7 +300,7 @@ export function TechFieldClient({ token }: { token: string }) {
           }}
         >
           <label className="pf-label" htmlFor="pf-eta">
-            {job.status === "confirmed"
+            {job.status !== "en_route"
               ? "How long until you get there? It goes in the customer's \"on the way\" text."
               : "Arrival time — updates the customer's tracking page"}
           </label>

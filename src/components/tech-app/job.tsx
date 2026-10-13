@@ -37,6 +37,7 @@ type Detail = {
     etaText: string | null;
     customerConfirmed: boolean;
     officeConfirmed?: boolean;
+    accepted?: boolean;
     resolutionCode: string | null;
     resolutionSummary: string | null;
     customerName: string | null;
@@ -68,7 +69,9 @@ function withPending(d: Detail, base: string, queued: Queued[]): Detail {
     } catch {
       continue;
     }
-    if (q.url === base && typeof body.status === "string") {
+    if (q.url === base && body.accept === true) {
+      next = { ...next, job: { ...next.job, accepted: true } };
+    } else if (q.url === base && typeof body.status === "string") {
       next = { ...next, job: { ...next.job, status: body.status, ...(typeof body.resolutionCode === "string" ? { resolutionCode: body.resolutionCode, resolutionSummary: typeof body.resolutionSummary === "string" ? body.resolutionSummary : null } : {}) } };
     } else if (q.url === `${base}/notes` && typeof body.body === "string") {
       next = { ...next, notes: [...next.notes, { id: `pending-${q.id}`, authorKind: "technician", authorName: d.technician.name, body: body.body, createdAt: q.at, pending: true }] };
@@ -749,6 +752,9 @@ export function TechJob({ token, jobId }: { token: string; jobId: string }) {
   const [summary, setSummary] = useState("");
   const [amount, setAmount] = useState("");
   const finishRef = useRef<HTMLElement>(null);
+  const [declining, setDeclining] = useState(false);
+  const [declineReason, setDeclineReason] = useState("");
+  const [declined, setDeclined] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -790,6 +796,37 @@ export function TechJob({ token, jobId }: { token: string; jobId: string }) {
     } finally {
       setBusy(false);
     }
+  }
+
+  async function decline() {
+    setBusy(true);
+    setError(null);
+    try {
+      await techFetch(base, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ decline: true, ...(declineReason.trim() ? { reason: declineReason.trim() } : {}) }),
+      });
+      setDeclined(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "That didn't send. Try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (declined) {
+    return (
+      <main className="ta">
+        <section className="ta-card ta-empty">
+          <h1 className="ta-title">Sent to the office</h1>
+          <p className="ta-muted">You&apos;re off this job. The office was told so they can give it to someone else.</p>
+          <Link href={`/tech/${token}`} className="ta-btn ta-btn--big">
+            Back to your day
+          </Link>
+        </section>
+      </main>
+    );
   }
 
   if (!detail) {
@@ -899,6 +936,40 @@ export function TechJob({ token, jobId }: { token: string; jobId: string }) {
         <p className="ta-error" role="alert">
           {error}
         </p>
+      ) : null}
+
+      {!job.accepted && (job.status === "scheduled" || job.status === "confirmed") ? (
+        <section className="ta-card ta-stack" aria-labelledby="ta-answer">
+          <h2 id="ta-answer" className="ta-h3">
+            Can you take this job?
+          </h2>
+          <p className="ta-muted">The office sees your answer right away.</p>
+          {declining ? (
+            <>
+              <label className="ta-label" htmlFor="ta-decline">
+                Why not? (optional)
+              </label>
+              <input id="ta-decline" className="ta-input" value={declineReason} maxLength={200} onChange={(e) => setDeclineReason(e.target.value)} placeholder="e.g. Still on another job" />
+              <div className="ta-row2">
+                <button type="button" className="ta-btn" disabled={busy} onClick={() => setDeclining(false)}>
+                  Back
+                </button>
+                <button type="button" className="ta-btn ta-btn--primary" disabled={busy} onClick={() => void decline()}>
+                  {busy ? "Sending…" : "Tell the office"}
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="ta-row2">
+              <button type="button" className="ta-btn ta-btn--primary" disabled={busy} onClick={() => void update({ accept: true })}>
+                I&apos;ll take it
+              </button>
+              <button type="button" className="ta-btn" disabled={busy} onClick={() => setDeclining(true)}>
+                I can&apos;t take it
+              </button>
+            </div>
+          )}
+        </section>
       ) : null}
 
       {job.status === "scheduled" || job.status === "confirmed" ? (

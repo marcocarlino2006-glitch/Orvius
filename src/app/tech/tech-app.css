@@ -220,6 +220,11 @@
   color: var(--ta-mute);
   overflow-wrap: anywhere;
 }
+.ta-job-ask {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #fcd34d;
+}
 
 .ta-card {
   display: grid;
