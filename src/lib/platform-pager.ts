@@ -28,16 +28,17 @@ const REPAGE_MS = 15 * 60_000;
 async function claimPage(kind: PlatformFailure, now: Date) {
   const name = `page:${kind}`;
   const before = new Date(now.getTime() - REPAGE_MS);
-  try {
-    await prisma.cronRun.create({ data: { name, lastClaimAt: now } });
-    return true;
-  } catch {
-    const claimed = await prisma.cronRun.updateMany({
-      where: { name, OR: [{ lastClaimAt: null }, { lastClaimAt: { lte: before } }] },
-      data: { lastClaimAt: now },
-    });
-    return claimed.count === 1;
-  }
+  const claimed = await prisma.cronRun.updateMany({
+    where: { name, OR: [{ lastClaimAt: null }, { lastClaimAt: { lte: before } }] },
+    data: { lastClaimAt: now },
+  });
+  if (claimed.count === 1) return true;
+  if (await prisma.cronRun.findUnique({ where: { name }, select: { name: true } })) return false;
+  /* A failed create is a busy hour's repeat, not an error worth logging. */
+  return prisma.cronRun
+    .create({ data: { name, lastClaimAt: now } })
+    .then(() => true)
+    .catch(() => false);
 }
 
 function founderEmails() {

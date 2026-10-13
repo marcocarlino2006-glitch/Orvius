@@ -966,6 +966,8 @@ export async function createOwnerJob(params: {
   return job;
 }
 
+class TechTakenError extends Error {}
+
 async function autoAssignTechnician(params: {
   job: { id: string; scheduledAt: Date; durationMin: number; technicianId: string | null };
   skill: string;
@@ -983,40 +985,46 @@ async function autoAssignTechnician(params: {
     excludeJobId: job.id,
   });
 
-  // Concurrent bookings read the same free calendar. Claim, then re-check the
-  // tech's calendar: on overlap the older job keeps the tech and this one
-  // re-ranks, so two calls can never put one tech in two places.
+  // Concurrent bookings read the same free calendar. The claim is written
+  // first inside one transaction, which takes the database's write lock, and
+  // the tech's calendar is read after it: the second booking always sees the
+  // first one's claim, rolls back and re-ranks, so two calls can never put
+  // one tech in two places.
+  const start = job.scheduledAt.getTime();
+  const end = start + job.durationMin * 60_000;
   for (let attempt = 0; ranking.pick && attempt < 3; attempt++) {
     const techId = ranking.pick.technicianId;
-    const claimed = await prisma.job.updateMany({
-      where: { id: job.id, technicianId: null },
-      data: { technicianId: techId },
-    });
-    if (claimed.count !== 1) return { job: await prisma.job.findUniqueOrThrow({ where: { id: job.id } }), busy: false };
-
-    const thisJob = await prisma.job.findUniqueOrThrow({ where: { id: job.id }, select: { createdAt: true } });
-    const others = await prisma.job.findMany({
-      where: {
-        businessId: link.businessId,
-        technicianId: techId,
-        id: { not: job.id },
-        status: { notIn: ["completed", "cancelled"] },
-        scheduledAt: { not: null },
-      },
-      select: { id: true, scheduledAt: true, durationMin: true, createdAt: true },
-    });
-    const start = job.scheduledAt.getTime();
-    const end = start + job.durationMin * 60_000;
-    const conflict = others.find((o) => {
-      const oStart = o.scheduledAt!.getTime();
-      const oEnd = oStart + (o.durationMin ?? DEFAULT_JOB_DURATION_MIN) * 60_000;
-      const overlapping = start < oEnd && oStart < end;
-      const olderWins =
-        o.createdAt.getTime() < thisJob.createdAt.getTime() ||
-        (o.createdAt.getTime() === thisJob.createdAt.getTime() && o.id < job.id);
-      return overlapping && olderWins;
-    });
-    if (!conflict) {
+    let outcome: "kept" | "gone" | "taken";
+    try {
+      outcome = await prisma.$transaction(async (tx) => {
+        const claimed = await tx.job.updateMany({
+          where: { id: job.id, technicianId: null },
+          data: { technicianId: techId },
+        });
+        if (claimed.count !== 1) return "gone" as const;
+        const others = await tx.job.findMany({
+          where: {
+            businessId: link.businessId,
+            technicianId: techId,
+            id: { not: job.id },
+            status: { notIn: ["completed", "cancelled"] },
+            scheduledAt: { gte: new Date(start - 7 * 24 * 60 * 60_000), lt: new Date(end) },
+          },
+          select: { scheduledAt: true, durationMin: true },
+        });
+        const overlap = others.some((o) => {
+          const oStart = o.scheduledAt!.getTime();
+          return oStart + (o.durationMin ?? DEFAULT_JOB_DURATION_MIN) * 60_000 > start;
+        });
+        if (overlap) throw new TechTakenError();
+        return "kept" as const;
+      });
+    } catch (error) {
+      if (!(error instanceof TechTakenError)) throw error;
+      outcome = "taken";
+    }
+    if (outcome === "gone") return { job: await prisma.job.findUniqueOrThrow({ where: { id: job.id } }), busy: false };
+    if (outcome === "kept") {
       params.audit.add({
         ...link,
         entityType: "job",
@@ -1038,7 +1046,6 @@ async function autoAssignTechnician(params: {
       });
       return { job: await prisma.job.findUniqueOrThrow({ where: { id: job.id } }), busy: false };
     }
-    await prisma.job.updateMany({ where: { id: job.id, technicianId: techId }, data: { technicianId: null } });
     ranking = await recommendTechnician({
       businessId: link.businessId,
       scheduledAt: job.scheduledAt,
