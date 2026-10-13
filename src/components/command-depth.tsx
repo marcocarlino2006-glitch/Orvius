@@ -190,7 +190,10 @@ export function CrewBoard({ board }: { board: CrewBoardData | undefined }) {
                 style={{ left: pct(u.startMin), width: width(u) }}
                 title={`${u.title} · ${clock(u.startMin)} · no technician`}
               >
-                <span>{u.title}</span>
+                <span className="cmd-crew-block-text">
+                  <span className="cmd-crew-block-time">{clock(u.startMin)}</span>
+                  <span>{u.title}</span>
+                </span>
               </Link>
             )),
           )
@@ -215,7 +218,10 @@ export function CrewBoard({ board }: { board: CrewBoardData | undefined }) {
                 .filter(Boolean)
                 .join(" · ")}
             >
-              <span>{b.title}</span>
+              <span className="cmd-crew-block-text">
+                <span className="cmd-crew-block-time">{clock(b.startMin)}</span>
+                <span>{b.title}</span>
+              </span>
               {!b.customerConfirmed && b.step !== "completed" ? <i className="cmd-crew-unconfirmed" aria-label="Customer hasn't confirmed" /> : null}
             </Link>
           )),
