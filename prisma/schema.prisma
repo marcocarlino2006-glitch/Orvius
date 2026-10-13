@@ -1054,6 +1054,19 @@ model SignInEvent {
   @@index([email, createdAt])
 }
 
+/** A pending move of a sign-in to a new address; only the SHA-256 of the emailed token is kept. */
+model EmailChange {
+  id        String    @id @default(cuid())
+  fromEmail String
+  toEmail   String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([fromEmail, createdAt])
+}
+
 /** Two-step sign-in with an authenticator app, per sign-in email. */
 model TwoStep {
   id                String    @id @default(cuid())
