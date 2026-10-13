@@ -10,6 +10,8 @@ import { logInfo, logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { countChannels, signupChannelText } from "@/lib/acquisition";
 import { cancelReasonCounts, cancelReasonText } from "@/lib/cancel-signal";
+import { relianceLines } from "@/lib/reliance-lines";
+import { payingShopReliance, type RelianceVerdict } from "@/lib/shop-reliance";
 import { payingShopValue, planMonthlyCents, type ValueVerdict } from "@/lib/value-check";
 import { densityClusters, densityText, networkReadyAreas, zip3FromAddress, type DensityCluster } from "@/lib/network-density";
 
@@ -78,6 +80,7 @@ export type CompanyScoreboard = {
   cancelReasons30d: Array<{ reason: string; count: number }>;
   /** Paying shops getting less than they pay for, or no calls at all, last 30 days. */
   valueAtRisk: ValueVerdict[];
+  reliance?: RelianceVerdict[];
 };
 
 
@@ -220,7 +223,7 @@ export async function getCompanyScoreboard(now = new Date()): Promise<CompanySco
   ]);
   const signedUp30d = { ...realShop, createdAt: { gte: new Date(now.getTime() - 30 * DAY_MS) } };
   const orvJob = { lead: { is: { OR: [{ callId: { not: null } }, { source: "sms" }] } } };
-  const [plans, calls30d, value, leaving, payers, signedUp, lineAnswered, numberProven, withFirstJob, firstJobs] = await Promise.all([
+  const [plans, calls30d, value, reliance, leaving, payers, signedUp, lineAnswered, numberProven, withFirstJob, firstJobs] = await Promise.all([
     prisma.business.groupBy({
       by: ["billingPlan", "billingInterval"],
       where: { ...realShop, isActive: true, billingStatus: { in: ["active", "past_due"] } },
@@ -228,6 +231,7 @@ export async function getCompanyScoreboard(now = new Date()): Promise<CompanySco
     }),
     prisma.call.count({ where: { business: realShop, createdAt: { gte: new Date(now.getTime() - 30 * DAY_MS) } } }),
     payingShopValue(now),
+    payingShopReliance(now),
     prisma.business.findMany({
       where: { ...realShop, cancelRequestedAt: { gte: new Date(now.getTime() - 30 * DAY_MS) } },
       select: { cancelReason: true },
@@ -284,6 +288,7 @@ export async function getCompanyScoreboard(now = new Date()): Promise<CompanySco
     revenue,
     cancelReasons30d: cancelReasonCounts(leaving.map((shop) => ({ reason: shop.cancelReason }))),
     valueAtRisk: value.filter((v) => v.verdict === "short" || v.verdict === "idle"),
+    reliance,
   };
 }
 
@@ -319,6 +324,7 @@ export function scoreboardLines(board: CompanyScoreboard): string[] {
     ...unitCostLines(board.unitCost),
     ...revenueLines(board.revenue),
     ...valueLines(board.valueAtRisk ?? []),
+    ...relianceLines(board.reliance ?? []),
   ];
 }
 

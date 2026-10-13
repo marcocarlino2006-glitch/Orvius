@@ -15,6 +15,7 @@ import type { CompanyScoreboard, ScoreboardWeek } from "@/lib/company-scoreboard
 import { activationText, retentionText } from "@/lib/scoreboard-text";
 import { revenueLines, valueLines } from "@/lib/revenue-lines";
 import { signupChannelText } from "@/lib/acquisition";
+import { relianceLines } from "@/lib/reliance-lines";
 import { unitCostLines } from "@/lib/unit-cost-lines";
 
 type Business = {
@@ -904,7 +905,7 @@ function ScoreboardCard({ board }: { board: CompanyScoreboard }) {
         )}
       </div>
       <div className="mt-4 border-t border-black/5 pt-3 font-sans text-xs text-ash" aria-label="Revenue and value">
-        {[...revenueLines(board.revenue), ...valueLines(board.valueAtRisk ?? [])].map((line) => (
+        {[...revenueLines(board.revenue), ...valueLines(board.valueAtRisk ?? []), ...relianceLines(board.reliance ?? [])].map((line) => (
           <p key={line} className="py-0.5">
             {line}
           </p>
