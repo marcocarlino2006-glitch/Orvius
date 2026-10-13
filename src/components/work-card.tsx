@@ -64,6 +64,7 @@ export function WorkCard({
   );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [settled, setSettled] = useState<string | null>(null);
 
   async function run(fn: () => Promise<void>) {
     setBusy(true);
@@ -97,6 +98,7 @@ export function WorkCard({
   const setJob = (body: Record<string, unknown>, done: string) =>
     run(async () => {
       await send(`/api/jobs/${item.id}`, "PATCH", body);
+      setSettled(done);
       toast({ title: done });
       onChange();
     });
@@ -106,6 +108,7 @@ export function WorkCard({
       const res = await fetch(`/api/jobs/${item.id}/confirm-sms`, { method: "POST" });
       const data = (await res.json().catch(() => null)) as { error?: string } | null;
       if (!res.ok) throw new Error(data?.error ?? "Could not send the confirmation");
+      setSettled("Confirmation text sent");
       toast({ title: "Confirmation text sent" });
       onChange();
     });
@@ -130,7 +133,7 @@ export function WorkCard({
   const fieldStatus = isJob && !late ? JOB_STATUS_FOR_STAGE[item.stage] : undefined;
 
   return (
-    <li className={`wc${inList ? "" : " wc--page"}${top ? ` wc--${top.severity}` : item.urgent ? " wc--high" : ""}`}>
+    <li className={`wc${inList ? "" : " wc--page"}${settled ? " wc--settled" : ""}${top ? ` wc--${top.severity}` : item.urgent ? " wc--high" : ""}`}>
       <div className="wc-head">
         <div className="wc-main">
           <p className="wc-tags">
@@ -162,12 +165,12 @@ export function WorkCard({
           <p className="wc-detail">
             {top?.detail ?? item.nextAction ?? (item.waitingOn === "customer" || item.waitingOn === "technician" ? WAITING_LABEL[item.waitingOn] : CLOSED_DETAIL[item.stage] ?? "On track. Nothing for you to do right now.")}
           </p>
-          {top && item.nextAction ? <p className="wc-next">Recommended: {item.nextAction}</p> : null}
+          {top && item.nextAction ? <p className="wc-next">Next: {item.nextAction}</p> : null}
         </div>
         <div className="wc-meta" hidden={!inList}>
           {item.scheduledAt ? <span className="wc-when">{formatWhen(item.scheduledAt)}</span> : <span className="wc-when">{formatWhen(item.createdAt)}</span>}
           <span className="wc-owner">
-            <span className="wc-owner-k">Responsible</span> {item.responsible.label}
+            {item.responsible.kind === "owner" ? "Yours" : `With ${item.responsible.label}`}
           </span>
         </div>
       </div>
@@ -307,6 +310,11 @@ export function WorkCard({
         </div>
       )}
 
+      {settled ? (
+        <p className="wc-settled" role="status">
+          {settled}
+        </p>
+      ) : null}
       {error ? (
         <p className="cb-error" role="alert">
           {error}
