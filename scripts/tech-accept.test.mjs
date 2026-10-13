@@ -128,6 +128,19 @@ test("a no takes the technician off, keeps why, tells the owner, and puts the jo
   assert.ok(item.problems.some((p) => p.kind === "tech_declined" && p.severity === "critical"));
 });
 
+test("a technician who never answered is what Work tells the owner to fix, not the customer", async () => {
+  const { shop, job } = await shopWithJob({
+    scheduledAt: new Date(Date.now() + 3 * HOUR),
+    techAssignedAt: new Date(Date.now() - 3 * HOUR),
+    techNotifiedAt: new Date(Date.now() - 3 * HOUR),
+    customerConfirmSentAt: new Date(),
+  });
+  const item = (await listWork(shop.id)).items.find((i) => i.key === `job:${job.id}`);
+  assert.ok(item.problems.some((p) => p.kind === "tech_unanswered"));
+  assert.equal(item.nextAction, "Call Ana Ruiz");
+  assert.equal(item.waitingOn, "you");
+});
+
 test("a job already under way can't be declined from the field", async () => {
   const { job, session } = await shopWithJob({ status: "en_route", dispatchedAt: new Date() });
   await assert.rejects(techUpdateJob(session, job.id, { decline: true }), /already started/);

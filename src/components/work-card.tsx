@@ -125,7 +125,8 @@ export function WorkCard({
   const canMove = item.stage === "needs_callback" || item.stage === "needs_time" || (isJob && (item.stage === "scheduled" || item.stage === "confirmed"));
   const primaryCall = Boolean(item.phone) && (item.stage === "needs_callback" || kinds.has("emergency") || kinds.has("unconfirmed_soon") || kinds.has("failed_message") || kinds.has("customer_no_show") || kinds.has("open_invoice") || kinds.has("estimate_failed") || kinds.has("wants_human"));
   const who = item.customer?.trim() || item.phone || "Unknown caller";
-  const unconfirmed = isJob && (item.stage === "scheduled" || kinds.has("unconfirmed_soon")) && Boolean(item.technician) && !kinds.has("failed_message");
+  const askTech = isJob && kinds.has("tech_unanswered") && Boolean(item.technician?.phone);
+  const unconfirmed = isJob && (item.stage === "scheduled" || kinds.has("unconfirmed_soon")) && Boolean(item.technician) && !kinds.has("failed_message") && !askTech;
   const fieldStatus = isJob && !late ? JOB_STATUS_FOR_STAGE[item.stage] : undefined;
 
   return (
@@ -202,6 +203,10 @@ export function WorkCard({
             <a href={tel(item.phone)} className="ox-btn ox-btn--primary ox-btn--sm">
               Call {item.customer?.split(" ")[0] || "them"}
             </a>
+          ) : askTech ? (
+            <a href={tel(item.technician!.phone!)} className="ox-btn ox-btn--primary ox-btn--sm">
+              Call {item.technician!.name.split(" ")[0]}
+            </a>
           ) : unconfirmed && item.waitingOn !== "customer" ? (
             <button type="button" className="ox-btn ox-btn--primary ox-btn--sm" disabled={busy} onClick={() => void textConfirm()}>
               Text a confirmation
@@ -225,6 +230,11 @@ export function WorkCard({
           {primaryCall && item.phone ? (
             <a href={tel(item.phone)} className="ox-btn ox-btn--primary ox-btn--sm">
               Call {item.customer?.split(" ")[0] || "them"}
+            </a>
+          ) : null}
+          {askTech ? (
+            <a href={tel(item.technician!.phone!)} className="ox-btn ox-btn--primary ox-btn--sm">
+              Call {item.technician!.name.split(" ")[0]}
             </a>
           ) : null}
           {needsTech && technicians.length ? (
@@ -255,7 +265,7 @@ export function WorkCard({
           {canMove ? (
             <button
               type="button"
-              className={`ox-btn ${!primaryCall && !needsTech && !late && !unconfirmed ? "ox-btn--primary" : "ox-btn--quiet"} ox-btn--sm`}
+              className={`ox-btn ${!primaryCall && !needsTech && !late && !unconfirmed && !askTech ? "ox-btn--primary" : "ox-btn--quiet"} ox-btn--sm`}
               disabled={busy}
               onClick={() => (open === "slots" ? setOpen(null) : void loadSlots())}
             >
