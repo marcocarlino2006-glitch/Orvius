@@ -6,6 +6,10 @@ name: Sweep heartbeat
 # sweeps itself on time. The hourly schedule only has to land once in six hours
 # for coverage to be continuous; the concurrency group keeps one run going and
 # one queued behind it, never two at once.
+#
+# Schedules alone still left gaps of up to five hours between runs, so each run
+# queues its successor when it ends (workflow_dispatch is the one event the
+# built-in token may start). The hourly schedule restarts the chain if it breaks.
 on:
   schedule:
     - cron: "7 * * * *"
@@ -14,6 +18,10 @@ on:
 concurrency:
   group: sweep-heartbeat
   cancel-in-progress: false
+
+permissions:
+  actions: write
+  contents: read
 
 jobs:
   beat:
@@ -24,6 +32,8 @@ jobs:
       APP_URL: ${{ secrets.LINE_WATCH_URL || 'https://api.orvius.im' }}
     steps:
       - name: Keep the sweeps on time
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           if [ -z "$CRON_SECRET" ]; then
             echo "::error::CRON_SECRET is not set in repo secrets; owner-alert retries and line watch on quiet lines do not run."
@@ -39,6 +49,12 @@ jobs:
           while [ "$(date +%s)" -lt "$end" ]; do
             call alert-drain 60
             if [ $(( tick % 6 )) -eq 0 ]; then call line-watch 240; fi
+            # The uptime probe's own schedule lands hours late too; this keeps it near every ten minutes.
+            if [ $(( tick % 2 )) -eq 0 ]; then gh workflow run uptime.yml --repo "$GITHUB_REPOSITORY" --ref main || echo "::warning::uptime dispatch failed"; fi
             tick=$(( tick + 1 ))
             sleep 290
           done
+      - name: Queue the next heartbeat
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run sweep-heartbeat.yml --repo "$GITHUB_REPOSITORY" --ref main
