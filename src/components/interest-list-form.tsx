@@ -33,7 +33,7 @@ export function InterestListForm({ trades }: { trades: readonly string[] }) {
       });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        setError(data.error ?? "We couldn't save that. Try again, or email hello@orvius.im.");
+        setError(data.error ?? "We couldn't save that. Try again, or email support@orvius.im.");
         return;
       }
       setSubmitted(true);

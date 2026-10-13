@@ -254,7 +254,7 @@ export async function watchShopLine(
         businessId: business.id,
         dedupeKey: `line-problem:${business.id}:${now.toISOString().slice(0, 13)}`,
         businessName: business.name,
-        message: `Your phone line needs attention: ${after}. Calls may not be answered — reply or email hello@orvius.im.`,
+        message: `Your phone line needs attention: ${after}. Calls may not be answered — reply or email support@orvius.im.`,
         ownerPhone: business.ownerPhone,
         ownerEmail: business.ownerEmail,
       });

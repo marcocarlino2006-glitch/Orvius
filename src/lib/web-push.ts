@@ -15,7 +15,7 @@ function configured() {
   const publicKey = pushPublicKey();
   const privateKey = process.env.VAPID_PRIVATE_KEY?.trim();
   if (!publicKey || !privateKey) return false;
-  webpush.setVapidDetails(process.env.VAPID_SUBJECT?.trim() || "mailto:hello@orvius.im", publicKey, privateKey);
+  webpush.setVapidDetails(process.env.VAPID_SUBJECT?.trim() || "mailto:support@orvius.im", publicKey, privateKey);
   return true;
 }
 

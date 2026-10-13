@@ -994,7 +994,7 @@ function LiveStep({ sandbox, checkoutOpen, canceled }: { sandbox: Sandbox; check
           </div>
 
           {plans && plans.length === 0 ? (
-            <p className="ton-error">Card checkout isn&apos;t open right now. Your setup is saved. Email hello@orvius.im and we&apos;ll turn it on with you.</p>
+            <p className="ton-error">Card checkout isn&apos;t open right now. Your setup is saved. Email support@orvius.im and we&apos;ll turn it on with you.</p>
           ) : null}
           {error ? (
             <p className="ton-error" role="alert">

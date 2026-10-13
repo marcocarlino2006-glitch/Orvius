@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "Card checkout isn’t open for this plan yet. Open Billing and pay with a plan that’s ready, or email hello@orvius.im.",
+            "Card checkout isn’t open for this plan yet. Open Billing and pay with a plan that’s ready, or email support@orvius.im.",
           ...((await isPrivilegedRequest(request))
             ? { billing: getBillingReadiness() }
             : {}),

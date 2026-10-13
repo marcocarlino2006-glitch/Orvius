@@ -58,7 +58,7 @@ export function MarketingShell({ children }: MarketingShellProps) {
               <p className="mkt-footer-heading font-sans">Company</p>
               <Link href="/about">About</Link>
               <Link href="/security">Security</Link>
-              <a href="mailto:hello@orvius.im">Contact</a>
+              <a href="mailto:support@orvius.im">Contact</a>
             </nav>
             <nav className="mkt-footer-col" aria-label="Legal">
               <p className="mkt-footer-heading font-sans">Legal</p>

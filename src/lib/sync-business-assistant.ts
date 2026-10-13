@@ -74,7 +74,7 @@ export async function syncBusinessAssistant(
   let warning: string | null = null;
 
   if (!line) {
-    warning = "No shop line assigned — call hello@orvius.im to finish setup";
+    warning = "No shop line assigned — call support@orvius.im to finish setup";
   } else if (shopMustNotUseDemoLine(business) && isDemoPlatformLine(line)) {
     warning =
       "Your dedicated line is being assigned — refresh in a moment.";

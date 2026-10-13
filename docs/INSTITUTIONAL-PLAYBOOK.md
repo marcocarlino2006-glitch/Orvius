@@ -41,7 +41,7 @@ Code reference: `src/lib/institutional-standards.ts` · ceiling: `src/lib/beyond
 | Shop line | Dedicated number, verified test call | Wedge readiness, shop health |
 | Alert delivery | No stuck queue, failures surfaced | `OwnerNotification` queue, Today banner |
 | Tenant isolation | Shop A never sees Shop B | API 401 without session; standard check |
-| Support | Best-effort · founder-staffed (no timed SLA) | hello@orvius.im — flip to a timed SLA only when staffed |
+| Support | Best-effort · founder-staffed (no timed SLA) | support@orvius.im — flip to a timed SLA only when staffed |
 
 Owners see this on **Today** via "Your service level."
 

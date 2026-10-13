@@ -37,8 +37,7 @@ export async function GET() {
     },
     dns: buildDnsRecords(deployTarget),
     emailSuggestions: [
-      { address: `hello@${domains.primary}`, use: "General contact" },
-      { address: `support@${domains.primary}`, use: "Customer support" },
+      { address: `support@${domains.primary}`, use: "Contact and customer support" },
       { address: `founder@${domains.primary}`, use: "Outbound sales" },
     ],
   });

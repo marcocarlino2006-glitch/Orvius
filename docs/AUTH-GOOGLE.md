@@ -77,7 +77,7 @@ GOOGLE_CLIENT_SECRET=
 Optional — grant operator/support access to accounts that do not own a shop:
 
 ```bash
-ORVIUS_AUTH_ALLOWED_EMAILS=marco@gmail.com,hello@orvius.im
+ORVIUS_AUTH_ALLOWED_EMAILS=marco@gmail.com,support@orvius.im
 ```
 
 An active shop's normalized `Business.ownerEmail` is always authorized. Unknown

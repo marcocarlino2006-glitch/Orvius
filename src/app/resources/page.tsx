@@ -34,7 +34,7 @@ const groups = [
     links: [
       { href: "/about", label: "About Orvius" },
       { href: "/enterprise", label: "Enterprise & multi-shop" },
-      { href: "mailto:hello@orvius.im", label: "Contact us" },
+      { href: "mailto:support@orvius.im", label: "Contact us" },
     ],
   },
 ] as const;

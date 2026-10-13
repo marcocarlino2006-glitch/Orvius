@@ -404,7 +404,7 @@ export async function ensureDedicatedShopLine(business: Business): Promise<{
 
   if (!canProvisionDedicatedLine()) {
     throw new Error(
-      "Dedicated line provisioning is not available. Contact hello@orvius.im",
+      "Dedicated line provisioning is not available. Contact support@orvius.im",
     );
   }
 
@@ -525,12 +525,12 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
   }
 
   if (!isConfigured("VAPI_API_KEY")) {
-    throw new Error("Voice AI is not configured. Contact hello@orvius.im");
+    throw new Error("Voice AI is not configured. Contact support@orvius.im");
   }
 
   if (!canProvisionDedicatedLine()) {
     throw new Error(
-      "We could not provision a dedicated shop line right now. Contact hello@orvius.im",
+      "We could not provision a dedicated shop line right now. Contact support@orvius.im",
     );
   }
 
@@ -590,7 +590,7 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
         error: error instanceof Error ? error.message : "unknown",
       });
       throw new Error(
-        "Could not assign your dedicated shop line. Try again in a moment or contact hello@orvius.im",
+        "Could not assign your dedicated shop line. Try again in a moment or contact support@orvius.im",
       );
     }
 

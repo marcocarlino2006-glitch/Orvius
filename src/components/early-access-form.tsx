@@ -43,7 +43,7 @@ export function EarlyAccessForm({ variant = "compact" }: FormProps) {
 
       const data = (await res.json().catch(() => ({}))) as { error?: string };
       if (!res.ok) {
-        setError(data.error ?? "We couldn't save your request. Try again, or email hello@orvius.im.");
+        setError(data.error ?? "We couldn't save your request. Try again, or email support@orvius.im.");
         return;
       }
       setSubmitted(true);

@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "We couldn't confirm your payment yet. If you just paid, wait a minute and try again — or email hello@orvius.im and we'll finish setup with you.",
+            "We couldn't confirm your payment yet. If you just paid, wait a minute and try again — or email support@orvius.im and we'll finish setup with you.",
           code: "paid_checkout_required",
         },
         { status: 402 },
