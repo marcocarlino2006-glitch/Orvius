@@ -278,7 +278,9 @@ export function TalkInBrowser({
     setView({ state: "idle" });
   }, [finish]);
 
-  if (view.state === "checking" || view.state === "hidden") return null;
+  // Drawn before the status check returns so the hero doesn't jump when it arrives.
+  if (view.state === "hidden") return null;
+  const checking = view.state === "checking";
 
   const fallback = (
     <p className="tib-fallback font-sans">
@@ -288,12 +290,12 @@ export function TalkInBrowser({
 
   return (
     <section className="tib" aria-label="Talk to Orvius in your browser" aria-live="polite">
-      {view.state === "idle" && (
+      {(view.state === "idle" || checking) && (
         <form
           className={personal ? "tib-form" : undefined}
           onSubmit={(e) => {
             e.preventDefault();
-            void join();
+            if (!checking) void join();
           }}
         >
           {personal ? (
@@ -325,7 +327,7 @@ export function TalkInBrowser({
               />
             </div>
           ) : null}
-          <button type="submit" className="ov-btn ov-btn--solid tib-go">
+          <button type="submit" className="ov-btn ov-btn--solid tib-go" disabled={checking}>
             <span className="tib-mic" aria-hidden />{" "}
             {personal && shopName.trim().length >= 2 ? `Hear it answer as ${shopName.trim()}` : "Talk to it in your browser"}
           </button>
