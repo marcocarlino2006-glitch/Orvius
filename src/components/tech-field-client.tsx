@@ -108,7 +108,7 @@ export function TechFieldClient({ token }: { token: string }) {
         body: JSON.stringify(body),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Update failed");
+      if (!res.ok) throw new Error(data.error ?? "That didn't go through — nothing changed");
       if (data.declined) {
         setDeclined(true);
         return true;
@@ -117,7 +117,7 @@ export function TechFieldClient({ token }: { token: string }) {
       if (data.job?.etaText != null) setEtaText(data.job.etaText);
       return true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Update failed");
+      setError(err instanceof Error ? err.message : "That didn't go through — nothing changed");
       return false;
     } finally {
       setBusy(false);

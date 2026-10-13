@@ -18,7 +18,7 @@ export type PlanOutcome = { ok: boolean; text: string };
 async function post(url: string, body: unknown) {
   const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error ?? "That did not work");
+  if (!res.ok) throw new Error(data.error ?? "That didn't go through — nothing changed");
   return data;
 }
 
@@ -44,7 +44,7 @@ export function PlanCard({
       else toast({ title: text });
       onDone();
     } catch (err) {
-      setError(`${err instanceof Error ? err.message : "That did not work"}. Nothing changed.`);
+      setError(`${err instanceof Error ? err.message : "That didn't go through — nothing changed"}. Nothing changed.`);
     } finally {
       setBusy(false);
     }
@@ -138,7 +138,7 @@ export function AskBar({ onChange, below }: { onChange: () => void; below?: Reac
     try {
       setResult(await post("/api/command/ask", { text }));
     } catch (err) {
-      setResult({ kind: "refused", message: err instanceof Error ? err.message : "That did not work" });
+      setResult({ kind: "refused", message: err instanceof Error ? err.message : "That didn't go through — nothing changed" });
     } finally {
       setBusy(false);
     }
@@ -150,7 +150,7 @@ export function AskBar({ onChange, below }: { onChange: () => void; below?: Reac
       const data = await post("/api/copilot", option);
       setResult({ kind: "proposal", proposal: { proposalId: data.proposalId, preview: data.preview }, message: "Here's the plan." });
     } catch (err) {
-      setResult({ kind: "refused", message: err instanceof Error ? err.message : "That did not work" });
+      setResult({ kind: "refused", message: err instanceof Error ? err.message : "That didn't go through — nothing changed" });
     } finally {
       setBusy(false);
     }

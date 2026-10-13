@@ -380,7 +380,7 @@ function LeadMoreActions({ record }: { record: RecordView }) {
       setStatus("contacted");
       toast({ title: "Marked contacted" });
     } catch (err) {
-      setError(err instanceof Error ? `${err.message}. Nothing was changed.` : "Update failed.");
+      setError(err instanceof Error ? `${err.message}. Nothing was changed.` : "That didn't go through — nothing changed.");
     } finally {
       setBusy(false);
     }

@@ -209,7 +209,7 @@ export function CopilotActions({ hits = [], compact, recommendation }: CopilotAc
 
   return (
     <div className={`copilot-actions font-sans ${compact ? "copilot-actions-compact" : ""}`}>
-      <p className="copilot-actions-kicker">{recommendation ? "Recommended next action" : "Proposed actions"}</p>
+      <p className="copilot-actions-kicker">{recommendation ? "Next" : "To approve"}</p>
 
       {done ? (
         <p className="copilot-actions-done" role="status">

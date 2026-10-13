@@ -437,7 +437,7 @@ export default function JobDetailPage() {
                         })
                       }
                     >
-                      Save time
+                      Move it
                     </button>
                   </div>
                   <label className="jv-field">

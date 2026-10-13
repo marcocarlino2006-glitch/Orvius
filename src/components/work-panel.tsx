@@ -147,7 +147,7 @@ export function WorkPanel({
         ) : null}
         <div className="wp-owner">
           <label className="wp-owner-label" htmlFor={`wp-owner-${item.key}`}>
-            Responsible
+            Who&apos;s on it
           </label>
           <select
             id={`wp-owner-${item.key}`}
