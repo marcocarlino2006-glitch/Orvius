@@ -76,12 +76,12 @@ gate(
   "pilotEndsAt + Command lock bar",
 );
 
-gate(
-  "trust",
-  "Trust tests",
-  runNpm("test:trust").ok,
-  "npm run test:trust",
-);
+const trust = runNpm("test:trust");
+gate("trust", "Trust tests", trust.ok, "npm run test:trust");
+if (!trust.ok) {
+  const failed = trust.out.split("\n").filter((line) => /^\s*not ok /.test(line) || /^\s*(location|error):/.test(line));
+  console.log(failed.slice(0, 40).map((line) => `     ${line.trim()}`).join("\n") || trust.out.slice(-4000));
+}
 
 gate(
   "economics",
