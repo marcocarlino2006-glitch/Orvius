@@ -5882,3 +5882,46 @@ html[data-theme="day"] :is(.trend-bar, .trend-key-open) {
   border-color: #d9d9d5;
   background: #f1f1ef;
 }
+
+/* Jobs depth: where the work stands, then what needs you before the rest. */
+.jobs-depth {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 2rem;
+  margin: 0 0 1rem;
+  padding: 0.875rem 1.125rem;
+  border: 1px solid var(--ox-line, #1a1c20);
+  border-radius: 10px;
+  background: var(--ox-s1);
+}
+
+.jobs-depth > div {
+  display: grid;
+  gap: 0.125rem;
+}
+
+.jobs-depth dt {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ox-mute);
+}
+
+.jobs-depth dd {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  color: var(--ox-text);
+}
+
+.jobs-depth .is-attention dd {
+  color: var(--ox-amber);
+}
+
+.jobs-group {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 650;
+  color: var(--ox-text-2);
+}
