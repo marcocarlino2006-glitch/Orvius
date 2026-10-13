@@ -44,7 +44,7 @@ async function signIn(ctx) {
 
 for (const [vp, size] of Object.entries(VIEWPORTS)) {
   const ctx = await browser.newContext({ viewport: size, isMobile: vp === "phone", hasTouch: vp === "phone" });
-  for (const [group, paths] of [["public", PUBLIC], ["app", APP]]) {
+  for (const [group, paths] of process.env.PUBLIC_ONLY ? [["public", PUBLIC]] : [["public", PUBLIC], ["app", APP]]) {
     if (group === "app") await signIn(ctx);
     for (const path of paths) {
       const p = await ctx.newPage();
