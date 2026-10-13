@@ -14,6 +14,8 @@ function clock(min: number) {
   return m ? `${hour}:${String(m).padStart(2, "0")}${suffix}` : `${hour}${suffix}`;
 }
 
+const BLOCK_MIN = "6.5rem";
+
 const STEP_LABEL: Record<CrewBlock["step"], string> = {
   completed: "Done",
   on_site: "On site",
@@ -159,6 +161,8 @@ export function CrewBoard({ board }: { board: CrewBoardData | undefined }) {
   );
 
   const width = (b: { startMin: number; endMin: number }) => `${Math.max(((b.endMin - b.startMin) / span) * 100, 3)}%`;
+  /* Blocks have a readable minimum width; a late one slides left instead of past the edge. */
+  const place = (b: { startMin: number; endMin: number }) => ({ left: `min(${pct(b.startMin)}, calc(100% - ${BLOCK_MIN}))`, width: width(b) });
 
   return (
     <div className="cmd-crew" role="table" aria-label="Crew today">
@@ -187,7 +191,7 @@ export function CrewBoard({ board }: { board: CrewBoardData | undefined }) {
                 key={u.id}
                 href={`/dashboard/jobs/${u.id}`}
                 className="cmd-crew-block is-open"
-                style={{ left: pct(u.startMin), width: width(u) }}
+                style={place(u)}
                 title={`${u.title} · ${clock(u.startMin)} · no technician`}
               >
                 <span className="cmd-crew-block-text">
@@ -208,7 +212,7 @@ export function CrewBoard({ board }: { board: CrewBoardData | undefined }) {
               key={b.id}
               href={`/dashboard/jobs/${b.id}`}
               className={`cmd-crew-block is-${b.conflict ? "conflict" : b.step}${b.emergency ? " is-emergency" : ""}`}
-              style={{ left: pct(b.startMin), width: width(b) }}
+              style={place(b)}
               title={[
                 `${b.title} · ${clock(b.startMin)}–${clock(b.endMin)}`,
                 STEP_LABEL[b.step],
