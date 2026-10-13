@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState, type ReactNode } from "react";
 import { CommandSignals } from "@/components/command-signals";
+import { CrewBoard, FlowStrip, MoneyLine } from "@/components/command-depth";
 import { ActivationChecklist } from "@/components/activation-checklist";
 import { AskBar, PlanCard, TryDemo } from "@/components/command-board";
 import { OrviusPulse } from "@/components/orvius-pulse";
@@ -229,6 +230,13 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
         <AskBar onChange={() => void refresh()} below={setup} />
       </div>
 
+      {data ? (
+        <div className="cmd-depth">
+          <FlowStrip flow={data.flow} />
+          <MoneyLine money={data.money} />
+        </div>
+      ) : null}
+
       <section className="cc" aria-label="Command">
         <div className="cc-main">
           <section className="cmd-section" aria-labelledby="cmd-needs">
@@ -285,6 +293,29 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
             ) : null}
           </section>
 
+          <section className="cmd-section" aria-labelledby="cmd-today">
+            <div className="cmd-section-head">
+              <h3 id="cmd-today" className="cmd-section-title">
+                Today <span className="cmd-count">{data?.dispatchToday?.jobCount ?? "–"}</span>
+              </h3>
+              <Link href="/dashboard/schedule" className="cmd-section-link">
+                Schedule →
+              </Link>
+            </div>
+            {data ? (
+              <>
+                <div className="cmd-crew-wide">
+                  <CrewBoard board={data.crewBoard} />
+                </div>
+                <div className="cmd-crew-narrow">
+                  <TodaySchedule jobs={data.dispatchToday?.jobs ?? []} />
+                </div>
+              </>
+            ) : (
+              <p className="cmd-empty">Reading the schedule…</p>
+            )}
+          </section>
+
           <section className="cmd-section" aria-labelledby="cmd-handled">
             <div className="cmd-section-head">
               <h3 id="cmd-handled" className="cmd-section-title">
@@ -320,17 +351,6 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
             )}
           </section>
 
-          <section className="cmd-section" aria-labelledby="cmd-today">
-            <div className="cmd-section-head">
-              <h3 id="cmd-today" className="cmd-section-title">
-                Today <span className="cmd-count">{data?.dispatchToday?.jobCount ?? "–"}</span>
-              </h3>
-              <Link href="/dashboard/schedule" className="cmd-section-link">
-                Schedule →
-              </Link>
-            </div>
-            {data ? <TodaySchedule jobs={data.dispatchToday?.jobs ?? []} /> : <p className="cmd-empty">Reading the schedule…</p>}
-          </section>
 
           {data && !data.business?.testMode && !data.business?.referenceImplementation ? (
             <section className="cmd-section" aria-label="Left to turn on">

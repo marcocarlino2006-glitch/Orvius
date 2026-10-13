@@ -6,13 +6,14 @@ import { prisma } from "@/lib/prisma";
  */
 export async function shopVersion(businessId: string) {
   const where = { businessId };
-  const [call, lead, job, alert] = await Promise.all([
+  const [call, lead, job, alert, invoice] = await Promise.all([
     prisma.call.aggregate({ where, _max: { updatedAt: true } }),
     prisma.lead.aggregate({ where, _max: { updatedAt: true } }),
     prisma.job.aggregate({ where, _max: { updatedAt: true } }),
     prisma.ownerNotification.aggregate({ where, _max: { processedAt: true, createdAt: true } }),
+    prisma.invoice.aggregate({ where, _max: { updatedAt: true } }),
   ]);
-  return [call._max.updatedAt, lead._max.updatedAt, job._max.updatedAt, alert._max.processedAt, alert._max.createdAt]
+  return [call._max.updatedAt, lead._max.updatedAt, job._max.updatedAt, alert._max.processedAt, alert._max.createdAt, invoice._max.updatedAt]
     .map((at) => at?.getTime() ?? 0)
     .join(".");
 }
