@@ -522,16 +522,16 @@ export default function JobDetailPage() {
         <div className="job-detail-sticky font-sans">
           <div className="job-detail-sticky-inner">
             {next?.status === "en_route" && !job.technician ? (
-              <button type="button" className="job-detail-sticky-btn-primary" onClick={() => setChanging(true)}>
+              <button type="button" className="job-detail-sticky-btn job-detail-sticky-btn-primary" onClick={() => setChanging(true)}>
                 Assign a technician
               </button>
             ) : next ? (
-              <button type="button" className="job-detail-sticky-btn-primary" disabled={saving} onClick={() => void patch({ status: next.status })}>
+              <button type="button" className="job-detail-sticky-btn job-detail-sticky-btn-primary" disabled={saving} onClick={() => void patch({ status: next.status })}>
                 {saving ? "Moving…" : next.label}
               </button>
             ) : null}
             {phone ? (
-              <a href={`tel:${phone}`} className="job-detail-sticky-btn-muted">
+              <a href={`tel:${phone}`} className="job-detail-sticky-btn job-detail-sticky-btn-muted">
                 Call
               </a>
             ) : null}
