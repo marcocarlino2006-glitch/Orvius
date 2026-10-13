@@ -15,7 +15,8 @@ import type { Handled } from "@/lib/autopilot";
 import { useRing1, type Ring1Data } from "@/lib/ring1-context";
 import { formatWhen } from "@/lib/when";
 
-const NEEDS_YOU_SHOWN = 8;
+const NEEDS_YOU_SHOWN = 4;
+const RECENT_SHOWN = 3;
 
 /* Shop problems a test alert proves fixed. */
 const ALERT_KINDS = new Set<string>(["alert_failed", "alert_setup", "alerts_muted"]);
@@ -95,6 +96,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
   const { data, locked, loading, loadError, lastUpdatedAt, refresh } = useRing1();
   const [refreshing, setRefreshing] = useState(false);
   const [showAll, setShowAll] = useState(false);
+  const [showAllRecent, setShowAllRecent] = useState(false);
 
   async function retry() {
     setRefreshing(true);
@@ -171,6 +173,8 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
   const minor = shopIssues.filter((issue) => issue.severity !== "critical" && issue.severity !== "high");
   const handled = data?.handled;
   const week = weekResultLine(data?.outcomes);
+  const sinceAt = data?.sinceUsed ? Date.parse(data.sinceUsed) : null;
+  const whileOut = sinceAt ? (handled?.events ?? []).filter((e) => e.by === "Orvius" && e.result === "Booked" && Date.parse(e.at) > sinceAt) : [];
 
   const issueList = (list: typeof shopIssues) => (
     <ul>
@@ -224,18 +228,27 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
         ) : null}
       </header>
 
+      {whileOut.length ? (
+        <section className="cmd-wow" aria-labelledby="cmd-wow-title">
+          <p id="cmd-wow-title" className="cmd-wow-title">
+            While you were out, Orvius booked {plural(whileOut.length, "job")}
+          </p>
+          <ul className="cmd-wow-list">
+            {whileOut.slice(0, 3).map((e) => (
+              <li key={e.id}>
+                {e.jobId ? <Link href={`/dashboard/jobs/${e.jobId}`}>{e.summary.replace(/^Booked\s+/, "")}</Link> : e.summary}
+              </li>
+            ))}
+            {whileOut.length > 3 ? <li>and {whileOut.length - 3} more</li> : null}
+          </ul>
+        </section>
+      ) : null}
+
       <CommandSignals signals={signals} loading={loading} />
 
       <div className="cmd-ask">
         <AskBar onChange={() => void refresh()} below={setup} />
       </div>
-
-      {data ? (
-        <div className="cmd-depth">
-          <FlowStrip flow={data.flow} />
-          <MoneyLine money={data.money} />
-        </div>
-      ) : null}
 
       <section className="cc" aria-label="Command">
         <div className="cc-main">
@@ -258,7 +271,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
                 ))}
               </ul>
             ) : items.length || looseApprovals.length ? (
-              <ul className="wc-list">
+              <ul className="wc-list cmd-queue">
                 {looseApprovals.map((a) => (
                   <li key={a.id} className="wc wc--approval">
                     <p className="wc-tags">
@@ -288,7 +301,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
             )}
             {items.length > NEEDS_YOU_SHOWN ? (
               <button type="button" className="cmd-more" onClick={() => setShowAll((v) => !v)}>
-                {showAll ? "Show fewer" : `Show all ${items.length}`}
+                {showAll ? "Show fewer" : `Show ${items.length - NEEDS_YOU_SHOWN} more`}
               </button>
             ) : null}
           </section>
@@ -316,6 +329,13 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
             )}
           </section>
 
+          {data ? (
+            <section className="cmd-section cmd-depth" aria-label="This week">
+              <FlowStrip flow={data.flow} />
+              <MoneyLine money={data.money} />
+            </section>
+          ) : null}
+
           <section className="cmd-section" aria-labelledby="cmd-handled">
             <div className="cmd-section-head">
               <h3 id="cmd-handled" className="cmd-section-title">
@@ -325,7 +345,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
             </div>
             {handled?.events.length ? (
               <ul className="cmd-feed">
-                {handled.events.map((e) => (
+                {(showAllRecent ? handled.events : handled.events.slice(0, RECENT_SHOWN)).map((e) => (
                   <li key={e.id}>
                     <span className="cmd-feed-dot" aria-hidden />
                     <span className="cmd-feed-body">
@@ -349,6 +369,11 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
             ) : (
               <p className="cmd-empty">{data ? "No actions in the last day." : "Reading…"}</p>
             )}
+            {(handled?.events.length ?? 0) > RECENT_SHOWN ? (
+              <button type="button" className="cmd-more" onClick={() => setShowAllRecent((v) => !v)}>
+                {showAllRecent ? "Show fewer" : `Show all ${handled!.events.length}`}
+              </button>
+            ) : null}
           </section>
 
 
