@@ -5876,6 +5876,14 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
     justify-content: center;
   }
 
+  /* The tap floor sizes links; it must not show the ones the phone header hides, or Sign in slides over the logo. */
+  @media (max-width: 980px) {
+    html body .ov-public .mkt-nav-actions .mkt-nav-contact:not(#tap-floor),
+    html body .ov-public .mkt-nav--open .mkt-nav-actions .mkt-nav-login:not(#tap-floor) {
+      display: none !important;
+    }
+  }
+
   /* Title links in lists keep their line; the tap area grows around the text. */
   html body :is(.wc-title, .dt-row-link, .dt-link, .cmd-section-link, .cmd-feed-text, .hf-link):not(#tap-floor) {
     position: relative;
