@@ -1288,7 +1288,8 @@
 }
 
 @media (min-width: 768px) {
-  .lead-detail-sticky {
+  .lead-detail-sticky,
+.job-detail-sticky {
     left: var(--os-sidebar-width, 15rem);
   }
 }
@@ -1461,7 +1462,8 @@
   cursor: wait;
 }
 
-.lead-detail-sticky {
+.lead-detail-sticky,
+.job-detail-sticky {
   position: fixed;
   left: 0;
   right: 0;
@@ -1473,7 +1475,8 @@
   backdrop-filter: blur(14px);
 }
 
-.lead-detail-sticky-inner {
+.lead-detail-sticky-inner,
+.job-detail-sticky-inner {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
@@ -1481,7 +1484,8 @@
   margin: 0 auto;
 }
 
-.lead-detail-sticky-btn {
+.lead-detail-sticky-btn,
+.job-detail-sticky-btn {
   flex: 1 1 auto;
   display: inline-flex;
   align-items: center;
@@ -1498,13 +1502,15 @@
   cursor: pointer;
 }
 
-.lead-detail-sticky-btn-primary {
+.lead-detail-sticky-btn-primary,
+.job-detail-sticky-btn-primary {
   border-color: var(--signal);
   background: var(--signal);
   color: var(--white);
 }
 
-.lead-detail-sticky-btn-muted {
+.lead-detail-sticky-btn-muted,
+.job-detail-sticky-btn-muted {
   background: var(--fog);
 }
 
@@ -3174,21 +3180,24 @@
   color: var(--ox-day-soft, #9aa1ab) !important;
 }
 
-.os-shell-night .lead-detail-sticky {
+.os-shell-night .lead-detail-sticky,
+.job-detail-sticky {
   background: var(--ox-day-sunk, #16181b) !important;
   border-top: 1px solid var(--ox-day-line, #2a2e35) !important;
   backdrop-filter: none !important;
   padding: 0.55rem 0.75rem calc(0.55rem + env(safe-area-inset-bottom, 0px)) !important;
 }
 
-.os-shell-night .lead-detail-sticky-inner {
+.os-shell-night .lead-detail-sticky-inner,
+.job-detail-sticky-inner {
   max-width: none;
   gap: 0.4rem !important;
 }
 
 .os-shell-night .lead-detail-sticky-btn,
 .os-shell-night .lead-detail-sticky-btn-muted,
-.os-shell-night .lead-detail-sticky-btn-primary {
+.os-shell-night .lead-detail-sticky-btn-primary,
+.job-detail-sticky-btn-primary {
   border-radius: 0.25rem !important;
   min-height: 2.25rem !important;
   padding: 0.4rem 0.75rem !important;
@@ -3200,13 +3209,15 @@
 }
 
 .os-shell-night .lead-detail-sticky-btn,
-.os-shell-night .lead-detail-sticky-btn-muted {
+.os-shell-night .lead-detail-sticky-btn-muted,
+.job-detail-sticky-btn-muted {
   background: var(--ox-day-surface, #1a1c20) !important;
   border: 1px solid var(--ox-day-line, #2a2e35) !important;
   color: var(--ox-legacy-text, #e9e9e9) !important;
 }
 
-.os-shell-night .lead-detail-sticky-btn-primary {
+.os-shell-night .lead-detail-sticky-btn-primary,
+.job-detail-sticky-btn-primary {
   background: #e9e9e9 !important;
   border: 1px solid #e9e9e9 !important;
   color: #000000 !important;

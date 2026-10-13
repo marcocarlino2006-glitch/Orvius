@@ -517,6 +517,27 @@ export default function JobDetailPage() {
 
         {wide ? <div className="os-detail-side">{side}</div> : null}
       </div>
+
+      {open ? (
+        <div className="job-detail-sticky font-sans">
+          <div className="job-detail-sticky-inner">
+            {next?.status === "en_route" && !job.technician ? (
+              <button type="button" className="job-detail-sticky-btn-primary" onClick={() => setChanging(true)}>
+                Assign a technician
+              </button>
+            ) : next ? (
+              <button type="button" className="job-detail-sticky-btn-primary" disabled={saving} onClick={() => void patch({ status: next.status })}>
+                {saving ? "Moving…" : next.label}
+              </button>
+            ) : null}
+            {phone ? (
+              <a href={`tel:${phone}`} className="job-detail-sticky-btn-muted">
+                Call
+              </a>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </OsShell>
   );
 }
