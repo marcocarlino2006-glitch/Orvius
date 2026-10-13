@@ -1,0 +1,76 @@
+/*
+ * Instant feel: every tap answers in the same frame. Buttons press down,
+ * show their working state at once, and never wait on the network to react.
+ * Loaded after the other dashboard layers so these rules win.
+ */
+
+/* No 300ms tap delay anywhere in the app. */
+.os-shell button,
+.os-shell a,
+.rd-root button,
+.rd-root a {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Pressed, not just hovered. */
+.os-shell :is(.ox-btn, .btn, .btn-void, .btn-secondary, .attention-item-btn, .assign-tech-btn, .job-status-advance-btn):active:not(:disabled),
+.rd-root :is(.ox-btn, .job-status-advance-btn):active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* Working buttons say so immediately and stay tappable-feeling. */
+.os-shell button:disabled,
+.rd-root button:disabled {
+  cursor: wait;
+}
+
+.is-instant-pending {
+  position: relative;
+  overflow: hidden;
+}
+
+.is-instant-pending::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 20%, rgb(255 255 255 / 0.25) 50%, transparent 80%);
+  animation: instant-sheen 900ms linear infinite;
+  pointer-events: none;
+}
+
+@keyframes instant-sheen {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* Optimistic rows settle in instead of flashing. */
+.is-instant-optimistic {
+  animation: instant-settle 300ms ease-out both;
+}
+
+@keyframes instant-settle {
+  from {
+    opacity: 0.45;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .os-shell :is(.ox-btn, .btn, .btn-void, .btn-secondary, .attention-item-btn, .assign-tech-btn, .job-status-advance-btn):active:not(:disabled) {
+    transform: none;
+  }
+
+  .is-instant-pending::after,
+  .is-instant-optimistic {
+    animation: none;
+  }
+}

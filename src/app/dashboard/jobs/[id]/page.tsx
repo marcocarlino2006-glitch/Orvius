@@ -166,6 +166,9 @@ export default function JobDetailPage() {
 
   async function patch(body: Record<string, unknown>) {
     if (!jobId) return;
+    const previous = job;
+    /* The screen answers the tap at once; the server confirms after. */
+    if (previous) setJob({ ...previous, ...body, technician: body.technicianId === undefined ? previous.technician : (crew.find((t) => t.id === body.technicianId) ?? null) });
     setSaving(true);
     setError(null);
     try {
@@ -175,11 +178,12 @@ export default function JobDetailPage() {
         body: JSON.stringify(body),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Update failed");
+      if (!res.ok) throw new Error(data.error ?? "That didn't go through — nothing changed");
       setJob(data.job);
       setWorkVersion((v) => v + 1);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Update failed");
+      if (previous) setJob(previous);
+      setError(err instanceof Error ? err.message : "That didn't go through — nothing changed");
     } finally {
       setSaving(false);
     }
@@ -491,13 +495,13 @@ export default function JobDetailPage() {
                       type="button"
                       disabled={saving}
                       onClick={() => void patch({ status: next.status })}
-                      className="ox-btn ox-btn--primary"
+                      className={`ox-btn ox-btn--primary${saving ? " is-instant-pending" : ""}`}
                     >
-                      {saving ? "Saving…" : next.label}
+                      {saving ? "Moving…" : next.label}
                     </button>
                   ) : null}
                   {needsConfirm ? (
-                    <button type="button" className="ox-btn ox-btn--quiet" disabled={confirmBusy || saving} onClick={() => void textConfirm()}>
+                    <button type="button" className={`ox-btn ox-btn--quiet${confirmBusy ? " is-instant-pending" : ""}`} disabled={confirmBusy || saving} onClick={() => void textConfirm()}>
                       {confirmBusy ? "Sending…" : "Text customer to confirm"}
                     </button>
                   ) : null}

@@ -184,7 +184,7 @@ export function WorkCard({
           }}
         />
       ) : inList ? (
-        <div className="wc-actions">
+        <div className={`wc-actions${busy ? " is-instant-pending" : ""}`}>
           {needsTech && technicians.length ? (
             <label className="wc-assign">
               <span className="sr-only">Assign a technician to {item.title}</span>
@@ -229,7 +229,7 @@ export function WorkCard({
           ) : null}
         </div>
       ) : (
-        <div className="wc-actions">
+        <div className={`wc-actions${busy ? " is-instant-pending" : ""}`}>
           {primaryCall && item.phone ? (
             <a href={tel(item.phone)} className="ox-btn ox-btn--primary ox-btn--sm">
               Call {item.customer?.split(" ")[0] || "them"}
