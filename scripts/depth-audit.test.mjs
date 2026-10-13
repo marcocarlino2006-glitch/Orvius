@@ -104,6 +104,14 @@ test("fixed icon paths resolve and the hero reserves the demo's space", () => {
   assert.match(demo, /disabled=\{checking\}/);
 });
 
+test("every published address is the inbox the founder reads", async () => {
+  const { company } = await import("../src/lib/company.ts");
+  for (const key of ["contactEmail", "supportEmail", "legalEmail", "securityEmail", "dmcaEmail"]) assert.equal(company[key], "support@orvius.im", key);
+  const { execSync } = await import("node:child_process");
+  const stale = execSync("git grep -l 'hello@orvius' -- src docs || true", { encoding: "utf8" }).trim();
+  assert.equal(stale, "", "no page or email still points at hello@");
+});
+
 test.after(async () => {
   globalThis.fetch = realFetch;
   await prisma.$disconnect();
