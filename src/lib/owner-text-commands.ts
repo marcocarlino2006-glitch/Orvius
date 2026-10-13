@@ -325,7 +325,7 @@ export async function handleOwnerText(params: {
           const previous = lead.job.scheduledAt;
           await prisma.job.update({
             where: { id: lead.job.id },
-            data: { scheduledAt: at, customerConfirmedAt: null },
+            data: { scheduledAt: at, customerConfirmedAt: null, techAcceptedAt: null },
           });
           await recordAudit({
             ...audit,

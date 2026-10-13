@@ -108,7 +108,11 @@ test("a job's stage and next action follow the visit", () => {
 
   const tech = { id: "t1", name: "Ray" };
   assert.equal(work.jobWorkItem(job({ technician: tech })).nextAction, "Confirm the time with the customer");
-  assert.equal(work.jobWorkItem(job({ technician: tech, customerConfirmedAt: now })).nextAction, null);
+  const unanswered = work.jobWorkItem(job({ technician: tech, customerConfirmedAt: now }));
+  assert.equal(unanswered.nextAction, "Waiting on Ray to accept");
+  assert.equal(unanswered.waitingOn, "technician");
+  assert.equal(unanswered.needsYou, false, "waiting on the technician isn't the owner's job until it goes stale");
+  assert.equal(work.jobWorkItem(job({ technician: tech, customerConfirmedAt: now, techAcceptedAt: now })).nextAction, null);
   assert.equal(work.jobWorkItem(job({ status: "confirmed" })).nextAction, "Assign a technician");
   assert.equal(work.jobWorkItem(job({ status: "en_route", technician: tech })).nextAction, "Mark arrived");
   assert.equal(work.jobWorkItem(job({ status: "on_site", technician: tech })).nextAction, "Mark done");

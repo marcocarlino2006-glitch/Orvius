@@ -1140,3 +1140,11 @@ CREATE INDEX IF NOT EXISTS "Deposit_leadId_idx" ON "Deposit"("leadId");
 CREATE INDEX IF NOT EXISTS "Deposit_jobId_idx" ON "Deposit"("jobId");
 CREATE INDEX IF NOT EXISTS "Message_sid_idx" ON "Message"("sid");
 ALTER TABLE "Business" ADD COLUMN "weeklyEmailOffAt" DATETIME;
+
+-- Technician accepts or declines an assigned job
+ALTER TABLE "Job" ADD COLUMN "techAssignedAt" DATETIME;
+ALTER TABLE "Job" ADD COLUMN "techNotifiedAt" DATETIME;
+ALTER TABLE "Job" ADD COLUMN "techAcceptedAt" DATETIME;
+ALTER TABLE "Job" ADD COLUMN "techDeclinedAt" DATETIME;
+ALTER TABLE "Job" ADD COLUMN "techDeclinedBy" TEXT;
+ALTER TABLE "Job" ADD COLUMN "techDeclineReason" TEXT;

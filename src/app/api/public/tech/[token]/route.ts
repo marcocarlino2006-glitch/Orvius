@@ -11,6 +11,8 @@ import { isJobOutcomeCode } from "@/lib/job-outcome";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { publicTokenLimited } from "@/lib/rate-limit";
+import { FieldError } from "@/lib/job-field";
+import { acceptJob, declineJob } from "@/lib/tech-response";
 
 type Params = { params: Promise<{ token: string }> };
 
@@ -24,7 +26,7 @@ async function loadJob(token: string) {
       business: { select: { name: true, timezone: true } },
       customer: { select: { name: true, phone: true } },
       lead: { select: { name: true, phone: true } },
-      technician: { select: { name: true, phone: true } },
+      technician: { select: { id: true, name: true, phone: true } },
     },
   });
 }
@@ -38,6 +40,7 @@ function serializeTechJob(job: NonNullable<Awaited<ReturnType<typeof loadJob>>>)
     serviceType: job.serviceType,
     notes: job.notes,
     etaText: job.etaText,
+    accepted: Boolean(job.techAcceptedAt),
     resolutionCode: job.resolutionCode,
     resolutionSummary: job.resolutionSummary,
     finalAmountCents: job.finalAmountCents,
@@ -65,6 +68,9 @@ export async function GET(request: Request, { params }: Params) {
 
 const patchSchema = z.object({
   status: z.enum(["confirmed", "en_route", "on_site", "completed"]).optional(),
+  accept: z.literal(true).optional(),
+  decline: z.literal(true).optional(),
+  reason: z.string().max(200).optional(),
   etaText: z.string().max(80).optional(),
   resolutionCode: z.string().optional(),
   resolutionSummary: z.string().max(500).optional(),
@@ -83,6 +89,19 @@ export async function PATCH(request: Request, { params }: Params) {
 
   try {
     const body = patchSchema.parse(await request.json());
+    const answering = { id: job.id, businessId: job.businessId, technicianId: job.technicianId };
+
+    if (body.decline) {
+      if (!job.technician) return NextResponse.json({ error: "Nobody is on this job. Ask the office." }, { status: 409 });
+      await declineJob({ job: answering, technician: job.technician, reason: body.reason });
+      return NextResponse.json({ ok: true, declined: true, job: null });
+    }
+    /* "confirmed" from the field is the technician's yes, never the customer's. */
+    if (body.accept || body.status === "confirmed") {
+      if (!job.technician) return NextResponse.json({ error: "Nobody is on this job. Ask the office." }, { status: 409 });
+      await acceptJob({ job: answering, technician: job.technician });
+      if (body.status === "confirmed") body.status = undefined;
+    }
 
     if (body.etaText !== undefined) {
       await prisma.job.update({
@@ -115,6 +134,7 @@ export async function PATCH(request: Request, { params }: Params) {
         );
       } else {
         await updateJobStatus(job.id, body.status);
+        if (job.technician && body.status === "en_route") await acceptJob({ job: answering, technician: job.technician });
       }
     }
 
@@ -127,6 +147,7 @@ export async function PATCH(request: Request, { params }: Params) {
       job: fresh ? serializeTechJob(fresh) : null,
     });
   } catch (error) {
+    if (error instanceof FieldError) return NextResponse.json({ error: error.message }, { status: error.status });
     const message =
       error instanceof z.ZodError
         ? error.errors.map((e) => e.message).join(", ")

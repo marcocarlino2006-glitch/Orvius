@@ -637,6 +637,16 @@ model Job {
   techToken     String?     @unique
   /** Free-text ETA from tech (e.g. "25 min"). */
   etaText       String?
+  /** When the current technician was put on this job; null on jobs assigned before acceptance existed. */
+  techAssignedAt DateTime?
+  /** Twilio accepted the job text to the current technician. */
+  techNotifiedAt DateTime?
+  /** The current technician said they will take it. Cleared when the technician or the time changes. */
+  techAcceptedAt DateTime?
+  /** The last technician said they can't take it; cleared when someone else is assigned. */
+  techDeclinedAt DateTime?
+  techDeclinedBy String?
+  techDeclineReason String?
   /** Appointment length from the trade playbook; null means the shop default. */
   durationMin   Int?
   /** The teammate responsible for this job (owner or member email); null means the technician, then the owner. */

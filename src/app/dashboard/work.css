@@ -1697,3 +1697,53 @@ a.cmd-feed-text:hover {
   gap: 0.5rem;
   flex-wrap: wrap;
 }
+
+/* ── Where a job stands: one row per fact on the record ── */
+
+.jv-steps {
+  display: grid;
+  gap: 0.5rem;
+  margin: 1rem 0 0;
+  padding: 0.875rem 0 0;
+  border-top: 1px solid var(--ox-line);
+  list-style: none;
+}
+
+.jv-step {
+  display: grid;
+  grid-template-columns: 0.75rem minmax(0, 1fr);
+  gap: 0.625rem;
+  align-items: baseline;
+}
+
+.jv-step-mark {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  border: 1.5px solid var(--ox-mute);
+  transform: translateY(-0.05rem);
+}
+
+.jv-step.is-done .jv-step-mark {
+  border-color: var(--ox-green, #34d399);
+  background: var(--ox-green, #34d399);
+}
+
+.jv-step.is-problem .jv-step-mark {
+  border-color: var(--ox-amber);
+  background: var(--ox-amber);
+}
+
+.jv-step-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--ox-text);
+}
+
+.jv-step.is-waiting .jv-step-label {
+  color: var(--ox-mute);
+}
+
+.jv-step.is-problem .jv-step-label {
+  color: var(--ox-amber);
+}
