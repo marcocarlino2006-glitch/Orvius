@@ -97,6 +97,67 @@ Thread follow-ups, one per post:
 Lead with the phone ringing. Don't lead with Settings, a pricing table or AI
 buzzwords.
 
+## 30-second video (record on your phone)
+
+Film the screen of a second phone calling **+1 844 643 9170**, speaker on.
+Say on screen it's a demo shop.
+
+| Time | On screen | Said |
+| --- | --- | --- |
+| 0–3s | Phone dialing at night, text: "2:07 AM. Furnace just died." | Nothing. Let it ring. |
+| 3–15s | The call, captions on | You: "My furnace stopped, it's freezing, I've got a baby." Let Orvius ask the address and offer a time. |
+| 15–22s | Cut to the owner's phone getting the text | "That's the owner's text. Job, address, time, already on the board." |
+| 22–27s | The booking in Command | "It answered, booked it and told the owner. While he slept." |
+| 27–30s | Number full screen | "Call it yourself: 844-643-9170. orvius.im" |
+
+Don't speed up the AI's replies or cut its pauses: people will call and
+compare.
+
+## Where trade owners actually are
+
+Tag every link so `/admin` ("New shops by source, 30 days") shows which post
+brought each shop. The source is kept in a cookie and recorded at checkout:
+
+- X / Threads: `orvius.im/launch?utm_source=x&utm_campaign=launch`
+- TikTok / Reels / Shorts: `orvius.im/launch?utm_source=tiktok&utm_campaign=launch`
+- Facebook groups: `orvius.im/try?utm_source=facebook&utm_campaign=launch`
+- LinkedIn: `orvius.im/launch?utm_source=linkedin&utm_campaign=launch`
+
+**TikTok / Reels / Shorts caption:**
+
+> It's 2am, your furnace dies, and the HVAC shop actually picks up. This is an AI receptionist I built for trade shops. Call it yourself: 844-643-9170 #hvac #plumbing #electrician #smallbusiness
+
+**Facebook contractor groups** (read each group's rules; many ban promotion,
+so ask an admin first or post only where it's allowed):
+
+> Owners: how many calls go to voicemail while you're on a job? I built an AI receptionist for HVAC, plumbing and electrical shops. It answers in your shop's name, books from your schedule, and texts you what happened. Don't take my word for it: call the demo shop at 844-643-9170 and try to break it. Honest feedback wanted, good or bad.
+
+**Reddit** (r/HVAC, r/Plumbing, r/electricians and r/smallbusiness ban most
+self-promotion): only reply where someone asks about answering services, say
+you built it, and give the number.
+
+## Before a big post: let the demos take the traffic
+
+The browser demo runs a queue: 10 calls at once by default, 2,000 a day, then
+it points people to "watch it run a demo shop", which costs nothing. Each demo
+call is up to 3 minutes of Vapi time.
+
+- [ ] In Vercel, raise `ORVIUS_DEMO_WEB_MAX_LIVE` (calls at once) and
+      `ORVIUS_DEMO_WEB_DAILY_CEILING` (calls per day) to what you'll pay for.
+      Rough cost: calls per day × 3 minutes × Vapi's per-minute price.
+- [ ] Raise Vapi's concurrency limit to at least `ORVIUS_DEMO_WEB_MAX_LIVE`
+      plus the live line. Vapi refuses calls past it.
+- [ ] Check `PREVIEW_DAILY_CAP` (the "try it on your business" previews).
+- [ ] Redeploy so the new values are live.
+
+## The first hour after posting
+
+- `/admin`: signups, calls and their source, live.
+- `/status`: provider status; if Vapi or Twilio is down, say so in a reply.
+- `hello@orvius.im`: answer every email the same day.
+- Reply to every comment with the number. Answer criticism plainly; never
+  argue or invent numbers.
+
 ## Never write
 
 - "Never miss a call", "answers every call", "guaranteed", "100%", "24/7
