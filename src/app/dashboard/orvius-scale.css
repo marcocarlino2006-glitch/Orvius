@@ -243,7 +243,8 @@
 
 /* The fixed action bar is a thumb target; on a desktop the header already has it. */
 @media (min-width: 1024px) {
-  .os-shell.os-shell-night .lead-detail-sticky {
+  .os-shell.os-shell-night .lead-detail-sticky,
+  .os-shell.os-shell-night .job-detail-sticky {
     display: none !important;
   }
 }

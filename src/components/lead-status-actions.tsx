@@ -45,7 +45,7 @@ export function LeadStatusActions({
       body: JSON.stringify({ status: next }),
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error ?? "Update failed");
+    if (!res.ok) throw new Error(data.error ?? "That didn't go through — nothing changed");
     setCurrent(next);
     onUpdated?.(next);
   }
@@ -70,7 +70,7 @@ export function LeadStatusActions({
         },
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Update failed");
+      setError(err instanceof Error ? err.message : "That didn't go through — nothing changed");
     } finally {
       setLoading(null);
     }

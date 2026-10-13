@@ -166,6 +166,9 @@ export default function JobDetailPage() {
 
   async function patch(body: Record<string, unknown>) {
     if (!jobId) return;
+    const previous = job;
+    /* The screen answers the tap at once; the server confirms after. */
+    if (previous) setJob({ ...previous, ...body, technician: body.technicianId === undefined ? previous.technician : (crew.find((t) => t.id === body.technicianId) ?? null) });
     setSaving(true);
     setError(null);
     try {
@@ -175,11 +178,12 @@ export default function JobDetailPage() {
         body: JSON.stringify(body),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Update failed");
+      if (!res.ok) throw new Error(data.error ?? "That didn't go through — nothing changed");
       setJob(data.job);
       setWorkVersion((v) => v + 1);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Update failed");
+      if (previous) setJob(previous);
+      setError(err instanceof Error ? err.message : "That didn't go through — nothing changed");
     } finally {
       setSaving(false);
     }
@@ -433,7 +437,7 @@ export default function JobDetailPage() {
                         })
                       }
                     >
-                      Save time
+                      Move it
                     </button>
                   </div>
                   <label className="jv-field">
@@ -491,13 +495,13 @@ export default function JobDetailPage() {
                       type="button"
                       disabled={saving}
                       onClick={() => void patch({ status: next.status })}
-                      className="ox-btn ox-btn--primary"
+                      className={`ox-btn ox-btn--primary${saving ? " is-instant-pending" : ""}`}
                     >
-                      {saving ? "Saving…" : next.label}
+                      {saving ? "Moving…" : next.label}
                     </button>
                   ) : null}
                   {needsConfirm ? (
-                    <button type="button" className="ox-btn ox-btn--quiet" disabled={confirmBusy || saving} onClick={() => void textConfirm()}>
+                    <button type="button" className={`ox-btn ox-btn--quiet${confirmBusy ? " is-instant-pending" : ""}`} disabled={confirmBusy || saving} onClick={() => void textConfirm()}>
                       {confirmBusy ? "Sending…" : "Text customer to confirm"}
                     </button>
                   ) : null}
@@ -513,6 +517,27 @@ export default function JobDetailPage() {
 
         {wide ? <div className="os-detail-side">{side}</div> : null}
       </div>
+
+      {open ? (
+        <div className="job-detail-sticky font-sans">
+          <div className="job-detail-sticky-inner">
+            {next?.status === "en_route" && !job.technician ? (
+              <button type="button" className="job-detail-sticky-btn job-detail-sticky-btn-primary" onClick={() => setChanging(true)}>
+                Assign a technician
+              </button>
+            ) : next ? (
+              <button type="button" className="job-detail-sticky-btn job-detail-sticky-btn-primary" disabled={saving} onClick={() => void patch({ status: next.status })}>
+                {saving ? "Moving…" : next.label}
+              </button>
+            ) : null}
+            {phone ? (
+              <a href={`tel:${phone}`} className="job-detail-sticky-btn job-detail-sticky-btn-muted">
+                Call
+              </a>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </OsShell>
   );
 }

@@ -472,7 +472,8 @@ html .os-shell .sc-dialog :is(.sc-btn, .ox-btn, .btn, .btn-secondary, .btn-void)
     bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px)) !important;
   }
 
-  .os-shell:has(.lead-detail-sticky) .os-tabbar {
+  .os-shell:has(.lead-detail-sticky) .os-tabbar,
+  .os-shell:has(.job-detail-sticky) .os-tabbar {
     display: none;
   }
 }

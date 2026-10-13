@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { toast } from "@/components/toaster";
+import { useInstantAction } from "@/components/instant-action";
 
 export type TechOption = { id: string; name: string };
 
@@ -29,8 +29,8 @@ export function AssignTechButton({
 }: AssignTechButtonProps) {
   const router = useRouter();
   const [techId, setTechId] = useState(technicians[0]?.id ?? "");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { pending: loading, error, run } = useInstantAction();
+  const [noPhone, setNoPhone] = useState(false);
 
   if (!technicians.length) {
     return (
@@ -49,34 +49,34 @@ export function AssignTechButton({
     event.stopPropagation();
     if (!techId || loading) return;
 
-    setLoading(true);
-    setError(null);
+    const name = technicians.find((t) => t.id === techId)?.name ?? "Tech";
+    setNoPhone(false);
     try {
-      const res = await fetch(`/api/jobs/${jobId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ technicianId: techId }),
-      });
-      const data = (await res.json().catch(() => null)) as {
-        error?: string;
-        techSms?: { sent: boolean; reason?: string };
-      } | null;
-      if (!res.ok) {
-        throw new Error(data?.error ?? "Assign failed");
-      }
-      const name = technicians.find((t) => t.id === techId)?.name ?? "Tech";
-      if (data?.techSms && !data.techSms.sent && data.techSms.reason === "no_phone") {
-        setError("Assigned — add mobile on Dispatch so they get SMS");
-        toast({ title: `${name} assigned. No mobile on file, so no text went out.` });
-      } else {
-        toast({ title: data?.techSms?.sent ? `${name} assigned and texted` : `${name} assigned` });
-      }
-      onAssigned?.();
-      router.refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Assign failed");
-    } finally {
-      setLoading(false);
+      await run(
+        async () => {
+          const res = await fetch(`/api/jobs/${jobId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ technicianId: techId }),
+          });
+          const data = (await res.json().catch(() => null)) as {
+            error?: string;
+            techSms?: { sent: boolean; reason?: string };
+          } | null;
+          if (!res.ok) throw new Error(data?.error ?? "That didn't go through — nobody was assigned");
+          if (data?.techSms && !data.techSms.sent && data.techSms.reason === "no_phone") {
+            setNoPhone(true);
+          }
+          onAssigned?.();
+          router.refresh();
+        },
+        {
+          pendingTitle: `Assigning ${buttonName(name)}…`,
+          doneTitle: `${name} is on it`,
+        },
+      );
+    } catch {
+      /* The hook already toasted the failure. */
     }
   }
 
@@ -112,7 +112,7 @@ export function AssignTechButton({
               ? `Assign ${buttonName(technicians[0]!.name)}`
               : "Assign"}
         </button>
-        {error ? <span className="assign-tech-error font-sans">{error}</span> : null}
+        {error ? <span className="assign-tech-error font-sans">{error}</span> : noPhone ? <span className="assign-tech-note font-sans">On it — add their mobile on Dispatch so the text goes out</span> : null}
       </div>
     );
   }
@@ -139,7 +139,7 @@ export function AssignTechButton({
       >
         {loading ? "Assigning…" : "Assign tech"}
       </button>
-      {error ? <p className="assign-tech-error font-sans">{error}</p> : null}
+      {error ? <p className="assign-tech-error font-sans">{error}</p> : noPhone ? <p className="assign-tech-note font-sans">On it — add their mobile on Dispatch so the text goes out</p> : null}
     </div>
   );
 }

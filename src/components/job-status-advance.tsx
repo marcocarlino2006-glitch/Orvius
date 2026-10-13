@@ -2,7 +2,7 @@
 
 import { toast } from "@/components/toaster";
 import { jobStatusLabel, nextJobStatus } from "@/lib/job-status";
-import { useState } from "react";
+import { useInstantAction } from "@/components/instant-action";
 
 type JobStatusAdvanceProps = {
   jobId: string;
@@ -19,8 +19,7 @@ export function JobStatusAdvance({
   className = "",
   compact = false,
 }: JobStatusAdvanceProps) {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { pending: loading, error, run } = useInstantAction();
   const next = nextJobStatus(status);
 
   if (!next) return null;
@@ -32,7 +31,7 @@ export function JobStatusAdvance({
       body: JSON.stringify({ status: value }),
     });
     const data = (await res.json().catch(() => null)) as { error?: string } | null;
-    if (!res.ok) throw new Error(data?.error ?? "Update failed");
+    if (!res.ok) throw new Error(data?.error ?? "That didn't go through — the job hasn't moved");
   }
 
   async function advance(event: React.MouseEvent) {
@@ -40,30 +39,30 @@ export function JobStatusAdvance({
     event.stopPropagation();
     if (loading || !next) return;
 
-    setLoading(true);
-    setError(null);
+    const previous = status;
+    const target = next.status;
+    /* The job moves the moment the tap lands; the server confirms after. */
+    onAdvanced?.(target);
     try {
-      await setJobStatus(next.status);
-      onAdvanced?.(next.status);
-      const previous = status;
-      toast({
-        title: `Job moved to ${jobStatusLabel(next.status)}`,
+      await run(() => setJobStatus(target), {
+        pendingTitle: `Moving to ${jobStatusLabel(target)}…`,
+        doneTitle: `Moved to ${jobStatusLabel(target)}`,
         action: {
           label: "Undo",
           run: async () => {
+            onAdvanced?.(previous);
             try {
               await setJobStatus(previous);
-              onAdvanced?.(previous);
             } catch {
-              toast({ title: "Could not undo. The job is still moved.", tone: "error" });
+              onAdvanced?.(target);
+              toast({ title: "Couldn't undo — the job is still moved.", tone: "error" });
             }
           },
         },
+        revert: () => onAdvanced?.(previous),
       });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Update failed");
-    } finally {
-      setLoading(false);
+    } catch {
+      /* The hook already toasted the failure and rolled the row back. */
     }
   }
 
@@ -74,11 +73,11 @@ export function JobStatusAdvance({
     >
       <button
         type="button"
-        className={`job-status-advance-btn font-sans ${compact ? "job-status-advance-btn-compact" : ""}`}
+        className={`job-status-advance-btn font-sans${compact ? " job-status-advance-btn-compact" : ""}${loading ? " is-instant-pending" : ""}`}
         disabled={loading}
         onClick={advance}
       >
-        {loading ? "…" : next.label}
+        {loading ? "Moving…" : next.label}
       </button>
       {error ? <span className="job-status-advance-error font-sans">{error}</span> : null}
     </div>

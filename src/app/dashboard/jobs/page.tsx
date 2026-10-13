@@ -114,6 +114,22 @@ export default function JobsPage() {
     () => open.filter((job) => !job.technician).length,
     [open],
   );
+  const depth = useMemo(() => {
+    const rows = withState.filter(({ state }) => state !== "closed");
+    const needsYou = rows.filter(({ job }) => jobRowFacts(job, Date.now()).attention).length;
+    const due = rows.reduce((sum, { job }) => {
+      const money = jobRowFacts(job, Date.now()).money;
+      return sum + (money.kind === "due" || money.kind === "claimed" || money.kind === "unsent" ? (money.cents ?? 0) : 0);
+    }, 0);
+    const todayKey = new Date().toLocaleDateString("en-CA", { timeZone });
+    const today = timeZone ? rows.filter(({ job }) => job.scheduledAt && new Date(job.scheduledAt).toLocaleDateString("en-CA", { timeZone }) === todayKey).length : 0;
+    return { open: rows.length, needsYou, unassigned, due, today };
+  }, [withState, timeZone]);
+  const grouped = useMemo(() => {
+    const yours = filtered.filter(({ job }) => jobRowFacts(job, Date.now()).attention);
+    const rest = filtered.filter(({ job }) => !jobRowFacts(job, Date.now()).attention);
+    return yours.length && rest.length ? [{ key: "yours", label: `Needs you · ${yours.length}`, rows: yours }, { key: "rest", label: "Everything else", rows: rest }] : [{ key: "all", label: "", rows: filtered }];
+  }, [filtered]);
 
   return (
     <OsShell
@@ -150,6 +166,31 @@ export default function JobsPage() {
             What you&apos;re committed to doing. Requests that haven&apos;t been booked yet stay in{" "}
             <Link href="/dashboard/inbox">Inbox{newLeadCount ? ` (${newLeadCount} new)` : ""}</Link>.
           </p>
+
+          {!loading && jobs.length ? (
+            <dl className="jobs-depth font-sans" aria-label="Where the work stands">
+              <div>
+                <dt>Open</dt>
+                <dd>{depth.open}</dd>
+              </div>
+              <div className={depth.needsYou ? "is-attention" : ""}>
+                <dt>Needs you</dt>
+                <dd>{depth.needsYou}</dd>
+              </div>
+              <div className={unassigned ? "is-attention" : ""}>
+                <dt>No technician</dt>
+                <dd>{unassigned}</dd>
+              </div>
+              <div>
+                <dt>Today</dt>
+                <dd>{depth.today}</dd>
+              </div>
+              <div>
+                <dt>To collect</dt>
+                <dd>{depth.due ? formatCents(depth.due) : "—"}</dd>
+              </div>
+            </dl>
+          ) : null}
 
           <div className="jobs-pipeline font-sans" role="tablist" aria-label="Job status">
             {TABS.map((tab) => (
@@ -200,9 +241,12 @@ export default function JobsPage() {
             />
           ) : (
             <>
+            {grouped.map((group) => (
+              <section key={group.key} aria-label={group.label || undefined}>
+                {group.label ? <h2 className="jobs-group font-sans">{group.label}</h2> : null}
             <JobTable
               timeZone={timeZone}
-              rows={filtered.map(({ job, facts }) => ({
+              rows={group.rows.map(({ job, facts }) => ({
                 id: job.id,
                 title: job.title,
                 status: job.status,
@@ -217,6 +261,8 @@ export default function JobsPage() {
                 facts,
               }))}
             />
+              </section>
+            ))}
             <p className="dt-foot">
               {filtered.length} job{filtered.length === 1 ? "" : "s"}
               {stageValue ? ` · ${stageValue} on estimates, invoices and recorded totals (average-ticket guesses left out)` : ""}

@@ -138,7 +138,7 @@ export default function WorkPage() {
             <span role="columnheader">Work</span>
             <span role="columnheader">Stage</span>
             <span role="columnheader">Next</span>
-            <span role="columnheader">Responsible</span>
+            <span role="columnheader">Who&apos;s on it</span>
             <span role="columnheader">Updated</span>
           </div>
           {rows.map((item) => (

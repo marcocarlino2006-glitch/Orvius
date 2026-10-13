@@ -175,10 +175,10 @@ function Decision({
         body: JSON.stringify({ technicianId: item.recommendation.technicianId }),
       });
       const data = (await res.json().catch(() => null)) as { error?: string } | null;
-      if (!res.ok) throw new Error(data?.error ?? "Assign failed");
+      if (!res.ok) throw new Error(data?.error ?? "Nobody was assigned — nothing changed");
       onDone();
     } catch (err) {
-      setError(err instanceof Error ? `${err.message}. Nothing was changed.` : "Assign failed.");
+      setError(err instanceof Error ? `${err.message}. Nothing was changed.` : "Nobody was assigned — nothing changed.");
     } finally {
       setBusy(false);
     }

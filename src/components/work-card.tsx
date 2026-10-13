@@ -14,7 +14,7 @@ import { formatWhen } from "@/lib/when";
 async function send(url: string, method: "POST" | "PATCH", body: unknown) {
   const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error((data as { error?: string }).error ?? "That did not work");
+  if (!res.ok) throw new Error((data as { error?: string }).error ?? "That didn't go through — nothing changed");
   return data as Record<string, unknown>;
 }
 
@@ -72,7 +72,7 @@ export function WorkCard({
     try {
       await fn();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "That did not work");
+      setError(err instanceof Error ? err.message : "That didn't go through — nothing changed");
     } finally {
       setBusy(false);
     }
@@ -83,7 +83,7 @@ export function WorkCard({
       const q = item.kind === "job" ? `jobId=${item.id}` : `leadId=${item.id}`;
       const res = await fetch(`/api/command/slots?${q}`);
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Could not read the schedule");
+      if (!res.ok) throw new Error(data.error ?? "Couldn't read the schedule — nothing changed");
       setSlots(data);
       setOpen("slots");
     });
@@ -184,7 +184,7 @@ export function WorkCard({
           }}
         />
       ) : inList ? (
-        <div className="wc-actions">
+        <div className={`wc-actions${busy ? " is-instant-pending" : ""}`}>
           {needsTech && technicians.length ? (
             <label className="wc-assign">
               <span className="sr-only">Assign a technician to {item.title}</span>
@@ -229,7 +229,7 @@ export function WorkCard({
           ) : null}
         </div>
       ) : (
-        <div className="wc-actions">
+        <div className={`wc-actions${busy ? " is-instant-pending" : ""}`}>
           {primaryCall && item.phone ? (
             <a href={tel(item.phone)} className="ox-btn ox-btn--primary ox-btn--sm">
               Call {item.customer?.split(" ")[0] || "them"}

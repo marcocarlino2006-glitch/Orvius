@@ -272,3 +272,19 @@ html .ov-signin .ov-signin-row-tag--intake::before {
     grid-row: auto;
   }
 }
+
+/* One press everywhere: marketing buttons answer the tap like app buttons do. */
+.ov-public :is(a, button) {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ov-public :is(.mkt-nav-cta, .inst-btn-primary, .mkt-nav-sheet-cta):active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-public :is(.mkt-nav-cta, .inst-btn-primary, .mkt-nav-sheet-cta):active:not(:disabled) {
+    transform: none;
+  }
+}
