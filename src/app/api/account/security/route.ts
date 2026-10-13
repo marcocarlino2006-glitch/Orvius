@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { auth } from "@/auth";
 import { revokeAllSessions, sendSecurityNotice } from "@/lib/account-security";
+import { requestEmailChange } from "@/lib/email-change";
 import { normalizeEmail } from "@/lib/magic-link";
 import { passwordProblem, setVerifiedPassword, hashPassword, verifyPasswordHash } from "@/lib/password-auth";
 import { prisma } from "@/lib/prisma";
@@ -29,7 +30,7 @@ async function signedInEmail() {
 
 async function status(email: string) {
   const login = await prisma.passwordLogin.findUnique({ where: { email }, select: { id: true } });
-  return { password: { set: Boolean(login) }, twoStep: await twoStepStatus(email), signIns: await recentSignIns(email) };
+  return { email, password: { set: Boolean(login) }, twoStep: await twoStepStatus(email), signIns: await recentSignIns(email) };
 }
 
 export async function GET() {
@@ -45,6 +46,12 @@ const bodySchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("two_step_disable"), code: z.string().max(20) }),
   z.object({ action: z.literal("recovery_codes"), code: z.string().max(20) }),
   z.object({ action: z.literal("sign_out_everywhere") }),
+  z.object({
+    action: z.literal("email_change"),
+    next: z.string().max(254),
+    password: z.string().max(200).optional(),
+    code: z.string().max(20).optional(),
+  }),
 ]);
 
 export async function POST(request: Request) {
@@ -83,6 +90,12 @@ export async function POST(request: Request) {
     await revokeAllSessions(email);
     await sendSecurityNotice(email, "signed_out_everywhere");
     return NextResponse.json({ ok: true, signedOut: true });
+  }
+
+  if (body.action === "email_change") {
+    const requested = await requestEmailChange({ fromEmail: email, toEmail: body.next, password: body.password, code: body.code });
+    if (!requested.ok) return NextResponse.json({ error: requested.error }, { status: requested.status });
+    return NextResponse.json({ ok: true, pendingEmail: requested.toEmail });
   }
 
   if (body.action === "two_step_start") {
