@@ -6,21 +6,21 @@
   display: grid;
   gap: 0.25rem;
   padding: 0.875rem 1rem;
-  border: 1px solid #2c3139;
+  border: 1px solid var(--ov-booking-line);
   border-radius: 0.75rem;
-  background: #0b0c0e;
-  color: #eceef1;
+  background: var(--ov-booking-bg);
+  color: var(--ov-booking-ink);
   font: inherit;
   text-align: left;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 .mp-plan.is-on {
-  border-color: #f2a93b;
-  box-shadow: inset 0 0 0 1px #f2a93b;
+  border-color: var(--ov-booking-accent);
+  box-shadow: inset 0 0 0 1px var(--ov-booking-accent);
 }
 .mp-plan:focus-visible {
-  outline: 2px solid #f2a93b;
+  outline: 2px solid var(--ov-booking-accent);
   outline-offset: 2px;
 }
 .mp-name {
@@ -34,11 +34,11 @@
 }
 .mp-price small {
   margin-left: 2px;
-  color: #8b919a;
+  color: var(--ov-booking-faint);
   font-size: 0.875rem;
   font-weight: 500;
 }
 .mp-line {
-  color: #b7bcc4;
+  color: var(--ov-booking-muted);
   font-size: 0.875rem;
 }

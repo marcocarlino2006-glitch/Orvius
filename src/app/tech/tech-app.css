@@ -1,16 +1,17 @@
 /* The technician's app (/tech). A phone in one hand, often outdoors: big targets, high contrast. */
 .ta {
-  --ta-bg: #0b0c0e;
-  --ta-s1: #121418;
-  --ta-s2: #191c21;
-  --ta-line: #23272e;
-  --ta-line-2: #30353d;
-  --ta-text: #eceef1;
-  --ta-text-2: #b4bac3;
-  --ta-mute: #8b919a;
-  --ta-green: #3ecf8e;
-  --ta-amber: #f2a93b;
+  --ta-bg: var(--ov-booking-bg);
+  --ta-s1: var(--ov-booking-card);
+  --ta-high: #191c21;
+  --ta-line: var(--ov-booking-line-soft);
+  --ta-line-strong: #30353d;
+  --ta-text: var(--ov-booking-ink);
+  --ta-text-2: var(--ov-booking-muted);
+  --ta-mute: var(--ov-booking-faint);
+  --ta-green: var(--ov-booking-green);
+  --ta-amber: var(--ov-booking-accent);
   --ta-red: #f87171;
+  --ta-paper-press: #e3e5e8;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
@@ -45,7 +46,7 @@
   line-height: 1.2;
   font-weight: 600;
   letter-spacing: -0.015em;
-  color: #fff;
+  color: var(--ox-white);
 }
 .ta-sub {
   margin: 0;
@@ -76,7 +77,7 @@
   border-radius: 0.75rem;
   background: rgb(248 113 113 / 0.12);
   border: 1px solid rgb(248 113 113 / 0.32);
-  color: #fecaca;
+  color: var(--ov-booking-red-bright);
   font-size: 0.9375rem;
 }
 .ta-back {
@@ -119,7 +120,7 @@
   margin: 0;
   font-size: 1.0625rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--ox-white);
 }
 .ta-label {
   margin: 0;
@@ -137,7 +138,7 @@
   flex: none;
   padding: 0.25rem 0.625rem;
   border-radius: 999px;
-  border: 1px solid var(--ta-line-2);
+  border: 1px solid var(--ta-line-strong);
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--ta-text-2);
@@ -146,17 +147,17 @@
 .ta-pill--live {
   border-color: rgb(62 207 142 / 0.4);
   background: rgb(62 207 142 / 0.12);
-  color: #7ee2b4;
+  color: var(--ov-booking-mint);
 }
 .ta-pill--done {
   border-color: transparent;
-  background: var(--ta-s2);
+  background: var(--ta-high);
   color: var(--ta-mute);
 }
 .ta-pill--risk {
   border-color: rgb(248 113 113 / 0.4);
   background: rgb(248 113 113 / 0.14);
-  color: #fca5a5;
+  color: var(--ov-booking-red);
 }
 
 .ta-list {
@@ -181,7 +182,7 @@
   -webkit-tap-highlight-color: transparent;
 }
 .ta-job:active {
-  background: var(--ta-s2);
+  background: var(--ta-high);
 }
 .ta-list--now .ta-job {
   grid-template-columns: minmax(0, 1fr) auto;
@@ -211,7 +212,7 @@
   font-size: 1rem;
   font-weight: 600;
   line-height: 1.3;
-  color: #fff;
+  color: var(--ox-white);
   overflow-wrap: anywhere;
 }
 .ta-job-meta {
@@ -223,7 +224,7 @@
 .ta-job-ask {
   font-size: 0.8125rem;
   font-weight: 600;
-  color: #fcd34d;
+  color: var(--ov-booking-link);
 }
 
 .ta-card {
@@ -275,13 +276,13 @@
   padding: 0.875rem 1rem;
   border-radius: 0.75rem;
   border: 1px solid var(--ta-line);
-  background: var(--ta-s2);
+  background: var(--ta-high);
   color: inherit;
   text-decoration: none;
   -webkit-tap-highlight-color: transparent;
 }
 .ta-action:active {
-  background: #20242a;
+  background: var(--ov-booking-bubble);
 }
 .ta-action--wide {
   grid-column: 1 / -1;
@@ -289,7 +290,7 @@
 .ta-action-label {
   font-size: 1rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--ox-white);
 }
 .ta-action-detail {
   overflow: hidden;
@@ -306,9 +307,9 @@
   min-height: 3rem;
   padding: 0 1rem;
   border-radius: 0.75rem;
-  border: 1px solid var(--ta-line-2);
-  background: var(--ta-s2);
-  color: #fff;
+  border: 1px solid var(--ta-line-strong);
+  background: var(--ta-high);
+  color: var(--ox-white);
   font: inherit;
   font-size: 0.9375rem;
   font-weight: 600;
@@ -318,7 +319,7 @@
   -webkit-tap-highlight-color: transparent;
 }
 .ta-btn:active:not(:disabled) {
-  background: #22262d;
+  background: var(--ov-booking-bubble);
 }
 .ta-btn:disabled {
   opacity: 0.5;
@@ -326,11 +327,11 @@
 }
 .ta-btn--primary {
   border-color: transparent;
-  background: #fff;
-  color: #0b0c0e;
+  background: var(--ox-white);
+  color: var(--ta-bg);
 }
 .ta-btn--primary:active:not(:disabled) {
-  background: #e3e5e8;
+  background: var(--ta-paper-press);
 }
 .ta-btn--quiet {
   background: transparent;
@@ -352,7 +353,7 @@
   cursor: pointer;
 }
 .ta-link--danger {
-  color: #fca5a5;
+  color: var(--ov-booking-red);
 }
 .ta-row2 {
   display: grid;
@@ -373,9 +374,9 @@
   min-height: 3rem;
   padding: 0.75rem 0.875rem;
   border-radius: 0.75rem;
-  border: 1px solid var(--ta-line-2);
+  border: 1px solid var(--ta-line-strong);
   background: var(--ta-bg);
-  color: #fff;
+  color: var(--ox-white);
   font: inherit;
   font-size: 1rem;
 }
@@ -396,7 +397,7 @@ textarea.ta-input {
   min-height: 2.75rem;
   padding: 0 1rem;
   border-radius: 999px;
-  border: 1px solid var(--ta-line-2);
+  border: 1px solid var(--ta-line-strong);
   background: transparent;
   color: var(--ta-text);
   font: inherit;
@@ -405,16 +406,16 @@ textarea.ta-input {
   cursor: pointer;
 }
 .ta-chip.is-on {
-  border-color: #fff;
-  background: #fff;
-  color: #0b0c0e;
+  border-color: var(--ox-white);
+  background: var(--ox-white);
+  color: var(--ta-bg);
 }
 
 .ta-total {
   font-size: 1.0625rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  color: #fff;
+  color: var(--ox-white);
 }
 .ta-total.is-paid {
   color: var(--ta-green);
@@ -447,7 +448,7 @@ textarea.ta-input {
   display: block;
   font-size: 0.9375rem;
   font-weight: 600;
-  color: #fff;
+  color: var(--ox-white);
 }
 .ta-line-total {
   font-size: 0.9375rem;
@@ -463,9 +464,9 @@ textarea.ta-input {
   min-width: 2.75rem;
   min-height: 2.25rem;
   border-radius: 0.5rem;
-  border: 1px solid var(--ta-line-2);
+  border: 1px solid var(--ta-line-strong);
   background: transparent;
-  color: #fff;
+  color: var(--ox-white);
   font: inherit;
   font-size: 1.125rem;
   font-weight: 600;
@@ -499,7 +500,7 @@ textarea.ta-input {
   cursor: pointer;
 }
 .ta-book-item:active {
-  background: var(--ta-s2);
+  background: var(--ta-high);
 }
 
 .ta-photo-group {
@@ -517,7 +518,7 @@ textarea.ta-input {
   padding: 0;
   border: 1px solid var(--ta-line);
   border-radius: 0.5rem;
-  background: var(--ta-s2);
+  background: var(--ta-high);
   cursor: pointer;
 }
 .ta-thumb img {
@@ -558,7 +559,7 @@ textarea.ta-input {
   gap: 0.25rem;
   padding: 0.75rem 0.875rem;
   border-radius: 0.75rem;
-  background: var(--ta-s2);
+  background: var(--ta-high);
 }
 .ta-note--office {
   border-left: 3px solid var(--ta-amber);
@@ -616,7 +617,7 @@ html:has(.ta-dock) {
 .ta-sync-failed {
   display: grid;
   gap: 0.25rem;
-  color: #fecaca;
+  color: var(--ov-booking-red-bright);
 }
 .ta-sync-failed p {
   margin: 0;
@@ -669,7 +670,7 @@ html:has(.ta-dock) {
   width: 100%;
   height: 11rem;
   border-radius: 0.75rem;
-  background: #fff;
+  background: var(--ox-white);
   touch-action: none;
   cursor: crosshair;
 }
@@ -677,7 +678,7 @@ html:has(.ta-dock) {
   width: 100%;
   max-width: 22rem;
   border-radius: 0.75rem;
-  background: #fff;
+  background: var(--ox-white);
 }
 .ta-sign-statement {
   margin: 0;
