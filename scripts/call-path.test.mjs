@@ -93,3 +93,19 @@ test("a call labelled non-service still reaches the owner when the caller gave a
   assert.match(ingest, /=== "other\.non_service" && !looksLikeWork/);
   assert.match(ingest, /looksLikeWork = Boolean\(freshLead\.address\?\.trim\(\) \|\| \(link && !link\.created\)\)/);
 });
+
+test("a non-service label never silences a caller who stayed on the line", () => {
+  const ingest = read("src/lib/call-ingest.ts");
+  assert.match(ingest, /engagedMinutes = Math\.floor\(\(durationSec \?\? 0\) \/ 60\)/);
+  assert.match(ingest, /silenced = nonService && engagedMinutes < 1 && !handoffMissed/);
+  assert.match(ingest, /if \(silenced\)/);
+  assert.match(ingest, /if \(!silenced\)/);
+  assert.match(ingest, /worth a glance/);
+});
+
+test("a caller who asked for a person and never reached one always alerts", () => {
+  const ingest = read("src/lib/call-ingest.ts");
+  assert.match(ingest, /forwarded = call\.endedReason === "assistant-forwarded-call"/);
+  assert.match(ingest, /handoffMissed = wantsHuman && Boolean\(business\.transferPhone\) && !forwarded && !autoBook\.jobId/);
+  assert.match(ingest, /didn't reach one — call back now/);
+});

@@ -312,6 +312,17 @@ export async function finishCallReport(input: Omit<Captured, "duplicate">): Prom
     // Every caller gets a customer row, so only a returning one counts here.
     const looksLikeWork = Boolean(freshLead.address?.trim() || (link && !link.created));
     const nonService = !safety && !autoBook.jobId && freshLead.categoryCode === "other.non_service" && !looksLikeWork;
+    /* A label is the model's guess; minutes on the line are a fact. A caller
+       who talked for a minute is worth a glance even when the intake came
+       back non-service — spam hangs up, customers explain. */
+    const engagedMinutes = Math.floor((durationSec ?? 0) / 60);
+    /* Asked for a person, transfer number set, never connected: whether the
+       transfer failed or the model never tried, the owner needs one line —
+       someone who wanted them slipped through. Never claim the transfer
+       itself failed; only what the owner can act on. */
+    const forwarded = call.endedReason === "assistant-forwarded-call";
+    const handoffMissed = wantsHuman && Boolean(business.transferPhone) && !forwarded && !autoBook.jobId;
+    const silenced = nonService && engagedMinutes < 1 && !handoffMissed;
 
     // A time read out after hold_appointment came from the schedule, not the model.
     const promises = detectAssistantPromises(transcript).filter(
@@ -332,7 +343,7 @@ export async function finishCallReport(input: Omit<Captured, "duplicate">): Prom
       });
     }
 
-    if (nonService) {
+    if (silenced) {
       audit.add({
         businessId: business.id,
         entityType: "notification",
@@ -391,9 +402,9 @@ export async function finishCallReport(input: Omit<Captured, "duplicate">): Prom
             summary,
           },
         });
-    const ownerMessage = `${baseOwnerMessage}${networkNote}`;
+    const ownerMessage = `${handoffMissed ? "They asked for a person and didn't reach one — call back now. " : ""}${nonService && !silenced ? `Filed as a non-service call, but they talked for ${engagedMinutes} min — worth a glance. ` : ""}${baseOwnerMessage}${networkNote}`;
 
-    if (!nonService) {
+    if (!silenced) {
       await enqueueOwnerAlert({
         businessId: business.id,
         ownerPhone: business.ownerPhone,
