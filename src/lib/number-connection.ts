@@ -232,7 +232,7 @@ export function connectionHealth(input: {
   }
   return {
     state: "not_proven",
-    label: "Not proven yet",
+    label: "Forwarding not proven yet",
     detail: "Orvius has a line, but no call has come through your business number yet. Run the test.",
   };
 }

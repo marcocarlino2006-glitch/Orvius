@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { formatAge, formatFreshness } from "@/lib/command-model";
 import { displayPhone } from "@/lib/customer";
+import { shopReadiness, type ReadinessMark, type ReadinessRow } from "@/lib/readiness";
 import type { ShopHealth } from "@/lib/shop-health";
+import { TestAlertButton } from "@/components/test-alert-button";
 
 type Tone = "ok" | "attention" | "risk" | "neutral";
 
@@ -28,6 +30,40 @@ function PulseRow({
         <p className="op-row-label">{label}</p>
         <p className="op-row-value">{value}</p>
         {detail ? <p className="op-row-detail">{detail}</p> : null}
+      </div>
+      {action ? <div className="op-row-action">{action}</div> : null}
+    </div>
+  );
+}
+
+const STAGES: Array<[keyof Pick<ReadinessRow, "configured" | "verified" | "healthy">, string]> = [
+  ["configured", "Set up"],
+  ["verified", "Verified"],
+  ["healthy", "Healthy now"],
+];
+
+function markClass(mark: ReadinessMark) {
+  return mark.ok === true ? "is-yes" : mark.ok === false ? "is-no" : "is-unknown";
+}
+
+function ReadinessPulseRow({ row, action }: { row: ReadinessRow; action: React.ReactNode }) {
+  return (
+    <div className={`op-row op-tone--${row.tone}`}>
+      <span className="op-dot" aria-hidden />
+      <div className="op-row-copy">
+        <p className="op-row-label">{row.label}</p>
+        <p className="op-row-value">{row.summary}</p>
+        <dl className="op-stages">
+          {STAGES.map(([key, label]) => (
+            <div key={key} className={`op-stage ${markClass(row[key])}`}>
+              <dt>{label}</dt>
+              <dd>
+                <span className="sr-only">{row[key].ok === true ? "Yes: " : row[key].ok === false ? "No: " : "Unknown: "}</span>
+                {row[key].text}
+              </dd>
+            </div>
+          ))}
+        </dl>
       </div>
       {action ? <div className="op-row-action">{action}</div> : null}
     </div>
@@ -64,9 +100,31 @@ export function OrviusPulse({
     return () => clearInterval(id);
   }, []);
 
-  const failed = health?.failedAlerts24h ?? 0;
-  const stuck = health?.stuckPendingAlerts ?? 0;
-  const unreachable = Boolean(health && !health.alertsReachable && !referenceImplementation && !testMode);
+  const readiness = health
+    ? shopReadiness(
+        {
+          ...health,
+          alertsReachable: health.alertsReachable || Boolean(referenceImplementation),
+        },
+        now,
+      ).filter((row) => row.id !== "forwarding" || (health.line && !referenceImplementation))
+    : [];
+  const actionFor = (row: ReadinessRow) =>
+    row.action === "test_call" ? (
+      <Link href="/dashboard/onboarding" className="ox-btn ox-btn--quiet ox-btn--sm">
+        Test call
+      </Link>
+    ) : row.action === "forward_test" ? (
+      <Link href="/dashboard?settings=phone" className="ox-btn ox-btn--quiet ox-btn--sm">
+        Test
+      </Link>
+    ) : row.action === "fix_alerts" ? (
+      <Link href="/dashboard?settings=notifications" className="ox-btn ox-btn--quiet ox-btn--sm">
+        Fix
+      </Link>
+    ) : row.action === "test_alert" ? (
+      <TestAlertButton />
+    ) : null;
   const pastDue = (billingStatus ?? "").toLowerCase() === "past_due";
 
   return (
@@ -98,90 +156,28 @@ export function OrviusPulse({
               }
             />
           ) : (
-          <>
-          <PulseRow
-            label="Orvius line"
-            value={health.line ? displayPhone(health.line) : referenceImplementation ? "Simulated" : "No line yet"}
-            detail={
-              !health.line
-                ? referenceImplementation
-                  ? "Demo calls run the real pipeline from the buttons on Command."
-                  : "Calls cannot reach Orvius until a line exists."
-                : health.lineVerified
-                  ? health.lastCallAt
-                    ? `Answers · last call ${formatAge(health.lastCallAt, now)} ago`
-                    : "Answers when called"
-                  : "Place one test call to verify."
-            }
-            tone={!health.line ? (referenceImplementation ? "attention" : "risk") : health.lineVerified ? "ok" : "attention"}
-            action={
-              !health.lineVerified ? (
-                <Link href="/dashboard/onboarding" className="ox-btn ox-btn--quiet ox-btn--sm">
-                  Test call
-                </Link>
-              ) : null
-            }
-          />
-          {health.connection && health.line && !referenceImplementation ? (
+            readiness.map((row) =>
+              row.id === "line" && referenceImplementation && !health.line ? (
+                <PulseRow
+                  key={row.id}
+                  label="Orvius number"
+                  value="Simulated"
+                  detail="Demo calls run the real pipeline from the buttons on Command."
+                  tone="attention"
+                />
+              ) : (
+                <ReadinessPulseRow key={row.id} row={row} action={actionFor(row)} />
+              ),
+            )
+          )}
+          {testMode ? (
             <PulseRow
-              label="Your calls"
-              value={health.connection.label}
-              detail={health.connection.detail}
-              tone={
-                health.connection.state === "proven"
-                  ? "ok"
-                  : health.connection.state === "test_failed"
-                    ? "risk"
-                    : "attention"
-              }
-              action={
-                health.connection.state !== "proven" ? (
-                  <Link href="/dashboard?settings=phone" className="ox-btn ox-btn--quiet ox-btn--sm">
-                    Test
-                  </Link>
-                ) : null
-              }
+              label="Alert delivery"
+              value="Simulated"
+              detail="Alerts are written here, not sent. They reach your mobile once you go live."
+              tone="neutral"
             />
           ) : null}
-          </>
-          )}
-          <PulseRow
-            label="Alert delivery"
-            value={
-              testMode
-                ? "Simulated"
-                : unreachable
-                ? "Nowhere to send"
-                : failed > 0
-                  ? `${failed} failed in 24h`
-                  : stuck > 0
-                    ? `${stuck} waiting to send`
-                    : health.lastAlertAt
-                      ? "Delivering"
-                      : "No alerts sent yet"
-            }
-            detail={
-              testMode
-                ? "Alerts are written here, not sent. They reach your mobile once you go live."
-                : unreachable
-                ? "No text or email can reach you yet."
-                : failed > 0
-                  ? "Grouped as one incident in the work queue."
-                  : health.lastAlertAt
-                  ? `Last delivered ${formatAge(health.lastAlertAt, now)} ago${
-                      health.alertLatencyP95Sec != null ? ` · 95% within ${health.alertLatencyP95Sec}s` : ""
-                    }`
-                  : null
-            }
-            tone={testMode ? "neutral" : unreachable || failed > 0 ? "risk" : stuck > 0 ? "attention" : health.lastAlertAt ? "ok" : "neutral"}
-            action={
-              unreachable ? (
-                <Link href="/dashboard?settings=notifications" className="ox-btn ox-btn--quiet ox-btn--sm">
-                  Fix
-                </Link>
-              ) : null
-            }
-          />
         </>
       )}
 
