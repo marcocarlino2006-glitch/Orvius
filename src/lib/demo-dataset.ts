@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import type { Business } from "@prisma/client";
 import { openWindows, proposeAction } from "@/lib/copilot-propose";
+import { deriveDemandSignal } from "@/lib/demand-capture";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -176,6 +177,7 @@ export async function seedDemoDataset(
         })
       : null;
 
+    const demand = deriveDemandSignal({ serviceType: s.service, address: s.address, categoryHint: s.code, trade: "HVAC" });
     const lead = await prisma.lead.create({
       data: {
         businessId: business.id,
@@ -190,8 +192,8 @@ export async function seedDemoDataset(
         notes: s.afterHours ? "After hours" : null,
         status: s.job ? "booked" : s.contacted ? "contacted" : "new",
         source: viaCall ? "call" : "sms",
-        categoryCode: s.code,
-        postalCode: s.address?.match(/\d{5}$/)?.[0] ?? null,
+        categoryCode: demand.categoryCode,
+        postalCode: demand.postalCode,
         firstContactedAt: s.contacted ? new Date(created.getTime() + 6 * 60_000) : null,
         createdAt: created,
       },
@@ -271,7 +273,7 @@ export async function seedDemoDataset(
         serviceType: s.service,
         urgency: s.urgency,
         address: s.address,
-        categoryCode: s.code,
+        categoryCode: lead.categoryCode,
         postalCode: lead.postalCode,
         status: spec.status,
         scheduledAt,
