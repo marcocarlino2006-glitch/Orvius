@@ -5948,3 +5948,18 @@ html[data-theme="day"] :is(.trend-bar, .trend-key-open) {
     font-size: 1.125rem;
   }
 }
+
+.lead-rail-money {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem 0.75rem;
+  margin: 0.2rem 0 0;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ox-day-soft, #9aa1ab);
+}
+
+.lead-rail-money .is-owed {
+  font-weight: 650;
+  color: var(--ox-amber);
+}
