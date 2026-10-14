@@ -212,6 +212,7 @@ export async function GET(request: Request) {
         createdAt: business.createdAt,
         pauseStartsAt: businessRecord?.pauseStartsAt ?? null,
         pausedUntil: businessRecord?.pausedUntil ?? null,
+        environment: business.environment,
       }
     : null;
   const entitled = billingFields ? isBillingEntitled(billingFields) : false;

@@ -3,6 +3,7 @@ import type { Business } from "@prisma/client";
 import { recordAudit } from "@/lib/audit";
 import { ingestEndOfCallReport } from "@/lib/call-ingest";
 import { confirmJobByCustomerToken, ensureCustomerConfirmToken } from "@/lib/customer-confirm";
+import { seedDemoDataset } from "@/lib/demo-dataset";
 import { prisma } from "@/lib/prisma";
 import { SIMULATED_UNDELIVERABLE_PHONE } from "@/lib/sms-simulation";
 
@@ -23,6 +24,18 @@ const HOURS = JSON.stringify({
   saturday: { open: "09:00", close: "14:00" },
   sunday: { closed: true, open: "00:00", close: "00:00" },
 });
+
+const DEFAULT_TIMEZONE = "America/Chicago";
+
+function validTimezone(tz: string | null | undefined): string {
+  if (!tz) return DEFAULT_TIMEZONE;
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: tz });
+    return tz;
+  } catch {
+    return DEFAULT_TIMEZONE;
+  }
+}
 
 const SERVICES = JSON.stringify([
   { name: "No cooling / no heat repair", description: "Diagnose and repair" },
@@ -142,25 +155,39 @@ export async function findDemoWorkspace(email: string) {
   });
 }
 
+type DemoOptions = {
+  /** Fill the shop with a current-date sample week (signed-in demos). Visitor demos start empty. */
+  seed?: boolean;
+  timezone?: string | null;
+};
+
 /** The person's demo shop, created on first use. Never touches a production shop. */
-export async function ensureDemoWorkspace(email: string): Promise<{ business: Business; created: boolean }> {
+export async function ensureDemoWorkspace(
+  email: string,
+  options: DemoOptions = {},
+): Promise<{ business: Business; created: boolean; seeded: boolean }> {
   const owner = email.trim().toLowerCase();
   const existing = await findDemoWorkspace(owner);
-  if (existing) return { business: existing, created: false };
+  if (existing) {
+    const empty = options.seed ? (await prisma.job.count({ where: { businessId: existing.id } })) === 0 : false;
+    if (empty) await seedDemoDataset(existing);
+    return { business: existing, created: false, seeded: empty };
+  }
   const business = await prisma.business.create({
     data: {
       name: "Summit Heating & Air (demo)",
       slug: `demo-${randomUUID().slice(0, 12)}`,
       environment: "demo",
       trade: "HVAC",
-      timezone: "America/Chicago",
+      timezone: validTimezone(options.timezone),
       greeting: "Thanks for calling Summit Heating & Air, this is Orvius. What's going on?",
       ownerEmail: owner,
       ownerPhone: DEMO_OWNER_PHONE,
       hoursJson: HOURS,
       servicesJson: SERVICES,
+      avgTicketCents: 42_000,
       billingStatus: "pilot",
-      pilotEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60_000),
+      pilotEndsAt: null,
       technicians: {
         create: CREW.map((t) => ({ name: t.name, phone: t.phone, skillsJson: JSON.stringify(t.skills), isActive: true })),
       },
@@ -175,7 +202,30 @@ export async function ensureDemoWorkspace(email: string): Promise<{ business: Bu
     actorEmail: owner,
     summary: "Demo workspace created — texts are simulated, numbers are fictional",
   });
-  return { business, created: true };
+  if (options.seed) await seedDemoDataset(business);
+  return { business, created: true, seeded: Boolean(options.seed) };
+}
+
+/**
+ * Start the person's demo over at today's date: the old demo shop and
+ * everything in it is deleted and a fresh one seeded. Only a shop that is
+ * environment=demo, slug demo-*, and owned by this email can be reset — a
+ * real shop is never in reach.
+ */
+export async function resetDemoWorkspace(email: string, options: Omit<DemoOptions, "seed"> = {}) {
+  const owner = email.trim().toLowerCase();
+  const existing = await findDemoWorkspace(owner);
+  if (existing) {
+    if (existing.environment !== "demo" || !existing.slug.startsWith("demo-") || existing.ownerEmail?.toLowerCase() !== owner) {
+      throw new Error("Only a demo workspace can be reset.");
+    }
+    await prisma.$transaction([
+      prisma.lead.deleteMany({ where: { businessId: existing.id } }),
+      prisma.webhookEvent.deleteMany({ where: { businessId: existing.id } }),
+      prisma.business.delete({ where: { id: existing.id } }),
+    ]);
+  }
+  return ensureDemoWorkspace(owner, { seed: true, timezone: options.timezone ?? existing?.timezone });
 }
 
 export async function simulateDemoCall(business: Pick<Business, "id" | "environment">, scenarioId: string) {

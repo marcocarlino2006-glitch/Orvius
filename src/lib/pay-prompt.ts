@@ -40,6 +40,7 @@ export function getPayPromptDecision(
     shopCreatedAt?: string | Date | null;
   },
 ): PayPromptDecision | null {
+  if (params.environment === "demo") return null;
   const status = (params.billingStatus ?? "none").toLowerCase();
   const fields: BusinessBillingFields = {
     billingStatus: params.billingStatus,

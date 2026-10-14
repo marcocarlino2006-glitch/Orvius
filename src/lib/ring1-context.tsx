@@ -71,6 +71,10 @@ export type Ring1Data = {
     billingStatus?: string | null;
     depositEnabled?: boolean;
     referenceImplementation?: boolean;
+    /** The signed-in person's own disposable demo shop. */
+    demoWorkspace?: boolean;
+    /** When the demo's sample week was dated from. */
+    sampleFrom?: string;
     /** Still in setup: settings saved, no line, every text simulated. */
     testMode?: boolean;
   } | null;

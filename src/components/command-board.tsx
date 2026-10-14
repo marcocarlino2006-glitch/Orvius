@@ -309,13 +309,17 @@ export function DemoPanel({ onChange }: { onChange: () => void }) {
   );
 }
 
+async function openDemo(reset: boolean) {
+  await post("/api/demo/workspace", { reset, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone });
+  window.location.assign("/dashboard");
+}
+
 export function TryDemo({ empty }: { empty: boolean }) {
   const [busy, setBusy] = useState(false);
   async function open() {
     setBusy(true);
     try {
-      await post("/api/demo/workspace", {});
-      window.location.assign("/dashboard");
+      await openDemo(false);
     } catch (err) {
       toast({ title: err instanceof Error ? err.message : "Could not open the demo" });
       setBusy(false);
@@ -327,7 +331,42 @@ export function TryDemo({ empty }: { empty: boolean }) {
       <button type="button" className="cb-try-link" disabled={busy} onClick={() => void open()}>
         {busy ? "Opening the demo shop…" : "Try it in a demo shop"}
       </button>
-      {" "}— your real line and customers stay untouched.
+      {" "}— a separate sample shop dated today. Your real line and customers stay untouched.
     </p>
+  );
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** On a demo shop: what it is, how old its sample week is, a reset, and simulated calls. */
+export function DemoWorkspaceBar({ sampleFrom, onChange }: { sampleFrom: string | null | undefined; onChange: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const from = sampleFrom ? new Date(sampleFrom) : null;
+  const stale = Boolean(from && Date.now() - from.getTime() > DAY_MS);
+  async function reset() {
+    if (!window.confirm("Start the demo over at today's date? Everything you did in this demo shop is cleared. Your real shop is not touched.")) return;
+    setBusy(true);
+    try {
+      await openDemo(true);
+    } catch (err) {
+      toast({ title: err instanceof Error ? err.message : "Could not reset the demo" });
+      setBusy(false);
+    }
+  }
+  return (
+    <section className={`cb-demo-bar${stale ? " is-stale" : ""}`} aria-label="Demo shop">
+      <div className="cb-demo-bar-copy">
+        <p className="cb-demo-title">Demo shop — separate from your real shop</p>
+        <p className="cb-muted">
+          {stale && from
+            ? `The sample week is dated from ${from.toLocaleDateString(undefined, { month: "short", day: "numeric" })}, so some of it has gone overdue. Reset to start it at today.`
+            : "A sample week dated today: requests, a plan waiting for approval, today's crew, bills and payments. Texts are simulated and every number is fictional."}
+        </p>
+      </div>
+      <button type="button" className={`ox-btn ${stale ? "ox-btn--primary" : "ox-btn--quiet"} ox-btn--sm`} disabled={busy} onClick={() => void reset()}>
+        {busy ? "Resetting…" : "Reset to today"}
+      </button>
+      <DemoPanel onChange={onChange} />
+    </section>
   );
 }

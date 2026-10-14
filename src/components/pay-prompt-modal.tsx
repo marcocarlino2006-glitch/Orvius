@@ -61,6 +61,7 @@ export function PayPromptModal() {
           pilotEndsAt: data.business?.pilotEndsAt ?? data.billing?.pilotEndsAt,
           shopCreatedAt: data.business?.createdAt,
           createdAt: data.business?.createdAt,
+          environment: data.business?.environment ?? null,
         });
 
         setEmail(data.user?.email ?? "");

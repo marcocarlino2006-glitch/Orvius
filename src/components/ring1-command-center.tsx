@@ -5,7 +5,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { CommandSignals } from "@/components/command-signals";
 import { CrewBoard, FlowStrip, MoneyLine } from "@/components/command-depth";
 import { ActivationChecklist } from "@/components/activation-checklist";
-import { AskBar, PlanCard, TryDemo } from "@/components/command-board";
+import { AskBar, DemoWorkspaceBar, PlanCard, TryDemo } from "@/components/command-board";
 import { OrviusPulse } from "@/components/orvius-pulse";
 import { SupportContact } from "@/components/support-contact";
 import { TestAlertButton } from "@/components/test-alert-button";
@@ -207,6 +207,8 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
         </section>
       ) : null}
 
+      {data?.business?.demoWorkspace ? <DemoWorkspaceBar sampleFrom={data.business.sampleFrom} onChange={() => void refresh()} /> : null}
+
       <header className="cmd-head">
         <p className="cmd-greeting os-own-color">{brief?.greeting ?? "Command"}</p>
         <h2 className="cmd-headline os-own-color" aria-live="polite">
@@ -382,7 +384,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
               <ActivationChecklist onlyLeft />
             </section>
           ) : null}
-          {data && !data.business?.referenceImplementation && !data.metrics.totalCalls ? <TryDemo empty /> : null}
+          {data && !data.business?.referenceImplementation ? <TryDemo empty={!data.metrics.totalCalls} /> : null}
         </div>
 
         <aside className="cc-rail" aria-label="The shop">

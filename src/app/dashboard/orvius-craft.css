@@ -1060,6 +1060,31 @@ a.dt-row:focus-visible,
   background: var(--ox-s1);
 }
 
+.cb-demo-bar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.75rem 1rem;
+  align-items: start;
+  margin-bottom: 1rem;
+  padding: 0.875rem 1rem;
+  border: 1px dashed var(--ox-line-strong);
+  border-radius: var(--ox-radius);
+  background: var(--ox-s1);
+}
+.cb-demo-bar.is-stale {
+  border-color: var(--ox-amber);
+}
+.cb-demo-bar-copy {
+  display: grid;
+  gap: 0.25rem;
+}
+.cb-demo-bar > .cb-demo {
+  grid-column: 1 / -1;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
 .cb-demo-title {
   margin: 0;
   font-size: 0.875rem;

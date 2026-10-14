@@ -271,6 +271,8 @@ export async function GET(request: Request) {
       pilotEndsAt: business.pilotEndsAt?.toISOString() ?? null,
       depositEnabled: business.depositEnabled,
       referenceImplementation: isDemoBusiness(business),
+      demoWorkspace: business.environment === "demo" && business.slug.startsWith("demo-"),
+      sampleFrom: business.createdAt.toISOString(),
       testMode: isSetupSandbox(business),
     },
     coverage: {

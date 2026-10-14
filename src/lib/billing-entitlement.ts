@@ -15,7 +15,13 @@ export type BusinessBillingFields = {
   pastDueSince?: Date | string | null;
   pauseStartsAt?: Date | string | null;
   pausedUntil?: Date | string | null;
+  /** A demo shop bills nobody and reaches nobody, so it never locks. */
+  environment?: string | null;
 };
+
+export function isDemoShop(business: BusinessBillingFields): boolean {
+  return business.environment === "demo";
+}
 
 /** Inside an off-season pause: the plan is not charged, so neither the line nor the workspace runs. */
 export function isPaused(business: BusinessBillingFields, now = new Date()): boolean {
@@ -36,6 +42,7 @@ export const PILOT_LINE_GRACE_DAYS = 7;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export function isLineEntitled(business: BusinessBillingFields, now = new Date()): boolean {
+  if (isDemoShop(business)) return true;
   const status = (business.billingStatus ?? "none").toLowerCase();
   if (status === "active") return !isPaused(business, now);
   if (status === "canceled") return false;
@@ -85,6 +92,7 @@ export function isBillingEntitled(
   business: BusinessBillingFields,
   now = new Date(),
 ): boolean {
+  if (isDemoShop(business)) return true;
   const status = (business.billingStatus ?? "none").toLowerCase();
 
   if (status === "active") return !isPaused(business, now);
