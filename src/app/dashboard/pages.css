@@ -824,3 +824,47 @@
   font-size: 0.75rem;
   color: var(--ox-text-3, var(--ash, #6b6b6b));
 }
+
+.rp-open {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rp-open li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.125rem 1rem;
+  padding: 0.625rem 0;
+  border-bottom: 1px solid var(--ox-line, rgba(0, 0, 0, 0.08));
+  font-size: 0.875rem;
+}
+
+.rp-open li:last-child {
+  border-bottom: 0;
+}
+
+.rp-open-label {
+  font-weight: 600;
+  color: var(--ox-text);
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+a.rp-open-label:hover {
+  text-decoration: underline;
+}
+
+.rp-open-money {
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: var(--ox-amber);
+}
+
+.rp-open-age {
+  grid-column: 1 / -1;
+  font-size: 0.75rem;
+  color: var(--ox-text-3, var(--ash, #6b6b6b));
+}

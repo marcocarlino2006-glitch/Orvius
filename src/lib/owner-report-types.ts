@@ -16,6 +16,9 @@ export type CallLeadRow = { booked: boolean };
 
 export type ReportRow = { key: string; label: string; collectedCents: number; payments: number; jobsCompleted?: number; estimatesSent?: number; estimatesWon?: number };
 
+/** A bill the customer hasn't finished paying. Balance is the bill minus collected payments. */
+export type OpenInvoiceRow = { id: string; label: string; jobId: string | null; amountCents: number; balanceCents: number; agedDays: number };
+
 export type OwnerReport = {
   collectedCents: number;
   previousCollectedCents: number;
@@ -24,6 +27,8 @@ export type OwnerReport = {
   jobsCompleted: number;
   estimates: { sent: number; won: number; sentCents: number; wonCents: number; closeRate: number | null };
   calls: { leads: number; booked: number; bookedRate: number | null };
+  /** Bills still waiting on the customer, full balance left, oldest first. Not in any period: owed is owed. */
+  stillToCollect: { totalCents: number; count: number; invoices: OpenInvoiceRow[] };
   byTechnician: ReportRow[];
   bySource: ReportRow[];
 };

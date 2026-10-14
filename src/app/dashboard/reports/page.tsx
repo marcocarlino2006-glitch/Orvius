@@ -166,7 +166,43 @@ export default function ReportsPage() {
                   : "No caller requests in this period yet."}
               </p>
             </div>
+            <div className="rp-tile">
+              <p className="rp-k">Still to collect</p>
+              <p className="rp-v">{r.stillToCollect.totalCents ? money(r.stillToCollect.totalCents) : "—"}</p>
+              <p className="rp-note">
+                {r.stillToCollect.count
+                  ? `${r.stillToCollect.count} unpaid ${r.stillToCollect.count === 1 ? "bill" : "bills"}, whatever the period.`
+                  : "Every bill is paid."}
+              </p>
+            </div>
           </div>
+
+          {r.stillToCollect.invoices.length ? (
+            <section className="tm-section" aria-label="Still to collect">
+              <h2 className="tm-h">Still to collect</h2>
+              <ul className="rp-open">
+                {r.stillToCollect.invoices.slice(0, 10).map((i) => (
+                  <li key={i.id}>
+                    {i.jobId ? (
+                      <a href={`/dashboard/jobs/${i.jobId}`} className="rp-open-label">
+                        {i.label}
+                      </a>
+                    ) : (
+                      <span className="rp-open-label">{i.label}</span>
+                    )}
+                    <span className="rp-open-money">{money(i.balanceCents)}</span>
+                    <span className="rp-open-age">
+                      {i.balanceCents < i.amountCents ? `of ${money(i.amountCents)} · ` : ""}
+                      {i.agedDays === 0 ? "billed today" : i.agedDays === 1 ? "billed yesterday" : `billed ${i.agedDays} days ago`}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              {r.stillToCollect.invoices.length > 10 ? (
+                <p className="tm-help">Showing the 10 oldest of {r.stillToCollect.invoices.length}.</p>
+              ) : null}
+            </section>
+          ) : null}
 
           {r.payments ? (
             <>
