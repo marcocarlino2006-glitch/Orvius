@@ -415,7 +415,9 @@ function attach(item: WorkItem, problems: WorkProblem[], approvalId: string | nu
 
 /** The worst problem's own fix, when it is not the step the stage would suggest. */
 function problemAction(kind: WorkProblem["kind"], item: WorkItem): [string, WaitingOn] | null {
-  if (kind === "tech_unanswered" && item.technician) return [`Call ${item.technician.name}`, "you"];
+  if (kind === "tech_unanswered" && item.technician) {
+    return item.technician.phone ? [`Call ${item.technician.name}`, "you"] : [`Add ${item.technician.name}'s mobile number in Team`, "you"];
+  }
   return null;
 }
 

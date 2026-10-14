@@ -30,6 +30,15 @@ export async function notifyTechOnAssign(params: {
     return { sent: false, reason: "no_change" };
   }
 
+  return deliverAssignSms(jobId);
+}
+
+/**
+ * A job text for an assignment that already happened: the owner just added
+ * the technician's number, so the ask starts now. Never touches assignment
+ * timing — the job was assigned when it was assigned.
+ */
+async function deliverAssignSms(jobId: string): Promise<{ sent: boolean; reason?: string; techToken?: string }> {
   try {
     const techToken = await ensureJobTechToken(jobId);
 
@@ -38,7 +47,7 @@ export async function notifyTechOnAssign(params: {
       include: JOB_INCLUDE,
     });
 
-    if (!job?.technician?.phone) {
+    if (!job?.technician?.phone || !job.technicianId) {
       return { sent: false, reason: "no_phone", techToken };
     }
 
@@ -67,7 +76,7 @@ export async function notifyTechOnAssign(params: {
       return { sent: false, reason: "sms_unavailable", techToken };
     }
 
-    await markTechNotified(job.id, nextTechnicianId);
+    await markTechNotified(job.id, job.technicianId);
     return { sent: true, techToken };
   } catch (err) {
     console.error("[tech-assign-sms]", err);
@@ -76,6 +85,44 @@ export async function notifyTechOnAssign(params: {
 }
 
 export { serializeJob };
+
+/**
+ * The owner just added the technician's number. Every open job of theirs
+ * that never got its job text — because there was nowhere to send it — gets
+ * it now, oldest first. Jobs already answered, declined, or notified are
+ * left alone. Never throws.
+ */
+export async function notifyTechPendingJobs(params: {
+  businessId: string;
+  technicianId: string;
+  limit?: number;
+}): Promise<{ sent: number; skipped: number }> {
+  let sent = 0;
+  let skipped = 0;
+  try {
+    const pending = await prisma.job.findMany({
+      where: {
+        businessId: params.businessId,
+        technicianId: params.technicianId,
+        status: { in: ["scheduled", "confirmed"] },
+        techNotifiedAt: null,
+        techAcceptedAt: null,
+        techDeclinedAt: null,
+      },
+      orderBy: [{ scheduledAt: "asc" }, { createdAt: "asc" }],
+      take: params.limit ?? 10,
+      select: { id: true },
+    });
+    for (const job of pending) {
+      const result = await deliverAssignSms(job.id);
+      if (result.sent) sent += 1;
+      else skipped += 1;
+    }
+  } catch (err) {
+    console.error("[tech-assign-sms] pending flush", err);
+  }
+  return { sent, skipped };
+}
 
 /** Tell the assigned technician their job moved. Never throws. */
 export async function notifyTechOnReschedule(params: {

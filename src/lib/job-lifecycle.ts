@@ -29,7 +29,7 @@ export const JOB_STATE_LABEL: Record<JobState, string> = {
 export type JobLifecycleInput = {
   status: string;
   customerConfirmedAt?: string | Date | null;
-  technician?: { name: string } | null;
+  technician?: { name: string; phone?: string | null } | null;
   outcomeCapturedAt?: string | Date | null;
   resolutionCode?: string | null;
   techAcceptedAt?: string | Date | null;
@@ -160,9 +160,16 @@ export function jobSteps(job: JobStepsInput, now = new Date()): JobStep[] {
   } else if (tech) {
     const assignedAt = job.techAssignedAt ? new Date(job.techAssignedAt).getTime() : null;
     const textMissing = assignedAt != null && !job.techNotifiedAt && now.getTime() - assignedAt > NOTIFY_GRACE_MS;
+    const noNumber = !job.technician?.phone?.trim();
     steps.push(
       textMissing
-        ? { key: "technician", label: "Technician accepted", state: "problem", detail: `The job text to ${tech} didn't go out. Call them.`, at: iso(job.techAssignedAt) }
+        ? {
+            key: "technician",
+            label: "Technician accepted",
+            state: "problem",
+            detail: noNumber ? `${tech} has no mobile number, so the job text can't go out. Add it in Team.` : `The job text to ${tech} didn't go out. Call them.`,
+            at: iso(job.techAssignedAt),
+          }
         : { key: "technician", label: "Technician accepted", state: "waiting", detail: `${tech} assigned, hasn't answered yet`, at: iso(job.techAssignedAt) },
     );
   } else if (job.techDeclinedAt) {
