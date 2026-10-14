@@ -1531,7 +1531,7 @@ a.cmd-feed-text:hover {
   justify-content: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: #fff;
+  color: var(--ox-white);
 }
 
 @media (max-width: 640px) {
@@ -1657,7 +1657,7 @@ a.cmd-feed-text:hover {
   max-width: 320px;
   width: 100%;
   border-radius: var(--ox-radius-sm);
-  background: #fff;
+  background: var(--ox-white);
   border: 1px solid var(--ox-line, rgba(0, 0, 0, 0.08));
 }
 
@@ -1976,7 +1976,7 @@ a.cmd-crew-name:hover {
   padding: 0 0.3125rem;
   border-radius: 0.25rem;
   background: var(--ox-red);
-  color: #fff;
+  color: var(--ox-white);
   font-weight: 700;
 }
 
@@ -2052,7 +2052,7 @@ a.cmd-crew-name:hover {
 .cmd-crew-key .is-on_site::before {
   border-color: var(--ox-green);
   background: var(--ox-green);
-  color: #06140d;
+  color: var(--ox-ink-on-green);
 }
 
 .cmd-crew-block.is-completed,

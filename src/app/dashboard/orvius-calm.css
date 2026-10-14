@@ -40,7 +40,7 @@
   margin-right: 0.5rem;
   border-radius: 999px;
   background: var(--ox-green);
-  color: #fff;
+  color: var(--ox-on-primary, #fff);
   font-size: 0.8125rem;
 }
 

@@ -109,6 +109,16 @@ body {
 }
 
 /*
+  Fixed colors — never themed. A signature backing stays paper-white in both
+  colorways; text on a red or green badge stays readable on either canvas.
+  Everything else reads a themed token.
+*/
+:root {
+  --ox-white: #fff;
+  --ox-ink-on-green: #06140d;
+}
+
+/*
   Legacy marketing CSS used soft pill CTAs. Instrument controls opt into a
   hard 0.25rem radius explicitly rather than fighting !important cascades.
 */

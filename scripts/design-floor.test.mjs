@@ -76,3 +76,51 @@ test("corner radii stay on the scale (scripts/radius-scale.mjs)", () => {
   }
   assert.deepEqual(offenders, []);
 });
+
+test("hardcoded colors never grow (migrate to tokens, don't add hex)", () => {
+  /* The palette migration replaces hardcoded hexes with tokens file by file.
+     Until it lands, no file may gain a new one. To move the ceiling down,
+     migrate a file and lower its number here. */
+  const ceiling = {
+    "src/app/b/[slug]/book.css": 8,
+    "src/app/dashboard/dashboard.css": 121,
+    "src/app/dashboard/inbox/messages/messages.css": 0,
+    "src/app/dashboard/onboarding/turn-on.css": 1,
+    "src/app/dashboard/orvius-calm.css": 0,
+    "src/app/dashboard/orvius-craft.css": 11,
+    "src/app/dashboard/orvius-depth.css": 16,
+    "src/app/dashboard/orvius-finish.css": 0,
+    "src/app/dashboard/orvius-instant.css": 0,
+    "src/app/dashboard/orvius-modern.css": 2,
+    "src/app/dashboard/orvius-scale.css": 0,
+    "src/app/dashboard/orvius-system.css": 56,
+    "src/app/dashboard/orvius-texture.css": 21,
+    "src/app/dashboard/pages.css": 0,
+    "src/app/dashboard/settings-center.css": 14,
+    "src/app/dashboard/work.css": 0,
+    "src/app/globals.css": 132,
+    "src/app/home-sections.css": 0,
+    "src/app/m/[slug]/plans.css": 5,
+    "src/app/p/[id]/replay.css": 0,
+    "src/app/public-field.css": 34,
+    "src/app/public-polish.css": 6,
+    "src/app/public-v2.css": 111,
+    "src/app/tech/tech-app.css": 29,
+    "src/app/theme-tokens.css": 0,
+    "src/app/w/[slug]/chat.css": 16,
+  };
+  const count = (file) =>
+    (readFileSync(file, "utf8").match(/[^-][a-z-]*: *#[0-9a-fA-F]{3,8}/g) ?? []).filter((m) => !m.trimStart().startsWith("--")).length;
+  const grown = [];
+  const seen = new Set();
+  for (const file of walk("src/app", [".css"])) {
+    seen.add(file);
+    if (!(file in ceiling)) {
+      grown.push(`${file}: new stylesheet with hardcoded colors — read from tokens`);
+      continue;
+    }
+    const n = count(file);
+    if (n > ceiling[file]) grown.push(`${file}: ${n} hardcoded colors, ceiling is ${ceiling[file]}`);
+  }
+  assert.deepEqual(grown, []);
+});
