@@ -3257,6 +3257,7 @@ html[data-theme="day"] .os-shell .dsp-date {
     font-size: 0.8125rem;
     color: var(--ox-text-2);
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
 
   .dsp-agenda-what {

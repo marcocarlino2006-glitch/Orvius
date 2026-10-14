@@ -583,6 +583,11 @@ a.cmd-feed-text:hover {
   line-height: 1.45;
 }
 
+/* Timestamps read as one unit; the column is narrow and "Oct 14, 1:30 / PM" looks broken. */
+.dt--work .work-updated {
+  white-space: nowrap;
+}
+
 .cmd-issue-actions {
   display: flex;
   flex-wrap: wrap;
