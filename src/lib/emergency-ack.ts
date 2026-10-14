@@ -2,11 +2,17 @@ import { recordAudit } from "@/lib/audit";
 import { logWarn } from "@/lib/logger";
 import { enqueueOwnerAlert } from "@/lib/notification-queue";
 import { prisma } from "@/lib/prisma";
+import { normalizeUrgency } from "@/lib/trade-playbooks";
 import { sendSms } from "@/lib/twilio-sms";
 import { isEmergency } from "@/lib/urgency";
 
 /** How long an emergency may sit with nobody working it before Orvius alerts again. */
 export const EMERGENCY_ACK_WAIT_MS = 10 * 60_000;
+/* Same-day urgent work (no heat, flooding — the model writes "urgent", which
+   normalizes to same-day, never emergency) gets a longer fuse, then the same
+   re-alert on the owner's own channels. Thirty minutes unworked is a lost
+   customer by evening. */
+export const EMERGENCY_SAMEDAY_WAIT_MS = 30 * 60_000;
 const LOOKBACK_MS = 24 * 60 * 60_000;
 export const EMERGENCY_ESCALATED = "lead.emergency_unacked";
 
@@ -51,6 +57,7 @@ export async function escalateUnackedEmergencies(now = new Date()): Promise<numb
       status: true,
       firstContactedAt: true,
       closedAt: true,
+      createdAt: true,
     },
     orderBy: { createdAt: "desc" },
     take: 200,
@@ -64,9 +71,13 @@ export async function escalateUnackedEmergencies(now = new Date()): Promise<numb
   ]);
   const safety = new Set(safetyRows.map((r) => r.leadId));
   const escalated = new Set(escalatedRows.map((r) => r.leadId));
-  const due = candidates.filter(
-    (l) => (isEmergency(l.urgency) || safety.has(l.id)) && !escalated.has(l.id) && !emergencyAcknowledged(l),
-  );
+  const ageMs = (l: { createdAt: Date }) => now.getTime() - new Date(l.createdAt).getTime();
+  const tierOf = (l: { urgency: string | null; id: string; createdAt: Date }): "emergency" | "sameday" | null => {
+    if (isEmergency(l.urgency) || safety.has(l.id)) return "emergency";
+    if (normalizeUrgency(l.urgency) === "same-day" && ageMs(l) >= EMERGENCY_SAMEDAY_WAIT_MS) return "sameday";
+    return null;
+  };
+  const due = candidates.filter((l) => tierOf(l) && !escalated.has(l.id) && !emergencyAcknowledged(l));
   if (!due.length) return 0;
 
   const shops = new Map(
@@ -82,6 +93,8 @@ export async function escalateUnackedEmergencies(now = new Date()): Promise<numb
   for (const lead of due) {
     const shop = shops.get(lead.businessId!);
     if (!shop) continue;
+    const tier = tierOf(lead);
+    if (!tier) continue;
     const auditId = await recordAudit({
       businessId: shop.id,
       entityType: "lead",
@@ -89,14 +102,17 @@ export async function escalateUnackedEmergencies(now = new Date()): Promise<numb
       leadId: lead.id,
       action: EMERGENCY_ESCALATED,
       actor: "system",
-      summary: "Nobody picked up the emergency within 10 minutes, so Orvius alerted again and texted the backup number.",
+      summary:
+        tier === "emergency"
+          ? "Nobody picked up the emergency within 10 minutes, so Orvius alerted again and texted the backup number."
+          : "Nobody picked up the same-day request within 30 minutes, so Orvius alerted again.",
       idempotencyKey: `lead:${lead.id}:${EMERGENCY_ESCALATED}`,
     });
     if (!auditId) continue;
 
-    const what = lead.serviceType ?? "Emergency";
+    const what = lead.serviceType ?? (tier === "emergency" ? "Emergency" : "Same-day request");
     const message = [
-      `UNANSWERED EMERGENCY · ${what}`,
+      tier === "emergency" ? `UNANSWERED EMERGENCY · ${what}` : `UNANSWERED SAME-DAY · ${what}`,
       [lead.name, lead.phone].filter(Boolean).join(" · ") || "Unknown caller",
       lead.address,
       "Nobody has called them back yet. Call now, then mark them contacted.",
@@ -112,9 +128,11 @@ export async function escalateUnackedEmergencies(now = new Date()): Promise<numb
       ownerPhone: shop.ownerPhone,
       ownerEmail: shop.ownerEmail,
     });
-    const backup = shop.transferPhone?.trim();
-    if (backup && backup !== shop.ownerPhone?.trim()) {
-      await sendSms({ to: backup, body: `${shop.name}: ${message}`, businessId: shop.id, audience: "owner" }).catch(() => null);
+    if (tier === "emergency") {
+      const backup = shop.transferPhone?.trim();
+      if (backup && backup !== shop.ownerPhone?.trim()) {
+        await sendSms({ to: backup, body: `${shop.name}: ${message}`, businessId: shop.id, audience: "owner" }).catch(() => null);
+      }
     }
     logWarn("emergency.unacked_escalated", { businessId: shop.id, leadId: lead.id });
     count += 1;

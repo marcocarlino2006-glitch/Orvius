@@ -81,6 +81,27 @@ test("a safety escalation counts as an emergency even when the urgency label was
   }
 });
 
+test("a same-day request nobody worked in 30 minutes is re-alerted, earlier ones left alone", async () => {
+  const s = await shop();
+  try {
+    const stale = await prisma.lead.create({
+      data: { businessId: s.id, phone: "+15555550190", urgency: "urgent", serviceType: "No heat", status: "new", createdAt: minutesAgo(35) },
+    });
+    const young = await prisma.lead.create({
+      data: { businessId: s.id, phone: "+15555550191", urgency: "urgent", serviceType: "No heat", status: "new", createdAt: minutesAgo(20) },
+    });
+    await escalateUnackedEmergencies();
+    const alerts = await prisma.ownerNotification.findMany({ where: { businessId: s.id } });
+    assert.deepEqual([...new Set(alerts.map((a) => a.leadId))], [stale.id]);
+    assert.match(alerts[0].message, /UNANSWERED SAME-DAY · No heat/);
+    assert.equal(await prisma.ownerNotification.count({ where: { leadId: young.id } }), 0);
+    await escalateUnackedEmergencies();
+    assert.equal(await prisma.auditEvent.count({ where: { leadId: stale.id, action: EMERGENCY_ESCALATED } }), 1, "a second sweep does not escalate again");
+  } finally {
+    await prisma.business.delete({ where: { id: s.id } }).catch(() => {});
+  }
+});
+
 test("acknowledged means a person contacted the caller or moved the request on", () => {
   assert.equal(emergencyAcknowledged({ status: "new", firstContactedAt: null, closedAt: null }), false);
   assert.equal(emergencyAcknowledged({ status: null, firstContactedAt: null, closedAt: null }), false);
