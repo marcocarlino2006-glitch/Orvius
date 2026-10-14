@@ -104,7 +104,7 @@
 
 .ton-progress li {
   height: 2px;
-  border-radius: 2px;
+  border-radius: 0.125rem;
   background: var(--ton-line);
   transition: background var(--ton-dur) ease;
 }
@@ -297,7 +297,7 @@
   min-height: 3rem;
   padding: 0 1rem;
   border: 1px solid var(--ton-line-strong);
-  border-radius: 0.625rem;
+  border-radius: 0.5rem;
   background: transparent;
   color: var(--ton-ink);
   font: inherit;
@@ -360,7 +360,7 @@
   margin: 0;
   padding: 0.75rem 1rem;
   border: 1px solid rgb(255 255 255 / 0.4);
-  border-radius: 0.625rem;
+  border-radius: 0.5rem;
   font-size: 0.875rem;
   color: var(--ton-ink);
 }
@@ -493,7 +493,7 @@
   gap: 1.5rem;
   padding: 1.5rem;
   border: 1px solid var(--ton-line-strong);
-  border-radius: 1rem;
+  border-radius: 0.75rem;
   background: var(--ton-fill);
 }
 
@@ -525,7 +525,7 @@
   align-self: flex-end;
   max-width: 85%;
   padding: 0.625rem 0.875rem;
-  border-radius: 0.875rem 0.875rem 0.25rem 0.875rem;
+  border-radius: 0.75rem 0.875rem 0.25rem 0.875rem;
   background: var(--ton-ink);
   color: var(--ton-bg);
   font-size: 0.875rem;
@@ -534,7 +534,7 @@
 
 .ton-transcript li.is-ai {
   align-self: flex-start;
-  border-radius: 0.875rem 0.875rem 0.875rem 0.25rem;
+  border-radius: 0.75rem 0.875rem 0.875rem 0.25rem;
   background: var(--ton-fill-2);
   color: var(--ton-ink);
 }
@@ -634,7 +634,7 @@
 .ton-message-body {
   padding: 0.75rem 0.875rem;
   border: 1px solid var(--ton-line);
-  border-radius: 0.625rem;
+  border-radius: 0.5rem;
   font-size: 0.875rem;
   line-height: 1.5;
   white-space: pre-line;

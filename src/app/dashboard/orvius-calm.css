@@ -40,7 +40,7 @@
   margin-right: 0.5rem;
   border-radius: 999px;
   background: var(--ox-green);
-  color: #fff;
+  color: var(--ox-on-primary, #fff);
   font-size: 0.8125rem;
 }
 
@@ -146,7 +146,7 @@
   top: 0.3125rem;
   bottom: 0.3125rem;
   padding: 0 0.5rem;
-  border-radius: 7px;
+  border-radius: 0.5rem;
   transition: transform var(--ox-dur-fast) var(--ox-ease), box-shadow var(--ox-dur-fast) var(--ox-ease);
 }
 

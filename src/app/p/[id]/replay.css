@@ -46,7 +46,7 @@
   min-height: 12rem;
   padding: 1.25rem;
   border: 1px solid var(--ov-line);
-  border-radius: 1.1rem;
+  border-radius: 1.25rem;
   background: var(--ov-paper-raised);
 }
 
@@ -78,7 +78,7 @@
 .rp-text {
   margin: 0;
   padding: 0.65rem 0.9rem;
-  border-radius: 0.9rem;
+  border-radius: 0.75rem;
   font-size: 0.95rem;
   line-height: 1.45;
   color: var(--ov-ink);
@@ -102,7 +102,7 @@
   margin-top: 0.5rem;
   padding: 0.9rem 1rem;
   border: 1px solid var(--ov-line);
-  border-radius: 0.9rem;
+  border-radius: 0.75rem;
   background: var(--ov-paper);
   animation: rp-in 260ms ease-out both;
 }

@@ -640,7 +640,7 @@ a.cmd-feed-text:hover {
   left: 0.875rem;
   right: 0.25rem;
   height: 2px;
-  border-radius: 2px;
+  border-radius: 0.125rem;
   background: var(--ox-line-strong);
 }
 
@@ -1531,7 +1531,7 @@ a.cmd-feed-text:hover {
   justify-content: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: #fff;
+  color: var(--ox-white);
 }
 
 @media (max-width: 640px) {
@@ -1657,7 +1657,7 @@ a.cmd-feed-text:hover {
   max-width: 320px;
   width: 100%;
   border-radius: var(--ox-radius-sm);
-  background: #fff;
+  background: var(--ox-white);
   border: 1px solid var(--ox-line, rgba(0, 0, 0, 0.08));
 }
 
@@ -1684,7 +1684,7 @@ a.cmd-feed-text:hover {
   font-size: 0.85rem;
   line-height: 1.45;
   border: 1px solid var(--os-line, rgb(0 0 0 / 0.1));
-  border-radius: 10px;
+  border-radius: 0.5rem;
 }
 .cgs-agree {
   display: flex;
@@ -1974,9 +1974,9 @@ a.cmd-crew-name:hover {
 
 .cmd-crew-nowtag {
   padding: 0 0.3125rem;
-  border-radius: 4px;
+  border-radius: 0.25rem;
   background: var(--ox-red);
-  color: #fff;
+  color: var(--ox-white);
   font-weight: 700;
 }
 
@@ -2010,7 +2010,7 @@ a.cmd-crew-name:hover {
   padding: 0 0.5rem;
   border: 1px solid var(--ox-line-strong);
   border-left-width: 3px;
-  border-radius: 6px;
+  border-radius: 0.25rem;
   background: var(--ox-s3);
   font-size: 0.75rem;
   font-weight: 600;
@@ -2052,7 +2052,7 @@ a.cmd-crew-name:hover {
 .cmd-crew-key .is-on_site::before {
   border-color: var(--ox-green);
   background: var(--ox-green);
-  color: #06140d;
+  color: var(--ox-ink-on-green);
 }
 
 .cmd-crew-block.is-completed,
@@ -2104,7 +2104,7 @@ a.cmd-crew-name:hover {
   height: 0.5rem;
   border: 1px solid;
   border-left-width: 3px;
-  border-radius: 2px;
+  border-radius: 0.125rem;
 }
 
 .cmd-crew-key .is-unconfirmed::before {

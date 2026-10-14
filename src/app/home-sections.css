@@ -100,7 +100,7 @@
 .ov-public .hf-art {
   position: relative;
   aspect-ratio: 16 / 11.5;
-  border-radius: 14px;
+  border-radius: 0.75rem;
   overflow: hidden;
   isolation: isolate;
   box-shadow: 0 0 0 1px var(--ov-hairline);
@@ -265,7 +265,7 @@
   height: 100%;
   padding: 1.4rem 1.4rem 1.6rem;
   border: 1px solid var(--ov-hairline);
-  border-radius: 12px;
+  border-radius: 0.75rem;
   color: inherit;
   text-decoration: none;
   transition: border-color 200ms ease, transform 200ms ease;
@@ -337,7 +337,7 @@
   isolation: isolate;
   margin-top: clamp(2.5rem, 5vw, 4rem);
   padding: clamp(1.25rem, 4vw, 3.5rem);
-  border-radius: 16px;
+  border-radius: 0.75rem;
   overflow: hidden;
   box-shadow: 0 0 0 1px var(--ov-hairline);
 }
@@ -453,8 +453,8 @@
 .ov-public .hx-table thead .is-us {
   color: var(--ov-headline);
   font-weight: 600;
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
   box-shadow: inset 0 2px 0 var(--ov-copper);
 }
 
