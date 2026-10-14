@@ -118,7 +118,8 @@ export default async function TradePage({ params }: Props) {
         <div className="editorial-wrap tier1-close-inner">
           <h2 className="tier1-section-title type-headline">Hear it on a real call.</h2>
           <p className="tier1-section-lead font-sans">
-            Call the live line and ask for {page.noun} work, the way your customers do.
+            Call the live line — it answers as Summit Heating &amp; Air, our demo HVAC shop. Ask for {page.noun} work
+            and hear exactly what your customers would hear, including how it handles work outside its trade.
           </p>
           <div className="tier1-actions tier1-close-actions">
             <StartActions />

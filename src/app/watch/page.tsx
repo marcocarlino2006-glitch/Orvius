@@ -15,10 +15,10 @@ export default function DemoPage() {
       <section className="tier1-hero tier1-hero-compact">
         <div className="editorial-wrap" style={{ maxWidth: "64rem" }}>
           <ShellPageIntro
-            label="Live demo · no account"
+            label="Simulated demo · no account"
             title="Watch Orvius run the shop."
-            subline="Six real calls. One click each."
-            description="Every call goes through the real pipeline: playbook, schedule check, booking, confirmation, owner alerts and an audit trail you can read."
+            subline="Six real scenarios. One click each."
+            description="Each scenario runs the real pipeline — playbook, schedule check, booking, confirmation, owner alerts and a readable audit trail — with a simulated caller reading a fixed script. To hear the live voice, call the demo line."
           />
           <div style={{ marginTop: "2rem" }}>
             <PublicDemo scenarios={publicScenarios()} />

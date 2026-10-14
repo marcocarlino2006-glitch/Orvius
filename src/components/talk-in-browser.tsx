@@ -39,7 +39,7 @@ type VapiClient = {
 };
 
 const CLOSED_COPY: Record<"daily" | "limit" | "off", string> = {
-  daily: "Today's browser demo calls are used up. Call the live line or watch a real call instead.",
+  daily: "Today's browser demo calls are used up. Call the live line or watch how a call flows instead.",
   limit: "You've tried it a few times this hour. Call the live line or come back later.",
   off: "The browser demo isn't open right now.",
 };
@@ -284,7 +284,7 @@ export function TalkInBrowser({
 
   const fallback = (
     <p className="tib-fallback font-sans">
-      Or <a href={phoneHref}>call {phoneDisplay}</a> from your phone, or <Link href="/watch">watch a real call</Link>.
+      Or <a href={phoneHref}>call {phoneDisplay}</a> from your phone, or <Link href="/watch">watch how a call flows</Link>.
     </p>
   );
 

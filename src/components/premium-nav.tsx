@@ -37,7 +37,7 @@ const MENUS: Record<MenuId, { items: MenuItem[]; feature: { title: string; body:
     ],
     feature: {
       title: "Free call audit",
-      body: "We review a week of your calls and show what went unanswered.",
+      body: "We look at your recent missed calls and show what went unanswered.",
       href: "/pilot",
       cta: "Start an audit",
       art: "/marketing/art/after-hours.webp",

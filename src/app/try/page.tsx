@@ -23,7 +23,7 @@ export default function TryPage() {
           <ShellPageIntro
             label="Free preview"
             title="Hear your business answer."
-            subline="Two free calls. No card, no account."
+            subline="Free to try. No card, no account."
             description="Type your business name and talk to it in your browser, like a customer calling you. Orvius answers as your business, takes down the job, and shows you the text you'd get after every call."
           />
           <TalkInBrowser personal phoneHref={demoLineHref()} phoneDisplay={DEMO_LINE_DISPLAY} />
