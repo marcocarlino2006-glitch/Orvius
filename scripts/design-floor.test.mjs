@@ -52,3 +52,27 @@ test("the app honors reduced motion", () => {
   assert.match(system, /@media \(prefers-reduced-motion: reduce\)\s*\{\s*\.os-shell \*,/);
   assert.match(system, /transition-duration: 0\.01ms !important/);
 });
+
+test("corner radii stay on the scale (scripts/radius-scale.mjs)", () => {
+  /* The scale: 2px chips, 4px controls, 8px cards, 12px large surfaces, 20px
+     hero surfaces, 999px pills. Anything else is drift, not a decision. */
+  const keep = new Set(["0.125rem", "0.25rem", "0.5rem", "0.75rem", "1.25rem", "2rem", "999px"]);
+  const offenders = [];
+  for (const file of walk("src/app", [".css"])) {
+    const css = readFileSync(file, "utf8");
+    for (const m of css.matchAll(/border-(?:(?:top|bottom)-(?:left|right)-)?radius:\s*([0-9.]+(?:rem|px))\b/g)) {
+      if (keep.has(m[1])) continue;
+      if (/^9+px$/.test(m[1])) {
+        offenders.push(`${file}: pill written as ${m[1]}, use 999px`);
+        continue;
+      }
+      const px = m[1].endsWith("rem") ? Number.parseFloat(m[1]) * 16 : Number.parseFloat(m[1]);
+      if (px >= 100) {
+        offenders.push(`${file}: ${m[1]} was always a pill, use 999px`);
+        continue;
+      }
+      offenders.push(`${file}: ${m[1]} is off the radius scale`);
+    }
+  }
+  assert.deepEqual(offenders, []);
+});

@@ -8,31 +8,42 @@
  * chose 3.2px. It is what 0.2rem happens to be, and the reason two cards side
  * by side never quite agree.
  *
- * Four steps for boxes and one for pills:
+ * Four steps for boxes, one for hero surfaces, one for pills:
  *
  *   2px   chips, code, the tightest inline things
  *   4px   controls — inputs, buttons, small tiles
  *   8px   cards and panels
  *   12px  the large surfaces a card sits inside
- *   999px pills
+ *   20px  hero surfaces — the ask composer, the console desk
+ *   999px pills (anything at or past 100px was always a pill)
  *
- * Each value moves to its nearest step, so the largest change is 2px. The one
+ * Each value moves to its nearest step, so the largest change is 4px. The one
  * 2rem radius is a single decorative surface and is left alone.
  *
  * Usage: node scripts/radius-scale.mjs [--write]
  */
-import { readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { join, relative } from "node:path";
 
 import { repoRoot } from "./lib/module-graph.mjs";
 
 const WRITE = process.argv.includes("--write");
-const FILES = ["src/app/globals.css", "src/app/dashboard/dashboard.css"];
+/* Every stylesheet ships on the scale — route-level CSS included, so the
+   tech app, the booking page and the chat read as the same product. */
+function stylesheets(dir, out = []) {
+  for (const name of readdirSync(dir)) {
+    const p = join(dir, name);
+    if (statSync(p).isDirectory()) stylesheets(p, out);
+    else if (name.endsWith(".css")) out.push(relative(repoRoot, p));
+  }
+  return out.sort();
+}
+const FILES = stylesheets(join(repoRoot, "src", "app"));
 
 /** Kept as authored, either because it is already on scale or is a one-off. */
-const KEEP = new Set(["0.125rem", "0.25rem", "0.5rem", "0.75rem", "2rem", "999px"]);
+const KEEP = new Set(["0.125rem", "0.25rem", "0.5rem", "0.75rem", "1.25rem", "2rem", "999px"]);
 
-const STEPS_PX = [2, 4, 8, 12];
+const STEPS_PX = [2, 4, 8, 12, 20];
 
 const toPx = (value) =>
   value.endsWith("rem") ? parseFloat(value) * 16 : parseFloat(value);
@@ -42,7 +53,8 @@ function snap(value) {
   if (/^9+px$/.test(value)) return "999px";
   const px = toPx(value);
   if (!Number.isFinite(px) || px === 0) return null;
-  if (px > 16) return null;
+  if (px >= 100) return "999px";
+  if (px > 24) return null;
   const nearest = STEPS_PX.reduce((best, step) =>
     Math.abs(step - px) < Math.abs(best - px) ? step : best,
   );

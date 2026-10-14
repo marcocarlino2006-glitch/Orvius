@@ -107,14 +107,14 @@
   gap: 0.25rem;
   padding: 0.2rem;
   border: 1px solid var(--ox-line);
-  border-radius: 0.6rem;
+  border-radius: 0.5rem;
   background: var(--ox-s1);
   width: fit-content;
 }
 
 .os-shell.os-shell-night .pro-filter-tab {
   border: 0 !important;
-  border-radius: 0.45rem !important;
+  border-radius: 0.5rem !important;
   padding: 0.35rem 0.75rem !important;
   font-size: 0.8125rem !important;
   color: var(--ox-mute) !important;

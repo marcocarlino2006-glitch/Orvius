@@ -60,7 +60,7 @@ html body .os-shell.os-shell-night :is(
   .os-lead-rail, .cp-panel, .wb.pc, .ask-composer, .cb-demo, .pro-stat, .wq
 ) {
   border: 1px solid var(--dp-edge) !important;
-  border-radius: 0.875rem !important;
+  border-radius: 0.75rem !important;
   background: linear-gradient(180deg, var(--dp-card-top), transparent 7rem), var(--dp-card) !important;
   box-shadow: var(--dp-lift) !important;
 }
@@ -68,7 +68,7 @@ html body .os-shell.os-shell-night :is(
 html body .os-shell.os-shell-night .dsp-section:has(> .dsp-grid) {
   padding: 1rem 1.25rem 1.25rem !important;
   border: 1px solid var(--dp-edge) !important;
-  border-radius: 0.875rem !important;
+  border-radius: 0.75rem !important;
   background: linear-gradient(180deg, var(--dp-card-top), transparent 7rem), var(--dp-card) !important;
   box-shadow: var(--dp-lift) !important;
 }
@@ -78,7 +78,7 @@ html body .os-shell.os-shell-night .wc-list > .wc:not(.wc--page) {
   border-top-color: var(--dp-edge) !important;
   border-right-color: var(--dp-edge) !important;
   border-bottom-color: var(--dp-edge) !important;
-  border-radius: 0.875rem !important;
+  border-radius: 0.75rem !important;
   background: linear-gradient(180deg, var(--dp-card-top), transparent 6rem), var(--dp-card) !important;
   box-shadow: var(--dp-lift) !important;
 }
@@ -184,7 +184,7 @@ html body .os-shell.os-shell-night .job-money-mode {
 html body .os-shell.os-shell-night .job-money-mode button {
   padding: 0.4rem 0.8rem;
   border: 0;
-  border-radius: 0.375rem;
+  border-radius: 0.25rem;
   background: transparent;
   color: color-mix(in srgb, var(--os-ink) 62%, transparent);
   font-size: 0.8125rem;
@@ -312,7 +312,7 @@ html body .os-shell.os-shell-night .tse-mode {
 html body .os-shell.os-shell-night .tse-mode button {
   padding: 0.35rem 0.75rem;
   border: 0;
-  border-radius: 0.375rem;
+  border-radius: 0.25rem;
   background: transparent;
   color: color-mix(in srgb, var(--os-ink) 62%, transparent);
   font-size: 0.8125rem;
@@ -383,7 +383,7 @@ html body .os-shell.os-shell-night .tse-mode button.is-on {
   gap: 0.75rem;
   padding: 0.4rem 0.6rem;
   border: 1px solid var(--os-line);
-  border-radius: 0.4rem;
+  border-radius: 0.5rem;
   font-size: 0.8125rem;
 }
 .tse-add {
@@ -421,7 +421,7 @@ html body .os-shell.os-shell-night .tse-mode button.is-on {
 .tse-affected {
   padding: 0.6rem 0.75rem;
   border: 1px solid color-mix(in srgb, #e0a24a 55%, transparent);
-  border-radius: 0.45rem;
+  border-radius: 0.5rem;
   background: color-mix(in srgb, #e0a24a 9%, transparent);
   font-size: 0.8125rem;
 }
@@ -455,7 +455,7 @@ html body .os-shell.os-shell-night .cmd-lockbar {
   margin-bottom: 1.25rem;
   padding: 0.7rem 0.75rem 0.7rem 1rem;
   border: 1px solid var(--os-line);
-  border-radius: 12px;
+  border-radius: 0.75rem;
   background: var(--dp-card);
 }
 html body .os-shell.os-shell-night .cmd-lockbar-text {
@@ -483,7 +483,7 @@ html body .os-shell.os-shell-night .dwk-mode {
 html body .os-shell.os-shell-night .dwk-mode button {
   padding: 0.35rem 0.85rem;
   border: 0;
-  border-radius: 0.375rem;
+  border-radius: 0.25rem;
   background: transparent;
   color: color-mix(in srgb, var(--os-ink) 62%, transparent);
   font-size: 0.8125rem;
@@ -524,7 +524,7 @@ html body .os-shell.os-shell-night .dwk-grid {
   gap: 0;
   overflow-x: auto;
   border: 1px solid var(--os-line);
-  border-radius: 0.6rem;
+  border-radius: 0.5rem;
   background: var(--dp-card);
   box-shadow: var(--dp-lift);
 }
@@ -608,7 +608,7 @@ html body .os-shell.os-shell-night .dwk-chip {
   padding: 0.35rem 0.5rem;
   border: 1px solid var(--os-line);
   border-left: 3px solid #d9925a;
-  border-radius: 0.35rem;
+  border-radius: 0.25rem;
   background: rgb(255 255 255 / 0.04);
   color: var(--os-ink);
   text-decoration: none;
@@ -704,7 +704,7 @@ html[data-theme="day"] body .os-shell.os-shell-night .wc-list .wc {
 html[data-theme="day"] body .os-shell.os-shell-night .wc-list .wc::before {
   inset: 1.125rem auto 1.125rem 0;
   width: 2px;
-  border-radius: 1px;
+  border-radius: 0.125rem;
 }
 html[data-theme="day"] body .os-shell.os-shell-night .wc-list .wc-head {
   padding-left: 0.875rem;

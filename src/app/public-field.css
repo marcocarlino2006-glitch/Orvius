@@ -85,7 +85,7 @@
   gap: 0.125rem;
   min-height: 4.25rem;
   padding: 0.875rem 1rem;
-  border-radius: 14px;
+  border-radius: 0.75rem;
   background: #16181c;
   border: 1px solid #262a31;
   color: inherit;
@@ -111,7 +111,7 @@
 .pf-card {
   margin: 0;
   padding: 1rem;
-  border-radius: 14px;
+  border-radius: 0.75rem;
   background: #121418;
   border: 1px solid #22262c;
   display: flex;
@@ -157,7 +157,7 @@
   width: 100%;
   min-height: 2.875rem;
   padding: 0.625rem 0.75rem;
-  border-radius: 10px;
+  border-radius: 0.5rem;
   border: 1px solid #2c3139;
   background: #0b0c0e;
   color: #fff;
@@ -179,7 +179,7 @@
 .pf-btn {
   min-height: 2.875rem;
   padding: 0 1.125rem;
-  border-radius: 10px;
+  border-radius: 0.5rem;
   border: 1px solid #2c3139;
   background: #1a1d22;
   color: #fff;
@@ -200,7 +200,7 @@
   width: 100%;
   min-height: 3.375rem;
   border: 0;
-  border-radius: 14px;
+  border-radius: 0.75rem;
   background: #f2a93b;
   color: #1b1203;
   font-size: 1.125rem;
@@ -212,7 +212,7 @@
 .pf-error {
   margin: 0;
   padding: 0.75rem 1rem;
-  border-radius: 10px;
+  border-radius: 0.5rem;
   background: rgba(248, 113, 113, 0.12);
   color: #fca5a5;
   font-size: 1rem;
@@ -277,7 +277,7 @@
   bottom: 0.125rem;
   left: calc(0.625rem - 1px);
   width: 2px;
-  border-radius: 1px;
+  border-radius: 0.125rem;
   background: #262a31;
 }
 .pf-step.is-done:not(:last-child)::before {

@@ -184,7 +184,7 @@ html[data-theme="day"] .os-shell-night {
 .os-shell.os-shell-night .os-nav-link {
   min-height: 36px !important;
   padding: 0 8px !important;
-  border-radius: 10px !important;
+  border-radius: 0.5rem !important;
   color: var(--ox-text) !important;
   font-size: 14px !important;
   font-weight: 400 !important;
@@ -269,7 +269,7 @@ html[data-theme="day"] .os-shell-night {
   height: 36px !important;
   padding: 0 12px !important;
   border: 0 !important;
-  border-radius: 4px !important;
+  border-radius: 0.25rem !important;
   background: var(--ox-fill) !important;
   color: var(--ox-text-2) !important;
   font-size: 0.875rem !important;
@@ -334,7 +334,7 @@ body:has(.os-shell.os-shell-night) {
   gap: 0.4rem;
   min-height: 36px !important;
   padding: 0 12px !important;
-  border-radius: 4px !important;
+  border-radius: 0.25rem !important;
   font-size: 14px !important;
   font-weight: 500 !important;
   letter-spacing: 0 !important;
@@ -435,7 +435,7 @@ body:has(.os-shell.os-shell-night) {
 .os-shell.os-shell-night textarea {
   min-height: 36px;
   border: 1px solid var(--ox-line-strong) !important;
-  border-radius: 4px !important;
+  border-radius: 0.25rem !important;
   background: var(--ox-fill-light) !important;
   color: var(--ox-text) !important;
   font-size: 14px !important;
@@ -897,7 +897,7 @@ a.cs-card:hover {
 .wq-subject-link {
   color: inherit;
   text-decoration: none;
-  border-radius: 4px;
+  border-radius: 0.25rem;
 }
 
 .wq-subject-link:hover .wq-subject {
@@ -1668,7 +1668,7 @@ button.rd-path-btn:hover {
   flex-direction: column;
   padding: 4px;
   border: 0;
-  border-radius: 16px;
+  border-radius: 0.75rem;
   background: #242424;
   box-shadow: 0 0 0 1px #ffffff24, 0 0 0 1px #00000047, 0 24px 24px -12px #00000029, 0 3px 3px -1.5px #00000047, 0 10px 20px 1px #00000029;
   color: #e6e6e6;
@@ -1704,7 +1704,7 @@ button.rd-path-btn:hover {
   width: 28px;
   height: 28px;
   flex-shrink: 0;
-  border-radius: 1332px;
+  border-radius: 999px;
   background: #1a8ad4;
   color: #fff;
   font-size: 13px;
@@ -1719,7 +1719,7 @@ button.rd-path-btn:hover {
   height: auto;
   padding: 8px;
   border: 0;
-  border-radius: 10.5px;
+  border-radius: 0.75rem;
   color: inherit;
 }
 
@@ -1758,7 +1758,7 @@ button.rd-path-btn:hover {
 .os-shell.os-shell-night .mx-plan {
   margin: 4px 0;
   padding: 0 8px 0 12px;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   background: #ffffff0a;
 }
 
@@ -1787,7 +1787,7 @@ button.rd-path-btn:hover {
   align-items: center;
   height: 28px;
   padding: 0 10px;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   background: #fffffff2;
   color: #000000e5;
   font-size: 14px;
@@ -1860,7 +1860,7 @@ button.rd-path-btn:hover {
   margin: 0;
   padding: 0 12px 0 12px;
   border: 0;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   background: transparent;
   color: #e6e6e6;
   font: inherit;
@@ -1913,7 +1913,7 @@ button.rd-path-btn:hover {
   height: 36px;
   padding: 0 8px 0 4px;
   border: 0;
-  border-radius: 10.5px !important;
+  border-radius: 0.75rem !important;
   background: transparent;
   color: #b3b3b3;
   font: inherit;
@@ -1941,7 +1941,7 @@ button.rd-path-btn:hover {
   justify-content: center;
   width: 32px;
   height: 32px;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   color: #b3b3b3;
 }
 
@@ -1962,7 +1962,7 @@ button.rd-path-btn:hover {
   width: 7px;
   height: 7px;
   border: 1px solid var(--ox-bg, #1f1f1f);
-  border-radius: 1332px;
+  border-radius: 999px;
   background: #ef4444;
   box-sizing: content-box;
 }
@@ -2003,7 +2003,7 @@ button.rd-path-btn:hover {
   justify-content: center;
   width: 1.75rem;
   height: 1.75rem;
-  border-radius: 0.375rem;
+  border-radius: 0.25rem;
   background: var(--ox-s4);
   font-size: 0.8125rem;
   font-weight: 600;
@@ -2241,7 +2241,7 @@ button.rd-path-btn:hover {
   margin-top: 0;
   padding: 0.875rem 1rem;
   border: 1px solid var(--ox-line);
-  border-radius: 1rem;
+  border-radius: 0.75rem;
   background: var(--ox-s1);
 }
 
@@ -2309,7 +2309,7 @@ button.rd-path-btn:hover {
 .os-shell.os-shell-night .pm-panel {
   width: 18.5rem;
   padding: 0.75rem;
-  border-radius: 1rem !important;
+  border-radius: 0.75rem !important;
   border: 1px solid var(--ox-line) !important;
   background: var(--ox-s1) !important;
   box-shadow: 0 12px 40px rgb(0 0 0 / 0.16), 0 2px 8px rgb(0 0 0 / 0.06) !important;
@@ -3149,7 +3149,7 @@ html[data-theme="day"] .os-shell .dsp-date {
   padding: 0 0.45rem;
   overflow: hidden;
   border-left: 3px solid var(--ox-green);
-  border-radius: 4px;
+  border-radius: 0.25rem;
   background: var(--ox-s3);
   color: var(--ox-text);
   text-decoration: none;
@@ -3857,7 +3857,7 @@ html[data-theme="day"] .os-shell .dsp-date {
   margin: 0 0 0.375rem;
   padding: 0.4375rem 0.625rem;
   border: 1px solid var(--os-line);
-  border-radius: 0.375rem;
+  border-radius: 0.25rem;
   background: var(--ox-s2, transparent);
   color: var(--os-ink);
   font: inherit;
@@ -3965,7 +3965,7 @@ html[data-theme="day"] .os-shell.os-shell-night :is(.lead-quick-btn, .lead-quick
   width: 100%;
   padding: 8px;
   border: 0;
-  border-radius: 10.5px;
+  border-radius: 0.75rem;
   background: transparent;
   color: inherit;
   text-align: left;
@@ -3988,7 +3988,7 @@ html[data-theme="day"] .os-shell.os-shell-night :is(.lead-quick-btn, .lead-quick
   width: 28px;
   height: 28px;
   flex-shrink: 0;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   background: #313131;
   color: #e6e6e6;
   font-size: 13px;
@@ -4015,7 +4015,7 @@ html[data-theme="day"] .os-shell.os-shell-night :is(.lead-quick-btn, .lead-quick
   margin: 4px 0;
   padding: 0 10px;
   border: 1px solid rgb(255 255 255 / 0.12);
-  border-radius: 8px;
+  border-radius: 0.5rem;
   background: transparent;
   color: #e6e6e6;
   font-size: 14px;

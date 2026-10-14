@@ -56,7 +56,7 @@ html .mkt-page .pricing-wizard-step-active {
 html .mkt-page .pricing-billing-save {
   padding: 0.125rem 0.5rem;
   border: 0 !important;
-  border-radius: 9999px;
+  border-radius: 999px;
   background: color-mix(in srgb, var(--ui-text) 10%, transparent) !important;
   color: var(--ui-text) !important;
   font-size: 0.75rem;
@@ -94,7 +94,7 @@ html .ov-signin .ov-signin-row-tag::before {
   content: "";
   width: 6px;
   height: 6px;
-  border-radius: 9999px;
+  border-radius: 999px;
   background: #8c8c90;
 }
 
@@ -222,7 +222,7 @@ html .ov-signin .ov-signin-row-tag--intake::before {
 .ov-public .pricing-getpaid-math {
   padding: 1.25rem 1.4rem;
   border: 1px solid var(--ov-hairline);
-  border-radius: 12px;
+  border-radius: 0.75rem;
   background: var(--ov-paper-raised);
 }
 

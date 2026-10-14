@@ -95,7 +95,7 @@
   display: block;
   width: 2.5rem;
   height: 1.25rem;
-  border-radius: 4px;
+  border-radius: 0.25rem;
   background: var(--ox-s3);
 }
 
@@ -150,7 +150,7 @@
   z-index: 1;
   max-width: 100%;
   border: 1px solid var(--ox-line);
-  border-radius: 6px;
+  border-radius: 0.25rem;
   background: var(--ox-s1);
   color: var(--ox-text-2);
   font: inherit;
@@ -1501,7 +1501,7 @@ a.dt-row:focus-visible,
   margin: 0 0 1rem;
   padding: 0.2rem;
   border: 1px solid var(--ox-line);
-  border-radius: 0.6rem;
+  border-radius: 0.5rem;
   background: var(--ox-s1);
 }
 
@@ -1511,7 +1511,7 @@ a.dt-row:focus-visible,
   margin: 0;
   padding: 0.35rem 0.75rem;
   border: 0;
-  border-radius: 0.45rem;
+  border-radius: 0.5rem;
   color: var(--ox-mute);
   transition: background-color var(--ox-dur-fast) ease, color var(--ox-dur-fast) ease;
 }

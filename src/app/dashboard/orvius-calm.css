@@ -146,7 +146,7 @@
   top: 0.3125rem;
   bottom: 0.3125rem;
   padding: 0 0.5rem;
-  border-radius: 7px;
+  border-radius: 0.5rem;
   transition: transform var(--ox-dur-fast) var(--ox-ease), box-shadow var(--ox-dur-fast) var(--ox-ease);
 }
 
