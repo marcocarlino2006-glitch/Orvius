@@ -205,7 +205,8 @@
   }
 }
 
-/* On a phone the three counts sit on one row so the queue is in reach. */
+/* On a phone the three counts sit on one row so the queue is in reach. Labels
+   wrap instead of clipping: "Requests awaiting a response" at full width. */
 @media (max-width: 640px) {
   :root body .os-shell.os-shell-pro.os-shell-pro.os-shell-night .cmd .cs-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
@@ -213,6 +214,11 @@
 
   :root body .os-shell.os-shell-pro.os-shell-pro.os-shell-night .cmd .cs-card {
     padding: 0.75rem !important;
+  }
+
+  :root body .os-shell.os-shell-pro.os-shell-pro.os-shell-night .cmd .cs-label {
+    white-space: normal !important;
+    font-size: 0.75rem !important;
   }
 
   :root body .os-shell.os-shell-pro.os-shell-pro.os-shell-night .cmd .cs-detail {
