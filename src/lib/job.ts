@@ -29,6 +29,7 @@ import {
   parseFinalAmountCents,
   type JobOutcomeCode,
 } from "@/lib/job-outcome";
+import { isDatabaseBusy } from "@/lib/webhook-events";
 import type { JobStatus } from "@/lib/job-status";
 
 export { suggestedSchedule, jobTitle } from "@/lib/job-schedule";
@@ -619,6 +620,13 @@ export async function createJobFromLead(params: {
         job = await bookInTransaction();
         break;
       } catch (error) {
+        // A burst of callers books at once; a lock collision says nothing
+        // about the slot, so the same time is tried again instead of failing
+        // the caller. The transaction rolled back, so nothing half-exists.
+        if (isDatabaseBusy(error) && attempt < 2) {
+          await new Promise((resolve) => setTimeout(resolve, 200 + Math.random() * 400 * (attempt + 1)));
+          continue;
+        }
         // A time Orvius picked is re-picked; a promised or owner-chosen time is reported, never moved.
         if (!(error instanceof SlotTakenError) || params.scheduledAt || attempt >= AUTO_PICK_ATTEMPTS - 1) throw error;
         await new Promise((resolve) => setTimeout(resolve, 15 + Math.random() * 60 * (attempt + 1)));
