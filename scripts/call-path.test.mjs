@@ -109,3 +109,11 @@ test("a caller who asked for a person and never reached one always alerts", () =
   assert.match(ingest, /handoffMissed = wantsHuman && Boolean\(business\.transferPhone\) && !forwarded && !autoBook\.jobId/);
   assert.match(ingest, /didn't reach one — call back now/);
 });
+
+test("abandoning a promised booking pages the owner with the promise, on its own key", () => {
+  const ingest = read("src/lib/call-ingest.ts");
+  assert.match(ingest, /lastTry = attempts >= FINISH_MAX_ATTEMPTS/);
+  assert.match(ingest, /didn't go through — call back now/);
+  assert.match(ingest, /:abandoned`/);
+  assert.match(ingest, /timeZone: business\.timezone/);
+});

@@ -584,24 +584,53 @@ export async function sweepUnfinishedCallReports(now = new Date()): Promise<numb
       });
       // The owner hears on the first failure; the booking keeps retrying for about an hour of sweeps.
       const attempts = event.attempts + 1;
+      const lastTry = attempts >= FINISH_MAX_ATTEMPTS;
       await prisma.webhookEvent.update({
         where: { id: event.id },
         data: {
-          status: attempts >= FINISH_MAX_ATTEMPTS ? "abandoned" : "failed",
+          status: lastTry ? "abandoned" : "failed",
           attempts,
           error: (error instanceof Error ? error.message : "unknown").slice(0, 280),
         },
       });
+      /* Abandoning with a promised time still on the table is the one failure
+         the owner must act on: the caller heard a time that isn't booked.
+         It rides its own dedupe key so the earlier plain alert can't swallow
+         it, and it names the promise in the shop's own timezone. */
+      let promiseNote = "";
+      const promisedAt = call.heldSlotAt ? new Date(call.heldSlotAt) : null;
+      if (lastTry && promisedAt && !Number.isNaN(promisedAt.getTime())) {
+        try {
+          const when = promisedAt.toLocaleString("en-US", {
+            weekday: "short",
+            hour: "numeric",
+            minute: "2-digit",
+            timeZone: business.timezone ?? undefined,
+          });
+          promiseNote = ` They were promised ${when} and it isn't booked.`;
+        } catch {
+          promiseNote = " They were promised a time and it isn't booked.";
+        }
+      }
       await enqueueOwnerAlert({
         businessId: business.id,
         ownerPhone: business.ownerPhone,
         ownerEmail: business.ownerEmail,
         businessName: business.name,
-        message: [`New call · ${lead.serviceType ?? "needs review"}`, lead.phone, lead.address, call.summary]
+        message: [
+          lastTry && promiseNote
+            ? `The booking didn't go through — call back now.${promiseNote}`
+            : `New call · ${lead.serviceType ?? "needs review"}`,
+          lead.phone,
+          lead.address,
+          call.summary,
+        ]
           .filter(Boolean)
           .join("\n"),
         leadId: lead.id,
-        dedupeKey: buildLeadAlertDedupeKey({ vapiCallId: event.externalId }),
+        dedupeKey: lastTry
+          ? `${buildLeadAlertDedupeKey({ vapiCallId: event.externalId })}:abandoned`
+          : buildLeadAlertDedupeKey({ vapiCallId: event.externalId }),
       }).catch(() => undefined);
     }
   }
