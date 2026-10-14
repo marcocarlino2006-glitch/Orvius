@@ -184,7 +184,7 @@ export default function WorkPage() {
                     ))}
                 </select>
               </div>
-              <div role="cell" className="text-ash">
+              <div role="cell" className="text-ash work-updated">
                 {formatWhen(item.updatedAt)}
               </div>
             </div>

@@ -31,7 +31,43 @@ type DemandCategory = {
  * Order is load-bearing: the first match inside a trade wins, so narrow
  * categories are listed before the broad ones they would otherwise fall into.
  * "Water heater leaking" is a water heater job, not a generic leak.
+ *
+ * The sales subset below is reused by the call intake: a caller selling to
+ * the business stays silent even when they talk for a while and ask for the
+ * owner — that is what sales calls do, and the owner's phone stays quiet.
  */
+const SALES_PATTERNS = [
+  "sales call",
+  "solicit",
+  "telemarket",
+  "robocall",
+  "advertis",
+  "marketing",
+  "seo",
+  "google listing",
+  "business listing",
+  "website design",
+  "lower your rate",
+  "merchant services",
+  "insurance quote",
+  "business funding",
+  "line of credit",
+  "business loan",
+  "press one to",
+  "press 1 to",
+];
+
+/** A caller selling to the business, not a customer with a property. */
+export function looksLikeSalesSolicitation(text: string | null | undefined) {
+  const raw = (text ?? "")
+    .toLowerCase()
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!raw) return false;
+  const padded = ` ${raw} `;
+  return SALES_PATTERNS.some((pattern) => padded.includes(pattern));
+}
 export const DEMAND_CATEGORIES = [
   /* ── Not a service request. Checked first so noise never scores a trade. ── */
   {
@@ -40,30 +76,13 @@ export const DEMAND_CATEGORIES = [
     label: "Not a service request",
     patterns: [
       "wrong number",
-      "sales call",
-      "solicit",
-      "telemarket",
-      "robocall",
       "spam",
+      ...SALES_PATTERNS,
       "looking for a job",
       "job application",
       "hiring",
       "resume",
       // What actually rings a contractor's line all day besides customers.
-      "advertis",
-      "marketing",
-      "seo",
-      "google listing",
-      "business listing",
-      "website design",
-      "lower your rate",
-      "merchant services",
-      "insurance quote",
-      "business funding",
-      "line of credit",
-      "business loan",
-      "press one to",
-      "press 1 to",
     ],
   },
 

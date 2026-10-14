@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 const { prisma } = await import("../src/lib/prisma.ts");
-const { callSpendCut } = await import("../src/lib/call-spend-guard.ts");
+const { alertSpendCut, callSpendCut } = await import("../src/lib/call-spend-guard.ts");
 const load = await import("../src/lib/demo-load.ts");
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
@@ -80,4 +80,52 @@ test("the webhook flags the demo line, pages once, and the site warns visitors",
     assert.match(read(p), /<DemoLineBusy \/>/, p);
   }
   assert.match(read("src/components/demo-line-busy.tsx"), /href="\/watch"/);
+});
+
+test("a shop spend cut pages the owner once, then stays silent", async () => {
+  const tag = uid();
+  const shop = await prisma.business.create({
+    data: { name: "Summit HVAC", slug: `spend-cut-${tag}`, environment: "demo", ownerEmail: `spend-${tag}@example.test`, ownerPhone: "+15551234567", billingStatus: "active" },
+  });
+  made.push(shop.id);
+  const owner = { id: shop.id, name: shop.name, ownerPhone: shop.ownerPhone, ownerEmail: shop.ownerEmail, transferPhone: null };
+  const caller = `+1512555${String(2000 + made.length).slice(-4)}`;
+  for (let i = 0; i < 11; i++) {
+    await prisma.call.create({
+      data: { businessId: shop.id, vapiCallId: `vc-cut-${tag}-${i}`, callerPhone: caller, status: "in-progress", createdAt: new Date() },
+    });
+  }
+
+  const repeat = await callSpendCut({ shop: owner, callerPhone: caller });
+  assert.equal(repeat.reason, "caller_repeat");
+  assert.equal(repeat.count, 11);
+
+  const first = await alertSpendCut({ shop: owner, cut: repeat, callerPhone: caller });
+  assert.equal(first.duplicate, false);
+  assert.deepEqual(first.queued.sort(), ["email", "sms"]);
+  let rows = await prisma.ownerNotification.findMany({ where: { businessId: shop.id } });
+  assert.equal(rows.length, 2);
+  assert.match(rows[0].dedupeKey, /^spend-cut:caller_repeat:/);
+  assert.match(rows[0].message, /11 calls from that number/);
+
+  const second = await alertSpendCut({ shop: owner, cut: repeat, callerPhone: caller });
+  assert.equal(second.duplicate, true);
+  rows = await prisma.ownerNotification.findMany({ where: { businessId: shop.id } });
+  assert.equal(rows.length, 2, "the repeat cut in the same hour pages once");
+
+  process.env.ORVIUS_SHOP_DAILY_CALL_CEILING = "5";
+  try {
+    const ceiling = await callSpendCut({ shop: owner, callerPhone: "+19995550100" });
+    assert.equal(ceiling.reason, "shop_ceiling");
+    assert.equal(ceiling.count, 11);
+    const paged = await alertSpendCut({ shop: owner, cut: ceiling, callerPhone: "+19995550100" });
+    assert.equal(paged.duplicate, false);
+    rows = await prisma.ownerNotification.findMany({ where: { businessId: shop.id } });
+    assert.ok(rows.some((r) => r.dedupeKey.startsWith("spend-cut:shop_ceiling:")), "the runaway line gets its own daily alert");
+  } finally {
+    delete process.env.ORVIUS_SHOP_DAILY_CALL_CEILING;
+  }
+
+  const demoSkipped = await alertSpendCut({ shop: owner, cut: { reason: "demo_live_cap", say: "x", count: 7 }, callerPhone: caller });
+  assert.equal(demoSkipped, null, "the demo line pages the platform, never the owner");
 });

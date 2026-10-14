@@ -13,6 +13,7 @@ import { classifyRequest } from "../src/lib/trade-playbooks.ts";
 import { safetyAlertReply } from "../src/lib/in-call-tool-defs.ts";
 import { ownerAlertContextLine } from "../src/lib/owner-alert-message.ts";
 import { claimWebhookEvent } from "../src/lib/webhook-events.ts";
+import { looksLikeSalesSolicitation } from "../src/lib/job-taxonomy.ts";
 import { prisma } from "../src/lib/prisma.ts";
 
 const read = (path) => readFileSync(path, "utf8");
@@ -92,4 +93,39 @@ test("a call labelled non-service still reaches the owner when the caller gave a
   const ingest = read("src/lib/call-ingest.ts");
   assert.match(ingest, /=== "other\.non_service" && !looksLikeWork/);
   assert.match(ingest, /looksLikeWork = Boolean\(freshLead\.address\?\.trim\(\) \|\| \(link && !link\.created\)\)/);
+});
+
+test("a non-service label never silences a caller who stayed on the line", () => {
+  const ingest = read("src/lib/call-ingest.ts");
+  assert.match(ingest, /engagedMinutes = Math\.floor\(\(durationSec \?\? 0\) \/ 60\)/);
+  assert.match(ingest, /silenced = nonService && \(engagedMinutes < 1 \|\| salesPitch\) && !handoffMissed/);
+  assert.match(ingest, /if \(silenced\)/);
+  assert.match(ingest, /if \(!silenced\)/);
+  assert.match(ingest, /worth a glance/);
+});
+
+test("a sales pitch stays silent even when the rep talks and asks for the owner", () => {
+  assert.equal(looksLikeSalesSolicitation("Marketing services for the business, is the owner available?"), true);
+  assert.equal(looksLikeSalesSolicitation("Hi, I'm calling from Local Rank Pros about your Google Business listing"), true);
+  assert.equal(looksLikeSalesSolicitation("Press one to lower your rate, press one now"), true);
+  assert.equal(looksLikeSalesSolicitation("Water pooling under the furnace, can someone come out?"), false);
+  assert.equal(looksLikeSalesSolicitation("Is this Dr. Patel's dental office? Sorry, wrong number"), false);
+  assert.equal(looksLikeSalesSolicitation("Furnace isn't working and it's freezing in here"), false);
+  const ingest = read("src/lib/call-ingest.ts");
+  assert.match(ingest, /salesPitch = looksLikeSalesSolicitation\(/);
+  assert.match(ingest, /handoffMissed = wantsHuman && Boolean\(business\.transferPhone\) && !forwarded && !autoBook\.jobId && !salesPitch/);
+});
+
+test("a caller who asked for a person and never reached one always alerts", () => {
+  const ingest = read("src/lib/call-ingest.ts");
+  assert.match(ingest, /forwarded = call\.endedReason === "assistant-forwarded-call"/);
+  assert.match(ingest, /didn't reach one — call back now/);
+});
+
+test("abandoning a promised booking pages the owner with the promise, on its own key", () => {
+  const ingest = read("src/lib/call-ingest.ts");
+  assert.match(ingest, /lastTry = attempts >= FINISH_MAX_ATTEMPTS/);
+  assert.match(ingest, /didn't go through — call back now/);
+  assert.match(ingest, /:abandoned`/);
+  assert.match(ingest, /timeZone: business\.timezone/);
 });

@@ -8,6 +8,7 @@ import { linkTouchToCustomerDetailed, normalizePhone } from "@/lib/customer";
 import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
 import { isInformationOnlyRequest } from "@/lib/info-request";
 import { drainJobberSyncs, enqueueJobberSync } from "@/lib/jobber";
+import { looksLikeSalesSolicitation } from "@/lib/job-taxonomy";
 import { drainHousecallSyncs, enqueueHousecallSync } from "@/lib/housecall";
 import { drainServiceTitanSyncs, enqueueServiceTitanSync } from "@/lib/servicetitan";
 import { leadWantsHuman } from "@/lib/lead-wants-human";
@@ -312,6 +313,20 @@ export async function finishCallReport(input: Omit<Captured, "duplicate">): Prom
     // Every caller gets a customer row, so only a returning one counts here.
     const looksLikeWork = Boolean(freshLead.address?.trim() || (link && !link.created));
     const nonService = !safety && !autoBook.jobId && freshLead.categoryCode === "other.non_service" && !looksLikeWork;
+    /* A label is the model's guess; minutes on the line are a fact. A caller
+       who talked for a minute is worth a glance even when the intake came
+       back non-service — spam hangs up, customers explain. Selling is the
+       exception: a sales rep talks at length and asks for the owner, and
+       that is exactly what the owner's phone stays quiet for. */
+    const engagedMinutes = Math.floor((durationSec ?? 0) / 60);
+    const salesPitch = looksLikeSalesSolicitation(`${freshLead.serviceType ?? ""} ${freshLead.notes ?? ""} ${spoken}`);
+    /* Asked for a person, transfer number set, never connected: whether the
+       transfer failed or the model never tried, the owner needs one line —
+       someone who wanted them slipped through. Never claim the transfer
+       itself failed; only what the owner can act on. */
+    const forwarded = call.endedReason === "assistant-forwarded-call";
+    const handoffMissed = wantsHuman && Boolean(business.transferPhone) && !forwarded && !autoBook.jobId && !salesPitch;
+    const silenced = nonService && (engagedMinutes < 1 || salesPitch) && !handoffMissed;
 
     // A time read out after hold_appointment came from the schedule, not the model.
     const promises = detectAssistantPromises(transcript).filter(
@@ -332,7 +347,7 @@ export async function finishCallReport(input: Omit<Captured, "duplicate">): Prom
       });
     }
 
-    if (nonService) {
+    if (silenced) {
       audit.add({
         businessId: business.id,
         entityType: "notification",
@@ -391,9 +406,9 @@ export async function finishCallReport(input: Omit<Captured, "duplicate">): Prom
             summary,
           },
         });
-    const ownerMessage = `${baseOwnerMessage}${networkNote}`;
+    const ownerMessage = `${handoffMissed ? "They asked for a person and didn't reach one — call back now. " : ""}${nonService && !silenced ? `Filed as a non-service call, but they talked for ${engagedMinutes} min — worth a glance. ` : ""}${baseOwnerMessage}${networkNote}`;
 
-    if (!nonService) {
+    if (!silenced) {
       await enqueueOwnerAlert({
         businessId: business.id,
         ownerPhone: business.ownerPhone,
@@ -573,24 +588,53 @@ export async function sweepUnfinishedCallReports(now = new Date()): Promise<numb
       });
       // The owner hears on the first failure; the booking keeps retrying for about an hour of sweeps.
       const attempts = event.attempts + 1;
+      const lastTry = attempts >= FINISH_MAX_ATTEMPTS;
       await prisma.webhookEvent.update({
         where: { id: event.id },
         data: {
-          status: attempts >= FINISH_MAX_ATTEMPTS ? "abandoned" : "failed",
+          status: lastTry ? "abandoned" : "failed",
           attempts,
           error: (error instanceof Error ? error.message : "unknown").slice(0, 280),
         },
       });
+      /* Abandoning with a promised time still on the table is the one failure
+         the owner must act on: the caller heard a time that isn't booked.
+         It rides its own dedupe key so the earlier plain alert can't swallow
+         it, and it names the promise in the shop's own timezone. */
+      let promiseNote = "";
+      const promisedAt = call.heldSlotAt ? new Date(call.heldSlotAt) : null;
+      if (lastTry && promisedAt && !Number.isNaN(promisedAt.getTime())) {
+        try {
+          const when = promisedAt.toLocaleString("en-US", {
+            weekday: "short",
+            hour: "numeric",
+            minute: "2-digit",
+            timeZone: business.timezone ?? undefined,
+          });
+          promiseNote = ` They were promised ${when} and it isn't booked.`;
+        } catch {
+          promiseNote = " They were promised a time and it isn't booked.";
+        }
+      }
       await enqueueOwnerAlert({
         businessId: business.id,
         ownerPhone: business.ownerPhone,
         ownerEmail: business.ownerEmail,
         businessName: business.name,
-        message: [`New call · ${lead.serviceType ?? "needs review"}`, lead.phone, lead.address, call.summary]
+        message: [
+          lastTry && promiseNote
+            ? `The booking didn't go through — call back now.${promiseNote}`
+            : `New call · ${lead.serviceType ?? "needs review"}`,
+          lead.phone,
+          lead.address,
+          call.summary,
+        ]
           .filter(Boolean)
           .join("\n"),
         leadId: lead.id,
-        dedupeKey: buildLeadAlertDedupeKey({ vapiCallId: event.externalId }),
+        dedupeKey: lastTry
+          ? `${buildLeadAlertDedupeKey({ vapiCallId: event.externalId })}:abandoned`
+          : buildLeadAlertDedupeKey({ vapiCallId: event.externalId }),
       }).catch(() => undefined);
     }
   }

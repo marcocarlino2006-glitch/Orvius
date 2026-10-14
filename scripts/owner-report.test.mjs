@@ -110,6 +110,25 @@ test("the report reads only this shop's paid money inside the window", async () 
   assert.deepEqual(report.bySource.map((s) => [s.label, s.collectedCents]), [["Phone calls", 50000]]);
 });
 
+test("a paid bill with no paid-on date still counts, on the day it was last touched", async () => {
+  const now = new Date("2026-03-20T15:00:00Z");
+  const shop = await prisma.business.create({
+    data: { name: "Undated Air", slug: `ud-${stamp()}`, trade: "HVAC", hoursJson: "{}", timezone: "America/Chicago", servicesJson: "[]", environment: "test" },
+  });
+  made.push(shop.id);
+  const job = await prisma.job.create({
+    data: { businessId: shop.id, title: "No heat", status: "completed", completedAt: new Date("2026-03-06T18:00:00Z") },
+  });
+  await prisma.invoice.create({
+    data: { businessId: shop.id, jobId: job.id, amountCents: 30000, status: "paid", paidAt: null, createdAt: new Date("2026-03-05T12:00:00Z"), updatedAt: new Date("2026-03-06T19:00:00Z") },
+  });
+  await prisma.deposit.create({
+    data: { businessId: shop.id, jobId: job.id, amountCents: 7000, status: "paid", paidAt: null, createdAt: new Date("2026-03-05T12:00:00Z"), updatedAt: new Date("2026-03-04T19:00:00Z") },
+  });
+  const { report } = await buildOwnerReport(shop.id, "this_month", now);
+  assert.equal(report.collectedCents, 37000, "paid money never vanishes from the books for want of a date");
+});
+
 test("still to collect reads this shop's open bills minus what customers already paid", async () => {
   const now = new Date("2026-03-20T15:00:00Z");
   const shop = await prisma.business.create({
