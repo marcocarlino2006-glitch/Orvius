@@ -269,7 +269,7 @@ export function jobWorkItem(job: WorkJob, now = Date.now()): WorkItem {
 
 const STAGE_ORDER = new Map(WORK_STAGES.map((s, i) => [s, i]));
 const SEVERITY_ORDER: Record<WorkSeverity, number> = { critical: 0, high: 1, med: 2 };
-const worst = (i: WorkItem) => Math.min(3, ...i.problems.map((p) => SEVERITY_ORDER[p.severity]));
+const worst = (i: WorkItem) => Math.min(i.approvalId ? SEVERITY_ORDER.high : 3, ...i.problems.map((p) => SEVERITY_ORDER[p.severity]));
 
 /** What needs a person first, then the worst problem, urgent work, work with a next step, earlier stages, then time. */
 export function sortWork(items: WorkItem[]): WorkItem[] {
@@ -516,7 +516,7 @@ export async function listWork(
   ]);
   const takenPhones = new Set(takeovers.map((t) => phoneKey(t.phoneNormalized)));
 
-  const base = [...requests.map(requestWorkItem), ...jobs.map(jobWorkItem)];
+  const base = [...requests.map(requestWorkItem), ...jobs.map((job) => jobWorkItem(job, now.getTime()))];
   if (!problems) {
     const closed = base.filter((i) => !i.open).sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
     return { items: closed, truncated: requests.length === LIMIT || jobs.length === LIMIT, approvals: [], shopIssues: [], needsYou: 0 };
@@ -561,7 +561,7 @@ export async function listWork(
         })
       : [],
   ]);
-  const all = [...base, ...moreJobs.map(jobWorkItem), ...moreRequests.map(requestWorkItem)];
+  const all = [...base, ...moreJobs.map((job) => jobWorkItem(job, now.getTime())), ...moreRequests.map(requestWorkItem)];
 
   const shopIssues = [...problems.shop];
   const matchedPhones = new Set<string>();
@@ -632,7 +632,7 @@ export async function getWorkItem(businessId: string, kind: "request" | "job", i
   if (found) return found;
   if (kind === "job") {
     const row = await prisma.job.findFirst({ where: { id, businessId }, select: jobSelect });
-    return row ? jobWorkItem(row) : null;
+    return row ? jobWorkItem(row, now.getTime()) : null;
   }
   const row = await prisma.lead.findFirst({ where: { id, businessId }, select: requestSelect });
   return row ? requestWorkItem(row) : null;

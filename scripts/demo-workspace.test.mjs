@@ -102,6 +102,22 @@ test("plan → approval → execution runs on the seeded plan", async () => {
   assert.ok(lead.job.scheduledAt > new Date(), "for a time that is still ahead");
 });
 
+test("the live action queue asks to recover the expired visit and puts the plan near the top", async () => {
+  const { listWork } = await import("../src/lib/work.ts");
+  const { PAST_DUE_LABEL } = await import("../src/lib/job-status.ts");
+  const { business } = await ensureDemoWorkspace(`queue-${stamp()}@orvius.test`, { seed: true });
+  cleanup.push(business.id);
+  const work = await listWork(business.id, "open");
+  const expired = work.items.find((i) => i.kind === "job" && i.title === "Annual tune-up before winter");
+  assert.equal(expired?.nextAction, PAST_DUE_LABEL, "the list path, not just the unit, sees the job as past due");
+  const lateButAskingToConfirm = work.items.filter(
+    (i) => i.kind === "job" && i.scheduledAt && Date.parse(i.scheduledAt) < Date.now() - H && /confirm/i.test(i.nextAction ?? ""),
+  );
+  assert.deepEqual(lateButAskingToConfirm.map((i) => i.title), [], "no visit that already passed asks to be confirmed");
+  const planned = work.items.findIndex((i) => i.approvalId);
+  assert.ok(planned >= 0 && planned < 4, `the plan waiting for approval is item ${planned + 1}`);
+});
+
 test("an old empty demo is filled on open; reset starts over at today and never touches the real shop", async () => {
   const email = `owner-${stamp()}@orvius.test`;
   const real = await prisma.business.create({
