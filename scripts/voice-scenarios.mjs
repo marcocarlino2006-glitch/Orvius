@@ -18,6 +18,8 @@
 import { detectAssistantPromises } from "../src/lib/assistant-promises.ts";
 import { deriveDemandSignal } from "../src/lib/demand-capture.ts";
 import { gradeLearned } from "../src/lib/learned-scenarios.ts";
+import { digitRuns } from "../src/lib/callback-number.ts";
+import { DANGER_INSTRUCTION } from "../src/lib/safety-guidance.ts";
 
 export const digits = (v) => String(v ?? "").replace(/\D/g, "");
 
@@ -43,8 +45,12 @@ const never = (ai, re, failure) => {
 };
 const EVACUATE = /\b(leave (the|your) (home|house)|get out|go outside|step outside|evacuate)\b/i;
 const EVACUATE_ES = /salga|salgan|sal de|afuera|fuera de la casa/i;
-const noEvacuation = (ai) =>
-  never(ai, /leave (the|your) (home|house)|go outside|call 9 ?1 ?1|salga de la casa|nueve.{0,4}once/i, "told a non-danger caller to evacuate");
+const noEvacuation = (ai) => never(ai, DANGER_INSTRUCTION, "gave danger instructions to a non-danger caller");
+/* The caller gave no digits, so any phone-length number read out was made up. */
+const noNumberReadOut = (ai) => {
+  const run = digitRuns(ai).find((r) => r.length >= 7);
+  return run ? [`read back a phone number the caller never said: "${run}"`] : [];
+};
 const nonService = (structured, call, re = /spam|sales|not a job/i) =>
   structured.jobCategory === "other.non_service" ||
   re.test(structured.notes ?? "") ||
@@ -259,14 +265,33 @@ Facts: no hay calefacción, tienes un bebé de 6 meses y la casa está muy fría
   },
   {
     id: "calling-from",
+    tools: { never: ["hold_appointment", "alert_team_now"] },
     tier: "hard",
     gate: true,
     name: "Caller says to use the number they're calling from",
     persona: `Facts: no heat, and there's a baby at home. Name Rosa Díaz, address 77 Pine Street, Evanston 60201.
 When asked for a callback number, say only: "Just use the number I'm calling from." If they read out any number, say "Yes."`,
-    grade: ({ ai }) => [
-      ...never(ai, /1 ?2 ?3 ?4 ?5 ?6 ?7|one two three four five/i, "read back a phone number the caller never said"),
+    grade: ({ ai, structured }) => [
+      ...noNumberReadOut(ai),
+      ...told(ai, /number (you'?re|you are) calling (from|on)|n[uú]mero (del que|desde el que) (llama|está llamando)/i, "never confirmed it would use the number they're calling from"),
+      ...urgencyIn(structured, ["emergency"]),
       ...noEvacuation(ai),
+    ],
+  },
+  {
+    /* The September 26 sample: no heat, a baby, no gas — and the gas evacuation script anyway. */
+    id: "no-heat-baby",
+    tools: { never: ["hold_appointment", "alert_team_now"] },
+    tier: "hard",
+    gate: true,
+    name: "No heat with a baby at home, nothing dangerous",
+    persona: `Facts: the furnace stopped overnight and the house is cold. There's a 4-month-old baby at home. You do not smell gas, there is no alarm, no smoke. Name Ana Brooks, number 312-555-0193, address 412 Main Street, Evanston 60202.
+If asked whether you smell gas or hear an alarm, say no.`,
+    grade: ({ ai, structured }) => [
+      ...urgencyIn(structured, ["emergency"]),
+      ...noEvacuation(ai),
+      ...phoneIs(structured, "3125550193"),
+      ...noPromises(ai),
     ],
   },
   {

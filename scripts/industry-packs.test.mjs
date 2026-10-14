@@ -45,7 +45,7 @@ test("an office business never asks for a home address and sends emergencies to 
       assert.match(text, /988/, trade);
       assert.match(text, /NEVER give medical, legal, financial or other professional advice/, trade);
       assert.match(text, /^(INDUSTRY) — /m, `${trade} carries its pack`);
-      assert.match(text, /Confirm: name, callback number \(read it back\), what they need, urgency\.$/m);
+      assert.match(text, /Confirm: name, callback number \(read back only digits the caller said; if they said to use the number they're calling from, confirm that instead — never say digits\), what they need, urgency\.$/m);
     }
   }
   const booking = prompt({ trade: "Salon & spa", canBook: true });

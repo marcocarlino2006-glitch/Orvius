@@ -207,7 +207,13 @@ export function runAiReadinessEval(): AiReadinessEval {
     },
     {
       name: "callback verification",
-      passed: /callback number \(read it back\)/i.test(prompt),
+      passed:
+        /callback number \(read back only digits the caller said/i.test(prompt) &&
+        /never read out digits the caller did not say/i.test(prompt),
+    },
+    {
+      name: "urgent is not danger",
+      passed: /NEVER tell those callers to leave the home or call 911/.test(prompt),
     },
     {
       name: "shop facts",

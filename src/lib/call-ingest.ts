@@ -17,6 +17,7 @@ import { buildLeadAlertDedupeKey, enqueueOwnerAlert } from "@/lib/notifications"
 import { buildOwnerLeadAlertMessage } from "@/lib/owner-alert-message";
 import { passConsentedCallLead } from "@/lib/orvius-network";
 import { prisma } from "@/lib/prisma";
+import { inventedNumbers, trustedCallbackNumber } from "@/lib/callback-number";
 import { callerWords } from "@/lib/transcript";
 import { withCallerSpelling } from "@/lib/spelled-name";
 import { extractLeadFromStructuredData, type VapiWebhookMessage } from "@/lib/vapi";
@@ -105,8 +106,14 @@ export async function captureEndOfCallReport(params: {
     const latency = { ...latencyColumns(latencyFromReport(message)), ...costColumns(message) };
     const extracted = extractLeadFromStructuredData(message.analysis?.structuredData);
     const spelled = withCallerSpelling(extracted, message.transcript);
+    const callerIdNumber = message.call?.customer?.number ?? null;
+    const callback = trustedCallbackNumber({ extracted: extracted.phone, callerId: callerIdNumber, transcript: message.transcript });
+    if (callback.replaced) {
+      logWarn("call.callback_number_replaced", { businessId: business.id, vapiCallId, reason: "caller_never_said_extracted_number" });
+    }
     const structured = {
       ...extracted,
+      phone: callback.phone ?? undefined,
       name: spelled.name ?? extracted.name,
       address: spelled.address ?? extracted.address,
     };
@@ -225,6 +232,22 @@ export async function finishCallReport(input: Omit<Captured, "duplicate">): Prom
       detail: { durationSec, successEvaluation },
       idempotencyKey: key("answered"),
     });
+    const invented = inventedNumbers(transcript, [business.vapiPhoneNumber, business.transferPhone]);
+    if (invented.length) {
+      audit.add({
+        businessId: business.id,
+        entityType: "call",
+        entityId: call.id,
+        callId: call.id,
+        leadId: lead.id,
+        action: "call.invented_number",
+        summary: callerId
+          ? "Orvius read back a phone number the caller never said — the callback uses the number they called from"
+          : "Orvius read back a phone number the caller never said — confirm the callback number before calling",
+        detail: { quote: invented[0].slice(0, 160) },
+        idempotencyKey: key("invented-number"),
+      });
+    }
 
     const captured = {
       problem: lead.serviceType,
