@@ -50,7 +50,7 @@ export function WorkCard({
   variant = "list",
 }: {
   item: WorkItem;
-  approval?: BoardItem | null;
+  approval?: Pick<BoardItem, "proposalId"> & { preview?: string | null; title?: string } | null;
   technicians: Array<{ id: string; name: string }>;
   onChange: () => void;
   /** On the work's own page the title, owner and history are already on screen. */
@@ -60,7 +60,7 @@ export function WorkCard({
   const [open, setOpen] = useState<"history" | "slots" | null>(null);
   const [slots, setSlots] = useState<{ action: string; windows: { at: string; label: string }[] } | null>(null);
   const [proposal, setProposal] = useState<Proposal | null>(
-    approval?.proposalId ? { proposalId: approval.proposalId, preview: approval.preview ?? approval.title } : null,
+    approval?.proposalId ? { proposalId: approval.proposalId, preview: approval.preview ?? approval.title ?? "" } : null,
   );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
