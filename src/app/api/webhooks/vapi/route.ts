@@ -26,7 +26,7 @@ import { callerWordsSoFar, readToolCalls } from "@/lib/in-call-tool-defs";
 import { loadCallerContextNote, sendCallerContext } from "@/lib/caller-context";
 import { backstopLateSweeps } from "@/lib/cron-backstop";
 import { isVapiBillingRefusal, pagePlatform } from "@/lib/platform-pager";
-import { callSpendCut, endCallWith } from "@/lib/call-spend-guard";
+import { alertSpendCut, callSpendCut, endCallWith } from "@/lib/call-spend-guard";
 import { isDemoPlatformLine } from "@/lib/demo-business";
 import { endWebDemo, isLineWebCall, WEB_DEMO_CHANNEL } from "@/lib/web-demo";
 import { isLineEntitled } from "@/lib/billing-entitlement";
@@ -312,6 +312,9 @@ export async function POST(request: NextRequest) {
         const cut = await callSpendCut({ shop: business, callerPhone, demo: isDemoPlatformLine(inboundNumber ?? business.vapiPhoneNumber ?? business.twilioPhone) });
         if (cut) {
           await endCallWith(controlUrl, cut.say);
+          if (cut.reason === "caller_repeat" || cut.reason === "shop_ceiling") {
+            await alertSpendCut({ shop: business, cut, callerPhone });
+          }
           if (cut.reason === "shop_ceiling") await pagePlatform("spend_ceiling", { businessId: business.id, vapiCallId });
           if (cut.reason === "demo_live_cap" || cut.reason === "demo_daily_ceiling") {
             await pagePlatform("demo_overflow", { reason: cut.reason, vapiCallId });
