@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { customerDisplayName } from "@/lib/customer";
+import { summarizeCustomerMoney } from "@/lib/customer-money";
+import { COLLECTED_STATUSES } from "@/lib/payment-math";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
 import { requireEntitledSession } from "@/lib/tenant";
@@ -38,26 +40,51 @@ export async function GET(request: Request) {
     },
   });
 
+  /* Lifetime value from their invoices: paid bills at face, open bills by balance left. */
+  const moneyByCustomer = new Map<string, { collected: number; owed: number }>();
+  if (customers.length) {
+    const jobs = await prisma.job.findMany({
+      where: { businessId: business.id, customerId: { in: customers.map((c) => c.id) } },
+      select: {
+        customerId: true,
+        invoices: {
+          select: {
+            amountCents: true,
+            status: true,
+            payments: { where: { status: { in: [...COLLECTED_STATUSES] } }, select: { amountCents: true } },
+          },
+        },
+      },
+      take: 5000,
+    });
+    for (const [id, slot] of summarizeCustomerMoney(jobs)) moneyByCustomer.set(id, slot);
+  }
+
   return NextResponse.json({
-    customers: customers.map((customer) => ({
-      id: customer.id,
-      name: customer.name,
-      displayName: customerDisplayName(customer.name, customer.phone),
-      phone: customer.phone,
-      email: customer.email,
-      address: customer.address,
-      interactionCount: customer.interactionCount,
-      firstSeenAt: customer.firstSeenAt.toISOString(),
-      lastSeenAt: customer.lastSeenAt.toISOString(),
-      business: customer.business,
-      leadCount: customer._count.leads,
-      callCount: customer._count.calls,
-      returning:
-        customer.interactionCount > 1 ||
-        customer._count.leads > 1 ||
-        customer._count.calls > 1 ||
-        customer._count.jobs > 1,
-    })),
+    customers: customers.map((customer) => {
+      const money = moneyByCustomer.get(customer.id) ?? { collected: 0, owed: 0 };
+      return {
+        id: customer.id,
+        name: customer.name,
+        displayName: customerDisplayName(customer.name, customer.phone),
+        phone: customer.phone,
+        email: customer.email,
+        address: customer.address,
+        interactionCount: customer.interactionCount,
+        firstSeenAt: customer.firstSeenAt.toISOString(),
+        lastSeenAt: customer.lastSeenAt.toISOString(),
+        business: customer.business,
+        leadCount: customer._count.leads,
+        callCount: customer._count.calls,
+        collectedCents: money.collected,
+        owedCents: money.owed,
+        returning:
+          customer.interactionCount > 1 ||
+          customer._count.leads > 1 ||
+          customer._count.calls > 1 ||
+          customer._count.jobs > 1,
+      };
+    }),
     total: customers.length,
   });
 }

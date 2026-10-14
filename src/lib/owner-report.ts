@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
-import { MIN_ESTIMATES_FOR_RATE, type CallLeadRow, type EstimateRow, type JobRow, type MoneyRow, type OwnerReport, type ReportPeriodId, type ReportRow } from "@/lib/owner-report-types";
+import { COLLECTED_STATUSES } from "@/lib/payment-math";
+import { MIN_ESTIMATES_FOR_RATE, type CallLeadRow, type EstimateRow, type JobRow, type MoneyRow, type OpenInvoiceRow, type OwnerReport, type ReportPeriodId, type ReportRow } from "@/lib/owner-report-types";
 
 export { MIN_ESTIMATES_FOR_RATE, REPORT_PERIODS } from "@/lib/owner-report-types";
 export type { OwnerReport, ReportPeriodId, ReportRow } from "@/lib/owner-report-types";
@@ -68,6 +69,7 @@ export function summarizeReport(input: {
   jobs: JobRow[];
   callLeads: CallLeadRow[];
   technicians: Array<{ id: string; name: string }>;
+  openInvoices?: OpenInvoiceRow[];
 }): OwnerReport {
   const sum = (rows: Array<{ amountCents: number }>) => rows.reduce((s, r) => s + r.amountCents, 0);
   const invoices = input.money.filter((m) => m.kind === "invoice");
@@ -105,6 +107,7 @@ export function summarizeReport(input: {
   }
 
   const byMoney = (a: ReportRow, b: ReportRow) => b.collectedCents - a.collectedCents || a.label.localeCompare(b.label);
+  const open = (input.openInvoices ?? []).filter((i) => i.balanceCents > 0);
   return {
     collectedCents: sum(input.money),
     previousCollectedCents: sum(input.previousMoney),
@@ -119,6 +122,11 @@ export function summarizeReport(input: {
       closeRate: input.estimates.length >= MIN_ESTIMATES_FOR_RATE ? won.length / input.estimates.length : null,
     },
     calls: { leads: input.callLeads.length, booked, bookedRate: input.callLeads.length >= MIN_ESTIMATES_FOR_RATE ? booked / input.callLeads.length : null },
+    stillToCollect: {
+      totalCents: open.reduce((s, i) => s + i.balanceCents, 0),
+      count: open.length,
+      invoices: [...open].sort((a, b) => b.agedDays - a.agedDays || b.balanceCents - a.balanceCents),
+    },
     byTechnician: [...techRows.values()].sort(byMoney),
     bySource: [...sourceRows.values()].sort(byMoney),
   };
@@ -157,7 +165,7 @@ export async function buildOwnerReport(businessId: string, period: ReportPeriodI
   const timezone = shop?.timezone ?? "America/New_York";
   const w = reportWindow(period, timezone, now);
   const inWindow = { gte: w.start, lt: w.end };
-  const [money, previousMoney, estimates, jobs, callLeads, technicians] = await Promise.all([
+  const [money, previousMoney, estimates, jobs, callLeads, technicians, openInvoices] = await Promise.all([
     moneyIn(businessId, w.start, w.end),
     moneyIn(businessId, w.prevStart, w.prevEnd),
     prisma.estimate.findMany({
@@ -168,6 +176,20 @@ export async function buildOwnerReport(businessId: string, period: ReportPeriodI
     prisma.job.findMany({ where: { businessId, status: "completed", completedAt: inWindow }, select: { technicianId: true }, take: ROW_CAP }),
     prisma.lead.findMany({ where: { businessId, source: "call", createdAt: inWindow }, select: { job: { select: { id: true } } }, take: ROW_CAP }),
     prisma.technician.findMany({ where: { businessId }, select: { id: true, name: true } }),
+    prisma.invoice.findMany({
+      where: { businessId, status: { in: ["sent", "open", "partial"] } },
+      select: {
+        id: true,
+        amountCents: true,
+        status: true,
+        sentAt: true,
+        createdAt: true,
+        payments: { where: { status: { in: COLLECTED_STATUSES } }, select: { amountCents: true } },
+        job: { select: { id: true, title: true, customer: { select: { name: true } }, lead: { select: { name: true } } } },
+      },
+      orderBy: { createdAt: "asc" },
+      take: ROW_CAP,
+    }),
   ]);
   const report = summarizeReport({
     money,
@@ -176,6 +198,20 @@ export async function buildOwnerReport(businessId: string, period: ReportPeriodI
     jobs,
     callLeads: callLeads.map((l) => ({ booked: Boolean(l.job) })),
     technicians,
+    openInvoices: openInvoices.map((i) => {
+      const collected = i.payments.reduce((s, p) => s + p.amountCents, 0);
+      const who = i.job?.customer?.name ?? i.job?.lead?.name ?? null;
+      const what = i.job?.title ?? "Invoice";
+      const since = i.sentAt ?? i.createdAt;
+      return {
+        id: i.id,
+        label: who ? `${what} · ${who}` : what,
+        jobId: i.job?.id ?? null,
+        amountCents: i.amountCents,
+        balanceCents: Math.max(0, i.amountCents - collected),
+        agedDays: Math.max(0, Math.floor((now.getTime() - since.getTime()) / DAY)),
+      };
+    }),
   });
   return { period, start: w.start.toISOString(), end: w.end.toISOString(), previousStart: w.prevStart.toISOString(), previousEnd: w.prevEnd.toISOString(), timezone, report };
 }

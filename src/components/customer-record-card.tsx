@@ -3,6 +3,7 @@
 import { RecordLink } from "@/components/record-drawer";
 import { RecordAvatar } from "@/components/record-avatar";
 import { customerDisplayName, displayPhone } from "@/lib/customer";
+import { formatCents } from "@/lib/money";
 
 type CustomerRecordCardProps = {
   id: string;
@@ -13,6 +14,8 @@ type CustomerRecordCardProps = {
   interactionCount: number;
   lastSeenAt: string;
   returning?: boolean;
+  collectedCents?: number;
+  owedCents?: number;
   /** Wide layouts show history beside the list; the drawer stays for narrow ones. */
   onSelect?: () => void;
   selected?: boolean;
@@ -28,6 +31,8 @@ export function CustomerRecordCard({
   interactionCount,
   lastSeenAt,
   returning = interactionCount > 1,
+  collectedCents = 0,
+  owedCents = 0,
   onSelect,
   selected = false,
 }: CustomerRecordCardProps) {
@@ -65,6 +70,12 @@ export function CustomerRecordCard({
         <p className="lead-rail-sub">
           {[displayPhone(phone), address, email].filter(Boolean).join(" · ")}
         </p>
+        {collectedCents > 0 || owedCents > 0 ? (
+          <p className="lead-rail-money">
+            {collectedCents > 0 ? <span>{formatCents(collectedCents)} paid</span> : null}
+            {owedCents > 0 ? <span className="is-owed">{formatCents(owedCents)} owed</span> : null}
+          </p>
+        ) : null}
       </div>
     </RecordLink>
     </div>

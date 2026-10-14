@@ -28,6 +28,8 @@ type CustomerRow = {
   interactionCount: number;
   lastSeenAt: string;
   returning: boolean;
+  collectedCents: number;
+  owedCents: number;
 };
 
 export default function CustomersPage() {
@@ -161,6 +163,8 @@ export default function CustomersPage() {
                     interactionCount={customer.interactionCount}
                     lastSeenAt={customer.lastSeenAt}
                     returning={customer.returning}
+                    collectedCents={customer.collectedCents}
+                    owedCents={customer.owedCents}
                   />
                 </li>
               ))}

@@ -110,6 +110,50 @@ test("the report reads only this shop's paid money inside the window", async () 
   assert.deepEqual(report.bySource.map((s) => [s.label, s.collectedCents]), [["Phone calls", 50000]]);
 });
 
+test("still to collect reads this shop's open bills minus what customers already paid", async () => {
+  const now = new Date("2026-03-20T15:00:00Z");
+  const shop = await prisma.business.create({
+    data: { name: "Collect Air", slug: `cl-${stamp()}`, trade: "HVAC", hoursJson: "{}", timezone: "America/Chicago", servicesJson: "[]", environment: "test" },
+  });
+  const other = await prisma.business.create({
+    data: { name: "Other Collect", slug: `cl-${stamp()}`, trade: "HVAC", hoursJson: "{}", timezone: "America/Chicago", servicesJson: "[]", environment: "test" },
+  });
+  made.push(shop.id, other.id);
+  const customer = await prisma.customer.create({ data: { businessId: shop.id, name: "Dana Cole", phone: "+15551230001", phoneNormalized: "+15551230001" } });
+  const job = await prisma.job.create({ data: { businessId: shop.id, customerId: customer.id, title: "No heat", status: "completed", completedAt: new Date("2026-03-06T18:00:00Z") } });
+  const sent = await prisma.invoice.create({ data: { businessId: shop.id, jobId: job.id, amountCents: 99999, status: "sent", sentAt: new Date("2026-02-27T15:00:00Z") } });
+  const partial = await prisma.invoice.create({ data: { businessId: shop.id, amountCents: 20000, status: "partial", sentAt: new Date("2026-03-18T15:00:00Z") } });
+  await prisma.payment.create({ data: { businessId: shop.id, invoiceId: partial.id, amountCents: 5000, status: "recorded" } });
+  await prisma.payment.create({ data: { businessId: shop.id, invoiceId: partial.id, amountCents: 15000, status: "superseded" } });
+  await prisma.invoice.create({ data: { businessId: shop.id, amountCents: 10000, status: "paid", sentAt: new Date("2026-03-01T15:00:00Z"), paidAt: new Date("2026-03-02T15:00:00Z") } });
+  await prisma.invoice.create({ data: { businessId: shop.id, amountCents: 30000, status: "void", sentAt: new Date("2026-03-01T15:00:00Z") } });
+  await prisma.invoice.create({ data: { businessId: shop.id, amountCents: 70000, status: "draft" } });
+  await prisma.invoice.create({ data: { businessId: other.id, amountCents: 60000, status: "sent", sentAt: new Date("2026-03-01T15:00:00Z") } });
+
+  const { report } = await buildOwnerReport(shop.id, "this_month", now);
+  assert.equal(report.stillToCollect.totalCents, 99999 + 15000, "a replaced payment is not money in, and the balance is what is owed");
+  assert.equal(report.stillToCollect.count, 2, "paid, voided, draft and other-shop bills stay out");
+  assert.equal(report.stillToCollect.invoices[0].id, sent.id, "the February bill comes before this week's");
+  assert.equal(report.stillToCollect.invoices[0].label, "No heat · Dana Cole");
+  assert.equal(report.stillToCollect.invoices[0].jobId, job.id);
+  assert.equal(report.stillToCollect.invoices[0].agedDays, 21);
+});
+
+test("still to collect counts only real unpaid balances, oldest first", () => {
+  const r = summarizeReport({
+    ...empty,
+    openInvoices: [
+      { id: "a", label: "No heat · Dana", jobId: "j1", amountCents: 40000, balanceCents: 40000, agedDays: 21 },
+      { id: "b", label: " tune-up", jobId: null, amountCents: 10000, balanceCents: 4000, agedDays: 2 },
+      { id: "c", label: "Paid off", jobId: null, amountCents: 5000, balanceCents: 0, agedDays: 30 },
+    ],
+  });
+  assert.equal(r.stillToCollect.totalCents, 44000, "a fully paid bill is not money owed");
+  assert.equal(r.stillToCollect.count, 2);
+  assert.deepEqual(r.stillToCollect.invoices.map((i) => i.id), ["a", "b"], "the oldest bill comes first");
+  assert.equal(summarizeReport({ ...empty }).stillToCollect.totalCents, 0, "old callers pass nothing and get zeros");
+});
+
 test("CSV export cannot smuggle a spreadsheet formula", () => {
   const csv = reportCsv(
     summarizeReport({

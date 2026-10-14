@@ -58,3 +58,22 @@ test("an old per-job tech link sends the technician into their day", () => {
   assert.match(page, /redirect\(`\/tech\/\$\{appToken\}\/jobs\/\$\{job\.id\}`\)/);
   assert.match(page, /ensureTechAppToken/);
 });
+
+test("a customer's lifetime value counts paid bills at face and open bills by balance", async () => {
+  const { summarizeCustomerMoney } = await import("../src/lib/customer-money.ts");
+  const out = summarizeCustomerMoney([
+    {
+      customerId: "c1",
+      invoices: [
+        { amountCents: 40000, status: "paid", payments: [{ amountCents: 40000 }] },
+        { amountCents: 20000, status: "sent", payments: [{ amountCents: 5000 }] },
+        { amountCents: 70000, status: "void", payments: [] },
+        { amountCents: 90000, status: "draft", payments: [] },
+      ],
+    },
+    { customerId: null, invoices: [{ amountCents: 10000, status: "paid", payments: [] }] },
+    { customerId: "c2", invoices: [] },
+  ]);
+  assert.deepEqual(out.get("c1"), { collected: 45000, owed: 15000 }, "void and draft bills are not money, and jobs without a customer belong to nobody");
+  assert.ok(!out.has("c2"), "a customer with no bills shows no money line at all");
+});
