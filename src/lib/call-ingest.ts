@@ -8,6 +8,7 @@ import { linkTouchToCustomerDetailed, normalizePhone } from "@/lib/customer";
 import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
 import { isInformationOnlyRequest } from "@/lib/info-request";
 import { drainJobberSyncs, enqueueJobberSync } from "@/lib/jobber";
+import { looksLikeSalesSolicitation } from "@/lib/job-taxonomy";
 import { drainHousecallSyncs, enqueueHousecallSync } from "@/lib/housecall";
 import { drainServiceTitanSyncs, enqueueServiceTitanSync } from "@/lib/servicetitan";
 import { leadWantsHuman } from "@/lib/lead-wants-human";
@@ -314,15 +315,18 @@ export async function finishCallReport(input: Omit<Captured, "duplicate">): Prom
     const nonService = !safety && !autoBook.jobId && freshLead.categoryCode === "other.non_service" && !looksLikeWork;
     /* A label is the model's guess; minutes on the line are a fact. A caller
        who talked for a minute is worth a glance even when the intake came
-       back non-service — spam hangs up, customers explain. */
+       back non-service — spam hangs up, customers explain. Selling is the
+       exception: a sales rep talks at length and asks for the owner, and
+       that is exactly what the owner's phone stays quiet for. */
     const engagedMinutes = Math.floor((durationSec ?? 0) / 60);
+    const salesPitch = looksLikeSalesSolicitation(`${freshLead.serviceType ?? ""} ${freshLead.notes ?? ""} ${spoken}`);
     /* Asked for a person, transfer number set, never connected: whether the
        transfer failed or the model never tried, the owner needs one line —
        someone who wanted them slipped through. Never claim the transfer
        itself failed; only what the owner can act on. */
     const forwarded = call.endedReason === "assistant-forwarded-call";
-    const handoffMissed = wantsHuman && Boolean(business.transferPhone) && !forwarded && !autoBook.jobId;
-    const silenced = nonService && engagedMinutes < 1 && !handoffMissed;
+    const handoffMissed = wantsHuman && Boolean(business.transferPhone) && !forwarded && !autoBook.jobId && !salesPitch;
+    const silenced = nonService && (engagedMinutes < 1 || salesPitch) && !handoffMissed;
 
     // A time read out after hold_appointment came from the schedule, not the model.
     const promises = detectAssistantPromises(transcript).filter(
