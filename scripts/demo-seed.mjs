@@ -350,7 +350,7 @@ async function main() {
         data: { businessId: business.id, jobId: job.id, leadId: lead.id, amountCents: r.job.paid, status: "accepted", acceptedAt: scheduledAt, createdAt: scheduledAt },
       });
       const invoice = await prisma.invoice.create({
-        data: { businessId: business.id, estimateId: estimate.id, jobId: job.id, amountCents: r.job.paid, status: "paid", createdAt: paidAt },
+        data: { businessId: business.id, estimateId: estimate.id, jobId: job.id, amountCents: r.job.paid, status: "paid", paidAt, createdAt: paidAt },
       });
       await prisma.payment.create({
         data: { businessId: business.id, invoiceId: invoice.id, amountCents: r.job.paid, status: "succeeded", method: "card", createdAt: paidAt },

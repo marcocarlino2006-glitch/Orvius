@@ -17,7 +17,7 @@ function range(startIso: string, endIso: string, timezone: string) {
 }
 
 function change(now: number, before: number) {
-  if (!before) return now ? "Nothing collected in the period before." : null;
+  if (!before) return now ? "Up from $0 in the period before." : null;
   const delta = Math.round(((now - before) / before) * 100);
   return `${delta >= 0 ? "Up" : "Down"} ${Math.abs(delta)}% on ${money(before)} in the period before.`;
 }
@@ -153,7 +153,7 @@ export default function ReportsPage() {
               <p className="rp-v">{pct(r.estimates.closeRate)}</p>
               <p className="rp-note">
                 {r.estimates.closeRate == null
-                  ? `Shown once ${MIN_ESTIMATES_FOR_RATE} estimates are sent in the period; ${r.estimates.sent} so far.`
+                  ? `Shows after ${MIN_ESTIMATES_FOR_RATE} estimates go out in the period; ${r.estimates.sent} so far.`
                   : `${r.estimates.won} of ${r.estimates.sent} sent were accepted: ${money(r.estimates.wonCents)} of ${money(r.estimates.sentCents)}.`}
               </p>
             </div>

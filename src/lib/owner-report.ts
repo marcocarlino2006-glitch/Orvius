@@ -136,15 +136,22 @@ const ROW_CAP = 5000;
 const WON = ["accepted", "paid"];
 
 async function moneyIn(businessId: string, start: Date, end: Date): Promise<MoneyRow[]> {
-  const paidAt = { gte: start, lt: end };
+  /*
+    Paid means paid, even when the paid-on date is missing: every production
+    path stamps paidAt alongside the status, but a paid row with no paidAt
+    must not vanish from the owner's books. Undated rows count on the day
+    they were last touched (for a paid row, that is the status change).
+  */
+  const dated = (dateField: "paidAt" | "updatedAt") => ({ [dateField]: { gte: start, lt: end } });
+  const inWindow = (field: "paidAt") => ({ OR: [dated(field), { [field]: null, ...dated("updatedAt") }] });
   const [invoices, deposits] = await Promise.all([
     prisma.invoice.findMany({
-      where: { businessId, status: "paid", paidAt },
+      where: { businessId, status: "paid", ...inWindow("paidAt") },
       select: { amountCents: true, job: { select: { technicianId: true, lead: { select: { source: true } } } } },
       take: ROW_CAP,
     }),
     prisma.deposit.findMany({
-      where: { businessId, status: "paid", paidAt },
+      where: { businessId, status: "paid", ...inWindow("paidAt") },
       select: { amountCents: true, lead: { select: { source: true } }, job: { select: { technicianId: true, lead: { select: { source: true } } } } },
       take: ROW_CAP,
     }),
