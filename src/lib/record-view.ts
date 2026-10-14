@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { leadNextAction } from "@/lib/lead-next-action";
 import { telHref } from "@/lib/demo-line";
 import { formatCents } from "@/lib/money";
-import { jobStatusLabel, nextJobStatus } from "@/lib/job-status";
+import { PAST_DUE_LABEL, jobPastDue, jobStatusLabel, nextJobStatus, pastDueDetail } from "@/lib/job-status";
 import {
   recordHref,
   type PathNode,
@@ -378,6 +378,9 @@ function buildDecisions(g: Graph): string[] {
 
 function buildNext(g: Graph): RecordView["next"] {
   if (g.job) {
+    if (jobPastDue(g.job) && g.job.scheduledAt) {
+      return { label: PAST_DUE_LABEL, href: recordHref("job", g.job.id), detail: pastDueDetail(g.job.scheduledAt) };
+    }
     if (!g.job.technician && g.job.status !== "completed" && g.job.status !== "cancelled") {
       return { label: "Assign technician", href: "/dashboard/schedule", detail: "Job is booked but nobody owns it." };
     }

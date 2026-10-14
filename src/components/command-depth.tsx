@@ -25,7 +25,7 @@ const STEP_LABEL: Record<CrewBlock["step"], string> = {
 };
 
 /** Every step a job has to pass, with how many got there and what is stuck before it. */
-export function FlowStrip({ flow }: { flow: CommandFlow | undefined }) {
+export function FlowStrip({ flow, needsYou = 0 }: { flow: CommandFlow | undefined; needsYou?: number }) {
   if (!flow) return null;
   const top = Math.max(1, ...flow.stages.map((s) => s.count));
   return (
@@ -47,11 +47,22 @@ export function FlowStrip({ flow }: { flow: CommandFlow | undefined }) {
               <span className="cmd-flow-bar" aria-hidden>
                 <span style={{ width: `${(stage.count / top) * 100}%` }} />
               </span>
-              <span className="cmd-flow-wait">{stage.waitingLabel ?? "Nothing stuck"}</span>
+              <span className="cmd-flow-wait">{stage.waitingLabel ?? "None waiting this week"}</span>
             </Link>
           </li>
         ))}
       </ol>
+      {flow.pastDue ? (
+        <Link href="/dashboard/work" className="cmd-flow-note is-risk">
+          {flow.pastDue} {flow.pastDue === 1 ? "job" : "jobs"} passed the visit time without starting — contact, reschedule or close{" "}
+          {flow.pastDue === 1 ? "it" : "them"}.
+        </Link>
+      ) : null}
+      {needsYou ? (
+        <p className="cmd-flow-note">
+          This strip counts work booked in the last {flow.windowDays} days. The action queue&apos;s {needsYou} also covers older work, calls, bills and setup.
+        </p>
+      ) : null}
     </section>
   );
 }

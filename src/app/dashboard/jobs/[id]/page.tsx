@@ -13,7 +13,7 @@ import {
 } from "@/components/shell-primitives";
 import { WorkPanel } from "@/components/work-panel";
 import { displayPhone } from "@/lib/customer";
-import { nextJobStatus } from "@/lib/job-status";
+import { PAST_DUE_LABEL, jobPastDue, nextJobStatus, pastDueDetail } from "@/lib/job-status";
 import { jobLifecycle, jobSteps } from "@/lib/job-lifecycle";
 import { StatusDot } from "@/components/status-dot";
 import { formatShopTime, shopWallInput } from "@/lib/when";
@@ -213,7 +213,8 @@ export default function JobDetailPage() {
     );
   }
 
-  const next = nextJobStatus(job.status);
+  const pastDue = jobPastDue(job);
+  const next = pastDue ? null : nextJobStatus(job.status);
   const phone = job.customer?.phone ?? job.lead?.phone;
   const who = job.customer?.name ?? job.lead?.name ?? phone ?? null;
   const refreshWork = () => load();
@@ -239,6 +240,19 @@ export default function JobDetailPage() {
             : job.scheduledAt
               ? "Waiting for the customer to confirm"
               : "No time picked yet";
+
+  function closeJob() {
+    const reason = changeReason.trim() || window.prompt("Why is this job being cancelled? This goes in the history.")?.trim();
+    if (reason === undefined) return;
+    if (window.confirm("Cancel this job? The technician's day updates right away.")) {
+      void patch({ status: "cancelled", ...(reason ? { reason } : {}) }).then(() => setChangeReason(""));
+    }
+  }
+
+  function startReschedule() {
+    setChanging(true);
+    requestAnimationFrame(() => document.getElementById("job-reschedule")?.focus());
+  }
 
   async function textConfirm() {
     if (!job) return;
@@ -470,13 +484,7 @@ export default function JobDetailPage() {
                   <button
                     type="button"
                     disabled={saving}
-                    onClick={() => {
-                      const reason = changeReason.trim() || window.prompt("Why is this job being cancelled? This goes in the history.")?.trim();
-                      if (reason === undefined) return;
-                      if (window.confirm("Cancel this job? The technician's day updates right away.")) {
-                        void patch({ status: "cancelled", ...(reason ? { reason } : {}) }).then(() => setChangeReason(""));
-                      }
-                    }}
+                    onClick={closeJob}
                     className="jv-cancel"
                   >
                     Cancel job
@@ -484,7 +492,27 @@ export default function JobDetailPage() {
                 </div>
               ) : null}
 
-              {open ? (
+              {pastDue && job.scheduledAt ? (
+                <div className="jv-recover font-sans" role="group" aria-label={PAST_DUE_LABEL}>
+                  <p className="jv-recover-title">{PAST_DUE_LABEL}</p>
+                  <p className="jv-sub">{pastDueDetail(job.scheduledAt)}</p>
+                  <div className="jv-next">
+                    {phone ? (
+                      <a href={`tel:${phone}`} className="ox-btn ox-btn--primary">
+                        Call the customer
+                      </a>
+                    ) : null}
+                    <button type="button" className="ox-btn ox-btn--quiet" disabled={saving} onClick={startReschedule}>
+                      Reschedule
+                    </button>
+                    <button type="button" className="ox-btn ox-btn--quiet" disabled={saving} onClick={closeJob}>
+                      Close the job
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+
+              {open && !pastDue ? (
                 <div className="jv-next">
                   {next?.status === "en_route" && !job.technician ? (
                     <button type="button" className="ox-btn ox-btn--primary" onClick={() => setChanging(true)}>
@@ -528,6 +556,10 @@ export default function JobDetailPage() {
             ) : next ? (
               <button type="button" className="job-detail-sticky-btn job-detail-sticky-btn-primary" disabled={saving} onClick={() => void patch({ status: next.status })}>
                 {saving ? "Moving…" : next.label}
+              </button>
+            ) : pastDue ? (
+              <button type="button" className="job-detail-sticky-btn job-detail-sticky-btn-primary" disabled={saving} onClick={startReschedule}>
+                Reschedule
               </button>
             ) : null}
             {phone ? (

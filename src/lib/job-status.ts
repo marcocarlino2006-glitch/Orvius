@@ -30,6 +30,30 @@ export function jobStatusTitle(status: string) {
   return word.charAt(0).toUpperCase() + word.slice(1);
 }
 
+/**
+ * The visit time passed and nobody started the job. Confirming it or sending
+ * a tech now is the wrong next step; the owner has to decide what happened:
+ * contact the customer, move it to a new time, or close it.
+ */
+export const PAST_DUE_GRACE_MS = 60 * 60 * 1000;
+
+export function jobPastDue(
+  job: { status: string; scheduledAt: Date | string | null | undefined },
+  now = Date.now(),
+): boolean {
+  if (job.status !== "scheduled" && job.status !== "confirmed") return false;
+  if (!job.scheduledAt) return false;
+  return new Date(job.scheduledAt).getTime() + PAST_DUE_GRACE_MS < now;
+}
+
+export const PAST_DUE_LABEL = "Contact, reschedule or close";
+
+export function pastDueDetail(scheduledAt: Date | string, now = Date.now()): string {
+  const hours = Math.max(1, Math.round((now - new Date(scheduledAt).getTime()) / 3_600_000));
+  const ago = hours < 48 ? `${hours} hour${hours === 1 ? "" : "s"}` : `${Math.round(hours / 24)} days`;
+  return `The visit was due ${ago} ago and never started. Call the customer, move it to a new time, or close it.`;
+}
+
 /** Next actionable status for the field loop — null when terminal. */
 export function nextJobStatus(
   status: string,

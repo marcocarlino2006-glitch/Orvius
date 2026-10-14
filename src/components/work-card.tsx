@@ -8,6 +8,7 @@ import { TestAlertButton } from "@/components/test-alert-button";
 import { WorkHistoryLoader } from "@/components/work-history-view";
 import { toast } from "@/components/toaster";
 import type { BoardItem } from "@/lib/command-board";
+import { jobPastDue } from "@/lib/job-status";
 import type { WorkItem, WorkSeverity } from "@/lib/work";
 import { formatWhen } from "@/lib/when";
 
@@ -103,6 +104,12 @@ export function WorkCard({
       onChange();
     });
 
+  const closeJob = () => {
+    const reason = window.prompt("Why close this job? This goes in the history.", "The visit time passed and it never happened")?.trim();
+    if (reason === undefined) return;
+    void setJob({ status: "cancelled", ...(reason ? { reason } : {}) }, "Job closed");
+  };
+
   const textConfirm = () =>
     run(async () => {
       const res = await fetch(`/api/jobs/${item.id}/confirm-sms`, { method: "POST" });
@@ -123,13 +130,14 @@ export function WorkCard({
   const top = item.problems[0] ?? null;
   const kinds = new Set(item.problems.map((p) => p.kind));
   const isJob = item.kind === "job";
-  const late = kinds.has("stale") || kinds.has("tech_no_show");
+  const pastDue = isJob && jobPastDue({ status: item.stage, scheduledAt: item.scheduledAt });
+  const late = pastDue || kinds.has("stale") || kinds.has("tech_no_show");
   const needsTech = isJob && item.nextAction === "Assign a technician";
   const canMove = item.stage === "needs_callback" || item.stage === "needs_time" || (isJob && (item.stage === "scheduled" || item.stage === "confirmed"));
-  const primaryCall = Boolean(item.phone) && (item.stage === "needs_callback" || kinds.has("emergency") || kinds.has("unconfirmed_soon") || kinds.has("failed_message") || kinds.has("customer_no_show") || kinds.has("open_invoice") || kinds.has("estimate_failed") || kinds.has("wants_human"));
+  const primaryCall = Boolean(item.phone) && (pastDue || item.stage === "needs_callback" || kinds.has("emergency") || kinds.has("unconfirmed_soon") || kinds.has("failed_message") || kinds.has("customer_no_show") || kinds.has("open_invoice") || kinds.has("estimate_failed") || kinds.has("wants_human"));
   const who = item.customer?.trim() || item.phone || "Unknown caller";
   const askTech = isJob && kinds.has("tech_unanswered") && Boolean(item.technician?.phone);
-  const unconfirmed = isJob && (item.stage === "scheduled" || kinds.has("unconfirmed_soon")) && Boolean(item.technician) && !kinds.has("failed_message") && !askTech;
+  const unconfirmed = isJob && !pastDue && (item.stage === "scheduled" || kinds.has("unconfirmed_soon")) && Boolean(item.technician) && !kinds.has("failed_message") && !askTech;
   const fieldStatus = isJob && !late ? JOB_STATUS_FOR_STAGE[item.stage] : undefined;
 
   return (
@@ -273,6 +281,11 @@ export function WorkCard({
               onClick={() => (open === "slots" ? setOpen(null) : void loadSlots())}
             >
               {isJob ? (late ? "Move it" : "Change the time") : "Offer a time"}
+            </button>
+          ) : null}
+          {pastDue ? (
+            <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={closeJob}>
+              Close the job
             </button>
           ) : null}
           {isJob && late ? (

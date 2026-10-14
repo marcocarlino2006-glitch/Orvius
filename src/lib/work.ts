@@ -1,4 +1,5 @@
 import { collectAttention } from "@/lib/attention-queue";
+import { PAST_DUE_LABEL, jobPastDue } from "@/lib/job-status";
 import { personName } from "@/lib/people";
 import type { AttentionItem, AttentionKind } from "@/lib/attention-types";
 import { buildCommandBoard, type BoardItem, type ExceptionKind } from "@/lib/command-board";
@@ -206,13 +207,15 @@ export function requestWorkItem(lead: WorkRequest): WorkItem {
   });
 }
 
-export function jobWorkItem(job: WorkJob): WorkItem {
+export function jobWorkItem(job: WorkJob, now = Date.now()): WorkItem {
   const stage = jobStage(job);
+  const pastDue = jobPastDue(job, now);
   const owed = unpaidInvoices(job);
   const who = job.customer?.name?.trim() || "the customer";
   const assign: [string, WaitingOn] = job.techDeclinedBy ? [`Assign someone else — ${job.techDeclinedBy} can't take it`, "you"] : ["Assign a technician", "you"];
   const techAnswer: [string | null, WaitingOn] = job.techAcceptedAt || !job.technician ? [null, null] : [`Waiting on ${job.technician.name} to accept`, "technician"];
   const [nextAction, waitingOn] = ((): [string | null, WaitingOn] => {
+    if (pastDue) return [PAST_DUE_LABEL, "you"];
     switch (stage) {
       case "needs_time":
         return ["Set the time", "you"];

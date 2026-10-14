@@ -331,7 +331,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
 
           {data ? (
             <section className="cmd-section cmd-depth" aria-label="This week">
-              <FlowStrip flow={data.flow} />
+              <FlowStrip flow={data.flow} needsYou={needsYou} />
               <MoneyLine money={data.money} />
             </section>
           ) : null}

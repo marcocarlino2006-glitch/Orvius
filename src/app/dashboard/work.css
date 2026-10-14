@@ -1163,6 +1163,21 @@ a.cmd-feed-text:hover {
   margin-top: 1.125rem;
 }
 
+.jv-recover {
+  margin-top: 1.125rem;
+  padding: 0.875rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--ox-red) 35%, transparent);
+  background: color-mix(in srgb, var(--ox-red) 7%, transparent);
+}
+.jv-recover-title {
+  margin: 0 0 0.2rem;
+  font-weight: 600;
+}
+.jv-recover .jv-next {
+  margin-top: 0.75rem;
+}
+
 .jv-who {
   margin: 0;
   font-size: 0.9375rem;
@@ -1837,6 +1852,22 @@ a.cmd-feed-text:hover {
 .cmd-flow-wait {
   font-size: 0.75rem;
   color: var(--ox-mute);
+}
+
+.cmd-flow-note {
+  display: block;
+  margin: 0.625rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--ox-mute);
+}
+.cmd-flow-note.is-risk {
+  color: var(--ox-red);
+  font-weight: 500;
+  text-decoration: none;
+}
+.cmd-flow-note.is-risk:hover {
+  text-decoration: underline;
 }
 
 .cmd-flow-stage.has-waiting .cmd-flow-wait {

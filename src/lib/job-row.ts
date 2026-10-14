@@ -1,3 +1,4 @@
+import { jobPastDue } from "@/lib/job-status";
 import { formatCents } from "@/lib/money";
 import { claimedCents, collectedCents } from "@/lib/payment-math";
 
@@ -57,8 +58,9 @@ export function jobRowFacts(job: JobRowInput, now = Date.now()): JobRowFacts {
   if (job.status === "completed") timing = { label: "Done", tone: "neutral" };
   else if (job.status === "cancelled") timing = { label: "Cancelled", tone: "neutral" };
   else if (at == null) timing = { label: `Unscheduled · booked ${span(age)} ago`, tone: "attention" };
+  else if (jobPastDue(job, now)) timing = { label: `Overdue ${span(now - at)}`, tone: "risk" };
   else if (at < now && (job.status === "scheduled" || job.status === "confirmed")) {
-    timing = { label: `Overdue ${span(now - at)}`, tone: "risk" };
+    timing = { label: `Due ${span(now - at)} ago`, tone: "attention" };
   } else if (at >= now) timing = { label: `In ${span(at - now)}`, tone: at - now < 2 * HOUR ? "attention" : "neutral" };
   else timing = { label: `Started ${span(now - at)} ago`, tone: "neutral" };
 

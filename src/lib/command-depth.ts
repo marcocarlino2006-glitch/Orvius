@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { PAST_DUE_GRACE_MS } from "@/lib/job-status";
 import { COLLECTED_STATUSES } from "@/lib/payment-math";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -20,6 +21,8 @@ export type CommandFlow = {
   stages: FlowStage[];
   /** Jobs read for the flow hit the cap, so counts are a floor. */
   capped: boolean;
+  /** Open jobs of any age whose visit time passed without starting. */
+  pastDue: number;
 };
 
 export type CommandMoney = {
@@ -48,7 +51,7 @@ type CohortJob = {
  * completion, and a paid bill. Nothing is inferred from status alone except
  * "done", which only the technician or the owner sets.
  */
-export function summarizeFlow(input: { requests: number; jobs: CohortJob[]; windowDays: number; capped?: boolean }): CommandFlow {
+export function summarizeFlow(input: { requests: number; jobs: CohortJob[]; windowDays: number; capped?: boolean; pastDue?: number }): CommandFlow {
   const jobs = input.jobs.filter((j) => j.status !== "cancelled");
   const open = jobs.filter((j) => j.status !== "completed");
   const done = jobs.filter((j) => j.status === "completed");
@@ -64,6 +67,7 @@ export function summarizeFlow(input: { requests: number; jobs: CohortJob[]; wind
   return {
     windowDays: input.windowDays,
     capped: Boolean(input.capped),
+    pastDue: input.pastDue ?? 0,
     stages: [
       { key: "requests", label: "Requests", count: input.requests, waiting: 0, waitingLabel: null, href: "/dashboard/inbox" },
       {
@@ -106,7 +110,7 @@ export function summarizeFlow(input: { requests: number; jobs: CohortJob[]; wind
 
 export async function getCommandFlow(businessId: string, now = new Date(), windowDays = 7): Promise<CommandFlow> {
   const start = new Date(now.getTime() - windowDays * DAY_MS);
-  const [requests, jobs] = await Promise.all([
+  const [requests, jobs, pastDue] = await Promise.all([
     prisma.lead.count({ where: { businessId, createdAt: { gte: start }, status: { not: "spam" } } }),
     prisma.job.findMany({
       where: { businessId, createdAt: { gte: start } },
@@ -119,8 +123,11 @@ export async function getCommandFlow(businessId: string, now = new Date(), windo
       },
       take: ROW_CAP,
     }),
+    prisma.job.count({
+      where: { businessId, status: { in: ["scheduled", "confirmed"] }, scheduledAt: { lt: new Date(now.getTime() - PAST_DUE_GRACE_MS) } },
+    }),
   ]);
-  return summarizeFlow({ requests, jobs, windowDays, capped: jobs.length >= ROW_CAP });
+  return summarizeFlow({ requests, jobs, windowDays, capped: jobs.length >= ROW_CAP, pastDue });
 }
 
 export async function getCommandMoney(businessId: string, now = new Date(), windowDays = 7): Promise<CommandMoney> {

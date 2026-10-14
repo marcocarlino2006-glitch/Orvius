@@ -101,45 +101,47 @@ test("a request's stage and next action follow its status", () => {
   assert.deepEqual(item.responsible, { kind: "owner", label: "You", email: null });
 });
 
+const jobItem = (j) => work.jobWorkItem(j, now.getTime());
+
 test("a job's stage and next action follow the visit", () => {
-  assert.equal(work.jobWorkItem(job({ scheduledAt: null })).stage, "needs_time");
-  assert.equal(work.jobWorkItem(job({ scheduledAt: null })).nextAction, "Set the time");
-  assert.equal(work.jobWorkItem(job()).nextAction, "Assign a technician");
+  assert.equal(jobItem(job({ scheduledAt: null })).stage, "needs_time");
+  assert.equal(jobItem(job({ scheduledAt: null })).nextAction, "Set the time");
+  assert.equal(jobItem(job()).nextAction, "Assign a technician");
 
   const tech = { id: "t1", name: "Ray" };
-  assert.equal(work.jobWorkItem(job({ technician: tech })).nextAction, "Confirm the time with the customer");
-  const unanswered = work.jobWorkItem(job({ technician: tech, customerConfirmedAt: now }));
+  assert.equal(jobItem(job({ technician: tech })).nextAction, "Confirm the time with the customer");
+  const unanswered = jobItem(job({ technician: tech, customerConfirmedAt: now }));
   assert.equal(unanswered.nextAction, "Waiting on Ray to accept");
   assert.equal(unanswered.waitingOn, "technician");
   assert.equal(unanswered.needsYou, false, "waiting on the technician isn't the owner's job until it goes stale");
-  assert.equal(work.jobWorkItem(job({ technician: tech, customerConfirmedAt: now, techAcceptedAt: now })).nextAction, null);
-  assert.equal(work.jobWorkItem(job({ status: "confirmed" })).nextAction, "Assign a technician");
-  assert.equal(work.jobWorkItem(job({ status: "en_route", technician: tech })).nextAction, "Mark arrived");
-  assert.equal(work.jobWorkItem(job({ status: "on_site", technician: tech })).nextAction, "Mark done");
+  assert.equal(jobItem(job({ technician: tech, customerConfirmedAt: now, techAcceptedAt: now })).nextAction, null);
+  assert.equal(jobItem(job({ status: "confirmed" })).nextAction, "Assign a technician");
+  assert.equal(jobItem(job({ status: "en_route", technician: tech })).nextAction, "Mark arrived");
+  assert.equal(jobItem(job({ status: "on_site", technician: tech })).nextAction, "Mark done");
 
-  const field = work.jobWorkItem(job({ status: "en_route", technician: tech }));
+  const field = jobItem(job({ status: "en_route", technician: tech }));
   assert.deepEqual(field.responsible, { kind: "technician", label: "Ray", email: null });
-  const assigned = work.jobWorkItem(job({ technician: tech, assigneeEmail: "office@example.test" }));
+  const assigned = jobItem(job({ technician: tech, assigneeEmail: "office@example.test" }));
   assert.equal(assigned.responsible.kind, "teammate");
 
-  const paid = work.jobWorkItem(job({ status: "completed", invoices: [{ status: "paid", paidAt: now, amountCents: 100 }] }));
+  const paid = jobItem(job({ status: "completed", invoices: [{ status: "paid", paidAt: now, amountCents: 100 }] }));
   assert.equal(paid.stage, "done");
   assert.equal(paid.open, false);
-  const owes = work.jobWorkItem(job({ status: "completed", invoices: [{ status: "sent", paidAt: null, amountCents: 100 }] }));
+  const owes = jobItem(job({ status: "completed", invoices: [{ status: "sent", paidAt: null, amountCents: 100 }] }));
   assert.equal(owes.open, true);
   assert.equal(owes.nextAction, "Waiting on Dana to pay");
   assert.equal(owes.waitingOn, "customer");
-  const draft = work.jobWorkItem(job({ status: "completed", invoices: [{ status: "draft", paidAt: null, amountCents: 100 }] }));
+  const draft = jobItem(job({ status: "completed", invoices: [{ status: "draft", paidAt: null, amountCents: 100 }] }));
   assert.equal(draft.nextAction, "Send the invoice");
   assert.equal(draft.needsYou, true);
-  assert.equal(work.jobWorkItem(job({ status: "completed", invoices: [{ status: "void", paidAt: null, amountCents: 1 }] })).open, false);
-  assert.equal(work.jobWorkItem(job({ status: "cancelled" })).open, false);
+  assert.equal(jobItem(job({ status: "completed", invoices: [{ status: "void", paidAt: null, amountCents: 1 }] })).open, false);
+  assert.equal(jobItem(job({ status: "cancelled" })).open, false);
 });
 
 test("urgent work sorts first, then work with a next step, then earlier stages", () => {
   const items = [
-    work.jobWorkItem(job({ id: "confirmed", status: "confirmed", technician: { id: "t", name: "R" } })),
-    work.jobWorkItem(job({ id: "scheduled" })),
+    jobItem(job({ id: "confirmed", status: "confirmed", technician: { id: "t", name: "R" } })),
+    jobItem(job({ id: "scheduled" })),
     work.requestWorkItem(lead({ id: "callback" })),
     work.requestWorkItem(lead({ id: "emergency", urgency: "emergency", createdAt: new Date(now.getTime() + 1000) })),
   ];
