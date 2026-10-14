@@ -489,7 +489,6 @@ body {
 .ov-public .mkt-footer a,
 .ov-public .mkt-footer-copy,
 .ov-public .mkt-footer-mark,
-.ov-public .mkt-footer-entity,
 .ov-public .mkt-footer-tagline {
   color: var(--ov-muted) !important;
   font-family: var(--ov-font) !important;
@@ -1258,10 +1257,6 @@ body {
 }
 
 /* Numbers, timestamps, and phone lines read as data, not prose. */
-
-.ov-public .mkt-footer-entity {
-  font-family: var(--ov-mono) !important;
-}
 
 .ov-public .tier1-plan-price {
   font-family: var(--ov-font) !important;

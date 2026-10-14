@@ -79,7 +79,7 @@
   font-size: 1.0625rem !important;
 }
 
-:root body .os-shell.os-shell-pro.os-shell-pro.os-shell-night .cmd .cmd-queue > .wc:first-child :is(.wc-detail, .wc-next) {
+:root body .os-shell.os-shell-pro.os-shell-pro.os-shell-night .cmd .cmd-queue > .wc:first-child :is(.wc-detail,  .wc-next) {
   font-size: 0.875rem !important;
 }
 

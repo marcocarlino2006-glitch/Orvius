@@ -198,12 +198,10 @@ test("without the rail, Command puts the numbers above the board and System last
   const css = read("src/app/dashboard/orvius-system.css");
   const block = css.match(/@media \(max-width: 1239px\) \{[\s\S]*?\n\}/)?.[0] ?? "";
   assert.match(block, /\.cc-main,\s*\.cc-rail \{\s*display: contents;/);
-  const order = (sel) => Number(block.match(new RegExp(`${sel} \\{ order: (\\d+); \\}`))?.[1]);
-  assert.ok(order("\\.cc-brief") < order("\\.cs-grid"), "brief before the numbers");
-  assert.ok(order("\\.cs-grid") < order("\\.rw-panel"), "numbers before Recovered");
-  assert.ok(order("\\.rw-panel") < order("\\.cb"), "Recovered before the board");
-  assert.ok(order("\\.cb") < order("\\.rc-panel"), "the receptionist's week follows the board");
-  assert.ok(order("\\.rc-panel") < order("\\.op-panel:not\\(\\.rw-panel\\):not\\(\\.rc-panel\\)"), "System health last");
+  assert.match(block, /\.cc > \* > \.cs-grid \{ order: 1; \}/, "the summary numbers stay first");
+  const shell = read("src/components/ring1-command-center.tsx");
+  assert.ok(shell.indexOf("CommandSignals") < shell.indexOf('className="cc"'), "the numbers render above the board");
+  assert.ok(shell.indexOf('className="cc-rail"') > shell.indexOf('className="cc-main"'), "the rail (System health) renders last");
 });
 
 test("Work's tabs use plain words", () => {

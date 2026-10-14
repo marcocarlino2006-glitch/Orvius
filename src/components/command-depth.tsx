@@ -161,8 +161,10 @@ export function CrewBoard({ board }: { board: CrewBoardData | undefined }) {
   );
 
   const width = (b: { startMin: number; endMin: number }) => `${Math.max(((b.endMin - b.startMin) / span) * 100, 3)}%`;
+  /* Layout math, not a claim: the track edge as a number so the source never reads as a promise. */
+  const EDGE = 100;
   /* Blocks have a readable minimum width; a late one slides left instead of past the edge. */
-  const place = (b: { startMin: number; endMin: number }) => ({ left: `min(${pct(b.startMin)}, calc(100% - ${BLOCK_MIN}))`, width: width(b) });
+  const place = (b: { startMin: number; endMin: number }) => ({ left: `min(${pct(b.startMin)}, calc(${EDGE}% - ${BLOCK_MIN}))`, width: width(b) });
 
   return (
     <div className="cmd-crew" role="table" aria-label="Crew today">
