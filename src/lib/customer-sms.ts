@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { isTextableNumber } from "@/lib/sms-destination";
 import { withSmsOptOutFooter } from "@/lib/sms-keywords";
 import { sendSms } from "@/lib/twilio-sms";
+import type { SmsIntentInput } from "@/lib/sms-intent";
 
 export type CustomerSmsResult =
   | { sent: true; sid: string }
@@ -31,6 +32,8 @@ export async function sendCustomerSms(params: {
   to: string;
   body: string;
   author?: "orvius" | "owner";
+  /** The operational event, for the intent ledger. */
+  intent?: SmsIntentInput;
 }): Promise<CustomerSmsResult> {
   const normalized = normalizePhone(params.to);
   if (!normalized) {
@@ -74,6 +77,7 @@ export async function sendCustomerSms(params: {
       businessId: params.businessId,
       audience: "customer",
       author: params.author,
+      intent: params.intent,
     });
   } catch (error) {
     await recordAudit({

@@ -7,6 +7,15 @@ import { prisma } from "@/lib/prisma";
 import { shopTextSender } from "@/lib/shop-texting";
 import { isSimulatedWorkspace, simulateSend } from "@/lib/sms-simulation";
 import { isTextableNumber } from "@/lib/sms-destination";
+import {
+  MAX_PRE_SUBMIT_ATTEMPTS,
+  claimIntent,
+  classifySendError,
+  finishIntent,
+  raiseIntentException,
+  recordIntentAttempt,
+  type SmsIntentInput,
+} from "@/lib/sms-intent";
 
 export type SmsAudience = "customer" | "owner" | "tech";
 
@@ -72,9 +81,7 @@ export async function recordOutboundSms(params: {
   }
 }
 
-/** Twilio refuses these for the recipient, whichever number sends. */
 const UNSUBSCRIBED_RECIPIENT = 21610;
-const RECIPIENT_REFUSED = new Set([UNSUBSCRIBED_RECIPIENT, 21211, 21408, 21612, 21614]);
 
 export function twilioErrorCode(error: unknown): number | null {
   const code = (error as { code?: unknown } | null)?.code;
@@ -139,6 +146,8 @@ export async function sendSms(params: {
   author?: Exclude<MessageAuthor, "customer">;
   /** The job a technician text is about. */
   jobId?: string;
+  /** The operational event this text is for; written to the intent ledger before the provider is called. */
+  intent?: SmsIntentInput;
 }): Promise<{ sid: string } | null> {
   const simulated = await isSimulatedWorkspace(params.businessId);
   /* A customer or tech hears from the shop's own number once carriers approve it;
@@ -164,6 +173,15 @@ export async function sendSms(params: {
     return null;
   }
 
+  const claim = params.intent && params.businessId
+    ? await claimIntent({ businessId: params.businessId, to, audience: params.audience, intent: params.intent })
+    : null;
+  if (claim && claim.kind !== "claimed") {
+    logInfo("sms.intent_not_resent", { businessId: params.businessId, intentId: claim.intent.id, kind: claim.kind, status: claim.intent.status });
+    return claim.kind === "already_sent" && claim.intent.providerSid ? { sid: claim.intent.providerSid } : null;
+  }
+  const intentId = claim?.intent.id ?? null;
+
   const create = (from: NonNullable<typeof sender>) =>
     getTwilioClient().messages.create({
       body: params.body.trim(),
@@ -171,32 +189,63 @@ export async function sendSms(params: {
       to,
       statusCallback: smsStatusCallback(),
     });
+  const label = (from: NonNullable<typeof sender>) =>
+    from === ownSender ? "own" : "messagingServiceSid" in from ? `service:${from.messagingServiceSid.slice(-6)}` : `number:${from.from.slice(-4)}`;
+  const close = async (status: string, error: unknown) => {
+    if (!intentId) return;
+    const done = await finishIntent(intentId, { status, error: error instanceof Error ? error.message : String(error) });
+    await raiseIntentException(done);
+  };
+
   let sms: { sid: string };
-  try {
-    if (simulated) {
-      sms = simulateSend(to);
-    } else if (ownSender) {
-      try {
-        sms = await create(ownSender);
-      } catch (error) {
-        // The person refused or can't take texts; another number would only route around them.
-        if (RECIPIENT_REFUSED.has(twilioErrorCode(error) ?? 0)) throw error;
-        logWarn("sms.own_sender_failed", {
-          businessId: params.businessId,
-          error: error instanceof Error ? error.message : "unknown",
-        });
-        const shared = smsSender();
-        if (!shared) throw error;
-        sms = await create(shared);
+  let current: NonNullable<typeof sender> | null = simulated ? null : sender;
+  let usedShared = !ownSender;
+  for (let attempt = 1; ; attempt++) {
+    try {
+      sms = simulated ? simulateSend(to) : await create(current!);
+      if (intentId) {
+        await recordIntentAttempt(intentId, { at: new Date().toISOString(), sender: simulated ? "simulated" : label(current!), outcome: "accepted", errorCode: null, status: null });
+        await finishIntent(intentId, { status: "submitted", sid: sms.sid, providerAccount: simulated ? "simulated" : label(current!) });
       }
-    } else {
-      sms = await create(sender!);
+      break;
+    } catch (error) {
+      const kind = classifySendError(error);
+      const errorCode = twilioErrorCode(error);
+      if (intentId) {
+        const status = (error as { status?: unknown })?.status;
+        await recordIntentAttempt(intentId, { at: new Date().toISOString(), sender: current ? label(current) : "simulated", outcome: kind, errorCode, status: typeof status === "number" ? status : null });
+      }
+      if (kind === "recipient_refused") {
+        // The person refused or can't take texts; another number would only route around them.
+        if (params.businessId && errorCode === UNSUBSCRIBED_RECIPIENT) {
+          await recordCarrierOptOut(params.businessId, to, params.audience);
+        }
+        await close("rejected", error);
+        throw error;
+      }
+      if (kind === "unknown_submission") {
+        // It may have been accepted: no retry and no other sender, or the person could get it twice.
+        logWarn("sms.submission_unknown", { businessId: params.businessId, audience: params.audience, intentId });
+        await close("unknown_submission", error);
+        throw error;
+      }
+      if (kind === "rejected") {
+        const shared = smsSender();
+        if (!usedShared && shared) {
+          logWarn("sms.own_sender_failed", { businessId: params.businessId, error: error instanceof Error ? error.message : "unknown" });
+          current = shared;
+          usedShared = true;
+          continue;
+        }
+        await close("rejected", error);
+        throw error;
+      }
+      if (attempt >= MAX_PRE_SUBMIT_ATTEMPTS) {
+        await close("retry_exhausted", error);
+        throw error;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 200 * attempt));
     }
-  } catch (error) {
-    if (params.businessId && twilioErrorCode(error) === UNSUBSCRIBED_RECIPIENT) {
-      await recordCarrierOptOut(params.businessId, to, params.audience);
-    }
-    throw error;
   }
 
   if (params.businessId) {

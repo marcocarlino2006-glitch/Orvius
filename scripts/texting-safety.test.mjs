@@ -241,8 +241,7 @@ test("an owner's text carries the shop name, and the opt-out line only on the fi
 
 test("recipient refusals never fall back to another sender, and a carrier STOP is written down", () => {
   const src = read("src/lib/twilio-sms.ts");
-  assert.match(src, /if \(RECIPIENT_REFUSED\.has\(twilioErrorCode\(error\) \?\? 0\)\) throw error;/);
-  assert.match(src, /twilioErrorCode\(error\) === UNSUBSCRIBED_RECIPIENT\) \{\n\s+await recordCarrierOptOut/);
+  assert.match(src, /if \(kind === "recipient_refused"\) \{[\s\S]*?errorCode === UNSUBSCRIBED_RECIPIENT\) \{\n\s+await recordCarrierOptOut[\s\S]*?throw error;/);
 });
 
 test("confirmation reminders wait for the shop's daytime, from the 30-minute sweep, for live shops only", async () => {

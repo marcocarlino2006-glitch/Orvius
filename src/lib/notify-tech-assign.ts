@@ -62,6 +62,11 @@ export async function notifyTechOnAssign(params: {
       businessId: job.businessId,
       audience: "tech",
       jobId: job.id,
+      intent: {
+        eventType: "job.tech_assigned",
+        eventId: `${job.id}:${nextTechnicianId}@${job.scheduledAt?.toISOString() ?? "unscheduled"}`,
+        severity: "severe",
+      },
     });
     if (!result) {
       return { sent: false, reason: "sms_unavailable", techToken };
@@ -94,6 +99,7 @@ export async function notifyTechOnReschedule(params: {
       businessId: params.businessId,
       audience: "tech",
       jobId: params.jobId,
+      intent: { eventType: "job.tech_rescheduled", eventId: `${params.jobId}@${params.when}`, severity: "severe" },
     });
     return Boolean(result);
   } catch (err) {

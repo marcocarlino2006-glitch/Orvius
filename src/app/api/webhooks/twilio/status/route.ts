@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { logInfo } from "@/lib/logger";
 import { applyMessageReceipt } from "@/lib/messages";
 import { applySmsDeliveryReceipt } from "@/lib/notification-queue";
+import { applyIntentReceipt } from "@/lib/sms-intent";
 import {
   getTwilioStatusWebhookUrl,
   validateTwilioRequest,
@@ -60,6 +61,7 @@ export async function POST(request: NextRequest) {
   });
   const confirmReceipt = await applyCustomerConfirmReceipt({ messageSid, messageStatus, errorCode });
   const threadReceipt = await applyMessageReceipt({ messageSid, messageStatus });
+  const intentReceipt = await applyIntentReceipt({ messageSid, messageStatus, errorCode });
   const depositReceipt = await applyDepositDeliveryReceipt({
     messageSid,
     messageStatus,
@@ -80,6 +82,8 @@ export async function POST(request: NextRequest) {
       depositReopened: depositReceipt.reopened,
       confirmAlerted: confirmReceipt.alerted,
       threadUpdated: threadReceipt,
+      intentMatched: intentReceipt.matched,
+      intentException: intentReceipt.exception,
     },
   });
 

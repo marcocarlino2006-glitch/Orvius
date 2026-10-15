@@ -1187,3 +1187,34 @@ CREATE TABLE IF NOT EXISTS "ShopOperatingPolicy" (
     "updatedAt" DATETIME NOT NULL,
     CONSTRAINT "ShopOperatingPolicy_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+
+-- SMS intent ledger: one row per operational text before the provider call. Additive.
+CREATE TABLE IF NOT EXISTS "SmsIntent" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "eventType" TEXT NOT NULL,
+    "eventId" TEXT NOT NULL,
+    "recipientNormalized" TEXT NOT NULL,
+    "channel" TEXT NOT NULL DEFAULT 'sms',
+    "messageVersion" INTEGER NOT NULL DEFAULT 1,
+    "priorIntentId" TEXT,
+    "authorizedBy" TEXT,
+    "audience" TEXT NOT NULL,
+    "severity" TEXT NOT NULL DEFAULT 'routine',
+    "status" TEXT NOT NULL DEFAULT 'pending',
+    "leaseUntil" DATETIME,
+    "attempts" INTEGER NOT NULL DEFAULT 0,
+    "attemptsJson" TEXT NOT NULL DEFAULT '[]',
+    "providerAccount" TEXT,
+    "providerSid" TEXT,
+    "receiptsJson" TEXT NOT NULL DEFAULT '[]',
+    "lastError" TEXT,
+    "exceptionRaisedAt" DATETIME,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "SmsIntent_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE INDEX IF NOT EXISTS "SmsIntent_providerSid_idx" ON "SmsIntent"("providerSid");
+CREATE INDEX IF NOT EXISTS "SmsIntent_businessId_status_idx" ON "SmsIntent"("businessId", "status");
+CREATE UNIQUE INDEX IF NOT EXISTS "SmsIntent_businessId_eventType_eventId_recipientNormalized_channel_messageVersion_key" ON "SmsIntent"("businessId", "eventType", "eventId", "recipientNormalized", "channel", "messageVersion");

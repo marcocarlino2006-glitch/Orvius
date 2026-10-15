@@ -3,6 +3,7 @@ import type { Business, Invoice } from "@prisma/client";
 import type Stripe from "stripe";
 
 import { recordAudit } from "@/lib/audit";
+import { normalizePhone } from "@/lib/customer";
 import { sendCustomerSms } from "@/lib/customer-sms";
 import { formatCentsExact } from "@/lib/money";
 import { logWarn } from "@/lib/logger";
@@ -17,6 +18,7 @@ import { prisma } from "@/lib/prisma";
 import { paidDepositCents, shopTaxBps } from "@/lib/invoice-tax";
 import { feeBaseCents, withSalesTax } from "@/lib/sales-tax";
 import { mintPublicToken } from "@/lib/public-tokens";
+import { nextIntentVersion } from "@/lib/sms-intent";
 import { withSmsOptOutFooter } from "@/lib/sms-keywords";
 import { getAppBaseUrl, getStripe } from "@/lib/stripe";
 import { getConnectStatus } from "@/lib/stripe-connect";
@@ -130,6 +132,8 @@ export async function sendInvoiceLink(params: {
   business: Pick<Business, "id" | "name">;
   invoice: Pick<Invoice, "id" | "amountCents" | "publicToken">;
   toPhone: string;
+  /** Who asked for this send; each send is its own version, linked to the one before. */
+  authorizedBy?: string;
 }) {
   if (!params.invoice.publicToken) {
     return { sent: false as const, reason: "no_token" as const };
@@ -144,6 +148,12 @@ export async function sendInvoiceLink(params: {
         `${formatCentsExact(balance)}. Pay securely here: ` +
         invoicePayUrl(params.invoice.publicToken),
     ),
+    intent: {
+      eventType: "invoice.pay_link",
+      eventId: params.invoice.id,
+      authorizedBy: params.authorizedBy ?? null,
+      ...(await nextIntentVersion({ businessId: params.business.id, eventType: "invoice.pay_link", eventId: params.invoice.id, to: normalizePhone(params.toPhone) ?? params.toPhone })),
+    },
   });
   if (result.sent) {
     await prisma.invoice.update({
@@ -356,7 +366,7 @@ export async function applyCardPaymentToInvoice(params: {
     if (await holdDemoPayment({ businessId, entityType: "invoice", entityId: invoice.id, sessionId: session.id, amountCents, held: "follow_ups" })) {
       return { ok: true, reason: "held_in_demo" };
     }
-    await textOwnerPaid({ businessId, jobId: invoice.jobId, amountCents }).catch(() => null);
+    await textOwnerPaid({ businessId, jobId: invoice.jobId, amountCents, sessionId: session.id }).catch(() => null);
     if (params.network && invoice.jobId) {
       await creditNetworkSender({ jobId: invoice.jobId, amountCents: workCents }).catch((error) =>
         logWarn("network.credit_failed", {
@@ -377,7 +387,7 @@ export async function applyCardPaymentToInvoice(params: {
 }
 
 /* Runs once per card payment: only the caller that won the session claim gets here. */
-async function textOwnerPaid(params: { businessId: string; jobId: string | null; amountCents: number }) {
+async function textOwnerPaid(params: { businessId: string; jobId: string | null; amountCents: number; sessionId: string }) {
   const business = await prisma.business.findUnique({
     where: { id: params.businessId },
     select: { ownerPhone: true },
@@ -394,6 +404,7 @@ async function textOwnerPaid(params: { businessId: string; jobId: string | null;
     to: business.ownerPhone,
     businessId: params.businessId,
     audience: "owner",
+    intent: { eventType: "invoice.paid_owner", eventId: params.sessionId },
     body: `Orvius: ${who} paid ${formatCentsExact(params.amountCents)}${job?.title ? ` for ${job.title}` : ""}. It's on its way to your bank.`,
   });
 }
@@ -464,7 +475,7 @@ export async function invoiceCompletedJob(
     return { invoiced: true as const, invoice, sms: null, reason: blocked };
   }
 
-  const sms = await sendInvoiceLink({ business: job.business, invoice, toPhone: phone });
+  const sms = await sendInvoiceLink({ business: job.business, invoice, toPhone: phone, authorizedBy: options.ownerAsked ? "owner:asked" : "system:autopilot" });
   if (sms.sent) {
     await recordAudit({
       businessId: job.businessId,

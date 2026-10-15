@@ -1,6 +1,8 @@
 import { randomBytes } from "node:crypto";
 import { recordAudit } from "@/lib/audit";
+import { normalizePhone } from "@/lib/customer";
 import { sendCustomerSms } from "@/lib/customer-sms";
+import { latestIntentId, nextIntentVersion } from "@/lib/sms-intent";
 import { formatShopTime } from "@/lib/availability";
 import { getAppBaseUrl } from "@/lib/domains";
 import { logInfo, logWarn } from "@/lib/logger";
@@ -136,10 +138,18 @@ export async function sendCustomerConfirmSms(
       .catch(() => undefined);
 
   try {
+    const eventId = `${jobId}@${job.scheduledAt?.toISOString() ?? "unscheduled"}`;
+    const key = { businessId: job.businessId, eventType: "job.confirm_request", eventId, to: normalizePhone(to) ?? to };
+    const intent = options.reminder
+      ? { eventType: "job.confirm_reminder", eventId, authorizedBy: "system:confirm_reminder_sweep", priorIntentId: await latestIntentId(key) }
+      : options.firstOnly
+        ? { eventType: "job.confirm_request", eventId, version: 1 }
+        : { eventType: "job.confirm_request", eventId, authorizedBy: "owner:resend", ...(await nextIntentVersion(key)) };
     const result = await sendCustomerSms({
       businessId: job.businessId,
       to,
       body,
+      intent,
     });
     if (!result.sent) {
       await release();

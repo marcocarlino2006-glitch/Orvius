@@ -254,6 +254,7 @@ export async function activatePlanMember(session: Stripe.Checkout.Session, now =
   await sendCustomerSms({
     businessId,
     to: member.phone,
+    intent: { eventType: "plan.joined", eventId: member.id },
     body: `You're on ${member.business.name}'s ${member.plan.name}. ${cycle ? "We'll text you when your next included visit is due." : "Thanks for joining."} Reply STOP to opt out.`,
   }).catch(() => null);
   return { ok: true as const };

@@ -45,7 +45,7 @@ export async function POST(request: Request, { params }: Params) {
     await prisma.job.update({ where: { id: job.id }, data: { finalAmountCents: body.totalCents } });
 
     const phone = job.lead?.phone ?? job.customer?.phone ?? null;
-    const sms = body.send && phone ? await sendInvoiceLink({ business, invoice, toPhone: phone }) : null;
+    const sms = body.send && phone ? await sendInvoiceLink({ business, invoice, toPhone: phone, authorizedBy: "owner:invoice_send" }) : null;
 
     await recordAudit({
       businessId: business.id,

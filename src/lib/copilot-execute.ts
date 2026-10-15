@@ -33,6 +33,7 @@ async function runProposal(
   action: string,
   params: ProposalParams,
   touch: () => void = () => {},
+  proposalId = "",
 ): Promise<RunOutcome> {
   if (action === "assign_tech") {
     if (!params.jobId || !params.technicianId) return { error: "Invalid assign params", status: 400 };
@@ -96,6 +97,7 @@ async function runProposal(
           businessId: business.id,
           to: lead.phone,
           body: `Hi${lead.name ? ` ${lead.name}` : ""} — this is ${business.name}. We received your service request and will follow up shortly. Reply STOP to opt out.`,
+          intent: { eventType: "copilot.sms_followup", eventId: proposalId || lead.id, authorizedBy: "command:approved" },
         });
       } catch (error) {
         // A thrown send (timeout, carrier error) may still have gone out.
@@ -368,9 +370,15 @@ export async function executeProposal(params: {
   let touched = false;
   let outcome: RunOutcome;
   try {
-    outcome = await runProposal(business, proposal.action, JSON.parse(proposal.paramsJson) as ProposalParams, () => {
-      touched = true;
-    });
+    outcome = await runProposal(
+      business,
+      proposal.action,
+      JSON.parse(proposal.paramsJson) as ProposalParams,
+      () => {
+        touched = true;
+      },
+      proposal.id,
+    );
   } catch (error) {
     if (!touched) {
       await prisma.copilotAction.update({

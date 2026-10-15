@@ -167,6 +167,7 @@ model Business {
   copilotActions   CopilotAction[]
   commandGrants    CommandGrant[]
   operatingPolicy  ShopOperatingPolicy?
+  smsIntents       SmsIntent[]
   ownerNotifications OwnerNotification[]
   pushSubscriptions  PushSubscription[]
   webhookEvents      WebhookEvent[]
@@ -1569,4 +1570,40 @@ model GalleryCall {
 
   @@index([status, createdAt])
   @@index([businessId])
+}
+
+/// One operational text the shop meant to send: written before the provider
+/// is called, so a send that may or may not have left is never blindly retried.
+/// A resend, a new ETA or a reminder is a new version linked to the one before.
+model SmsIntent {
+  id                  String    @id @default(cuid())
+  businessId          String
+  business            Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  eventType           String
+  eventId             String
+  recipientNormalized String
+  channel             String    @default("sms")
+  messageVersion      Int       @default(1)
+  priorIntentId       String?
+  /** Who asked for this version when it is a resend or a change. */
+  authorizedBy        String?
+  audience            String
+  /** routine | severe — severe ones raise one owner exception when delivery is uncertain. */
+  severity            String    @default("routine")
+  /** pending | leased | submitted | delivered | undelivered | rejected | retry_exhausted | unknown_submission */
+  status              String    @default("pending")
+  leaseUntil          DateTime?
+  attempts            Int       @default(0)
+  attemptsJson        String    @default("[]")
+  providerAccount     String?
+  providerSid         String?
+  receiptsJson        String    @default("[]")
+  lastError           String?
+  exceptionRaisedAt   DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@unique([businessId, eventType, eventId, recipientNormalized, channel, messageVersion])
+  @@index([providerSid])
+  @@index([businessId, status])
 }

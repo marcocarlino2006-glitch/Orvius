@@ -2,6 +2,7 @@ import type { Business, Deposit } from "@prisma/client";
 import { checkoutSessionPaid, holdDemoPayment, refundDuplicateCheckout, reserveCheckout, sessionPaymentIntentId } from "@/lib/checkout-guard";
 import type Stripe from "stripe";
 
+import { normalizePhone } from "@/lib/customer";
 import { sendCustomerSms } from "@/lib/customer-sms";
 import {
   STRIPE_MIN_CHARGE_CENTS,
@@ -11,6 +12,7 @@ import {
 import { assertLiveActionAllowed } from "@/lib/demo-fence";
 import { prisma } from "@/lib/prisma";
 import { mintPublicToken } from "@/lib/public-tokens";
+import { nextIntentVersion } from "@/lib/sms-intent";
 import { withSmsOptOutFooter } from "@/lib/sms-keywords";
 import { getAppBaseUrl, getStripe } from "@/lib/stripe";
 import { getConnectStatus } from "@/lib/stripe-connect";
@@ -192,6 +194,7 @@ export async function sendDepositLink(params: {
         `please pay your $${dollars} deposit here: ` +
         depositPayUrl(params.deposit.publicToken),
     ),
+    intent: { eventType: "deposit.pay_link", eventId: params.deposit.id, ...(await nextIntentVersion({ businessId: params.business.id, eventType: "deposit.pay_link", eventId: params.deposit.id, to: normalizePhone(params.toPhone) ?? params.toPhone })) },
   });
 
   if (result.sent) {

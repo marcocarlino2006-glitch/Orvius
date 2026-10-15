@@ -280,11 +280,17 @@ export async function techJobDetail(tech: TechSession, jobId: string) {
 }
 
 async function customerText(jobId: string, businessId: string, body: string, action: string, summary: string) {
-  const job = await prisma.job.findUnique({ where: { id: jobId }, select: { leadId: true, customerId: true, customer: { select: { phone: true } }, lead: { select: { phone: true } } } });
+  const job = await prisma.job.findUnique({ where: { id: jobId }, select: { leadId: true, customerId: true, onSiteAt: true, completedAt: true, customer: { select: { phone: true } }, lead: { select: { phone: true } } } });
   const to = job?.customer?.phone?.trim() || job?.lead?.phone?.trim();
   if (!job || !to) return { sent: false as const, reason: "no_customer_phone" };
   try {
-    const result = await sendCustomerSms({ businessId, to, body: withSmsOptOutFooter(body) });
+    const at = action === "customer.arrived_sent" ? job.onSiteAt : job.completedAt;
+    const result = await sendCustomerSms({
+      businessId,
+      to,
+      body: withSmsOptOutFooter(body),
+      intent: { eventType: action, eventId: `${jobId}@${at?.toISOString() ?? "undated"}` },
+    });
     if (result.sent) {
       await recordAudit({ businessId, entityType: "job", entityId: jobId, action, actor: "orvius", summary, jobId, leadId: job.leadId, customerId: job.customerId });
     }
@@ -422,7 +428,7 @@ export async function techCollect(tech: TechSession, jobId: string, method: unkn
   if (method === "text") {
     const phone = detail.job.customerPhone;
     if (!phone) throw new FieldError("There's no customer phone on this job.", 409);
-    const sms = await sendInvoiceLink({ business: tech.business, invoice, toPhone: phone });
+    const sms = await sendInvoiceLink({ business: tech.business, invoice, toPhone: phone, authorizedBy: `technician:${tech.id}` });
     if (!sms.sent) throw new FieldError("The text didn't go through. Open the pay page on your phone instead.", 502);
     await recordAudit({ businessId: tech.businessId, entityType: "job", entityId: job.id, jobId: job.id, action: "invoice.sent", actor: "technician", summary: `${tech.name} texted the ${formatCentsExact(invoice.amountCents)} pay link` });
   } else if (method === "cash" || method === "check") {
