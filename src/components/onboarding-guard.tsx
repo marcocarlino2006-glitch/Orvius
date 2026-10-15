@@ -11,6 +11,7 @@ type OnboardingStatus = {
     nextStep?: "line" | "owner_phone" | "capture" | "verify" | "done";
   } | null;
   testMode?: { step: string; tested: boolean } | null;
+  demoActive?: boolean;
 };
 
 const READY_KEY = "orvius:workspace-ready";
@@ -84,7 +85,7 @@ export function OnboardingGuard({ children }: { children: ReactNode }) {
           }
         }
 
-        if (json.ready && onOnboarding) {
+        if (json.ready && onOnboarding && !json.demoActive) {
           router.replace("/dashboard?live=1");
           return;
         }

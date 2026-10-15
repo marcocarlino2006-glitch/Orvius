@@ -1078,6 +1078,16 @@ a.dt-row:focus-visible,
   display: grid;
   gap: 0.25rem;
 }
+.cb-demo-bar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+.cb-demo-bar-trail {
+  grid-column: 1 / -1;
+  margin: 0;
+}
 .cb-demo-bar > .cb-demo {
   grid-column: 1 / -1;
   padding: 0;

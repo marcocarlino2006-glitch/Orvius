@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { toast } from "@/components/toaster";
 import type { RequestTrace } from "@/lib/request-trace";
@@ -363,9 +364,18 @@ export function DemoWorkspaceBar({ sampleFrom, onChange }: { sampleFrom: string 
             : "A sample week dated today: requests, a plan waiting for approval, today's crew, bills and payments. Texts are simulated and every number is fictional."}
         </p>
       </div>
-      <button type="button" className={`ox-btn ${stale ? "ox-btn--primary" : "ox-btn--quiet"} ox-btn--sm`} disabled={busy} onClick={() => void reset()}>
-        {busy ? "Resetting…" : "Reset to today"}
-      </button>
+      <div className="cb-demo-bar-actions">
+        <button type="button" className={`ox-btn ${stale ? "ox-btn--primary" : "ox-btn--quiet"} ox-btn--sm`} disabled={busy} onClick={() => void reset()}>
+          {busy ? "Resetting…" : "Reset to today"}
+        </button>
+        <Link href="/dashboard/onboarding" className="ox-btn ox-btn--quiet ox-btn--sm">
+          Set up your real business
+        </Link>
+      </div>
+      <p className="cb-muted cb-demo-bar-trail">
+        Open any job or call to see its history: who called, what Orvius decided and why, every text, and what you approved. Your real
+        business starts in test mode and answers nobody until you choose what Orvius may do and turn your line on.
+      </p>
       <DemoPanel onChange={onChange} />
     </section>
   );

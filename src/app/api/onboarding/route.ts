@@ -13,6 +13,7 @@ import { prisma } from "@/lib/prisma";
 import { canCreateShopForEmail } from "@/lib/self-serve-signup";
 import { getOwnerSetupStatus } from "@/lib/owner-setup-state";
 import { resolveShopAccess } from "@/lib/workspace-access";
+import { isOwnerDemoWorkspace } from "@/lib/demo-fence";
 import { isSetupSandbox, parseSetup } from "@/lib/setup-flow";
 import { z } from "zod";
 
@@ -35,6 +36,8 @@ export async function GET(request: NextRequest) {
   const sandbox = business ? isSetupSandbox(business) : false;
   // A demo shop has no line to set up; it opens straight onto Command.
   const ready = business?.environment === "demo" || (!sandbox && (setup?.ready ?? false));
+  // From the person's own demo, setup still opens: it builds their real shop, not this one.
+  const demoActive = isOwnerDemoWorkspace(business);
 
   // Setup asks on open so an owner who paid and left comes back to the form, not "Pay first".
   let checkoutSessionId: string | null = null;
@@ -47,6 +50,7 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({
     provisioned: Boolean(business) && !sandbox,
+    demoActive,
     complete: ready,
     ready,
     setup,
