@@ -5,7 +5,7 @@ import { linkTouchToCustomer, normalizePhone } from "@/lib/customer";
 import { isTextableNumber } from "@/lib/sms-destination";
 import { sendCustomerConfirmSms } from "@/lib/customer-confirm";
 import { recordMarketingOptIn } from "@/lib/marketing-consent";
-import { createJobFromLead, findOpenSlots } from "@/lib/job";
+import { createJobFromLead, findOpenSlots, SlotTakenError } from "@/lib/job";
 import { logWarn } from "@/lib/logger";
 import { buildLeadAlertDedupeKey, enqueueOwnerAlert } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
@@ -223,17 +223,17 @@ export async function bookOnline(shop: BookingShop, input: BookingInput): Promis
   if (input.marketingOptIn === true) {
     await recordMarketingOptIn({ businessId: shop.id, phone, source: "booking_page" });
   }
-  const job = await createJobFromLead({ leadId: lead.id, scheduledAt: at, actor: "system" });
-
   /*
-    Checking and then booking is a race between two visitors on the same time.
-    Re-check with this job left out: if the time no longer has room, someone
-    else landed first and this booking yields rather than double-book a person.
+    Two visitors on the last slot: the capacity check and the job write are one
+    transaction, so the loser is refused before any job exists — nothing is
+    created, confirmed or synced and then taken back. Their request stays as a
+    lead for the owner.
   */
-  const stillFits = await findOpenSlots({ ...slot, excludeJobId: job.id }, { count: 1, onlyAt: at });
-  if (!stillFits.length) {
-    await prisma.job.update({ where: { id: job.id }, data: { status: "cancelled" } });
-    await prisma.lead.update({ where: { id: lead.id }, data: { status: "new", closedAt: null } });
+  let job;
+  try {
+    job = await createJobFromLead({ leadId: lead.id, scheduledAt: at, actor: "system", enforceCapacity: true });
+  } catch (error) {
+    if (!(error instanceof SlotTakenError)) throw error;
     return { ok: false, reason: "slot_taken", message: "That time was just taken. Pick another." };
   }
 

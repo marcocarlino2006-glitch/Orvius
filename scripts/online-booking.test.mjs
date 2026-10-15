@@ -134,6 +134,17 @@ test("one person can't be booked twice for the same time", async () => {
     assert.ok(results.some((r) => !r.ok && r.reason === "slot_taken"));
     const live2 = await prisma.job.count({ where: { businessId: business.id, scheduledAt: new Date(first.at), status: "scheduled" } });
     assert.ok(live2 <= 1);
+    const race = await Promise.all(["Cy Ames", "Di Bell", "Ed Cruz", "Flo Dunn"].map((name) => bookOnline(live, { serviceType: "Cleaning", at: first.at, name, phone: randomPhone() })));
+    assert.ok(race.every((r) => !r.ok && r.reason === "slot_taken"), "a full slot refuses everyone after the winner");
+    assert.equal(
+      await prisma.job.count({ where: { businessId: business.id, scheduledAt: new Date(first.at) } }),
+      1,
+      "the losers never had a job, not even a cancelled one",
+    );
+    const winner = await prisma.job.findFirst({ where: { businessId: business.id, scheduledAt: new Date(first.at) } });
+    const confirms = await prisma.message.count({ where: { businessId: business.id, direction: "outbound", body: { contains: "booked" } } });
+    assert.ok(confirms <= 1, "only the winner is confirmed");
+    assert.ok(winner);
   } finally {
     await drop(business.id);
   }
