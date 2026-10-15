@@ -252,3 +252,56 @@ test("the migration refuses before it opens a connection", () => {
   const main = source.slice(source.indexOf("async function main()"));
   assert.ok(main.indexOf('target.action === "refuse"') < main.indexOf("createClient("));
 });
+
+test("the remote target comes only from the environment, never a local .env file", () => {
+  const source = readFileSync(join(repoRoot, "scripts/turso-migrate.mjs"), "utf8");
+  assert.doesNotMatch(source, /resolve\(root, "\.env"\)|\.env"/);
+});
+
+test("only reviewed plan files can be applied, and the checksum binds the chosen file", async () => {
+  const { migrationPlanFile, MIGRATION_PLAN_FILES } = await import("./turso-migrate.mjs");
+  assert.equal(migrationPlanFile({}), "prisma/turso-migrate.sql");
+  assert.equal(migrationPlanFile({ MIGRATION_PLAN_FILE: "prisma/prepared/receivables-v1.sql" }), "prisma/prepared/receivables-v1.sql");
+  assert.equal(migrationPlanFile({ MIGRATION_PLAN_FILE: "/tmp/anything.sql" }), null);
+  assert.equal(migrationPlanFile({ MIGRATION_PLAN_FILE: "prisma/turso-schema.sql" }), null);
+  for (const file of MIGRATION_PLAN_FILES) {
+    const sql = readFileSync(join(repoRoot, file), "utf8");
+    const reviewed = migrationPlanSha256(sql);
+    const prod = "libsql://orvius-prod.turso.io";
+    const env = { ...approved, MIGRATION_PLAN_SHA256: reviewed };
+    assert.equal(migrationAuthorization(prod, env, { ...context, planSha256: reviewed }).action, "migrate", file);
+    assert.equal(migrationAuthorization(prod, env, { ...context, planSha256: migrationPlanSha256(sql + "\n") }).action, "refuse", `${file}: one changed byte refuses`);
+  }
+});
+
+test("the receivables SQL, split by this step, builds the same guards on a disposable database and records the applied release", async () => {
+  const { applyMigrationPlan, MIGRATION_LEDGER_TABLE } = await import("./turso-migrate.mjs");
+  const { createClient } = await import("@libsql/client");
+  const { mkdtempSync, rmSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const dir = mkdtempSync(join(tmpdir(), "migrate-plan-"));
+  const client = createClient({ url: `file:${join(dir, "disposable.db")}` });
+  try {
+    await client.execute("PRAGMA foreign_keys = ON");
+    await client.executeMultiple(`CREATE TABLE "Business" ("id" TEXT PRIMARY KEY); CREATE TABLE "Job" ("id" TEXT PRIMARY KEY, "businessId" TEXT); INSERT INTO "Business" VALUES ('b'); INSERT INTO "Job" VALUES ('j','b');`);
+    const sql = readFileSync(join(repoRoot, "prisma/prepared/receivables-v1.sql"), "utf8");
+    const triggers = splitStatements(sql).filter((s) => /^CREATE TRIGGER/i.test(s));
+    assert.equal(triggers.length, 5);
+    for (const t of triggers) assert.match(t, /\bEND$/, "each trigger is one whole statement");
+    const tuple = { sql, planFile: "prisma/prepared/receivables-v1.sql", planSha256: migrationPlanSha256(sql), release: SHA, target: "staging", host: "disposable", approval: "TEST-1", backupRef: "none-disposable" };
+    await applyMigrationPlan(client, tuple);
+    await applyMigrationPlan(client, tuple);
+    const { rows: names } = await client.execute(`SELECT name FROM sqlite_master WHERE type='trigger' ORDER BY name`);
+    assert.equal(names.length, 5);
+    await client.execute(`INSERT INTO "JobReceivable" ("id","businessId","jobId","canonical") VALUES ('r1','b','j',1)`);
+    await assert.rejects(client.execute(`INSERT INTO "JobReceivable" ("id","businessId","jobId","canonical") VALUES ('r2','b','j',1)`), /UNIQUE/);
+    await client.execute(`INSERT INTO "ReceivableFact" ("id","businessId","receivableId","revision","kind","amountCents","occurredAt") VALUES ('f1','b','r1',1,'payment',100,'2026-10-15')`);
+    await assert.rejects(client.execute(`UPDATE "ReceivableFact" SET "amountCents"=1`), /append-only/);
+    const { rows } = await client.execute(`SELECT "releaseCommit","target","planFile","planSha256","approval","backupRef","status" FROM "${MIGRATION_LEDGER_TABLE}" ORDER BY "id"`);
+    assert.equal(rows.length, 2);
+    assert.deepEqual({ ...rows[0] }, { releaseCommit: SHA, target: "staging", planFile: tuple.planFile, planSha256: tuple.planSha256, approval: "TEST-1", backupRef: "none-disposable", status: "applied" });
+  } finally {
+    client.close();
+    rmSync(dir, { recursive: true, force: true });
+  }
+});

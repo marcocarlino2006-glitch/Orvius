@@ -1,9 +1,12 @@
 -- Canonical job receivables, version 1. PREPARED, NOT EXECUTED.
 -- Not part of turso-migrate.sql and not applied by any build or release step.
 -- Applying it needs the approved migration step (approval, exact release commit,
--- allow-listed target, reviewed checksum, backup). Trigger bodies contain
--- semicolons inside BEGIN ... END, so it is applied with executeMultiple, not
--- the statement splitter turso-migrate uses.
+-- allow-listed target, reviewed checksum, backup), run with
+-- MIGRATION_PLAN_FILE=prisma/prepared/receivables-v1.sql. Trigger bodies hold
+-- semicolons inside BEGIN ... END; the turso-migrate splitter keeps each
+-- CREATE TRIGGER whole, and scripts/turso-migrate.test.mjs proves the split
+-- statements build the same guarded tables on a disposable database. Do not
+-- run it through any other splitter.
 --
 -- Rules the database itself enforces:
 --   * at most one canonical receivable per shop and job; any number of

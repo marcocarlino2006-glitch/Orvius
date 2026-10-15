@@ -176,11 +176,12 @@ test("the paid voice authorization refuses anything the budget owner did not nam
     abortOwner: "owner@example.com",
     cleanup: "restore-assistant-and-delete-test-assistant",
     evidence: "redacted",
+    reconciliation: "budget owner compares the Vapi call log and bill with the results",
     expiresAt: "2026-10-16T00:00:00Z",
   };
   assert.equal(checkVoiceAuthorization(auth, ctx).ok, true);
   assert.deepEqual(checkVoiceAuthorization(null, ctx).problems, ["no authorization was given; paid voice tests are off"]);
-  for (const field of ["maxCalls", "maxMinutesPerCall", "budgetUsd", "abortOwner", "destinationAllowlist", "scenarioProfile", "cleanup", "evidence", "expiresAt", "approvedBy"]) {
+  for (const field of ["maxCalls", "maxMinutesPerCall", "budgetUsd", "abortOwner", "destinationAllowlist", "scenarioProfile", "cleanup", "evidence", "reconciliation", "expiresAt", "approvedBy"]) {
     const { [field]: _, ...missing } = auth;
     assert.equal(checkVoiceAuthorization(missing, ctx).ok, false, `${field} is required, never defaulted`);
   }
@@ -234,10 +235,14 @@ test("the release identity names the built commit and never invents one", async 
   assert.equal(unknown.environment, "production-unknown-host");
 });
 
-test("prod:verify needs the promoted release's full commit and compares it to what production serves", () => {
+test("prod:verify needs the promoted release's full commit and compares it to what production serves", async () => {
   const source = readFileSync(new URL("./prod-verify.mjs", import.meta.url), "utf8");
-  assert.match(source, /EXPECTED_COMMIT must name the full 40-character commit/);
-  assert.match(source, /json\?\.release\?\.commit/, "the comparison reads the serving deployment, not the local checkout");
+  assert.match(source, /releaseCheck\(json\?\.release, process\.env\.EXPECTED_COMMIT\)/, "the comparison reads the serving deployment, not the local checkout");
   assert.doesNotMatch(source, /git rev-parse/);
-  assert.match(source, /served !== expected/);
+  const { releaseCheck } = await import("./lib/release-check.mjs");
+  const sha = "a".repeat(40);
+  assert.match(releaseCheck({ commit: sha }, "").detail, /EXPECTED_COMMIT must name the full 40-character commit/);
+  assert.equal(releaseCheck({ commit: null }, sha).ok, false);
+  assert.equal(releaseCheck({ commit: "b".repeat(40) }, sha).ok, false);
+  assert.equal(releaseCheck({ commit: sha, environment: "production" }, sha.toUpperCase()).ok, true);
 });

@@ -64,7 +64,7 @@ The branch starts from `main` at `39b17d7`. On top of it are the 34 commits of `
 - Plan charges are their own non-canonical receivables.
 - A payment on a superseded revision's checkout is recorded (the money is real) and flagged `late_old_session`. Paying past the balance is flagged `overpaid`. Neither refunds anything by itself.
 - The backfill is a dry-run plan (`planReceivableBackfill`). It picks one canonical invoice per job by status, then recency, and lists conflicts for a person: money on two invoices, or a deposit larger than its bill. It resolves none of them.
-- Because trigger bodies contain semicolons, this file is applied with `executeMultiple` under the approved migration step, not through the `turso-migrate` statement splitter.
+- Trigger bodies contain semicolons. The file is applied by `scripts/turso-migrate.mjs` with `MIGRATION_PLAN_FILE=prisma/prepared/receivables-v1.sql`; its splitter keeps each `CREATE TRIGGER` whole, and `scripts/turso-migrate.test.mjs` proves the split statements build the same guards on a disposable database. (Superseded the earlier `executeMultiple` note.)
 
 **4. SMS intent ledger (`src/lib/sms-intent.ts`, `sendSms`)**
 - Before the provider call, each operational text claims a row keyed by shop, event type, event id, normalized recipient, channel and message version.
@@ -136,7 +136,7 @@ The branch starts from `main` at `39b17d7`. On top of it are the 34 commits of `
 
 | File | SHA-256 | Status |
 | --- | --- | --- |
-| `prisma/prepared/receivables-v1.sql` | `715e0c2b25a70b11f82fad2a3386fe570375d279af0f28b939830e31d352bfb0` | Prepared only. Tested on a throwaway libsql file created and deleted by `scripts/receivable-ledger.test.mjs`. |
+| `prisma/prepared/receivables-v1.sql` | `26979e36ee67697b5b4bf49ed6be1548c7347d2fbe263b5e53b9633327d8dd86` | Prepared only. Tested on a throwaway libsql file created and deleted by `scripts/receivable-ledger.test.mjs`. |
 | `prisma/turso-migrate.sql` (whole file after this pass) | `20f8abf8adb7a69972413c0905dcd434ace14ca1303961b7443b9144004202b7` | Additive blocks appended (below). Applied only by the approved release step, with this checksum named. |
 
 These additive blocks are appended to `turso-migrate.sql`, using only `CREATE TABLE IF NOT EXISTS`, `CREATE [UNIQUE] INDEX IF NOT EXISTS` and nullable `ALTER TABLE ... ADD COLUMN`:

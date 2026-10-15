@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getBearerToken, secretsMatch, verifyAdminRequest } from "@/lib/env";
 import { runLineWatchSweep } from "@/lib/line-watch-sweep";
 import { isUnauthenticatedAccessAllowed } from "@/lib/runtime";
+import { scheduledTargetRefusal } from "@/lib/scheduled-target";
 
 /*
   Driven every 30 minutes by .github/workflows/line-watch.yml, not Vercel
@@ -19,6 +20,8 @@ export async function GET(request: NextRequest) {
     if (!secretsMatch(getBearerToken(request), cronSecret) && !verifyAdminRequest(request)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const refusal = scheduledTargetRefusal(request.headers);
+    if (refusal) return NextResponse.json({ error: refusal }, { status: 409 });
   }
   return NextResponse.json({ ok: true, ...(await runLineWatchSweep("cron.line_watch")) });
 }

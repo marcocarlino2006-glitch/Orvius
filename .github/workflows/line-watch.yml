@@ -14,16 +14,17 @@ jobs:
     timeout-minutes: 5
     env:
       CRON_SECRET: ${{ secrets.CRON_SECRET }}
-      APP_URL: ${{ secrets.LINE_WATCH_URL || 'https://api.orvius.im' }}
+      # No default target: the sweep runs only on the deployment named here,
+      # listed in ops/drain-targets.json, serving the approved release.
+      DRAIN_TARGET_URL: ${{ vars.DRAIN_TARGET_URL }}
+      DRAIN_TARGET_ENV: ${{ vars.DRAIN_TARGET_ENV }}
+      DRAIN_EXPECTED_RELEASE: ${{ vars.APPROVED_RELEASE_COMMIT }}
     steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Watch lines
         run: |
-          # A skipped watch used to report success, so a missing secret stopped every
-          # scheduled job for weeks without anyone knowing. Missing is a failure.
-          if [ -z "$CRON_SECRET" ]; then
-            echo "::error::CRON_SECRET is not set in repo secrets. Set the same value in Vercel and here, then redeploy; until then line watch, call recovery, Jobber retries and follow-ups do not run."
-            exit 1
-          fi
-          body=$(curl -fsS --max-time 240 -H "Authorization: Bearer $CRON_SECRET" "$APP_URL/api/cron/line-watch")
+          body=$(node scripts/scheduled-drain.mjs line-watch 240)
           echo "$body"
           echo "$body" | grep -q '"unrecovered":0' || echo "::warning::Some calls could not be recovered — owners were alerted."

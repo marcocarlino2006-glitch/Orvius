@@ -21,6 +21,7 @@
 import { execFileSync } from "node:child_process";
 import { connect } from "node:tls";
 import { resolve4 } from "node:dns/promises";
+import { releaseCheck } from "./lib/release-check.mjs";
 
 const BASE = (process.env.PROD_URL ?? "https://orvius.im").replace(/\/$/, "");
 const ADMIN_KEY = process.env.ORVIUS_ADMIN_KEY?.trim() ?? "";
@@ -271,17 +272,9 @@ try {
     pass("/api/health", "readiness only, no counts");
   }
 
-  const served = json?.release?.commit ?? null;
-  const expected = process.env.EXPECTED_COMMIT?.trim().toLowerCase() || null;
-  if (!expected || !/^[0-9a-f]{40}$/.test(expected)) {
-    fail("Release", "EXPECTED_COMMIT must name the full 40-character commit of the promoted release; without it nothing says which build should be serving");
-  } else if (!served) {
-    fail("Release", "production does not name the commit it was built from");
-  } else if (served !== expected) {
-    fail("Release", `production serves ${served.slice(0, 12)}, expected ${expected.slice(0, 12)}`);
-  } else {
-    pass("Release", `${served.slice(0, 12)} (${json.release.environment}${json.release.deploymentId ? `, ${json.release.deploymentId}` : ""}) matches EXPECTED_COMMIT`);
-  }
+  const release = releaseCheck(json?.release, process.env.EXPECTED_COMMIT);
+  if (release.ok) pass("Release", release.detail);
+  else fail("Release", release.detail);
 
   if (json?.configured) {
     pass("Call credentials", `Twilio + Vapi live${json.twilioPhone ? ` on ${json.twilioPhone}` : ""}`);

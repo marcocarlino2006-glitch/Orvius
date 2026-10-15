@@ -43,6 +43,7 @@ export function checkVoiceAuthorization(auth, ctx) {
   need(typeof auth.abortOwner === "string" && auth.abortOwner.trim(), "abortOwner: who stops the run");
   need(auth.cleanup === "restore-assistant-and-delete-test-assistant", "cleanup: restore-assistant-and-delete-test-assistant");
   need(auth.evidence === "redacted", "evidence: redacted");
+  need(typeof auth.reconciliation === "string" && auth.reconciliation.trim(), "reconciliation: who compares the provider's call log and bill with the run's results afterwards");
   const expires = Date.parse(auth.expiresAt ?? "");
   need(Number.isFinite(expires) && expires > (ctx.now ?? Date.now()), "expiresAt: a future time");
   if (auth.transfer === true) {

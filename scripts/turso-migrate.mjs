@@ -20,18 +20,11 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, "..");
 
 /**
- * Prefer the injected environment, which is the only one that exists on
- * Vercel; fall back to the local .env file so running this by hand still works.
+ * Only the injected environment. A remote migration never falls back to a
+ * local .env file: the target has to be named on purpose for this run.
  */
 function loadDatabaseUrl() {
-  const fromEnv = process.env.DATABASE_URL?.trim();
-  if (fromEnv) return fromEnv;
-
-  const envPath = resolve(root, ".env");
-  if (!existsSync(envPath)) return null;
-  const raw = readFileSync(envPath, "utf8");
-  const match = raw.match(/^DATABASE_URL="?([^"\n]+)"?/m);
-  return match ? match[1] : null;
+  return process.env.DATABASE_URL?.trim() || null;
 }
 
 /**
@@ -112,6 +105,18 @@ export function splitStatements(sql) {
 }
 
 export const MIGRATION_FILE = "prisma/turso-migrate.sql";
+/**
+ * The only files this step may apply. The prepared receivables SQL carries
+ * CREATE TRIGGER bodies; splitStatements keeps each trigger whole, which
+ * scripts/turso-migrate.test.mjs proves against a disposable database.
+ */
+export const MIGRATION_PLAN_FILES = [MIGRATION_FILE, "prisma/prepared/receivables-v1.sql"];
+export const MIGRATION_LEDGER_TABLE = "_OrviusReleaseMigration";
+
+export function migrationPlanFile(env = process.env) {
+  const file = env.MIGRATION_PLAN_FILE?.trim() || MIGRATION_FILE;
+  return MIGRATION_PLAN_FILES.includes(file) ? file : null;
+}
 export const MIGRATION_ALLOWLIST_FILE = "ops/migration-targets.json";
 
 /** The checksum an approval binds to: the exact migration file this run would apply. */
@@ -179,9 +184,49 @@ function readAllowlist() {
   return JSON.parse(readFileSync(path, "utf8"));
 }
 
+/**
+ * Apply one reviewed plan and record which release, target, file and checksum
+ * it was, with the approval and backup it ran under. The row is written as
+ * "started" before the first statement and marked "applied" after the last, so
+ * an interrupted run is visible as started-but-not-applied.
+ */
+export async function applyMigrationPlan(client, { sql, planFile, planSha256, release, target, host, approval, backupRef, now = () => new Date() }) {
+  await client.execute(`CREATE TABLE IF NOT EXISTS "${MIGRATION_LEDGER_TABLE}" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "releaseCommit" TEXT NOT NULL,
+    "target" TEXT NOT NULL,
+    "host" TEXT NOT NULL,
+    "planFile" TEXT NOT NULL,
+    "planSha256" TEXT NOT NULL,
+    "approval" TEXT NOT NULL,
+    "backupRef" TEXT NOT NULL,
+    "status" TEXT NOT NULL,
+    "startedAt" TEXT NOT NULL,
+    "appliedAt" TEXT
+  )`);
+  const started = await client.execute({
+    sql: `INSERT INTO "${MIGRATION_LEDGER_TABLE}" ("releaseCommit","target","host","planFile","planSha256","approval","backupRef","status","startedAt") VALUES (?,?,?,?,?,?,?,'started',?)`,
+    args: [release, target, host, planFile, planSha256, approval, backupRef, now().toISOString()],
+  });
+  const rowId = Number(started.lastInsertRowid);
+  for (const statement of splitStatements(sql)) {
+    try {
+      await client.execute(statement);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      if (msg.includes("duplicate column") || msg.includes("already exists")) continue;
+      throw error;
+    }
+  }
+  await client.execute({ sql: `UPDATE "${MIGRATION_LEDGER_TABLE}" SET "status"='applied',"appliedAt"=? WHERE "id"=?`, args: [now().toISOString(), rowId] });
+  return rowId;
+}
+
 async function main() {
   const databaseUrl = loadDatabaseUrl();
-  const sql = readFileSync(resolve(root, MIGRATION_FILE), "utf8");
+  const planFile = migrationPlanFile();
+  if (!planFile) throw new Error(`turso-migrate refused: MIGRATION_PLAN_FILE must be one of ${MIGRATION_PLAN_FILES.join(", ")}`);
+  const sql = readFileSync(resolve(root, planFile), "utf8");
   const target = migrationAuthorization(databaseUrl, process.env, {
     headCommit: headCommit(),
     allowlist: readAllowlist(),
@@ -202,20 +247,18 @@ async function main() {
   parsed.searchParams.delete("authToken");
 
   const client = createClient({ url: parsed.toString(), authToken });
+  await applyMigrationPlan(client, {
+    sql,
+    planFile,
+    planSha256: migrationPlanSha256(sql),
+    release: process.env.MIGRATION_RELEASE_COMMIT.trim().toLowerCase(),
+    target: process.env.MIGRATION_TARGET.trim(),
+    host: target.host,
+    approval: process.env.MIGRATION_APPROVAL.trim(),
+    backupRef: process.env.MIGRATION_BACKUP_REF.trim(),
+  });
 
-  for (const statement of splitStatements(sql)) {
-    try {
-      await client.execute(statement);
-    } catch (error) {
-      const msg = error instanceof Error ? error.message : String(error);
-      if (msg.includes("duplicate column") || msg.includes("already exists")) {
-        continue;
-      }
-      throw error;
-    }
-  }
-
-  console.log("✅ Turso migrations applied");
+  console.log(`✅ ${planFile} applied and recorded in ${MIGRATION_LEDGER_TABLE}`);
 }
 
 /*
