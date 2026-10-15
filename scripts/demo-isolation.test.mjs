@@ -101,19 +101,20 @@ test("opens that overlap a reset all get the shop that exists afterwards", async
   const email = `overlap-${stamp()}@orvius.test`;
   const first = await ensureDemoWorkspace(email, { seed: true });
   cleanup.add(first.business.id);
-  const results = await Promise.all([
-    ensureDemoWorkspace(email, { seed: true }),
-    resetDemoWorkspace(email),
-    ensureDemoWorkspace(email, { seed: true }),
-    ensureDemoWorkspace(email, { seed: true }),
-  ]);
+  const reset = resetDemoWorkspace(email);
+  // Open while the reset holds the lease, which is when an unleased open used to read the shop being deleted.
+  for (let i = 0; i < 200; i++) {
+    const lease = await prisma.provisionAttempt.findUnique({ where: { key: `demo:${email}` } });
+    if (lease?.status === "running") break;
+    await new Promise((r) => setTimeout(r, 5));
+  }
+  const opens = await Promise.all([1, 2, 3].map(() => ensureDemoWorkspace(email, { seed: true })));
+  const results = [await reset, ...opens];
   for (const r of results) cleanup.add(r.business.id);
   const demos = await demosFor(email);
   assert.equal(demos.length, 1);
-  for (const r of results) {
-    assert.ok(await prisma.business.findUnique({ where: { id: r.business.id } }), "no open hands back a shop the reset deleted");
-  }
-  assert.equal(results[1].business.id, demos[0].id);
+  assert.notEqual(demos[0].id, first.business.id);
+  assert.ok(results.every((r) => r.business.id === demos[0].id), "every open overlapping the reset gets the fresh shop");
 });
 
 test("a duplicate demo left by an older race is folded into one; a real shop with a demo-like slug is never touched", async () => {
