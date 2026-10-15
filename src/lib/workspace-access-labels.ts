@@ -29,12 +29,14 @@ export type Permission =
   | "audit.view"
   | "reports.view"
   | "calls.publish"
-  | "customers.forget";
+  | "customers.forget"
+  | "command.approve";
 
 const GRANTS: Record<ShopRole, ReadonlySet<Permission>> = {
-  owner: new Set(["settings.edit", "team.manage", "data.export", "billing.manage", "workspace.delete", "ownership.transfer", "audit.view", "reports.view", "calls.publish", "customers.forget"]),
-  manager: new Set(["settings.edit", "team.manage", "data.export", "audit.view", "reports.view"]),
-  dispatcher: new Set(),
+  owner: new Set(["settings.edit", "team.manage", "data.export", "billing.manage", "workspace.delete", "ownership.transfer", "audit.view", "reports.view", "calls.publish", "customers.forget", "command.approve"]),
+  manager: new Set(["settings.edit", "team.manage", "data.export", "audit.view", "reports.view", "command.approve"]),
+  // Approving an AI plan does only what dispatchers already do by hand (assign, book, move, text a lead).
+  dispatcher: new Set(["command.approve"]),
 };
 
 export function can(role: ShopRole, permission: Permission): boolean {

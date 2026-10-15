@@ -1,4 +1,5 @@
 import { formatShopTime } from "@/lib/availability";
+import { needsCheck, STALE_EXECUTING_MS } from "@/lib/copilot-execute";
 import { prisma } from "@/lib/prisma";
 import { findDuplicateJobs } from "@/lib/workspace-hygiene";
 
@@ -37,6 +38,8 @@ export type BoardItem = {
   confirm?: "not_sent" | "sent" | "failed" | "confirmed";
   proposalId?: string;
   preview?: string;
+  /** An approval that ran but whose outcome Orvius can't vouch for; a person says whether it happened. */
+  needsCheck?: "unknown" | "done_unrecorded";
 };
 
 export type CommandBoard = {
@@ -152,7 +155,13 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
       },
     }),
     prisma.copilotAction.findMany({
-      where: { businessId, status: "proposed" },
+      where: {
+        businessId,
+        OR: [
+          { status: { in: ["proposed", "reconcile"] } },
+          { status: "executing", createdAt: { lt: new Date(now.getTime() - STALE_EXECUTING_MS) } },
+        ],
+      },
       orderBy: { createdAt: "desc" },
       take: 20,
     }),
@@ -430,19 +439,31 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
   exceptions.sort((a, b) => order[a.exception!] - order[b.exception!] || b.at.localeCompare(a.at));
   requests.sort((a, b) => Number(Boolean(b.urgent)) - Number(Boolean(a.urgent)) || b.at.localeCompare(a.at));
 
-  const approvals: BoardItem[] = proposals.map((p) => {
-    const params = JSON.parse(p.paramsJson) as { leadId?: string; jobId?: string };
-    return {
+  const approvals: BoardItem[] = proposals.flatMap((p) => {
+    if (p.status !== "proposed" && !needsCheck(p, now)) return [];
+    let params: { leadId?: string; jobId?: string } = {};
+    let result: { done?: boolean } | null = null;
+    try {
+      params = JSON.parse(p.paramsJson);
+      result = p.resultJson ? JSON.parse(p.resultJson) : null;
+    } catch {}
+    const check = p.status === "proposed" ? undefined : result?.done ? "done_unrecorded" : "unknown";
+    return [{
       id: `approval:${p.id}`,
-      lane: "approvals",
+      lane: "approvals" as const,
       title: p.preview.split("\n")[0] ?? p.preview,
-      detail: p.action.replace(/_/g, " "),
+      detail: check === "done_unrecorded"
+        ? "This went through but Orvius couldn't save the record. Confirm it so the history is right."
+        : check === "unknown"
+          ? "This stopped partway, so part of it may have happened. Check the job or request, then say whether it did."
+          : p.action.replace(/_/g, " "),
       preview: p.preview,
       at: p.createdAt.toISOString(),
       proposalId: p.id,
       leadId: params.leadId ?? null,
       jobId: params.jobId ?? null,
-    };
+      ...(check ? { needsCheck: check } : {}),
+    }];
   });
 
   return {

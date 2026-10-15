@@ -545,6 +545,7 @@ export async function listWork(
   for (const [id, list] of problems.byLead) add(keyForLead(id), list);
   const approvalByKey = new Map<string, string>();
   for (const a of problems.approvals) {
+    if (a.needsCheck) continue;
     const key = a.jobId ? `job:${a.jobId}` : a.leadId ? keyForLead(a.leadId) : null;
     if (key && a.proposalId && !approvalByKey.has(key)) approvalByKey.set(key, a.proposalId);
   }

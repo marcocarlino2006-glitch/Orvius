@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { executeProposal, type ProposalParams } from "@/lib/copilot-execute";
+import { executeProposal, needsCheck, resolveReconcile, STALE_EXECUTING_MS, type ProposalParams } from "@/lib/copilot-execute";
 import { COPILOT_ACTIONS, proposeAction } from "@/lib/copilot-propose";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
 import { personActor, recordAudit } from "@/lib/audit";
 import { sharedRateLimit, tooManyRequests } from "@/lib/rate-limit";
-import { requireEntitledSession } from "@/lib/tenant";
+import { requireEntitledSession, requirePermission } from "@/lib/tenant";
 import { z } from "zod";
 
 const proposeSchema = z.object({
@@ -25,6 +25,20 @@ const cancelSchema = z.object({
   proposalId: z.string().min(1),
 });
 
+const resolveSchema = z.object({
+  proposalId: z.string().min(1),
+  outcome: z.enum(["done", "not_done"]),
+});
+
+function parseResult(json: string | null) {
+  if (!json) return null;
+  try {
+    return JSON.parse(json) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
 /** List open approvals and the recent audit trail for Command. */
 export async function GET() {
   const authResult = await requireEntitledSession();
@@ -34,9 +48,21 @@ export async function GET() {
   const planGate = requirePlanModule(business, "ask");
   if ("error" in planGate) return planGate.error;
 
-  const [proposals, activity] = await Promise.all([
+  const now = new Date();
+  const [proposals, flagged, activity] = await Promise.all([
     prisma.copilotAction.findMany({
       where: { businessId: business.id, status: "proposed" },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    }),
+    prisma.copilotAction.findMany({
+      where: {
+        businessId: business.id,
+        OR: [
+          { status: "reconcile" },
+          { status: "executing", createdAt: { lt: new Date(now.getTime() - STALE_EXECUTING_MS) } },
+        ],
+      },
       orderBy: { createdAt: "desc" },
       take: 20,
     }),
@@ -56,7 +82,19 @@ export async function GET() {
       action: p.action,
       preview: p.preview,
       createdAt: p.createdAt.toISOString(),
+      lastAttemptFailed: parseResult(p.resultJson)?.failedBeforeEffect === true,
     })),
+    needsCheck: flagged.filter((item) => needsCheck(item, now)).map((item) => {
+      const result = parseResult(item.resultJson);
+      return {
+        id: item.id,
+        action: item.action,
+        preview: item.preview,
+        createdAt: item.createdAt.toISOString(),
+        state: result?.done === true ? "done_unrecorded" : "unknown",
+        error: typeof result?.error === "string" ? result.error : null,
+      };
+    }),
     activity: activity.map((item) => ({
       id: item.id,
       action: item.action,
@@ -82,7 +120,19 @@ export async function POST(request: Request) {
   const url = new URL(request.url);
   const mode = url.searchParams.get("mode") ?? "propose";
 
+  if (mode === "cancel" || mode === "execute" || mode === "resolve") {
+    const approver = await requirePermission("command.approve");
+    if ("error" in approver) return approver.error;
+  }
+
   try {
+    if (mode === "resolve") {
+      const body = resolveSchema.parse(await request.json());
+      const outcome = await resolveReconcile({ business, proposalId: body.proposalId, happened: body.outcome === "done", by: authResult });
+      if (!outcome.ok) return NextResponse.json({ error: outcome.error }, { status: outcome.status });
+      return NextResponse.json(outcome);
+    }
+
     if (mode === "cancel") {
       const body = cancelSchema.parse(await request.json());
       const proposal = await prisma.copilotAction.findFirst({

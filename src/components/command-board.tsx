@@ -19,7 +19,7 @@ export type PlanOutcome = { ok: boolean; text: string };
 async function post(url: string, body: unknown) {
   const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error ?? "That didn't go through — nothing changed");
+  if (!res.ok) throw new Error(data.error ?? "That didn't go through — nothing changed.");
   return data;
 }
 
@@ -45,7 +45,8 @@ export function PlanCard({
       else toast({ title: text });
       onDone();
     } catch (err) {
-      setError(`${err instanceof Error ? err.message : "That didn't go through — nothing changed"}. Nothing changed.`);
+      setError(err instanceof Error ? err.message : "That didn't go through — nothing changed.");
+      if (err instanceof Error && /flagged in Command/.test(err.message)) onDone();
     } finally {
       setBusy(false);
     }
@@ -62,6 +63,55 @@ export function PlanCard({
         <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => void act("cancel")}>
           Dismiss
         </button>
+      </div>
+    </div>
+  );
+}
+
+/** An approval that stopped partway or couldn't be recorded: a person says whether it happened. Never re-runs it. */
+export function CheckCard({
+  proposalId,
+  title,
+  detail,
+  done,
+  onDone,
+}: {
+  proposalId: string;
+  title: string;
+  detail: string;
+  done: boolean;
+  onDone: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  async function resolve(outcome: "done" | "not_done") {
+    setBusy(true);
+    setError(null);
+    try {
+      await post("/api/copilot?mode=resolve", { proposalId, outcome });
+      toast({ title: outcome === "done" ? "Marked as done." : "Back in approvals. Approve it again when you're ready." });
+      onDone();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "That didn't save.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <div className="cb-plan">
+      <p className="cb-plan-kicker">{done ? "Went through, not recorded" : "Check this: it stopped partway"}</p>
+      <p className="cb-plan-text">{title}</p>
+      <p className="cb-plan-text">{detail}</p>
+      {error ? <p className="cb-error" role="alert">{error}</p> : null}
+      <div className="cb-actions">
+        <button type="button" className="ox-btn ox-btn--primary ox-btn--sm" disabled={busy} onClick={() => void resolve("done")}>
+          {done ? "Confirm it happened" : "It happened"}
+        </button>
+        {done ? null : (
+          <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => void resolve("not_done")}>
+            It didn&apos;t happen
+          </button>
+        )}
       </div>
     </div>
   );

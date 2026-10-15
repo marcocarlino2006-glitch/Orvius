@@ -5,7 +5,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { CommandSignals } from "@/components/command-signals";
 import { CrewBoard, FlowStrip, MoneyLine } from "@/components/command-depth";
 import { ActivationChecklist } from "@/components/activation-checklist";
-import { AskBar, DemoWorkspaceBar, PlanCard, TryDemo } from "@/components/command-board";
+import { AskBar, CheckCard, DemoWorkspaceBar, PlanCard, TryDemo } from "@/components/command-board";
 import { OrviusPulse } from "@/components/orvius-pulse";
 import { SupportContact } from "@/components/support-contact";
 import { TestAlertButton } from "@/components/test-alert-button";
@@ -277,9 +277,13 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
                 {looseApprovals.map((a) => (
                   <li key={a.id} className="wc wc--approval">
                     <p className="wc-tags">
-                      <span className="wc-tag wc-tag--you">Orvius wants your OK</span>
+                      <span className="wc-tag wc-tag--you">{a.needsCheck ? "Needs a check" : "Orvius wants your OK"}</span>
                     </p>
-                    <PlanCard proposal={{ proposalId: a.proposalId!, preview: a.preview ?? a.title }} onDone={() => void refresh()} />
+                    {a.needsCheck ? (
+                      <CheckCard proposalId={a.proposalId!} title={a.title} detail={a.detail} done={a.needsCheck === "done_unrecorded"} onDone={() => void refresh()} />
+                    ) : (
+                      <PlanCard proposal={{ proposalId: a.proposalId!, preview: a.preview ?? a.title }} onDone={() => void refresh()} />
+                    )}
                   </li>
                 ))}
                 {shown.map((item) => (
