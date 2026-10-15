@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { SIGNUP_HREF } from "@/lib/signup-href";
-import { isHipaaTrade, TRADES } from "@/lib/trades";
+import { isHipaaTrade, isLaunchTrade, TRADES } from "@/lib/trades";
 
 const TRADE_CHOICES = TRADES.filter((t) => !isHipaaTrade(t));
 type Capture = { name?: string; phone?: string; serviceType?: string; urgency?: string; address?: string };
@@ -316,6 +316,11 @@ export function TalkInBrowser({
                   </option>
                 ))}
               </select>
+              {isLaunchTrade(trade) ? null : (
+                <p className="tib-note font-sans">
+                  Demo only: {trade} shops can&apos;t sign up yet. <a href="/trades">Join the interest list</a>.
+                </p>
+              )}
               <input
                 className="tib-input font-sans"
                 value={city}

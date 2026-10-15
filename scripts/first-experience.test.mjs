@@ -41,6 +41,9 @@ test("alerts are on only once the carrier confirms delivery", () => {
   const failed = byId(activationChecklist({ ...base, latestAlert: { channel: "sms", status: "sent", deliveryStatus: "undelivered", at: new Date() } }));
   assert.equal(failed.alerts.state, "todo");
   assert.match(failed.alerts.detail, /didn't arrive/);
+  const emailed = byId(activationChecklist({ ...base, ownerEmail: "o@example.test", latestAlert: { channel: "email", status: "sent", deliveryStatus: null, at: new Date() } }));
+  assert.doesNotMatch(emailed.alerts.detail, /delivered/i, "an accepted email is not a delivery receipt");
+  assert.match(emailed.alerts.detail, /accepted/);
   const stopped = byId(activationChecklist({ ...base, ownerSmsOptOutAt: new Date() }));
   assert.equal(stopped.alerts.state, "off");
   assert.match(stopped.alerts.detail, /START/);

@@ -17,8 +17,8 @@ export default function DemoPage() {
           <ShellPageIntro
             label="Live demo · no account"
             title="Watch Orvius run the shop."
-            subline="Six real calls. One click each."
-            description="Every call goes through the real pipeline: playbook, schedule check, booking, confirmation, owner alerts and an audit trail you can read."
+            subline="Six scripted calls. One click each."
+            description="The callers and their words are written for this demo, and the details are filled in for you. From there each call runs the same pipeline a real one does: playbook, schedule check, booking, confirmation, owner alerts and an audit trail you can read. Texts are simulated."
           />
           <div style={{ marginTop: "2rem" }}>
             <PublicDemo scenarios={publicScenarios()} />

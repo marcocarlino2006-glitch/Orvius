@@ -142,3 +142,18 @@ test("the jobs list reads the job's own bill, not just the estimate's", () => {
   const queue = read("src/lib/attention-queue.ts");
   assert.match(queue, /Confirm payment/);
 });
+
+test("preview and the scripted demo say what they are and keep to the launch trades", () => {
+  const preview = read("src/app/api/preview/route.ts");
+  assert.match(preview, /!isLaunchTrade\(body\.trade\)[\s\S]{0,80}NOT_YET_TRADE/);
+  const browser = read("src/components/talk-in-browser.tsx");
+  assert.match(browser, /isLaunchTrade\(trade\) \? null[\s\S]{0,120}can&apos;t sign up yet/);
+  const watch = read("src/app/watch/page.tsx");
+  assert.doesNotMatch(watch, /real calls/i);
+  assert.match(watch, /scripted/);
+});
+
+test("the terms name every launch trade", async () => {
+  const { company } = await import("../src/lib/company.ts");
+  assert.deepEqual(company.trades.map((t) => t.toLowerCase()), LAUNCH_TRADES.map((t) => t.toLowerCase()));
+});

@@ -42,7 +42,10 @@ export function activationChecklist(input: {
   payments?: ConnectState | null;
 }): ActivationItem[] {
   const alert = input.latestAlert;
-  const alertReached = alert && (alert.deliveryStatus === "delivered" || (alert.status === "sent" && alert.channel === "email"));
+  const alertDelivered = alert && alert.deliveryStatus === "delivered";
+  /* An email provider accepting a message is not a delivery receipt. */
+  const alertEmailed = alert && alert.status === "sent" && alert.channel === "email";
+  const alertReached = alertDelivered || alertEmailed;
   const alertSent = alert && alert.status === "sent";
   const alertFailed = alert && (alert.status === "failed" || alert.deliveryStatus === "failed" || alert.deliveryStatus === "undelivered");
   const where = input.ownerPhone ? `your mobile ${lastFour(input.ownerPhone)}` : input.ownerEmail ? "your email" : null;
@@ -63,7 +66,14 @@ export function activationChecklist(input: {
           action: { kind: "link", label: "Add your mobile", href: "/dashboard?settings=notifications" },
         }
       : alertReached
-        ? { id: "alerts", label: "Alerts to you", state: "live", detail: `Confirmed delivered to ${where}.` }
+        ? {
+            id: "alerts",
+            label: "Alerts to you",
+            state: "live",
+            detail: alertDelivered
+              ? `Confirmed delivered to ${where}.`
+              : `Emailed ${input.ownerEmail ?? "you"}: the mail service accepted it, which isn't proof it arrived. Check your inbox and spam folder.`,
+          }
         : alertFailed
           ? {
               id: "alerts",

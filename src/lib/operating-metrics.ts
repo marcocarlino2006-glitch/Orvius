@@ -136,7 +136,7 @@ export async function getOperatingMetrics(businessId: string, windowDays = 30): 
       "high",
       "Jobs Orvius booked that the owner did not reschedule or reassign.",
     ),
-    rate("notify", "Owner alerts delivered", alertsSent, alertsSent + alertsFailed, "high", "SMS and email alerts accepted by the carrier."),
+    rate("notify", "Owner alerts accepted", alertsSent, alertsSent + alertsFailed, "high", "SMS and email alerts accepted by the carrier."),
     rate("duplicates", "Duplicate jobs", duplicates, jobs.length, "low", "Same customer and service opened twice within a day."),
     rate("escalation", "Sent to a human", escalated + held, callLeads, "low", "Safety escalations plus leads held for missing details or capacity."),
     rate("actions", "Ask actions completed", executed, executed + declined, "high", "Approved Ask actions against those declined."),

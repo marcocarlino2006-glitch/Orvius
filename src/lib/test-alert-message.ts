@@ -1,6 +1,6 @@
 import type { NotifyOwnerResult } from "@/lib/notification-queue";
 
-/** What the owner is told after a test alert: which channels actually delivered, and what to fix. */
+/** What the owner is told after a test alert: which channels the providers accepted, and what to fix. */
 export function describeTestAlert(
   result: NotifyOwnerResult,
   to: { phone: string | null; email: string | null },
