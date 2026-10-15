@@ -24,6 +24,25 @@ const OUTCOME_LABELS = new Map<string, string>(
   JOB_OUTCOMES.map((outcome) => [outcome.code, outcome.label]),
 );
 
+const OUTCOME_WORDS: [RegExp, JobOutcomeCode][] = [
+  [/^(repaired|fixed|repair)$/, "repaired"],
+  [/^(replaced|replaced part|part|new part)$/, "replaced_part"],
+  [/^(installed|install|new unit)$/, "installed"],
+  [/^(maintenance|tune ?up|service)$/, "maintenance"],
+  [/^(diagnosed|diagnostic|diag)$/, "diagnostic_only"],
+  [/^(return|return visit|coming back)$/, "return_visit"],
+  [/^(declined|customer declined)$/, "customer_declined"],
+  [/^(no access|locked out)$/, "no_access"],
+  [/^(referred|referral)$/, "referred"],
+  [/^(no fault|no fault found|nothing wrong)$/, "no_fault_found"],
+];
+
+/** The outcome an owner typed in a text ("DONE 450 FIXED"), or null when it isn't one of ours. */
+export function outcomeFromWords(words: string): JobOutcomeCode | null {
+  const w = words.trim().toLowerCase().replace(/\s+/g, " ");
+  return OUTCOME_WORDS.find(([re]) => re.test(w))?.[1] ?? null;
+}
+
 export function isJobOutcomeCode(value: unknown): value is JobOutcomeCode {
   return typeof value === "string" && OUTCOME_LABELS.has(value);
 }

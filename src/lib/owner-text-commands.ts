@@ -4,7 +4,9 @@ import { safeTimezone, shopDayBounds, zonedWallToUtc } from "@/lib/availability"
 import { normalizePhone } from "@/lib/customer";
 import { sendCustomerSms } from "@/lib/customer-sms";
 import { isDepositAmountValid, MAX_DEPOSIT_CENTS } from "@/lib/booking-deposit";
-import { createJobFromLead, ownerScheduleClash, updateJobStatus } from "@/lib/job";
+import { JobTransitionError, createJobFromLead, ownerScheduleClash } from "@/lib/job";
+import { transitionJob } from "@/lib/job-transition";
+import { outcomeFromWords, type JobOutcomeCode } from "@/lib/job-outcome";
 import { authorizeScheduleOverride, scheduleOverrideRecord } from "@/lib/scheduling-policy";
 import { classifyRequest } from "@/lib/trade-playbooks";
 import { invoiceCompletedJob } from "@/lib/invoice-pay";
@@ -35,7 +37,7 @@ export type OwnerCommand =
   | { kind: "today" }
   | { kind: "pass" }
   | { kind: "take" }
-  | { kind: "done"; amountCents: number | null }
+  | { kind: "done"; amountCents: number | null; noCharge?: true; outcome?: JobOutcomeCode }
   | { kind: "deposit"; on: boolean; amountCents: number | null }
   | { kind: "menu" };
 
@@ -49,7 +51,7 @@ export const OWNER_MENU = [
   "SPAM — not a job",
   "PASS — can't take it: offer it to a nearby Orvius shop",
   "TAKE — claim a job the Orvius Network offered you",
-  "DONE 450 — job finished: text them the $450 bill",
+  "DONE 450 FIXED — job finished: text them the $450 bill",
   "DEPOSIT 75 / DEPOSIT OFF — deposit asked at booking",
   "TODAY — today's jobs",
 ].join("\n");
@@ -76,11 +78,15 @@ export function parseOwnerCommand(raw: string): OwnerCommand | null {
   if (/^(pass|pass it|refer|refer it|can'?t take it|cant take it)$/.test(lower)) return { kind: "pass" };
   if (/^(take|take it|i'?ll take it|mine)$/.test(lower)) return { kind: "take" };
 
-  const done = lower.match(/^(?:done|all done|job done|finished|complete|completed)(?:\s+(?:for\s+|at\s+)?(\$?[\d,]+(?:\.\d{1,2})?))?$/);
+  const done = lower.match(/^(?:done|all done|job done|finished|complete|completed)(?:\s+(?:for\s+|at\s+)?(\$?[\d,]+(?:\.\d{1,2})?|no charge|free))?(?:\s+(.+))?$/);
   if (done) {
-    if (!done[1]) return { kind: "done", amountCents: null };
+    const outcome = done[2] ? outcomeFromWords(done[2]) : null;
+    if (done[2] && !outcome) return null;
+    const extra = outcome ? { outcome } : {};
+    if (!done[1]) return { kind: "done", amountCents: null, ...extra };
+    if (done[1] === "no charge" || done[1] === "free") return { kind: "done", amountCents: null, noCharge: true, ...extra };
     const amountCents = parseDollarsToCents(done[1]);
-    return amountCents ? { kind: "done", amountCents } : null;
+    return amountCents ? { kind: "done", amountCents, ...extra } : null;
   }
 
   const deposit = lower.match(/^deposits?\s+(off|stop|no|none|on|yes|\$?[\d,]+(?:\.\d{1,2})?)$/);
@@ -320,7 +326,7 @@ export async function handleOwnerText(params: {
   }
 
   if (command.kind === "deposit") return await setDepositByText(shop, command);
-  if (command.kind === "done") return await finishJobByText(shop, command.amountCents, now);
+  if (command.kind === "done") return await finishJobByText(shop, command, now);
 
   const lead = await targetLead(shop.id, now);
   if (!lead) {
@@ -604,24 +610,54 @@ async function jobToFinish(businessId: string, amountCents: number | null, now: 
   });
 }
 
-async function finishJobByText(shop: Shop, amountCents: number | null, now: Date): Promise<string> {
+async function finishJobByText(
+  shop: Shop,
+  command: { amountCents: number | null; noCharge?: true; outcome?: JobOutcomeCode },
+  now: Date,
+): Promise<string> {
+  const { amountCents } = command;
   const job = await jobToFinish(shop.id, amountCents, now);
   if (!job) return "No open job to finish right now. Reply TODAY to see the board.";
   const who = job.customer?.name?.trim() || job.lead?.name?.trim() || job.lead?.phone || "the customer";
 
   try {
-    if (job.status !== "completed") await updateJobStatus(job.id, "completed");
-    if (amountCents) await prisma.job.update({ where: { id: job.id }, data: { finalAmountCents: amountCents } });
-    await recordAudit({
-      businessId: shop.id,
-      entityType: "job",
-      entityId: job.id,
-      jobId: job.id,
-      actor: "owner",
-      action: "job.status_changed",
-      summary: `Owner marked the job done by text${amountCents ? ` at ${formatCentsTidy(amountCents)}` : ""}.`,
-      detail: { from: job.status, to: "completed", finalAmountCents: amountCents, via: "owner_sms" },
-    });
+    if (job.status !== "completed") {
+      if (!command.outcome || (amountCents == null && !command.noCharge)) {
+        return `To mark ${who}'s job done, say the total and what happened: DONE 450 FIXED, or DONE NO CHARGE DIAGNOSED. Reply DONE 450 with the total once it's done to text them the bill.`;
+      }
+      try {
+        await transitionJob({
+          businessId: shop.id,
+          jobId: job.id,
+          to: "completed",
+          actor: { kind: "owner" },
+          via: "owner_sms",
+          reason: job.status === "on_site" ? null : "Owner reported it done by text",
+          completion: {
+            path: job.status === "on_site" ? "field" : "correction",
+            evidenceSource: "owner_report",
+            resolutionCode: command.outcome,
+            finalAmountCents: amountCents,
+            noCharge: command.noCharge === true,
+          },
+        });
+      } catch (error) {
+        if (error instanceof JobTransitionError) return `${error.message} Nothing changed for ${who}.`;
+        throw error;
+      }
+    } else if (amountCents) {
+      await prisma.job.update({ where: { id: job.id }, data: { finalAmountCents: amountCents } });
+      await recordAudit({
+        businessId: shop.id,
+        entityType: "job",
+        entityId: job.id,
+        jobId: job.id,
+        actor: "owner",
+        action: "job.amount_set",
+        summary: `Owner set the total to ${formatCentsTidy(amountCents)} by text.`,
+        detail: { finalAmountCents: amountCents, via: "owner_sms" },
+      });
+    }
 
     const billed = await invoiceCompletedJob(job.id, { ownerAsked: true });
     if (!billed.invoiced) return `Marked ${who}'s job done. Reply DONE 450 with the total to text them the bill.`;

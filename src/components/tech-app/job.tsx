@@ -864,7 +864,17 @@ export function TechJob({ token, jobId }: { token: string; jobId: string }) {
       setError("The amount must be between $0 and $50,000.");
       return;
     }
-    void update({ status: "completed", resolutionCode: outcome, resolutionSummary: summary, finalAmountCents: hasLines || dollars == null ? null : Math.round(dollars * 100) });
+    if (!hasLines && dollars == null) {
+      setError("Enter what you charged, or 0 for no charge.");
+      return;
+    }
+    void update({
+      status: "completed",
+      resolutionCode: outcome,
+      resolutionSummary: summary,
+      finalAmountCents: hasLines || dollars == null ? null : Math.round(dollars * 100),
+      noCharge: !hasLines && dollars === 0,
+    });
   }
 
   return (
@@ -1026,7 +1036,7 @@ export function TechJob({ token, jobId }: { token: string; jobId: string }) {
           {!hasLines ? (
             <>
               <label className="ta-label" htmlFor="ta-amount">
-                Final amount <em>Optional — or add the work above</em>
+                Final amount <em>Or add the work above · 0 for no charge</em>
               </label>
               <input id="ta-amount" className="ta-input" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="$0.00" />
             </>

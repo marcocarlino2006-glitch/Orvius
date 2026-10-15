@@ -109,7 +109,7 @@ test("the tech's Heading there carries the ETA into the text, and the page follo
   assert.match(page, /const LIVE = new Set\(\["scheduled", "confirmed", "en_route"\]\)/);
   assert.match(page, /is on the way/);
   const route = read("src/app/api/public/tech/[token]/route.ts");
-  assert.ok(route.indexOf("body.etaText !== undefined") < route.indexOf("updateJobStatus(job.id"), "the ETA is saved before the status texts");
+  assert.ok(route.indexOf("body.etaText !== undefined") < route.indexOf("transitionJob({ businessId: job.businessId, jobId: job.id, to: body.status"), "the ETA is saved before the status texts");
 });
 
 test.after(() => prisma.$disconnect());

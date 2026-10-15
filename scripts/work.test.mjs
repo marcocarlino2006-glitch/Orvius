@@ -474,7 +474,8 @@ test("status moves are the server's rule: skip ahead and reopen freely, never ca
     jobRoute.PATCH(new Request(`http://localhost/api/jobs/${job.id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }), { params: Promise.resolve({ id: job.id }) });
 
   assert.equal((await patch({ status: "on_site" })).status, 200, "booked straight to on site");
-  assert.equal((await patch({ status: "completed" })).status, 200);
+  assert.equal((await patch({ status: "completed" })).status, 422, "done needs what happened");
+  assert.equal((await patch({ status: "completed", completion: { resolutionCode: "repaired", noCharge: true } })).status, 200);
   await prisma.invoice.create({ data: { businessId: shop.id, jobId: job.id, amountCents: 18_000, status: "paid", paidAt: new Date(), publicToken: `tok-${uid()}` } });
   const cancelPaid = await patch({ status: "cancelled" });
   assert.equal(cancelPaid.status, 409);
@@ -488,7 +489,7 @@ test("status moves are the server's rule: skip ahead and reopen freely, never ca
 
   const other = await prisma.job.create({ data: { businessId: shop.id, title: "Faucet", status: "cancelled" } });
   const finishCancelled = await jobRoute.PATCH(
-    new Request(`http://localhost/api/jobs/${other.id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "completed" }) }),
+    new Request(`http://localhost/api/jobs/${other.id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "completed", completion: { resolutionCode: "repaired", noCharge: true } }) }),
     { params: Promise.resolve({ id: other.id }) },
   );
   assert.equal(finishCancelled.status, 409);

@@ -150,7 +150,7 @@ test("DONE 450 finishes the job, takes off a paid deposit, and texts the bill", 
     data: { businessId: shop.id, leadId: lead.id, jobId: job.id, amountCents: 50_00, status: "paid", publicToken: `tok-${stamp()}` },
   });
 
-  const reply = await handleOwnerText({ shop: shopRef(shop), body: "done 450", now: NOW });
+  const reply = await handleOwnerText({ shop: shopRef(shop), body: "done 450 fixed", now: NOW });
   assert.equal(reply, "Done: Maria Lopez. Texted them the $400 bill with a pay link. You'll get a text when it's paid.");
   const finished = await prisma.job.findUnique({ where: { id: job.id } });
   assert.equal(finished.status, "completed");
@@ -170,12 +170,12 @@ test("DONE without a total asks for one; without card payments it says what's mi
   const noCards = await makeShop();
   await bookedJob(noCards);
   assert.match(
-    await handleOwnerText({ shop: shopRef(noCards), body: "done 300", now: NOW }),
+    await handleOwnerText({ shop: shopRef(noCards), body: "done 300 fixed", now: NOW }),
     /\(\$300\)\. Card payments aren't set up yet/,
   );
 
   const empty = await makeShop(connected(stamp()));
-  assert.match(await handleOwnerText({ shop: shopRef(empty), body: "done 300", now: NOW }), /No open job to finish/);
+  assert.match(await handleOwnerText({ shop: shopRef(empty), body: "done 300 fixed", now: NOW }), /No open job to finish/);
 });
 
 test("DEPOSIT changes the deposit by text, inside the safe range", async () => {

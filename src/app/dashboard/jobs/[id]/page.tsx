@@ -1,5 +1,6 @@
 "use client";
 
+import { askCompletion } from "@/components/completion-prompt";
 import { JobBillSection, type JobBill } from "@/components/job-bill-section";
 import { RecordFetchError, recordFailureFrom } from "@/lib/dashboard-fetch";
 import { RecordLoadFailure } from "@/components/record-load-failure";
@@ -165,6 +166,14 @@ export default function JobDetailPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  async function advance(status: string) {
+    if (status !== "completed") return patch({ status });
+    const asked = askCompletion({ fromOnSite: job?.status === "on_site" });
+    if (!asked) return;
+    if ("error" in asked) return setError(asked.error);
+    return patch({ status, completion: asked.completion, ...(asked.reason ? { reason: asked.reason } : {}) });
+  }
 
   async function patch(body: Record<string, unknown>) {
     if (!jobId) return;
@@ -520,7 +529,7 @@ export default function JobDetailPage() {
                     <button
                       type="button"
                       disabled={saving}
-                      onClick={() => void patch({ status: next.status })}
+                      onClick={() => void advance(next.status)}
                       className={`ox-btn ox-btn--primary${saving ? " is-instant-pending" : ""}`}
                     >
                       {saving ? "Moving…" : next.label}
@@ -552,7 +561,7 @@ export default function JobDetailPage() {
                 Assign a technician
               </button>
             ) : next ? (
-              <button type="button" className="job-detail-sticky-btn job-detail-sticky-btn-primary" disabled={saving} onClick={() => void patch({ status: next.status })}>
+              <button type="button" className="job-detail-sticky-btn job-detail-sticky-btn-primary" disabled={saving} onClick={() => void advance(next.status)}>
                 {saving ? "Moving…" : next.label}
               </button>
             ) : pastDue ? (

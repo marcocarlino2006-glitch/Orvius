@@ -18,7 +18,8 @@ for (const key of ["TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_PHONE_NUMB
 const { ingestEndOfCallReport } = await import("../src/lib/call-ingest.ts");
 const { classifyRequest } = await import("../src/lib/trade-playbooks.ts");
 const { ensureCustomerConfirmToken, confirmJobByCustomerToken } = await import("../src/lib/customer-confirm.ts");
-const { updateJobStatus, completeJobWithOutcome } = await import("../src/lib/job.ts");
+const { updateJobStatus } = await import("../src/lib/job.ts");
+const { transitionJob } = await import("../src/lib/job-transition.ts");
 const { invoiceCompletedJob, fulfillInvoiceCheckoutSession } = await import("../src/lib/invoice-pay.ts");
 const { jobSteps, textDelivery } = await import("../src/lib/job-lifecycle.ts");
 
@@ -100,7 +101,14 @@ for (const trade of Object.keys(TRADES)) {
 
     await confirmJobByCustomerToken(await ensureCustomerConfirmToken(job.id));
     for (const status of ["en_route", "on_site"]) await updateJobStatus(job.id, status, { notifyCustomer: false });
-    await completeJobWithOutcome(job.id, { resolutionCode: "repaired", finalAmountCents: 38_500 });
+    await transitionJob({
+      businessId: job.businessId,
+      jobId: job.id,
+      to: "completed",
+      actor: { kind: "technician" },
+      via: "tech_app",
+      completion: { resolutionCode: "repaired", finalAmountCents: 38_500 },
+    });
 
     const billed = await invoiceCompletedJob(job.id);
     assert.equal(billed.invoiced, true);

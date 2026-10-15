@@ -26,11 +26,6 @@ import { adjacentJobs, authorizeScheduleOverride, gapClashWords, getSchedulingPo
 import { prisma } from "@/lib/prisma";
 import { isAfterHours, parseJson, type BusinessHours } from "@/lib/business";
 import { jobTitle } from "@/lib/job-schedule";
-import {
-  isJobOutcomeCode,
-  parseFinalAmountCents,
-  type JobOutcomeCode,
-} from "@/lib/job-outcome";
 import { isDatabaseBusy } from "@/lib/webhook-events";
 import { jobTransitionProblem, type JobStatus } from "@/lib/job-status";
 
@@ -1171,14 +1166,24 @@ async function autoAssignTechnician(params: {
 
 /** `at` is when it happened in the field; a late "on the way" (an offline phone catching up) is recorded without texting. */
 export class JobTransitionError extends Error {
-  constructor(message: string) {
+  readonly status: 403 | 404 | 409 | 422;
+  constructor(message: string, status: 403 | 404 | 409 | 422 = 409) {
     super(message);
+    this.status = status;
     this.name = "JobTransitionError";
   }
 }
 
+/**
+ * The field steps only (confirmed, on the way, on site, cancelled). Completion
+ * and reopening go through `transitionJob`, which checks evidence and authority.
+ */
 export async function updateJobStatus(jobId: string, status: JobStatus, options: { at?: Date; notifyCustomer?: boolean } = {}) {
+  if (status === "completed") throw new JobTransitionError("A job is marked done through transitionJob, with what happened.");
   const current = await prisma.job.findUnique({ where: { id: jobId }, select: { status: true } });
+  if (current && current.status !== status && (current.status === "completed" || current.status === "cancelled")) {
+    throw new JobTransitionError("Reopen it first.");
+  }
   if (current && current.status !== status) {
     const paidInvoice = status === "cancelled" && (await prisma.invoice.count({ where: { jobId, status: { in: ["paid", "partial"] } } })) > 0;
     const problem = jobTransitionProblem(current.status, status, { paidInvoice });
@@ -1189,14 +1194,12 @@ export async function updateJobStatus(jobId: string, status: JobStatus, options:
     confirmedAt?: Date;
     dispatchedAt?: Date;
     onSiteAt?: Date;
-    completedAt?: Date;
   } = { status };
 
   const at = options.at ?? new Date();
   if (status === "confirmed") data.confirmedAt = at;
   if (status === "en_route") data.dispatchedAt = at;
   if (status === "on_site") data.onSiteAt = at;
-  if (status === "completed") data.completedAt = at;
 
   if (status !== "en_route") {
     return prisma.job.update({
@@ -1222,34 +1225,3 @@ export async function updateJobStatus(jobId: string, status: JobStatus, options:
   return prisma.job.findUniqueOrThrow({ where: { id: jobId } });
 }
 
-export async function completeJobWithOutcome(
-  jobId: string,
-  outcome: {
-    resolutionCode: JobOutcomeCode;
-    resolutionSummary?: string | null;
-    finalAmountCents?: number | null;
-  },
-) {
-  if (!isJobOutcomeCode(outcome.resolutionCode)) {
-    throw new Error("Choose what happened before completing the job");
-  }
-  const finalAmountCents = parseFinalAmountCents(outcome.finalAmountCents);
-  if (
-    outcome.finalAmountCents != null &&
-    finalAmountCents == null
-  ) {
-    throw new Error("Final amount must be between $0 and $50,000");
-  }
-  const now = new Date();
-  return prisma.job.update({
-    where: { id: jobId },
-    data: {
-      status: "completed",
-      completedAt: now,
-      resolutionCode: outcome.resolutionCode,
-      resolutionSummary: outcome.resolutionSummary?.trim().slice(0, 500) || null,
-      finalAmountCents,
-      outcomeCapturedAt: now,
-    },
-  });
-}

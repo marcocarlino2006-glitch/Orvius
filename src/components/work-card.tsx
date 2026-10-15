@@ -1,5 +1,6 @@
 "use client";
 
+import { askCompletion } from "@/components/completion-prompt";
 import Link from "next/link";
 import { useState } from "react";
 import { PlanCard, type Proposal } from "@/components/command-board";
@@ -103,6 +104,13 @@ export function WorkCard({
       toast({ title: done });
       onChange();
     });
+
+  const markDone = () => {
+    const asked = askCompletion({ fromOnSite: item.stage === "on_site" });
+    if (!asked) return;
+    if ("error" in asked) return setError(asked.error);
+    void setJob({ status: "completed", completion: asked.completion, ...(asked.reason ? { reason: asked.reason } : {}) }, "Marked done");
+  };
 
   const closeJob = () => {
     const reason = window.prompt("Why close this job? This goes in the history.", "The visit time passed and it never happened")?.trim();
@@ -289,7 +297,7 @@ export function WorkCard({
             </button>
           ) : null}
           {isJob && late ? (
-            <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => void setJob({ status: "completed" }, "Marked done")}>
+            <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={markDone}>
               Mark done
             </button>
           ) : null}

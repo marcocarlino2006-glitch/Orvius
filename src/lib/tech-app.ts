@@ -5,7 +5,8 @@ import { firstName } from "@/lib/customer-confirm";
 import { sendCustomerSms } from "@/lib/customer-sms";
 import { techLinkExpired } from "@/lib/ensure-tech-token";
 import { balanceDueForJob, invoiceCompletedJob, invoicePayUrl, sendInvoiceLink, upsertJobInvoice } from "@/lib/invoice-pay";
-import { completeJobWithOutcome, updateJobStatus } from "@/lib/job";
+import { JobTransitionError } from "@/lib/job";
+import { transitionJob } from "@/lib/job-transition";
 import { FieldError, jobField, priceBook } from "@/lib/job-field";
 import { isJobOutcomeCode } from "@/lib/job-outcome";
 import { logWarn } from "@/lib/logger";
@@ -313,7 +314,7 @@ export function fieldTime(happenedAt: unknown, now = new Date()) {
 export async function techUpdateJob(
   tech: TechSession,
   jobId: string,
-  body: { status?: unknown; accept?: unknown; decline?: unknown; reason?: unknown; etaText?: unknown; resolutionCode?: unknown; resolutionSummary?: unknown; finalAmountCents?: unknown; happenedAt?: unknown },
+  body: { status?: unknown; accept?: unknown; decline?: unknown; reason?: unknown; etaText?: unknown; resolutionCode?: unknown; resolutionSummary?: unknown; finalAmountCents?: unknown; noCharge?: unknown; happenedAt?: unknown },
   now = new Date(),
 ) {
   const job = await techJob(tech, jobId);
@@ -348,13 +349,26 @@ export async function techUpdateJob(
     }
   } else if (status === "completed") {
     if (!isJobOutcomeCode(body.resolutionCode)) throw new FieldError("Choose what happened before finishing the job.");
-    const lines = await prisma.jobLineItem.count({ where: { jobId: job.id } });
-    const typed = typeof body.finalAmountCents === "number" ? body.finalAmountCents : null;
-    await completeJobWithOutcome(job.id, {
-      resolutionCode: body.resolutionCode,
-      resolutionSummary: typeof body.resolutionSummary === "string" ? body.resolutionSummary : null,
-      finalAmountCents: lines ? job.finalAmountCents : typed,
-    });
+    try {
+      await transitionJob({
+        businessId: tech.businessId,
+        jobId: job.id,
+        to: "completed",
+        actor: { kind: "technician" },
+        via: "tech_app",
+        at,
+        completion: {
+          path: "field",
+          resolutionCode: body.resolutionCode,
+          resolutionSummary: typeof body.resolutionSummary === "string" ? body.resolutionSummary : null,
+          finalAmountCents: typeof body.finalAmountCents === "number" ? body.finalAmountCents : null,
+          noCharge: body.noCharge === true,
+        },
+      });
+    } catch (error) {
+      if (error instanceof JobTransitionError) throw new FieldError(error.message, error.status);
+      throw error;
+    }
     await recordAudit({ businessId: tech.businessId, entityType: "job", entityId: job.id, jobId: job.id, action: "job.status", ...actor, summary: `${tech.name} finished the job${lateNote}` });
     const billed = await invoiceCompletedJob(job.id).catch((error) => {
       logWarn("invoice.on_complete_failed", { jobId: job.id, error: error instanceof Error ? error.message : String(error) });
@@ -372,7 +386,9 @@ export async function techUpdateJob(
       );
     }
   } else if (status) {
-    await updateJobStatus(job.id, "en_route", { at, notifyCustomer: !late });
+    await transitionJob({ businessId: tech.businessId, jobId: job.id, to: "en_route", actor: { kind: "technician" }, via: "tech_app", at, notifyCustomer: !late }).catch((error) => {
+      throw error instanceof JobTransitionError ? new FieldError(error.message, error.status) : error;
+    });
     await acceptJob({ job: { id: job.id, businessId: tech.businessId, technicianId: tech.id }, technician: tech, at });
     await recordAudit({
       businessId: tech.businessId,

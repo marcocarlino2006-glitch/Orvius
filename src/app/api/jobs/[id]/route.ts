@@ -6,8 +6,9 @@ import { getConnectStatus } from "@/lib/stripe-connect";
 import { personActor, recordAudit } from "@/lib/audit";
 import { DEFAULT_JOB_DURATION_MIN, shopWallInputToUtc } from "@/lib/availability";
 import { textDelivery } from "@/lib/job-lifecycle";
+import { transitionJob, type CompletionEvidence } from "@/lib/job-transition";
 import { authorizeScheduleOverride, scheduleOverrideRecord, type OverrideAuthority } from "@/lib/scheduling-policy";
-import { JOB_INCLUDE, JobTransitionError, isJobStatus, jobStatusLabel, ownerScheduleClash, serializeJob, updateJobStatus } from "@/lib/job";
+import { JOB_INCLUDE, JobTransitionError, isJobStatus, ownerScheduleClash, serializeJob } from "@/lib/job";
 import { classifyRequest } from "@/lib/trade-playbooks";
 import { logWarn } from "@/lib/logger";
 import { notifyTechOnAssign } from "@/lib/notify-tech-assign";
@@ -125,6 +126,8 @@ export async function PATCH(request: Request, { params }: Params) {
     reason?: string | null;
     /** The person saw the clash and chose this time or tech anyway. */
     allowClash?: boolean;
+    /** What happened, when marking it done. */
+    completion?: CompletionEvidence;
   };
   const reason = typeof body.reason === "string" ? body.reason.trim().slice(0, 300) || null : null;
   const because = reason ? ` Reason: ${reason}` : "";
@@ -199,9 +202,18 @@ export async function PATCH(request: Request, { params }: Params) {
 
   if (body.status && isJobStatus(body.status)) {
     try {
-      await updateJobStatus(id, body.status);
+      await transitionJob({
+        businessId: business.id,
+        jobId: id,
+        to: body.status,
+        actor: { kind: authResult.role, email: authResult.email },
+        via: "dashboard",
+        completion: body.completion ?? null,
+        reason,
+        allowClash: body.allowClash === true,
+      });
     } catch (error) {
-      if (error instanceof JobTransitionError) return NextResponse.json({ error: error.message }, { status: 409 });
+      if (error instanceof JobTransitionError) return NextResponse.json({ error: error.message }, { status: error.status });
       throw error;
     }
   }
@@ -253,14 +265,6 @@ export async function PATCH(request: Request, { params }: Params) {
     leadId: existing.leadId,
     customerId: existing.customerId,
   };
-  if (body.status && body.status !== existing.status) {
-    await recordAudit({
-      ...auditBase,
-      action: "job.status_changed",
-      summary: `Moved the job from ${jobStatusLabel(existing.status)} to ${jobStatusLabel(body.status)}.${because}`,
-      detail: { from: existing.status, to: body.status, reason },
-    });
-  }
   if (clash && override) {
     await recordAudit({
       ...auditBase,

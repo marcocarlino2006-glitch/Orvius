@@ -165,11 +165,16 @@ export function TechFieldClient({ token }: { token: string }) {
       setError("Final amount must be between $0 and $50,000.");
       return;
     }
+    if (dollars == null) {
+      setError("Enter what you charged, or 0 for no charge.");
+      return;
+    }
     void patch({
       status: "completed",
       resolutionCode,
       resolutionSummary,
-      finalAmountCents: dollars == null ? null : Math.round(dollars * 100),
+      finalAmountCents: Math.round(dollars * 100),
+      noCharge: dollars === 0,
     });
   }
 
