@@ -40,7 +40,31 @@ export type ReadinessInput = {
 export const FRESH_EVIDENCE_DAYS = 7;
 const DAY = 86_400_000;
 
+/** Clock skew a timestamp may run ahead of now before it is treated as bad evidence. */
+const SKEW_MS = 5 * 60_000;
+
 const time = (iso: string | null | undefined) => (iso ? new Date(iso).getTime() : 0);
+
+/** A timestamp from the future or one that doesn't parse proves nothing about the past or the present. */
+function evidence(iso: string | null | undefined, now: number): string | null {
+  if (!iso) return null;
+  const t = new Date(iso).getTime();
+  return Number.isFinite(t) && t <= now + SKEW_MS ? iso : null;
+}
+
+function credible(input: ReadinessInput, now: number): ReadinessInput {
+  return {
+    ...input,
+    lineVerifiedAt: evidence(input.lineVerifiedAt, now),
+    lastCallAt: evidence(input.lastCallAt, now),
+    forwardConfirmedAt: evidence(input.forwardConfirmedAt, now),
+    forwardProvenAt: evidence(input.forwardProvenAt, now),
+    lastForwardTest: input.lastForwardTest && evidence(input.lastForwardTest.at, now) ? input.lastForwardTest : null,
+    lastAlertAt: evidence(input.lastAlertAt, now),
+    // A failure is never discarded: an unreadable failure time still counts as the latest thing that happened.
+    lastFailedAlertAt: input.lastFailedAlertAt ? (evidence(input.lastFailedAlertAt, now) ?? new Date(now).toISOString()) : null,
+  };
+}
 const fresh = (iso: string | null | undefined, now: number) => Boolean(iso) && now - time(iso) <= FRESH_EVIDENCE_DAYS * DAY;
 const day = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 
@@ -57,7 +81,8 @@ function tone(row: Pick<ReadinessRow, "configured" | "verified" | "healthy">): R
   return "ok";
 }
 
-export function lineReadiness(input: ReadinessInput, now = Date.now()): ReadinessRow {
+export function lineReadiness(raw: ReadinessInput, now = Date.now()): ReadinessRow {
+  const input = credible(raw, now);
   const configured: ReadinessMark = input.line
     ? { ok: true, text: "Orvius number assigned" }
     : { ok: false, text: "No Orvius number yet" };
@@ -88,7 +113,8 @@ export function lineReadiness(input: ReadinessInput, now = Date.now()): Readines
   };
 }
 
-export function forwardingReadiness(input: ReadinessInput, now = Date.now()): ReadinessRow {
+export function forwardingReadiness(raw: ReadinessInput, now = Date.now()): ReadinessRow {
+  const input = credible(raw, now);
   const test = input.lastForwardTest ?? null;
   const testFailed = Boolean(test && test.state !== "reached" && test.state !== "calling");
   const failedSinceProof = testFailed && time(test!.at) > time(input.forwardProvenAt);
@@ -125,7 +151,8 @@ export function forwardingReadiness(input: ReadinessInput, now = Date.now()): Re
   };
 }
 
-export function alertReadiness(input: ReadinessInput, now = Date.now()): ReadinessRow {
+export function alertReadiness(raw: ReadinessInput, now = Date.now()): ReadinessRow {
+  const input = credible(raw, now);
   const lastFailure = input.lastFailedAlertAt ?? null;
   const failedSinceSuccess = Boolean(lastFailure) && time(lastFailure) > time(input.lastAlertAt);
 

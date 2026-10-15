@@ -107,3 +107,31 @@ test("Command renders all three states per row, and no bare 'Delivering' or 'Ans
   assert.match(health, /lastFailedAlertAt:/);
   assert.match(health, /forwardConfirmedAt:/);
 });
+
+test("future-dated or unreadable evidence never makes anything read ready now", () => {
+  const ahead = (days) => new Date(NOW + days * 86_400_000).toISOString();
+  const future = { ...base, lineVerifiedAt: ahead(3), lastCallAt: ahead(2), forwardProvenAt: ahead(1), lastAlertAt: ahead(1) };
+  const [line, forwarding, alerts] = shopReadiness(future, NOW);
+  assert.notEqual(line.healthy.ok, true);
+  assert.equal(line.verified.ok, false, "a test call dated next week did not happen");
+  assert.notEqual(line.tone, "ok");
+  assert.notEqual(forwarding.healthy.ok, true);
+  assert.equal(forwarding.verified.ok, false);
+  assert.notEqual(alerts.healthy.ok, true);
+  assert.notEqual(alerts.summary, "Alerts are reaching you");
+
+  const garbled = shopReadiness({ ...base, lastCallAt: "not a date", lastAlertAt: "soon" }, NOW);
+  assert.notEqual(garbled[0].healthy.ok, true);
+  assert.notEqual(garbled[2].healthy.ok, true);
+
+  const futureSuccessHidesFailure = alertReadiness({ ...base, lastAlertAt: ahead(1), lastFailedAlertAt: ago(0.5) }, NOW);
+  assert.equal(futureSuccessHidesFailure.healthy.ok, false, "a future-dated success cannot paper over a real failure");
+
+  const stale = shopReadiness({ ...base, lastCallAt: ago(30), lastAlertAt: ago(30) }, NOW);
+  assert.equal(stale[0].healthy.ok, null);
+  assert.equal(stale[2].healthy.ok, null);
+  assert.equal(stale[0].verified.ok, true, "history stays history: the test call still happened");
+
+  const skew = lineReadiness({ ...base, lastCallAt: new Date(NOW + 60_000).toISOString() }, NOW);
+  assert.equal(skew.healthy.ok, true, "a minute of clock skew is not a fabrication");
+});
