@@ -53,3 +53,45 @@ export async function lateCrons(now = new Date()): Promise<CronName[]> {
     return !at || now.getTime() - at.getTime() > CRON_EVERY_MS[name] * LATE_AFTER_RUNS;
   });
 }
+
+/*
+  The daily sweep is one best-effort Vercel cron: no retries, and two
+  invocations can overlap. Each step records its own last success under
+  "daily:<step>", so a step that keeps failing or keeps being cut off by the
+  deadline is visible by age, and tomorrow's run starts with whatever has gone
+  longest without succeeding.
+*/
+const DAILY_STEP = (step: string) => `daily:${step}`;
+const DAILY_LEASE_MS = 55_000;
+
+/** One daily run at a time: a second invocation inside the lease window is refused. */
+export async function claimDailyRun(now = new Date()): Promise<boolean> {
+  const busyAfter = new Date(now.getTime() - DAILY_LEASE_MS);
+  await prisma.cronRun.upsert({ where: { name: "daily" }, create: { name: "daily" }, update: {} });
+  const claimed = await prisma.cronRun.updateMany({
+    where: { name: "daily", OR: [{ lastClaimAt: null }, { lastClaimAt: { lte: busyAfter } }] },
+    data: { lastClaimAt: now },
+  });
+  return claimed.count === 1;
+}
+
+export async function markDailyStep(step: string, now = new Date()) {
+  await prisma.cronRun.upsert({
+    where: { name: DAILY_STEP(step) },
+    create: { name: DAILY_STEP(step), lastRunAt: now },
+    update: { lastRunAt: now },
+  });
+}
+
+/** When each step last succeeded; null for a step that never has. */
+export async function dailyStepSuccesses(steps: readonly string[]): Promise<Map<string, Date | null>> {
+  const rows = await prisma.cronRun.findMany({ where: { name: { in: steps.map(DAILY_STEP) } } });
+  const at = new Map(rows.map((r) => [r.name, r.lastRunAt]));
+  return new Map(steps.map((s) => [s, at.get(DAILY_STEP(s)) ?? null]));
+}
+
+/** Never-succeeded first, then oldest success first; ties keep the given order. */
+export function oldestFirst(steps: readonly string[], successes: Map<string, Date | null>): string[] {
+  const age = (s: string) => successes.get(s)?.getTime() ?? -Infinity;
+  return steps.map((s, i) => [s, i] as const).sort((a, b) => age(a[0]) - age(b[0]) || a[1] - b[1]).map(([s]) => s);
+}
