@@ -1218,3 +1218,49 @@ CREATE TABLE IF NOT EXISTS "SmsIntent" (
 CREATE INDEX IF NOT EXISTS "SmsIntent_providerSid_idx" ON "SmsIntent"("providerSid");
 CREATE INDEX IF NOT EXISTS "SmsIntent_businessId_status_idx" ON "SmsIntent"("businessId", "status");
 CREATE UNIQUE INDEX IF NOT EXISTS "SmsIntent_businessId_eventType_eventId_recipientNormalized_channel_messageVersion_key" ON "SmsIntent"("businessId", "eventType", "eventId", "recipientNormalized", "channel", "messageVersion");
+
+
+-- Operating-platform proof loop: per-shop system-of-record contract (versioned), immutable external correlations, reconciliation exceptions
+CREATE TABLE IF NOT EXISTS "ShopRecordContract" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "version" INTEGER NOT NULL,
+    "domainsJson" TEXT NOT NULL,
+    "createdByEmail" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "ShopRecordContract_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE TABLE IF NOT EXISTS "ExternalCorrelation" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "entityType" TEXT NOT NULL,
+    "entityId" TEXT NOT NULL,
+    "system" TEXT NOT NULL,
+    "externalId" TEXT NOT NULL,
+    "contractVersion" INTEGER NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "ExternalCorrelation_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE TABLE IF NOT EXISTS "ReconciliationException" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "kind" TEXT NOT NULL,
+    "entityType" TEXT NOT NULL,
+    "entityId" TEXT NOT NULL,
+    "system" TEXT NOT NULL,
+    "externalId" TEXT,
+    "expectedJson" TEXT NOT NULL,
+    "observedJson" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'open',
+    "dedupeKey" TEXT NOT NULL,
+    "resolvedBy" TEXT,
+    "resolution" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "resolvedAt" DATETIME,
+    CONSTRAINT "ReconciliationException_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "ShopRecordContract_businessId_version_key" ON "ShopRecordContract"("businessId", "version");
+CREATE UNIQUE INDEX IF NOT EXISTS "ExternalCorrelation_businessId_system_entityType_externalId_key" ON "ExternalCorrelation"("businessId", "system", "entityType", "externalId");
+CREATE UNIQUE INDEX IF NOT EXISTS "ExternalCorrelation_businessId_system_entityType_entityId_key" ON "ExternalCorrelation"("businessId", "system", "entityType", "entityId");
+CREATE UNIQUE INDEX IF NOT EXISTS "ReconciliationException_dedupeKey_key" ON "ReconciliationException"("dedupeKey");
+CREATE INDEX IF NOT EXISTS "ReconciliationException_businessId_status_idx" ON "ReconciliationException"("businessId", "status");

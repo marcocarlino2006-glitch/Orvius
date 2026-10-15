@@ -1,0 +1,26 @@
+{
+  "note": "Synthetic. One job per exclusion reason plus three closed loops (call, web, and a Jobber-owned shop with its correlation).",
+  "shops": [
+    { "id": "p-live", "environment": "production" },
+    { "id": "p-jobber", "environment": "production" },
+    { "id": "p-demo", "environment": "demo" },
+    { "id": "p-sandbox", "environment": "production", "setupSandbox": true }
+  ],
+  "jobs": [
+    { "id": "j-closed-call", "businessId": "p-live", "origin": "call", "completedVia": "transition", "jobPaidCents": 25000, "openExceptions": 0 },
+    { "id": "j-closed-web", "businessId": "p-live", "origin": "web", "completedVia": "transition", "jobPaidCents": 9000, "openExceptions": 0 },
+    { "id": "j-closed-jobber", "businessId": "p-jobber", "origin": "sms", "completedVia": "transition", "jobPaidCents": 15000, "externalJobId": "J-1", "openExceptions": 0 },
+    { "id": "j-demo-shop", "businessId": "p-demo", "origin": "call", "completedVia": "transition", "jobPaidCents": 100, "openExceptions": 0 },
+    { "id": "j-demo-origin", "businessId": "p-live", "origin": "demo", "completedVia": "transition", "jobPaidCents": 100, "openExceptions": 0 },
+    { "id": "j-sandbox", "businessId": "p-sandbox", "origin": "call", "completedVia": "transition", "jobPaidCents": 100, "openExceptions": 0 },
+    { "id": "j-self", "businessId": "p-live", "origin": "call", "selfTest": true, "completedVia": "transition", "jobPaidCents": 100, "openExceptions": 0 },
+    { "id": "j-signup", "businessId": "p-live", "origin": "call", "createdDuringSetup": true, "completedVia": "transition", "jobPaidCents": 100, "openExceptions": 0 },
+    { "id": "j-manual", "businessId": "p-live", "origin": "manual", "completedVia": "transition", "jobPaidCents": 100, "openExceptions": 0 },
+    { "id": "j-aggregate", "businessId": "p-live", "origin": "call", "completedVia": "transition", "jobPaidCents": 0, "aggregatePaymentOnly": true, "openExceptions": 0 },
+    { "id": "j-open-job", "businessId": "p-live", "origin": "call", "completedVia": null, "jobPaidCents": 0, "openExceptions": 0 },
+    { "id": "j-unpaid", "businessId": "p-live", "origin": "sms", "completedVia": "transition", "jobPaidCents": 0, "openExceptions": 0 },
+    { "id": "j-corrected", "businessId": "p-live", "origin": "call", "completedVia": "correction", "jobPaidCents": 100, "openExceptions": 0 },
+    { "id": "j-no-link", "businessId": "p-jobber", "origin": "call", "completedVia": "transition", "jobPaidCents": 100, "externalJobId": null, "openExceptions": 0 },
+    { "id": "j-disputed", "businessId": "p-live", "origin": "web", "completedVia": "transition", "jobPaidCents": 100, "openExceptions": 1 }
+  ]
+}

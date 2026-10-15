@@ -8,210 +8,302 @@ datasource db {
 }
 
 model Business {
-  id                   String   @id @default(cuid())
-  name                 String
-  slug                 String   @unique
-  /** production | demo | test — demo and test data never render in a production workspace. */
-  environment          String   @default("production")
-  /** Orvius sends confirmations and assigns clear-cut jobs itself; the owner can turn this off. */
-  autopilot            Boolean  @default(true)
-  /** "book": callers are offered open times and qualified calls are booked. "alert": nothing is booked; every request waits for the owner. */
-  bookingMode          String   @default("book")
-  /** Setup progress and choices while the shop is still in test mode: { sandbox, step, goal, testedAt, liveAt }. */
-  setupJson            String   @default("{}")
-  /** Texting callers who did not book: "off", "ask" (owner taps send) or "auto". */
-  followUpMode         String   @default("ask")
-  /** Bumped when the owner resets their calendar feed link; old links stop working. */
-  calendarFeedVersion  Int      @default(1)
-  phone                String?
-  ownerPhone           String?
-  ownerEmail           String?
-  timezone             String   @default("America/New_York")
-  /** Primary trade — HVAC | Plumbing | Electrical. Drives prompts and taxonomy. */
-  trade                String?
-  /** Shop street address for intake and service-area context. */
-  address              String?
-  hoursJson            String   @default("{}")
-  /** Whole days the shop is closed (holidays), shop-local: [{ date: "YYYY-MM-DD", label }]. */
-  closedDatesJson      String   @default("[]")
-  /** Owner-set job length per trade service, minutes: { "no_cooling": 90 }. Wins over the playbook default. */
-  jobLengthsJson       String   @default("{}")
-  servicesJson         String   @default("[]")
-  greeting             String?
-  /** Callers who ask for a person are connected here. Null means transfers are off and they get a callback. */
-  /** Last time the owner loaded Command on any device — anchors "since you looked". */
-  ownerLastSeenAt      DateTime?
-  /** ElevenLabs voice for this shop's receptionist; null uses the default. */
-  voiceId              String?
-  transferPhone        String?
-  vapiAssistantId      String?
-  vapiPhoneNumber      String?
-  twilioPhone          String?
-  isActive             Boolean  @default(true)
-  stripeCustomerId     String?
-  stripeSubscriptionId String?
-  billingStatus        String   @default("pilot")
-  billingPlan          String?
+  id                            String    @id @default(cuid())
+  name                          String
+  slug                          String    @unique
+  /**
+   * production | demo | test — demo and test data never render in a production workspace.
+   */
+  environment                   String    @default("production")
+  /**
+   * Orvius sends confirmations and assigns clear-cut jobs itself; the owner can turn this off.
+   */
+  autopilot                     Boolean   @default(true)
+  /**
+   * "book": callers are offered open times and qualified calls are booked. "alert": nothing is booked; every request waits for the owner.
+   */
+  bookingMode                   String    @default("book")
+  /**
+   * Setup progress and choices while the shop is still in test mode: { sandbox, step, goal, testedAt, liveAt }.
+   */
+  setupJson                     String    @default("{}")
+  /**
+   * Texting callers who did not book: "off", "ask" (owner taps send) or "auto".
+   */
+  followUpMode                  String    @default("ask")
+  /**
+   * Bumped when the owner resets their calendar feed link; old links stop working.
+   */
+  calendarFeedVersion           Int       @default(1)
+  phone                         String?
+  ownerPhone                    String?
+  ownerEmail                    String?
+  timezone                      String    @default("America/New_York")
+  /**
+   * Primary trade — HVAC | Plumbing | Electrical. Drives prompts and taxonomy.
+   */
+  trade                         String?
+  /**
+   * Shop street address for intake and service-area context.
+   */
+  address                       String?
+  hoursJson                     String    @default("{}")
+  /**
+   * Whole days the shop is closed (holidays), shop-local: [{ date: "YYYY-MM-DD", label }].
+   */
+  closedDatesJson               String    @default("[]")
+  /**
+   * Owner-set job length per trade service, minutes: { "no_cooling": 90 }. Wins over the playbook default.
+   */
+  jobLengthsJson                String    @default("{}")
+  servicesJson                  String    @default("[]")
+  greeting                      String?
+  /**
+   * Callers who ask for a person are connected here. Null means transfers are off and they get a callback.
+   */
+  /**
+   * /** Last time the owner loaded Command on any device — anchors "since you looked".
+   */
+  ownerLastSeenAt               DateTime?
+  /**
+   * ElevenLabs voice for this shop's receptionist; null uses the default.
+   */
+  voiceId                       String?
+  transferPhone                 String?
+  vapiAssistantId               String?
+  vapiPhoneNumber               String?
+  twilioPhone                   String?
+  isActive                      Boolean   @default(true)
+  stripeCustomerId              String?
+  stripeSubscriptionId          String?
+  billingStatus                 String    @default("pilot")
+  billingPlan                   String?
   /// "month" or "year", read from the Stripe price. Null is treated as monthly.
-  billingInterval      String?
+  billingInterval               String?
   /// Off-season pause: no charge, and the line is off from pauseStartsAt (the end of the paid month) until pausedUntil.
-  pauseStartsAt        DateTime?
-  pausedUntil          DateTime?
+  pauseStartsAt                 DateTime?
+  pausedUntil                   DateTime?
   /// Set to cancel on Stripe: the plan runs to this date, then the line stops. Null when it renews.
-  planEndsAt           DateTime?
+  planEndsAt                    DateTime?
   /// When the owner last asked to cancel, and what they told Stripe. Kept after a cancel lands; cleared if they keep the plan.
-  cancelRequestedAt    DateTime?
-  cancelReason         String?
-  cancelComment        String?
+  cancelRequestedAt             DateTime?
+  cancelReason                  String?
+  cancelComment                 String?
   /**
    * Connect: the shop's own Stripe account. Customer card money settles to the
    * shop directly and Orvius only ever takes an application fee, which is what
    * keeps us out of being a money transmitter.
-   *
    * `chargesEnabled` is Stripe's verdict after identity verification and is the
    * only field allowed to gate card collection. An account can exist, and can
    * have submitted every detail, while still not being cleared to charge.
    */
-  stripeConnectAccountId        String?  @unique
-  stripeConnectChargesEnabled   Boolean  @default(false)
-  stripeConnectPayoutsEnabled   Boolean  @default(false)
-  stripeConnectDetailsSubmitted Boolean  @default(false)
+  stripeConnectAccountId        String?   @unique
+  stripeConnectChargesEnabled   Boolean   @default(false)
+  stripeConnectPayoutsEnabled   Boolean   @default(false)
+  stripeConnectDetailsSubmitted Boolean   @default(false)
   stripeConnectUpdatedAt        DateTime?
-  /** The owner switched on pay-over-time (Affirm, Klarna) on their pay links. */
-  financingEnabled              Boolean  @default(false)
-  /** Pay-over-time methods Stripe has made active on the shop's account, comma-separated. */
+  /**
+   * The owner switched on pay-over-time (Affirm, Klarna) on their pay links.
+   */
+  financingEnabled              Boolean   @default(false)
+  /**
+   * Pay-over-time methods Stripe has made active on the shop's account, comma-separated.
+   */
   financingMethods              String?
-  /** Deposit asked for at booking. Null amount or false means deposits off. */
-  depositEnabled                Boolean  @default(false)
+  /**
+   * Deposit asked for at booking. Null amount or false means deposits off.
+   */
+  depositEnabled                Boolean   @default(false)
   depositAmountCents            Int?
-  /** Sales tax on customer invoices, basis points (825 = 8.25%). 0 = no tax line. */
+  /**
+   * Sales tax on customer invoices, basis points (825 = 8.25%). 0 = no tax line.
+   */
   salesTaxBps                   Int       @default(0)
-  /** When card payments first went live and deposits were switched on by default. Set once. */
+  /**
+   * When card payments first went live and deposits were switched on by default. Set once.
+   */
   paymentsDefaultedAt           DateTime?
-  /** When the free design-partner window ends. After this, subscribe or lock. */
-  pilotEndsAt          DateTime?
-  /** Last time owner copied/exported weekly economics proof. */
-  lastWeeklyProofAt    DateTime?
-  /** Last automatic Monday results email. */
-  weeklyReportSentAt DateTime?
-  /** Set when the owner stops the Monday email (one-click unsubscribe); null sends it. */
-  weeklyEmailOffAt   DateTime?
-  /** Last weekly value text to the owner's phone. */
-  weeklyTextSentAt   DateTime?
+  /**
+   * When the free design-partner window ends. After this, subscribe or lock.
+   */
+  pilotEndsAt                   DateTime?
+  /**
+   * Last time owner copied/exported weekly economics proof.
+   */
+  lastWeeklyProofAt             DateTime?
+  /**
+   * Last automatic Monday results email.
+   */
+  weeklyReportSentAt            DateTime?
+  /**
+   * Set when the owner stops the Monday email (one-click unsubscribe); null sends it.
+   */
+  weeklyEmailOffAt              DateTime?
+  /**
+   * Last weekly value text to the owner's phone.
+   */
+  weeklyTextSentAt              DateTime?
   /// Owner's private iCal address; busy times there are never offered to callers.
-  busyCalendarUrl      String?
-  /** Where a finished customer is asked to leave a review (Google, Yelp, Facebook…). */
-  reviewUrl            String?
-  /** Text each finished customer the review link once, the day of the visit. */
-  reviewRequestsOn     Boolean  @default(true)
-  /** Public booking page at /b/[slug]; off until the owner shares it. */
-  bookingPageOn        Boolean  @default(false)
-  /** Chat bubble for the shop's own website (/embed.js); visitors are answered by text. */
-  webChatOn            Boolean  @default(false)
-  busyCalendarJson     String?
-  busyCalendarSyncedAt DateTime?
-  busyCalendarError    String?
-  /** Upcoming jobs read from the connected Jobber, Housecall Pro or ServiceTitan: JSON [{ s, e }] ISO times. */
-  fsmScheduleJson      String?
-  /** Last successful read of that schedule; null until one has worked. */
-  fsmScheduleSyncedAt  DateTime?
-  fsmScheduleSource    String?
-  fsmScheduleError     String?
-  /** Founder phone cert checklist JSON — boolean[] matching Settings scenarios. */
-  founderCertJson      String?
-  /** Owner confirmed missed/busy/after-hours forward to Orvius line. */
-  overflowForwardConfirmedAt DateTime?
+  busyCalendarUrl               String?
+  /**
+   * Where a finished customer is asked to leave a review (Google, Yelp, Facebook…).
+   */
+  reviewUrl                     String?
+  /**
+   * Text each finished customer the review link once, the day of the visit.
+   */
+  reviewRequestsOn              Boolean   @default(true)
+  /**
+   * Public booking page at /b/[slug]; off until the owner shares it.
+   */
+  bookingPageOn                 Boolean   @default(false)
+  /**
+   * Chat bubble for the shop's own website (/embed.js); visitors are answered by text.
+   */
+  webChatOn                     Boolean   @default(false)
+  busyCalendarJson              String?
+  busyCalendarSyncedAt          DateTime?
+  busyCalendarError             String?
+  /**
+   * Upcoming jobs read from the connected Jobber, Housecall Pro or ServiceTitan: JSON [{ s, e }] ISO times.
+   */
+  fsmScheduleJson               String?
+  /**
+   * Last successful read of that schedule; null until one has worked.
+   */
+  fsmScheduleSyncedAt           DateTime?
+  fsmScheduleSource             String?
+  fsmScheduleError              String?
+  /**
+   * Founder phone cert checklist JSON — boolean[] matching Settings scenarios.
+   */
+  founderCertJson               String?
+  /**
+   * Owner confirmed missed/busy/after-hours forward to Orvius line.
+   */
+  overflowForwardConfirmedAt    DateTime?
   /**
    * Capture path the owner is running: forward overflow, or publish Orvius
    * as the main shop number. Survives reload so the confirm stamp matches UI.
    */
-  captureMode          String?  @default("forward")
-  /** Carrier guide last used when captureMode is forward. */
-  forwardCarrier       String?
-  /** missed | all | after_hours | main — what the owner chose to send to Orvius. */
-  forwardCoverage      String?
-  /** When forward/publish steps were texted to the owner (overflow proof trail). */
-  forwardGuideSentAt   DateTime?
+  captureMode                   String?   @default("forward")
+  /**
+   * Carrier guide last used when captureMode is forward.
+   */
+  forwardCarrier                String?
+  /**
+   * missed | all | after_hours | main — what the owner chose to send to Orvius.
+   */
+  forwardCoverage               String?
+  /**
+   * When forward/publish steps were texted to the owner (overflow proof trail).
+   */
+  forwardGuideSentAt            DateTime?
   /**
    * Overflow capture proved — line verified + owner confirmed after guide.
    * Stronger than the self-attest checkbox alone.
    */
-  overflowProvedAt     DateTime?
-  lineVerifiedAt       DateTime?
-  /** ZIP allowlist JSON string[] — empty means not configured (no hard reject). */
-  serviceZipsJson      String   @default("[]")
-  /** When set, owner SMS alerts are suppressed until START / cleared. */
-  ownerSmsOptOutAt     DateTime?
-  /** Shop avg ticket in cents — used for estimated pipeline value. */
-  avgTicketCents       Int?
-  /** Baseline: missed/overflow calls per week before Orvius (owner-reported). */
-  baselineMissedCallsPerWeek Int?
-  /** Baseline: jobs booked per week before Orvius (owner-reported). */
-  baselineJobsPerWeek  Int?
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  overflowProvedAt              DateTime?
+  lineVerifiedAt                DateTime?
+  /**
+   * ZIP allowlist JSON string[] — empty means not configured (no hard reject).
+   */
+  serviceZipsJson               String    @default("[]")
+  /**
+   * When set, owner SMS alerts are suppressed until START / cleared.
+   */
+  ownerSmsOptOutAt              DateTime?
+  /**
+   * Shop avg ticket in cents — used for estimated pipeline value.
+   */
+  avgTicketCents                Int?
+  /**
+   * Baseline: missed/overflow calls per week before Orvius (owner-reported).
+   */
+  baselineMissedCallsPerWeek    Int?
+  /**
+   * Baseline: jobs booked per week before Orvius (owner-reported).
+   */
+  baselineJobsPerWeek           Int?
+  createdAt                     DateTime  @default(now())
+  updatedAt                     DateTime  @updatedAt
 
-  calls            Call[]
-  leads            Lead[]
-  customers        Customer[]
-  jobs             Job[]
-  jobberConnection JobberConnection?
-  housecallConnection HousecallConnection?
+  calls                  Call[]
+  leads                  Lead[]
+  customers              Customer[]
+  jobs                   Job[]
+  jobberConnection       JobberConnection?
+  housecallConnection    HousecallConnection?
   serviceTitanConnection ServiceTitanConnection?
-  quickbooksConnection QuickBooksConnection?
-  technicians      Technician[]
-  estimates        Estimate[]
-  invoices         Invoice[]
-  payments         Payment[]
-  deposits         Deposit[]
-  copilotActions   CopilotAction[]
-  commandGrants    CommandGrant[]
-  operatingPolicy  ShopOperatingPolicy?
-  smsIntents       SmsIntent[]
-  ownerNotifications OwnerNotification[]
-  pushSubscriptions  PushSubscription[]
-  webhookEvents      WebhookEvent[]
-  smsOptOuts         SmsOptOut[]
-  takeovers          Takeover[]
-  outboundSms        OutboundSms[]
-  texting            ShopTexting?
-  portRequest        PortRequest?
-  forwardTests       ForwardTest[]
+  quickbooksConnection   QuickBooksConnection?
+  technicians            Technician[]
+  estimates              Estimate[]
+  invoices               Invoice[]
+  payments               Payment[]
+  deposits               Deposit[]
+  copilotActions         CopilotAction[]
+  commandGrants          CommandGrant[]
+  operatingPolicy        ShopOperatingPolicy?
+  smsIntents             SmsIntent[]
+  recordContracts        ShopRecordContract[]
+  externalLinks          ExternalCorrelation[]
+  reconExceptions        ReconciliationException[]
+  ownerNotifications     OwnerNotification[]
+  pushSubscriptions      PushSubscription[]
+  webhookEvents          WebhookEvent[]
+  smsOptOuts             SmsOptOut[]
+  takeovers              Takeover[]
+  outboundSms            OutboundSms[]
+  texting                ShopTexting?
+  portRequest            PortRequest?
+  forwardTests           ForwardTest[]
   /// First touch before signup (ref, utm, referring site, landing page), as JSON.
-  acquisitionJson    String?
+  acquisitionJson        String?
   /// Orvius Network: passes jobs it can't take to nearby shops in its trade and receives theirs.
-  networkOn          Boolean  @default(false)
+  networkOn              Boolean                   @default(false)
   /// First three digits of the shop's ZIP; the network matches shops within the same region.
-  networkZip3        String?
+  networkZip3            String?
   /// The shop whose link this one signed up from.
-  referredById       String?
-  referralsMade      Referral[] @relation("ReferralReferrer")
-  referredBy         Referral?  @relation("ReferralReferred")
-  messages           Message[]
-  servicePlans       ServicePlan[]
-  planMembers        PlanMember[]
-  auditEvents        AuditEvent[]
-  memberships        Membership[]
-  jobPhotos          JobPhoto[]
-  jobSignatures      JobSignature[]
-  galleryCalls       GalleryCall[]
-  jobNotes           JobNote[]
-  jobLineItems       JobLineItem[]
-  priceBookItems     PriceBookItem[]
-  /** Last calendar month ("2026-09") whose call overage was invoiced; one charge per month, ever. */
-  overageBilledPeriod String?
-  /** When Stripe first reported the subscription past due; the grace period runs from here. */
-  pastDueSince       DateTime?
-  /** When the subscription ended; the line is suspended now and released after the retention window. */
-  canceledAt         DateTime?
-  /** When Stripe first reported the subscription active (not trialing): the start of paying, for retention. */
-  paidSince          DateTime?
-  /** When a lapsed shop's number was given back to Twilio. */
-  lineReleasedAt     DateTime?
+  referredById           String?
+  referralsMade          Referral[]                @relation("ReferralReferrer")
+  referredBy             Referral?                 @relation("ReferralReferred")
+  messages               Message[]
+  servicePlans           ServicePlan[]
+  planMembers            PlanMember[]
+  auditEvents            AuditEvent[]
+  memberships            Membership[]
+  jobPhotos              JobPhoto[]
+  jobSignatures          JobSignature[]
+  galleryCalls           GalleryCall[]
+  jobNotes               JobNote[]
+  jobLineItems           JobLineItem[]
+  priceBookItems         PriceBookItem[]
+  /**
+   * Last calendar month ("2026-09") whose call overage was invoiced; one charge per month, ever.
+   */
+  overageBilledPeriod    String?
+  /**
+   * When Stripe first reported the subscription past due; the grace period runs from here.
+   */
+  pastDueSince           DateTime?
+  /**
+   * When the subscription ended; the line is suspended now and released after the retention window.
+   */
+  canceledAt             DateTime?
+  /**
+   * When Stripe first reported the subscription active (not trialing): the start of paying, for retention.
+   */
+  paidSince              DateTime?
+  /**
+   * When a lapsed shop's number was given back to Twilio.
+   */
+  lineReleasedAt         DateTime?
   /// Owner corrections the receptionist follows on every call: [{ id, text, createdAt, callId? }].
-  receptionistRulesJson String @default("[]")
-  /** When the line stopped answering for non-payment; cleared when it answers again. */
-  lineSuspendedAt    DateTime?
+  receptionistRulesJson  String                    @default("[]")
+  /**
+   * When the line stopped answering for non-payment; cleared when it answers again.
+   */
+  lineSuspendedAt        DateTime?
 
   @@index([ownerEmail])
   @@index([twilioPhone])
@@ -221,7 +313,9 @@ model Business {
   @@index([networkOn, trade, networkZip3])
 }
 
-/** Phone numbers that opted out of SMS on a shop line (STOP). */
+/**
+ * Phone numbers that opted out of SMS on a shop line (STOP).
+ */
 /// Every text Orvius sends goes out from one shared sender, so a reply cannot be
 /// routed by the number it was sent to. This is how a reply finds its shop.
 /// Carrier registration (A2P 10DLC) so a shop's customer and tech texts come
@@ -308,18 +402,22 @@ model ShopTexting {
 }
 
 model OutboundSms {
-  id           String   @id @default(cuid())
-  businessId   String
-  business     Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  toNormalized String
-  audience     String
-  sid          String?
-  /** Kept for texts to technicians, the proof on a job that they were told. Customer texts live in Message. */
+  id             String   @id @default(cuid())
+  businessId     String
+  business       Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  toNormalized   String
+  audience       String
+  sid            String?
+  /**
+   * Kept for texts to technicians, the proof on a job that they were told. Customer texts live in Message.
+   */
   body           String?
   deliveryStatus String?
-  /** The job a technician text is about, so its history shows only its own texts. */
+  /**
+   * The job a technician text is about, so its history shows only its own texts.
+   */
   jobId          String?
-  createdAt    DateTime @default(now())
+  createdAt      DateTime @default(now())
 
   @@index([toNormalized, createdAt])
   @@index([businessId, createdAt])
@@ -327,16 +425,22 @@ model OutboundSms {
   @@index([jobId])
 }
 
-/** A membership or maintenance plan customers pay for monthly or yearly. */
+/**
+ * A membership or maintenance plan customers pay for monthly or yearly.
+ */
 model ServicePlan {
   id            String   @id @default(cuid())
   businessId    String
   business      Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
   name          String
   priceCents    Int
-  /** month | year */
+  /**
+   * month | year
+   */
   interval      String
-  /** Included visits a year; drives the "your visit is due" text. 0 means none. */
+  /**
+   * Included visits a year; drives the "your visit is due" text. 0 means none.
+   */
   visitsPerYear Int      @default(0)
   perks         String?
   isActive      Boolean  @default(true)
@@ -359,7 +463,9 @@ model PlanMember {
   phone                String
   phoneNormalized      String
   email                String?
-  /** pending | active | past_due | canceled */
+  /**
+   * pending | active | past_due | canceled
+   */
   status               String      @default("pending")
   stripeSubscriptionId String?     @unique
   stripeCustomerId     String?
@@ -377,25 +483,37 @@ model PlanMember {
   @@index([planId])
 }
 
-/** Every customer text in and out, so the owner reads and answers one thread per phone. */
+/**
+ * Every customer text in and out, so the owner reads and answers one thread per phone.
+ */
 model Message {
-  id              String   @id @default(cuid())
+  id              String    @id @default(cuid())
   businessId      String
-  business        Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  business        Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
   phoneNormalized String
-  /** in | out */
+  /**
+   * in | out
+   */
   direction       String
-  /** customer | orvius | owner */
+  /**
+   * customer | orvius | owner
+   */
   author          String
   body            String
   sid             String?
-  /** Carrier receipt for an outbound text: sent | delivered | undelivered | failed. */
+  /**
+   * Carrier receipt for an outbound text: sent | delivered | undelivered | failed.
+   */
   deliveryStatus  String?
-  /** Photos on an inbound text: JSON [{ url, type }], Twilio media URLs fetched only through the authed proxy. */
+  /**
+   * Photos on an inbound text: JSON [{ url, type }], Twilio media URLs fetched only through the authed proxy.
+   */
   mediaJson       String?
-  /** Set when the owner has read an inbound text. */
+  /**
+   * Set when the owner has read an inbound text.
+   */
   readAt          DateTime?
-  createdAt       DateTime @default(now())
+  createdAt       DateTime  @default(now())
 
   @@unique([businessId, sid])
   @@index([businessId, phoneNormalized, createdAt])
@@ -404,14 +522,14 @@ model Message {
 }
 
 model SmsOptOut {
-  id           String   @id @default(cuid())
-  businessId   String
-  business     Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  phone        String
+  id              String    @id @default(cuid())
+  businessId      String
+  business        Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  phone           String
   phoneNormalized String
-  source       String   @default("inbound-sms")
-  createdAt    DateTime @default(now())
-  clearedAt    DateTime?
+  source          String    @default("inbound-sms")
+  createdAt       DateTime  @default(now())
+  clearedAt       DateTime?
 
   @@unique([businessId, phoneNormalized])
   @@index([businessId, clearedAt])
@@ -436,35 +554,49 @@ model Takeover {
 }
 
 model Customer {
-  id                String   @id @default(cuid())
-  businessId        String
-  business          Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  name              String?
-  phone             String
-  phoneNormalized   String
-  /** The same person in the shop's Jobber, once Orvius has matched or created them. */
-  jobberClientId    String?
-  /** The same person in the shop's Housecall Pro, once Orvius has matched or created them. */
-  housecallCustomerId String?
-  /** The same person in the shop's QuickBooks, once Orvius has matched or created them. */
+  id                   String    @id @default(cuid())
+  businessId           String
+  business             Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name                 String?
+  phone                String
+  phoneNormalized      String
+  /**
+   * The same person in the shop's Jobber, once Orvius has matched or created them.
+   */
+  jobberClientId       String?
+  /**
+   * The same person in the shop's Housecall Pro, once Orvius has matched or created them.
+   */
+  housecallCustomerId  String?
+  /**
+   * The same person in the shop's QuickBooks, once Orvius has matched or created them.
+   */
   quickbooksCustomerId String?
-  email             String?
-  address           String?
-  /** Extra places this customer is served, JSON [{label, line}]. The primary address stays on `address`. */
-  addressesJson     String   @default("[]")
-  /** Equipment on file, JSON [{name, brand, model, notes}]. */
-  equipmentJson     String   @default("[]")
-  notes             String?
-  interactionCount  Int      @default(1)
-  /** Last "we miss you" text; one per customer every 90 days. */
-  winBackSentAt     DateTime?
-  /** Written yes to promotional texts (booking-page box or texting JOIN). Win-back only goes to these. STOP clears it. */
+  email                String?
+  address              String?
+  /**
+   * Extra places this customer is served, JSON [{label, line}]. The primary address stays on `address`.
+   */
+  addressesJson        String    @default("[]")
+  /**
+   * Equipment on file, JSON [{name, brand, model, notes}].
+   */
+  equipmentJson        String    @default("[]")
+  notes                String?
+  interactionCount     Int       @default(1)
+  /**
+   * Last "we miss you" text; one per customer every 90 days.
+   */
+  winBackSentAt        DateTime?
+  /**
+   * Written yes to promotional texts (booking-page box or texting JOIN). Win-back only goes to these. STOP clears it.
+   */
   marketingOptInAt     DateTime?
   marketingOptInSource String?
-  firstSeenAt       DateTime @default(now())
-  lastSeenAt        DateTime @default(now())
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  firstSeenAt          DateTime  @default(now())
+  lastSeenAt           DateTime  @default(now())
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
   calls Call[]
   leads Lead[]
@@ -475,55 +607,83 @@ model Customer {
 }
 
 model Call {
-  id           String    @id @default(cuid())
-  businessId   String
-  business     Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  customerId   String?
-  customer     Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  vapiCallId   String?   @unique
-  callerPhone  String?
-  /** "web_demo" for the website's talk-in-the-browser demo; null for phone calls. */
-  channel      String?
-  direction    String    @default("inbound")
-  status       String    @default("in-progress")
-  durationSec  Int?
-  summary      String?
-  transcript   String?
-  recordingUrl String?
-  booked           Boolean   @default(false)
-  ownerNotifiedAt  DateTime?
-  /** VAPI analysis.successEvaluation — NumericScale 1–10 when configured. */
-  successEvaluation String?
-  /** Appointment the receptionist offered and the caller took during the call; booking uses it. */
+  id                  String    @id @default(cuid())
+  businessId          String
+  business            Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customerId          String?
+  customer            Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  vapiCallId          String?   @unique
+  callerPhone         String?
+  /**
+   * "web_demo" for the website's talk-in-the-browser demo; null for phone calls.
+   */
+  channel             String?
+  direction           String    @default("inbound")
+  status              String    @default("in-progress")
+  durationSec         Int?
+  summary             String?
+  transcript          String?
+  recordingUrl        String?
+  booked              Boolean   @default(false)
+  ownerNotifiedAt     DateTime?
+  /**
+   * VAPI analysis.successEvaluation — NumericScale 1–10 when configured.
+   */
+  successEvaluation   String?
+  /**
+   * Appointment the receptionist offered and the caller took during the call; booking uses it.
+   */
   heldSlotAt          DateTime?
   heldSlotDurationMin Int?
-  /** When this call's hold was claimed; the earlier claim keeps a contested time. */
+  /**
+   * When this call's hold was claimed; the earlier claim keeps a contested time.
+   */
   heldClaimedAt       DateTime?
-  /** Database-assigned order of hold writes; commit order and sequence order always agree. */
-  heldSeq Int?
-  /** "reschedule" when the held time is a new time for a visit the caller already has, never a new job. */
-  heldIntent String?
+  /**
+   * Database-assigned order of hold writes; commit order and sequence order always agree.
+   */
+  heldSeq             Int?
+  /**
+   * "reschedule" when the held time is a new time for a visit the caller already has, never a new job.
+   */
+  heldIntent          String?
   /// The caller said yes, on the call, to being passed to a nearby Orvius Network shop.
   networkConsentAt    DateTime?
-  /** When the returning-caller note was handed to the live receptionist (once per call). */
+  /**
+   * When the returning-caller note was handed to the live receptionist (once per call).
+   */
   callerContextSentAt DateTime?
-  /** Caller's wait for a reply on this call, from Vapi's turn timing (lib/call-latency.ts). */
-  replyP50Ms  Int?
-  replyP90Ms  Int?
-  /** {turns, stages: {endpointing, transcriber, model, voice}} medians in ms. */
-  latencyJson String?
-  /** Vapi's reported charge for this call in millionths of a dollar; the phone leg is not in it (lib/call-cost.ts). */
-  costMicros Int?
-  /** {stt, llm, tts, vapi, transport} in micros. */
-  costJson   String?
-  /** Transcript and recording deleted here and at Vapi after the retention period (lib/retention.ts). */
-  contentPurgedAt DateTime?
-  /** Vapi's endedReason, e.g. "assistant-forwarded-call" when the caller was transferred to a person. */
-  endedReason String?
-  createdAt        DateTime  @default(now())
-  /** The customer asked to be forgotten; retention keeps retrying the remote recording deletes until they land. */
-  forgetRequestedAt DateTime?
-  updatedAt        DateTime  @updatedAt
+  /**
+   * Caller's wait for a reply on this call, from Vapi's turn timing (lib/call-latency.ts).
+   */
+  replyP50Ms          Int?
+  replyP90Ms          Int?
+  /**
+   * {turns, stages: {endpointing, transcriber, model, voice}} medians in ms.
+   */
+  latencyJson         String?
+  /**
+   * Vapi's reported charge for this call in millionths of a dollar; the phone leg is not in it (lib/call-cost.ts).
+   */
+  costMicros          Int?
+  /**
+   * {stt, llm, tts, vapi, transport} in micros.
+   */
+  costJson            String?
+  /**
+   * Transcript and recording deleted here and at Vapi after the retention period (lib/retention.ts).
+   */
+  contentPurgedAt     DateTime?
+  /**
+   * Vapi's endedReason, e.g. "assistant-forwarded-call" when the caller was transferred to a person.
+   */
+  endedReason         String?
+  createdAt           DateTime  @default(now())
+  /**
+   * The customer asked to be forgotten; retention keeps retrying the remote recording deletes until they land.
+   */
+  forgetRequestedAt   DateTime?
+  updatedAt           DateTime  @updatedAt
 
   lead Lead?
 
@@ -535,47 +695,59 @@ model Call {
 }
 
 model Lead {
-  id          String    @id @default(cuid())
-  businessId  String?
-  business    Business? @relation(fields: [businessId], references: [id], onDelete: SetNull)
-  customerId  String?
-  customer    Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  callId      String?   @unique
-  call        Call?     @relation(fields: [callId], references: [id], onDelete: SetNull)
-  externalId  String?
-  name        String?
-  phone       String?
-  email       String?
-  serviceType String?
-  urgency     String?
-  address     String?
-  notes       String?
-  status      String    @default("new")
-  source      String    @default("call")
+  id                String    @id @default(cuid())
+  businessId        String?
+  business          Business? @relation(fields: [businessId], references: [id], onDelete: SetNull)
+  customerId        String?
+  customer          Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  callId            String?   @unique
+  call              Call?     @relation(fields: [callId], references: [id], onDelete: SetNull)
+  externalId        String?
+  name              String?
+  phone             String?
+  email             String?
+  serviceType       String?
+  urgency           String?
+  address           String?
+  notes             String?
+  status            String    @default("new")
+  source            String    @default("call")
   /**
    * Canonical demand taxonomy code (src/lib/job-taxonomy.ts). Derived, never
    * typed by an owner. Free-text serviceType cannot be counted across shops;
    * this can, and a call answered without it is a call whose category is gone.
    */
-  categoryCode String?
-  /** ZIP parsed from address — the unit local price benchmarks group on. */
-  postalCode   String?
-  /** First time the shop worked this lead, for speed-to-lead vs. win rate. */
-  firstContactedAt DateTime?
-  /** The one follow-up text to an unbooked caller; stamped before sending so it can never go twice. */
+  categoryCode      String?
+  /**
+   * ZIP parsed from address — the unit local price benchmarks group on.
+   */
+  postalCode        String?
+  /**
+   * First time the shop worked this lead, for speed-to-lead vs. win rate.
+   */
+  firstContactedAt  DateTime?
+  /**
+   * The one follow-up text to an unbooked caller; stamped before sending so it can never go twice.
+   */
   followUpSentAt    DateTime?
   followUpRepliedAt DateTime?
-  /** When the lead reached a terminal status (booked, lost, spam). */
-  closedAt         DateTime?
-  /** The teammate responsible for this request (owner or member email); null means the shop owner. */
-  assigneeEmail    String?
-  createdAt   DateTime  @default(now())
-  /** The customer asked to be forgotten; retention keeps retrying the remote recording deletes until they land. */
+  /**
+   * When the lead reached a terminal status (booked, lost, spam).
+   */
+  closedAt          DateTime?
+  /**
+   * The teammate responsible for this request (owner or member email); null means the shop owner.
+   */
+  assigneeEmail     String?
+  createdAt         DateTime  @default(now())
+  /**
+   * The customer asked to be forgotten; retention keeps retrying the remote recording deletes until they land.
+   */
   forgetRequestedAt DateTime?
-  updatedAt   DateTime  @updatedAt
+  updatedAt         DateTime  @updatedAt
 
-  job      Job?
-  deposits Deposit[]
+  job       Job?
+  deposits  Deposit[]
   estimates Estimate[]
 
   @@unique([businessId, externalId])
@@ -588,82 +760,124 @@ model Lead {
 }
 
 model Job {
-  id            String      @id @default(cuid())
-  businessId    String
-  business      Business    @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  customerId    String?
-  customer      Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  leadId        String?     @unique
-  lead          Lead?       @relation(fields: [leadId], references: [id], onDelete: SetNull)
-  technicianId  String?
-  technician    Technician? @relation(fields: [technicianId], references: [id], onDelete: SetNull)
-  title         String
-  serviceType   String?
-  urgency       String?
-  address       String?
-  notes         String?
-  /** Carried from the lead so completed work joins the same taxonomy. */
-  categoryCode  String?
-  postalCode    String?
-  status        String      @default("scheduled")
-  scheduledAt   DateTime?
-  confirmedAt   DateTime?
-  /** Public token for customer confirm link (/c/[token]). */
-  customerConfirmToken String? @unique
-  /** Stamped only after Twilio accepts the initial confirmation SMS. */
-  customerConfirmSentAt DateTime?
-  /** One retry only; stamped only after Twilio accepts it. */
+  id                            String      @id @default(cuid())
+  businessId                    String
+  business                      Business    @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customerId                    String?
+  customer                      Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  leadId                        String?     @unique
+  lead                          Lead?       @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  technicianId                  String?
+  technician                    Technician? @relation(fields: [technicianId], references: [id], onDelete: SetNull)
+  title                         String
+  serviceType                   String?
+  urgency                       String?
+  address                       String?
+  notes                         String?
+  /**
+   * Carried from the lead so completed work joins the same taxonomy.
+   */
+  categoryCode                  String?
+  postalCode                    String?
+  status                        String      @default("scheduled")
+  scheduledAt                   DateTime?
+  confirmedAt                   DateTime?
+  /**
+   * Public token for customer confirm link (/c/[token]).
+   */
+  customerConfirmToken          String?     @unique
+  /**
+   * Stamped only after Twilio accepts the initial confirmation SMS.
+   */
+  customerConfirmSentAt         DateTime?
+  /**
+   * One retry only; stamped only after Twilio accepts it.
+   */
   customerConfirmReminderSentAt DateTime?
-  /** Held while a confirmation text is being sent, so two runs can't both send it. */
-  customerConfirmClaimAt DateTime?
-  /** Twilio sid of the latest confirmation text, matched against the carrier's delivery receipt. */
-  customerConfirmSid String?
-  /** The carrier rejected the confirmation text; the owner was asked to call instead. */
-  customerConfirmFailedAt DateTime?
-  /** When the customer confirmed the proposed window. */
-  customerConfirmedAt DateTime?
-  dispatchedAt  DateTime?
-  onSiteAt      DateTime?
-  completedAt   DateTime?
-  /** The customer was texted the review link for this visit; claimed before the send. */
-  reviewRequestedAt DateTime?
-  /** Structured field outcome — the label future intelligence learns from. */
-  resolutionCode String?
-  /** Short technician evidence, never generated or inferred. */
-  resolutionSummary String?
-  /** Actual total reported at completion; separate from estimate/invoice. */
-  finalAmountCents Int?
-  outcomeCapturedAt DateTime?
-  /** The field checklist for this visit: the template it started from and what the technician ticked or read. */
-  checklistJson String?
-  /** Magic-link token for tech field page (/t/[token]). */
-  techToken     String?     @unique
-  /** Free-text ETA from tech (e.g. "25 min"). */
-  etaText       String?
-  /** When the current technician was put on this job; null on jobs assigned before acceptance existed. */
-  techAssignedAt DateTime?
-  /** Twilio accepted the job text to the current technician. */
-  techNotifiedAt DateTime?
-  /** The current technician said they will take it. Cleared when the technician or the time changes. */
-  techAcceptedAt DateTime?
-  /** The last technician said they can't take it; cleared when someone else is assigned. */
-  techDeclinedAt DateTime?
-  techDeclinedBy String?
-  techDeclineReason String?
-  /** Appointment length from the trade playbook; null means the shop default. */
-  durationMin   Int?
-  /** The teammate responsible for this job (owner or member email); null means the technician, then the owner. */
-  assigneeEmail String?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  /**
+   * Held while a confirmation text is being sent, so two runs can't both send it.
+   */
+  customerConfirmClaimAt        DateTime?
+  /**
+   * Twilio sid of the latest confirmation text, matched against the carrier's delivery receipt.
+   */
+  customerConfirmSid            String?
+  /**
+   * The carrier rejected the confirmation text; the owner was asked to call instead.
+   */
+  customerConfirmFailedAt       DateTime?
+  /**
+   * When the customer confirmed the proposed window.
+   */
+  customerConfirmedAt           DateTime?
+  dispatchedAt                  DateTime?
+  onSiteAt                      DateTime?
+  completedAt                   DateTime?
+  /**
+   * The customer was texted the review link for this visit; claimed before the send.
+   */
+  reviewRequestedAt             DateTime?
+  /**
+   * Structured field outcome — the label future intelligence learns from.
+   */
+  resolutionCode                String?
+  /**
+   * Short technician evidence, never generated or inferred.
+   */
+  resolutionSummary             String?
+  /**
+   * Actual total reported at completion; separate from estimate/invoice.
+   */
+  finalAmountCents              Int?
+  outcomeCapturedAt             DateTime?
+  /**
+   * The field checklist for this visit: the template it started from and what the technician ticked or read.
+   */
+  checklistJson                 String?
+  /**
+   * Magic-link token for tech field page (/t/[token]).
+   */
+  techToken                     String?     @unique
+  /**
+   * Free-text ETA from tech (e.g. "25 min").
+   */
+  etaText                       String?
+  /**
+   * When the current technician was put on this job; null on jobs assigned before acceptance existed.
+   */
+  techAssignedAt                DateTime?
+  /**
+   * Twilio accepted the job text to the current technician.
+   */
+  techNotifiedAt                DateTime?
+  /**
+   * The current technician said they will take it. Cleared when the technician or the time changes.
+   */
+  techAcceptedAt                DateTime?
+  /**
+   * The last technician said they can't take it; cleared when someone else is assigned.
+   */
+  techDeclinedAt                DateTime?
+  techDeclinedBy                String?
+  techDeclineReason             String?
+  /**
+   * Appointment length from the trade playbook; null means the shop default.
+   */
+  durationMin                   Int?
+  /**
+   * The teammate responsible for this job (owner or member email); null means the technician, then the owner.
+   */
+  assigneeEmail                 String?
+  createdAt                     DateTime    @default(now())
+  updatedAt                     DateTime    @updatedAt
 
-  estimate Estimate?
-  deposits Deposit[]
-  invoices Invoice[]
-  signature JobSignature?
-  photos   JobPhoto[]
+  estimate   Estimate?
+  deposits   Deposit[]
+  invoices   Invoice[]
+  signature  JobSignature?
+  photos     JobPhoto[]
   fieldNotes JobNote[]
-  lineItems JobLineItem[]
+  lineItems  JobLineItem[]
 
   @@index([businessId, scheduledAt])
   @@index([businessId, status])
@@ -675,48 +889,61 @@ model Job {
 }
 
 model Technician {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   businessId String
-  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  business   Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
   name       String
   phone      String?
-  role       String   @default("tech")
-  isActive   Boolean  @default(true)
-  /** Playbook skill keys (e.g. ["cooling","heating"]). Empty means generalist. */
-  skillsJson String   @default("[]")
-  /** The technician's own app link (/tech/[token]). Sending a new link retires the old one. */
+  role       String    @default("tech")
+  isActive   Boolean   @default(true)
+  /**
+   * Playbook skill keys (e.g. ["cooling","heating"]). Empty means generalist.
+   */
+  skillsJson String    @default("[]")
+  /**
+   * The technician's own app link (/tech/[token]). Sending a new link retires the old one.
+   */
   appToken   String?   @unique
   appTokenAt DateTime?
-  /** This technician's own working hours, same shape as Business.hoursJson. Empty means the shop's hours. */
-  hoursJson  String   @default("{}")
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  /**
+   * This technician's own working hours, same shape as Business.hoursJson. Empty means the shop's hours.
+   */
+  hoursJson  String    @default("{}")
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   jobs    Job[]
   timeOff TechnicianTimeOff[]
 
-  /*
-    One name, one person. ensureCrew read the table and then created the owner
-    row, so two requests arriving together — which is exactly what the dispatch
-    page does, fetching the board and the crew in parallel — each saw an empty
-    table and each seeded a row. Two of the four fixture shops carry three
-    identical owner records, and the board draws the same person three times.
-
-    It also settles a thing the add-technician form never handled: a shop could
-    enter "Ray" twice and then have no way to tell the two Rays apart when
-    assigning a job.
-  */
+  /**
+   * One name, one person. ensureCrew read the table and then created the owner
+   * row, so two requests arriving together — which is exactly what the dispatch
+   * page does, fetching the board and the crew in parallel — each saw an empty
+   * table and each seeded a row. Two of the four fixture shops carry three
+   * identical owner records, and the board draws the same person three times.
+   * It also settles a thing the add-technician form never handled: a shop could
+   * enter "Ray" twice and then have no way to tell the two Rays apart when
+   * assigning a job.
+   */
   @@unique([businessId, name])
   @@index([businessId, isActive])
 }
 
-/** A photo taken on a job. Resized on the phone before upload, so a row stays well under a megabyte. */
-/** A website visitor's place in line for the in-browser demo, and the call it became. */
+/**
+ * A photo taken on a job. Resized on the phone before upload, so a row stays well under a megabyte.
+ */
+/**
+ * A website visitor's place in line for the in-browser demo, and the call it became.
+ */
 model DemoTicket {
   id         String    @id @default(cuid())
-  /** Salted hash of the visitor's IP: enough to hold one place per visitor, never the address. */
+  /**
+   * Salted hash of the visitor's IP: enough to hold one place per visitor, never the address.
+   */
   ipHash     String
-  /** waiting | granted | live | done */
+  /**
+   * waiting | granted | live | done
+   */
   status     String    @default("waiting")
   lastSeenAt DateTime  @default(now())
   grantedAt  DateTime?
@@ -741,7 +968,9 @@ model DemoSlot {
   heldUntil DateTime
 }
 
-/** The customer's sign-off on the work and total, drawn on the technician's phone. */
+/**
+ * The customer's sign-off on the work and total, drawn on the technician's phone.
+ */
 model JobSignature {
   id           String   @id @default(cuid())
   businessId   String
@@ -749,10 +978,14 @@ model JobSignature {
   jobId        String   @unique
   job          Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
   signerName   String
-  /** PNG drawn on the phone; sniffed and size-capped before it is stored. */
+  /**
+   * PNG drawn on the phone; sniffed and size-capped before it is stored.
+   */
   png          Bytes
   sizeBytes    Int
-  /** The total the customer saw when signing, and the exact words they agreed to. */
+  /**
+   * The total the customer saw when signing, and the exact words they agreed to.
+   */
   agreedCents  Int?
   statement    String
   technicianId String?
@@ -767,7 +1000,9 @@ model JobPhoto {
   business     Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
   jobId        String
   job          Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  /** "before" | "after" | "other" */
+  /**
+   * "before" | "after" | "other"
+   */
   kind         String   @default("other")
   mime         String
   bytes        Bytes
@@ -775,7 +1010,9 @@ model JobPhoto {
   width        Int?
   height       Int?
   caption      String?
-  /** Who took it: a technician's name, or a teammate's email. */
+  /**
+   * Who took it: a technician's name, or a teammate's email.
+   */
   takenBy      String?
   technicianId String?
   createdAt    DateTime @default(now())
@@ -784,24 +1021,30 @@ model JobPhoto {
   @@index([businessId, createdAt])
 }
 
-/** A note on a job from the field or the office. */
+/**
+ * A note on a job from the field or the office.
+ */
 model JobNote {
-  id           String   @id @default(cuid())
-  businessId   String
-  business     Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  jobId        String
-  job          Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
-  /** "technician" | "person" */
-  authorKind   String
-  authorName   String
-  body         String
-  createdAt    DateTime @default(now())
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  jobId      String
+  job        Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  /**
+   * "technician" | "person"
+   */
+  authorKind String
+  authorName String
+  body       String
+  createdAt  DateTime @default(now())
 
   @@index([jobId, createdAt])
   @@index([businessId])
 }
 
-/** One line of work on a job. A job with lines is billed their total. */
+/**
+ * One line of work on a job. A job with lines is billed their total.
+ */
 model JobLineItem {
   id              String   @id @default(cuid())
   businessId      String
@@ -810,7 +1053,9 @@ model JobLineItem {
   job             Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
   priceBookItemId String?
   name            String
-  /** "service" | "labor" | "part" */
+  /**
+   * "service" | "labor" | "part"
+   */
   kind            String   @default("service")
   quantity        Float    @default(1)
   unitCents       Int
@@ -821,13 +1066,17 @@ model JobLineItem {
   @@index([businessId])
 }
 
-/** The shop's saved services, labor and parts with prices. */
+/**
+ * The shop's saved services, labor and parts with prices.
+ */
 model PriceBookItem {
   id          String   @id @default(cuid())
   businessId  String
   business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
   name        String
-  /** "service" | "labor" | "part" */
+  /**
+   * "service" | "labor" | "part"
+   */
   kind        String   @default("service")
   unitCents   Int
   description String?
@@ -839,7 +1088,9 @@ model PriceBookItem {
   @@index([businessId, isActive])
 }
 
-/** Money ring v1 — draft estimate linked to a job. */
+/**
+ * Money ring v1 — draft estimate linked to a job.
+ */
 model Estimate {
   id            String    @id @default(cuid())
   businessId    String
@@ -851,11 +1102,15 @@ model Estimate {
   amountCents   Int
   status        String    @default("draft")
   lineItemsJson String    @default("[]")
-  /** Good / Better / Best: the customer picks one, and its price becomes amountCents. */
+  /**
+   * Good / Better / Best: the customer picks one, and its price becomes amountCents.
+   */
   optionsJson   String    @default("[]")
   chosenOption  String?
   notes         String?
-  /** Public magic-link token for customer view/accept/pay (/e/[token]). */
+  /**
+   * Public magic-link token for customer view/accept/pay (/e/[token]).
+   */
   publicToken   String?   @unique
   sentAt        DateTime?
   acceptedAt    DateTime?
@@ -868,35 +1123,49 @@ model Estimate {
   @@index([leadId])
 }
 
-/** What the customer owes for finished work; paid by card on the shop's own Stripe account or recorded by hand. */
+/**
+ * What the customer owes for finished work; paid by card on the shop's own Stripe account or recorded by hand.
+ */
 model Invoice {
-  id          String    @id @default(cuid())
-  businessId  String
-  business    Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  estimateId  String?   @unique
-  estimate    Estimate? @relation(fields: [estimateId], references: [id], onDelete: SetNull)
-  jobId       String?
-  job         Job?      @relation(fields: [jobId], references: [id], onDelete: SetNull)
-  amountCents Int
-  /** The work before tax, stamped when the invoice is priced. Null on invoices from before sales tax. */
-  subtotalCents Int?
-  taxCents    Int       @default(0)
-  /** The shop's rate when this invoice was last priced; changing the rate alone never reprices it. */
-  taxBps      Int       @default(0)
-  status      String    @default("draft")
-  /** Public magic-link token for the customer pay page (/i/[token]). */
-  publicToken String?   @unique
-  sentAt      DateTime?
-  paidAt      DateTime?
-  /** Direct-charge Checkout session on the connected account; unique so a replay cannot pay twice. */
-  stripeSessionId     String? @unique
-  /** The Checkout session open for this bill, reused so one bill can't be paid in two sessions. */
+  id                    String    @id @default(cuid())
+  businessId            String
+  business              Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  estimateId            String?   @unique
+  estimate              Estimate? @relation(fields: [estimateId], references: [id], onDelete: SetNull)
+  jobId                 String?
+  job                   Job?      @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  amountCents           Int
+  /**
+   * The work before tax, stamped when the invoice is priced. Null on invoices from before sales tax.
+   */
+  subtotalCents         Int?
+  taxCents              Int       @default(0)
+  /**
+   * The shop's rate when this invoice was last priced; changing the rate alone never reprices it.
+   */
+  taxBps                Int       @default(0)
+  status                String    @default("draft")
+  /**
+   * Public magic-link token for the customer pay page (/i/[token]).
+   */
+  publicToken           String?   @unique
+  sentAt                DateTime?
+  paidAt                DateTime?
+  /**
+   * Direct-charge Checkout session on the connected account; unique so a replay cannot pay twice.
+   */
+  stripeSessionId       String?   @unique
+  /**
+   * The Checkout session open for this bill, reused so one bill can't be paid in two sessions.
+   */
   openCheckoutSessionId String?
-  /** What Orvius earned here, stamped at fulfilment and never recomputed. */
-  applicationFeeCents Int?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  payments    Payment[]
+  /**
+   * What Orvius earned here, stamped at fulfilment and never recomputed.
+   */
+  applicationFeeCents   Int?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  payments              Payment[]
 
   @@index([businessId, status])
   @@index([jobId])
@@ -919,7 +1188,6 @@ model Payment {
 
 /**
  * Money collected when the job is booked, on the shop's own Stripe account.
- *
  * Deliberately not an Estimate or an Invoice. Both of those describe work that
  * has already been scoped and priced, and a deposit is taken before either
  * exists — at 2am, on the call, which is the only moment the customer is
@@ -936,9 +1204,13 @@ model Deposit {
   jobId                 String?
   job                   Job?      @relation(fields: [jobId], references: [id], onDelete: SetNull)
   amountCents           Int
-  /** pending | paid | canceled | refunded | failed */
+  /**
+   * pending | paid | canceled | refunded | failed
+   */
   status                String    @default("pending")
-  /** Public magic-link token for the customer pay page (/d/[token]). */
+  /**
+   * Public magic-link token for the customer pay page (/d/[token]).
+   */
   publicToken           String?   @unique
   /**
    * Checkout session id, which lives on the connected account rather than the
@@ -946,7 +1218,9 @@ model Deposit {
    */
   stripeSessionId       String?   @unique
   stripePaymentIntentId String?
-  /** What Orvius earned here, stamped at fulfilment and never recomputed. */
+  /**
+   * What Orvius earned here, stamped at fulfilment and never recomputed.
+   */
   applicationFeeCents   Int?
   sentAt                DateTime?
   paidAt                DateTime?
@@ -959,22 +1233,28 @@ model Deposit {
   @@index([jobId])
 }
 
-/** Approve-then-execute Copilot actions. */
+/**
+ * Approve-then-execute Copilot actions.
+ */
 model CopilotAction {
-  id         String    @id @default(cuid())
-  businessId String
-  business   Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  action     String
-  paramsJson String
-  preview    String
-  status     String    @default("proposed")
-  resultJson String?
-  createdAt  DateTime  @default(now())
-  executedAt DateTime?
-  /** Who asked Orvius for this plan; null when Orvius proposed it on its own. */
+  id              String    @id @default(cuid())
+  businessId      String
+  business        Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  action          String
+  paramsJson      String
+  preview         String
+  status          String    @default("proposed")
+  resultJson      String?
+  createdAt       DateTime  @default(now())
+  executedAt      DateTime?
+  /**
+   * Who asked Orvius for this plan; null when Orvius proposed it on its own.
+   */
   proposedByEmail String?
   proposedByRole  String?
-  /** owner_approval, owner_confirmation (the owner confirming their own request; not dual control), grant, grant_self. */
+  /**
+   * owner_approval, owner_confirmation (the owner confirming their own request; not dual control), grant, grant_self.
+   */
   approvalKind    String?
   approvedByEmail String?
   grantId         String?
@@ -994,7 +1274,9 @@ model CommandGrant {
   business       Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
   granteeEmail   String
   action         String
-  /** The effect in plain words, as the owner granted it. */
+  /**
+   * The effect in plain words, as the owner granted it.
+   */
   effect         String
   conditionsJson String    @default("{}")
   expiresAt      DateTime
@@ -1012,11 +1294,17 @@ model CommandGrant {
 model ShopOperatingPolicy {
   businessId              String   @id
   business                Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  /** not_configured | duration_only | min_gap */
+  /**
+   * not_configured | duration_only | min_gap
+   */
   travelMode              String   @default("not_configured")
-  /** Minutes the owner requires between one tech's jobs; set only in min_gap. */
+  /**
+   * Minutes the owner requires between one tech's jobs; set only in min_gap.
+   */
   travelGapMin            Int?
-  /** Work the owner has said can be finished without a visit (remote help, office fix). */
+  /**
+   * Work the owner has said can be finished without a visit (remote help, office fix).
+   */
   remoteCompletionAllowed Boolean  @default(false)
   version                 Int      @default(1)
   updatedByEmail          String?
@@ -1026,41 +1314,43 @@ model ShopOperatingPolicy {
 }
 
 model WaitlistEntry {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  businessName String?
-  phone        String?
-  trade        String?
-  city         String?
-  plan         String   @default("pilot")
-  /** Pipeline: new | contacted | demoed | onboarded | live | closed */
-  status       String   @default("new")
-  notes        String?
+  id              String    @id @default(cuid())
+  email           String    @unique
+  businessName    String?
+  phone           String?
+  trade           String?
+  city            String?
+  plan            String    @default("pilot")
+  /**
+   * Pipeline: new | contacted | demoed | onboarded | live | closed
+   */
+  status          String    @default("new")
+  notes           String?
   lastContactedAt DateTime?
-  nextActionAt DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  nextActionAt    DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 model OwnerNotification {
-  id           String    @id @default(cuid())
-  businessId   String
-  business     Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  leadId       String?
-  channel      String
-  dedupeKey    String
-  status       String
-  error        String?
-  businessName String?
-  message      String?
-  ownerPhone   String?
-  ownerEmail   String?
-  attempts     Int       @default(0)
-  nextRetryAt  DateTime?
-  deliveryId   String?
+  id             String    @id @default(cuid())
+  businessId     String
+  business       Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  leadId         String?
+  channel        String
+  dedupeKey      String
+  status         String
+  error          String?
+  businessName   String?
+  message        String?
+  ownerPhone     String?
+  ownerEmail     String?
+  attempts       Int       @default(0)
+  nextRetryAt    DateTime?
+  deliveryId     String?
   deliveryStatus String?
-  processedAt  DateTime?
-  createdAt    DateTime  @default(now())
+  processedAt    DateTime?
+  createdAt      DateTime  @default(now())
 
   @@unique([businessId, dedupeKey, channel])
   @@index([businessId, createdAt])
@@ -1110,14 +1400,18 @@ model PasswordLogin {
   updatedAt    DateTime  @updatedAt
 }
 
-/** "Sign out of all devices", per sign-in email: any session that started before revokedAt is refused. */
+/**
+ * "Sign out of all devices", per sign-in email: any session that started before revokedAt is refused.
+ */
 model SessionRevocation {
   email     String   @id
   revokedAt DateTime
   updatedAt DateTime @updatedAt
 }
 
-/** Recent sign-ins per email, shown under Devices; a device not seen in 90 days gets an email. No IP is kept. */
+/**
+ * Recent sign-ins per email, shown under Devices; a device not seen in 90 days gets an email. No IP is kept.
+ */
 model SignInEvent {
   id        String   @id @default(cuid())
   email     String
@@ -1129,7 +1423,9 @@ model SignInEvent {
   @@index([email, createdAt])
 }
 
-/** A pending move of a sign-in to a new address; only the SHA-256 of the emailed token is kept. */
+/**
+ * A pending move of a sign-in to a new address; only the SHA-256 of the emailed token is kept.
+ */
 model EmailChange {
   id        String    @id @default(cuid())
   fromEmail String
@@ -1142,29 +1438,39 @@ model EmailChange {
   @@index([fromEmail, createdAt])
 }
 
-/** Two-step sign-in with an authenticator app, per sign-in email. */
+/**
+ * Two-step sign-in with an authenticator app, per sign-in email.
+ */
 model TwoStep {
-  id                String    @id @default(cuid())
-  email             String    @unique
-  /** Authenticator secret, AES-GCM sealed; unreadable without the server key. */
-  secretSealed      String
-  /** Set once the owner proves the app works; until then nothing is enforced. */
-  enabledAt         DateTime?
-  /** SHA-256 hashes of one-time recovery codes (random, so a fast hash is enough); each is removed when used. */
-  recoveryHashesJson String   @default("[]")
-  /** Last 30-second step accepted, so a code seen over a shoulder can't be replayed. */
-  lastStep          Int       @default(0)
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  id                 String    @id @default(cuid())
+  email              String    @unique
+  /**
+   * Authenticator secret, AES-GCM sealed; unreadable without the server key.
+   */
+  secretSealed       String
+  /**
+   * Set once the owner proves the app works; until then nothing is enforced.
+   */
+  enabledAt          DateTime?
+  /**
+   * SHA-256 hashes of one-time recovery codes (random, so a fast hash is enough); each is removed when used.
+   */
+  recoveryHashesJson String    @default("[]")
+  /**
+   * Last 30-second step accepted, so a code seen over a shoulder can't be replayed.
+   */
+  lastStep           Int       @default(0)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 }
 
 model LoginToken {
-  id         String    @id @default(cuid())
-  email      String
-  tokenHash  String    @unique
-  expiresAt  DateTime
-  usedAt     DateTime?
-  createdAt  DateTime  @default(now())
+  id        String    @id @default(cuid())
+  email     String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
 
   @@index([email, createdAt])
   @@index([expiresAt])
@@ -1179,14 +1485,22 @@ model AuditEvent {
   id             String   @id @default(cuid())
   businessId     String
   business       Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  /** call | lead | customer | job | technician | notification | copilot | shop */
+  /**
+   * call | lead | customer | job | technician | notification | copilot | shop
+   */
   entityType     String
   entityId       String
-  /** Stable machine code, e.g. lead.captured, technician.assigned. */
+  /**
+   * Stable machine code, e.g. lead.captured, technician.assigned.
+   */
   action         String
-  /** orvius | owner | teammate | system */
+  /**
+   * orvius | owner | teammate | system
+   */
   actor          String   @default("orvius")
-  /** Sign-in email of the person who acted, when a person did. */
+  /**
+   * Sign-in email of the person who acted, when a person did.
+   */
   actorEmail     String?
   summary        String
   detailJson     String?
@@ -1206,19 +1520,23 @@ model AuditEvent {
   @@index([customerId])
 }
 
-/** A browser or installed app the owner turned on push alerts for. */
+/**
+ * A browser or installed app the owner turned on push alerts for.
+ */
 model PushSubscription {
-  id          String    @id @default(cuid())
-  businessId  String
-  business    Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  endpoint    String    @unique
-  p256dh      String
-  auth        String
-  userAgent   String?
-  /** Who turned it on, so removing them from the team stops their alerts. */
-  email       String?
-  lastSentAt  DateTime?
-  createdAt   DateTime  @default(now())
+  id         String    @id @default(cuid())
+  businessId String
+  business   Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  endpoint   String    @unique
+  p256dh     String
+  auth       String
+  userAgent  String?
+  /**
+   * Who turned it on, so removing them from the team stops their alerts.
+   */
+  email      String?
+  lastSentAt DateTime?
+  createdAt  DateTime  @default(now())
 
   @@index([businessId])
 }
@@ -1264,16 +1582,16 @@ model RateLimitBucket {
 
 /// Someone other than the owner with access to a shop. The owner is Business.ownerEmail.
 model Membership {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   businessId String
-  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  business   Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
   /// Lowercased sign-in email.
   email      String
   /// manager | dispatcher
-  role       String   @default("dispatcher")
+  role       String    @default("dispatcher")
   invitedBy  String?
   lastSeenAt DateTime?
-  createdAt  DateTime @default(now())
+  createdAt  DateTime  @default(now())
 
   @@unique([businessId, email])
   @@index([email])
@@ -1282,7 +1600,9 @@ model Membership {
 /// "Hear your shop" preview: before paying, the owner calls the demo line from
 /// their own phone and it answers as their shop. Never tied to a Business, so a
 /// preview call can never land in a real shop's records.
-/** A stretch a technician is not working: vacation, sick day, training. No booking lands on them inside it. */
+/**
+ * A stretch a technician is not working: vacation, sick day, training. No booking lands on them inside it.
+ */
 model TechnicianTimeOff {
   id           String     @id @default(cuid())
   businessId   String
@@ -1298,34 +1618,35 @@ model TechnicianTimeOff {
 }
 
 model ShopPreview {
-  id             String    @id @default(cuid())
-  token          String    @unique
-  shopName       String
-  trade          String    @default("HVAC")
-  serviceArea    String?
-  servicesJson   String    @default("[]")
-  hoursJson      String    @default("{}")
-  ownerPhone     String
+  id                   String    @id @default(cuid())
+  token                String    @unique
+  shopName             String
+  trade                String    @default("HVAC")
+  serviceArea          String?
+  servicesJson         String    @default("[]")
+  hoursJson            String    @default("{}")
+  ownerPhone           String
   ownerPhoneNormalized String
-  ip             String?
-  callsUsed      Int       @default(0)
-  maxCalls       Int       @default(2)
-  expiresAt      DateTime
-  lastVapiCallId String?   @unique
-  lastCallAt     DateTime?
-  lastSummary    String?
-  lastCaptureJson String?
-  alertSentAt    DateTime?
+  ip                   String?
+  callsUsed            Int       @default(0)
+  maxCalls             Int       @default(2)
+  expiresAt            DateTime
+  lastVapiCallId       String?   @unique
+  lastCallAt           DateTime?
+  lastSummary          String?
+  lastCaptureJson      String?
+  alertSentAt          DateTime?
   /// The last preview call line by line, kept so the owner can share it as a Call Replay.
-  transcriptJson String?
-  createdAt      DateTime  @default(now())
+  transcriptJson       String?
+  createdAt            DateTime  @default(now())
 
   @@index([ownerPhoneNormalized, expiresAt])
   @@index([createdAt])
 }
 
-
-/** A shop's Jobber account. Tokens are sealed with ORVIUS_TOKEN_KEY (secret-box.ts), never stored in the clear. */
+/**
+ * A shop's Jobber account. Tokens are sealed with ORVIUS_TOKEN_KEY (secret-box.ts), never stored in the clear.
+ */
 model JobberConnection {
   id              String    @id @default(cuid())
   businessId      String    @unique
@@ -1335,9 +1656,13 @@ model JobberConnection {
   accessTokenEnc  String?
   refreshTokenEnc String?
   accessExpiresAt DateTime?
-  /** Held while one worker refreshes: Jobber rotates refresh tokens, so two refreshes at once would disconnect the shop. */
+  /**
+   * Held while one worker refreshes: Jobber rotates refresh tokens, so two refreshes at once would disconnect the shop.
+   */
   refreshClaimAt  DateTime?
-  /** active | disconnected | reconnect (Jobber refused our tokens) */
+  /**
+   * active | disconnected | reconnect (Jobber refused our tokens)
+   */
   status          String    @default("active")
   lastError       String?
   connectedAt     DateTime  @default(now())
@@ -1348,7 +1673,9 @@ model JobberConnection {
   @@index([accountId])
 }
 
-/** A shop's QuickBooks Online company. Tokens are sealed with ORVIUS_TOKEN_KEY, like Jobber's. */
+/**
+ * A shop's QuickBooks Online company. Tokens are sealed with ORVIUS_TOKEN_KEY, like Jobber's.
+ */
 model QuickBooksConnection {
   id              String    @id @default(cuid())
   businessId      String    @unique
@@ -1358,11 +1685,17 @@ model QuickBooksConnection {
   accessTokenEnc  String?
   refreshTokenEnc String?
   accessExpiresAt DateTime?
-  /** Held while one worker refreshes: Intuit rotates refresh tokens, so two refreshes at once would disconnect the shop. */
+  /**
+   * Held while one worker refreshes: Intuit rotates refresh tokens, so two refreshes at once would disconnect the shop.
+   */
   refreshClaimAt  DateTime?
-  /** The service item every receipt line is booked against, found or created once. */
+  /**
+   * The service item every receipt line is booked against, found or created once.
+   */
   itemId          String?
-  /** active | disconnected | reconnect (Intuit refused our tokens) */
+  /**
+   * active | disconnected | reconnect (Intuit refused our tokens)
+   */
   status          String    @default("active")
   lastError       String?
   connectedAt     DateTime  @default(now())
@@ -1373,15 +1706,21 @@ model QuickBooksConnection {
   @@index([realmId])
 }
 
-/** One payment collected in Orvius on its way into QuickBooks as a sales receipt. At most one per payment. */
+/**
+ * One payment collected in Orvius on its way into QuickBooks as a sales receipt. At most one per payment.
+ */
 model QuickBooksSync {
   id            String    @id @default(cuid())
   businessId    String
-  /** invoice | deposit */
+  /**
+   * invoice | deposit
+   */
   sourceType    String
   sourceId      String
   amountCents   Int
-  /** pending | done | skipped | failed */
+  /**
+   * pending | done | skipped | failed
+   */
   status        String    @default("pending")
   attempts      Int       @default(0)
   nextAttemptAt DateTime  @default(now())
@@ -1397,12 +1736,16 @@ model QuickBooksSync {
   @@index([businessId, createdAt])
 }
 
-/** One lead on its way into the shop's Jobber as a request. At most one per lead, and never sent twice. */
+/**
+ * One lead on its way into the shop's Jobber as a request. At most one per lead, and never sent twice.
+ */
 model JobberSync {
   id              String    @id @default(cuid())
   businessId      String
   leadId          String    @unique
-  /** pending | done | skipped | failed | check (sent, reply lost: look in Jobber before resending) */
+  /**
+   * pending | done | skipped | failed | check (sent, reply lost: look in Jobber before resending)
+   */
   status          String    @default("pending")
   attempts        Int       @default(0)
   nextAttemptAt   DateTime  @default(now())
@@ -1418,7 +1761,9 @@ model JobberSync {
   @@index([businessId, createdAt])
 }
 
-/** A shop's Housecall Pro account, reached with an API key the owner generated there. Sealed with ORVIUS_TOKEN_KEY. */
+/**
+ * A shop's Housecall Pro account, reached with an API key the owner generated there. Sealed with ORVIUS_TOKEN_KEY.
+ */
 model HousecallConnection {
   id             String    @id @default(cuid())
   businessId     String    @unique
@@ -1426,7 +1771,9 @@ model HousecallConnection {
   companyId      String?
   companyName    String?
   apiKeyEnc      String?
-  /** active | disconnected | reconnect (Housecall Pro refused the key) */
+  /**
+   * active | disconnected | reconnect (Housecall Pro refused the key)
+   */
   status         String    @default("active")
   lastError      String?
   connectedAt    DateTime  @default(now())
@@ -1435,12 +1782,16 @@ model HousecallConnection {
   updatedAt      DateTime  @updatedAt
 }
 
-/** One captured call on its way into Housecall Pro as a lead. Same at-most-once rules as JobberSync. */
+/**
+ * One captured call on its way into Housecall Pro as a lead. Same at-most-once rules as JobberSync.
+ */
 model HousecallSync {
   id                  String    @id @default(cuid())
   businessId          String
   leadId              String    @unique
-  /** pending | done | skipped | failed | check (sent, reply lost: look in Housecall Pro before resending) */
+  /**
+   * pending | done | skipped | failed | check (sent, reply lost: look in Housecall Pro before resending)
+   */
   status              String    @default("pending")
   attempts            Int       @default(0)
   nextAttemptAt       DateTime  @default(now())
@@ -1456,7 +1807,9 @@ model HousecallSync {
   @@index([businessId, createdAt])
 }
 
-/** A shop's ServiceTitan tenant, reached with the client id and secret it generated for the Orvius app. Secret sealed with ORVIUS_TOKEN_KEY. */
+/**
+ * A shop's ServiceTitan tenant, reached with the client id and secret it generated for the Orvius app. Secret sealed with ORVIUS_TOKEN_KEY.
+ */
 model ServiceTitanConnection {
   id              String    @id @default(cuid())
   businessId      String    @unique
@@ -1464,10 +1817,14 @@ model ServiceTitanConnection {
   tenantId        String
   clientId        String
   clientSecretEnc String?
-  /** The booking provider tag new calls arrive under in the shop's ServiceTitan booking queue. */
+  /**
+   * The booking provider tag new calls arrive under in the shop's ServiceTitan booking queue.
+   */
   providerId      String
   providerName    String?
-  /** active | disconnected | reconnect (ServiceTitan refused the credentials) */
+  /**
+   * active | disconnected | reconnect (ServiceTitan refused the credentials)
+   */
   status          String    @default("active")
   lastError       String?
   connectedAt     DateTime  @default(now())
@@ -1476,12 +1833,16 @@ model ServiceTitanConnection {
   updatedAt       DateTime  @updatedAt
 }
 
-/** One captured call on its way into ServiceTitan as a booking. Same at-most-once rules as JobberSync. */
+/**
+ * One captured call on its way into ServiceTitan as a booking. Same at-most-once rules as JobberSync.
+ */
 model ServiceTitanSync {
   id            String    @id @default(cuid())
   businessId    String
   leadId        String    @unique
-  /** pending | done | skipped | failed | check (sent, reply lost: look in ServiceTitan before resending) */
+  /**
+   * pending | done | skipped | failed | check (sent, reply lost: look in ServiceTitan before resending)
+   */
   status        String    @default("pending")
   attempts      Int       @default(0)
   nextAttemptAt DateTime  @default(now())
@@ -1559,7 +1920,9 @@ model GalleryCall {
   trade           String
   turnsJson       String
   captureJson     String?
-  /** pending | listed | removed | withdrawn */
+  /**
+   * pending | listed | removed | withdrawn
+   */
   status          String    @default("pending")
   callerConsentAt DateTime
   sharedByEmail   String
@@ -1585,12 +1948,18 @@ model SmsIntent {
   channel             String    @default("sms")
   messageVersion      Int       @default(1)
   priorIntentId       String?
-  /** Who asked for this version when it is a resend or a change. */
+  /**
+   * Who asked for this version when it is a resend or a change.
+   */
   authorizedBy        String?
   audience            String
-  /** routine | severe — severe ones raise one owner exception when delivery is uncertain. */
+  /**
+   * routine | severe — severe ones raise one owner exception when delivery is uncertain.
+   */
   severity            String    @default("routine")
-  /** pending | leased | submitted | delivered | undelivered | rejected | retry_exhausted | unknown_submission */
+  /**
+   * pending | leased | submitted | delivered | undelivered | rejected | retry_exhausted | unknown_submission
+   */
   status              String    @default("pending")
   leaseUntil          DateTime?
   attempts            Int       @default(0)
@@ -1605,5 +1974,71 @@ model SmsIntent {
 
   @@unique([businessId, eventType, eventId, recipientNormalized, channel, messageVersion])
   @@index([providerSid])
+  @@index([businessId, status])
+}
+
+/// Which system is the record of truth for each part of a shop's work. Append-only: a change is a new version.
+model ShopRecordContract {
+  id             String   @id @default(cuid())
+  businessId     String
+  business       Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  version        Int
+  /**
+   * { customer, availability, job_state, price_invoice, payment_receipt, notifications } -> system
+   */
+  domainsJson    String
+  createdByEmail String?
+  createdAt      DateTime @default(now())
+
+  @@unique([businessId, version])
+}
+
+/// One Orvius record tied to one record in another system, written once and never repointed.
+model ExternalCorrelation {
+  id              String   @id @default(cuid())
+  businessId      String
+  business        Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  /**
+   * customer | job | invoice | payment | notification
+   */
+  entityType      String
+  entityId        String
+  /**
+   * jobber | housecall | servicetitan | quickbooks | stripe | twilio
+   */
+  system          String
+  externalId      String
+  contractVersion Int
+  createdAt       DateTime @default(now())
+
+  @@unique([businessId, system, entityType, externalId])
+  @@unique([businessId, system, entityType, entityId])
+}
+
+/// A difference between Orvius and the record-of-truth system that a person must look at.
+model ReconciliationException {
+  id           String    @id @default(cuid())
+  businessId   String
+  business     Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  /**
+   * create | change | cancel | complete | payment | correlation
+   */
+  kind         String
+  entityType   String
+  entityId     String
+  system       String
+  externalId   String?
+  expectedJson String
+  observedJson String
+  /**
+   * open | resolved
+   */
+  status       String    @default("open")
+  dedupeKey    String    @unique
+  resolvedBy   String?
+  resolution   String?
+  createdAt    DateTime  @default(now())
+  resolvedAt   DateTime?
+
   @@index([businessId, status])
 }
