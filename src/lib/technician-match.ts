@@ -46,8 +46,13 @@ function overlaps(aStart: Date, aMin: number, bStart: Date, bMin: number, gapMin
   return a0 < b1 && b0 < a1;
 }
 
-function sameDay(a: Date, b: Date) {
-  return a.toISOString().slice(0, 10) === b.toISOString().slice(0, 10);
+/** The shop's calendar date, so an evening job isn't counted on tomorrow's UTC date and DST shifts don't move it. */
+export function shopDate(at: Date, timezone: string) {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: timezone, year: "numeric", month: "2-digit", day: "2-digit" }).format(at);
+}
+
+function sameDay(a: Date, b: Date, timezone: string) {
+  return shopDate(a, timezone) === shopDate(b, timezone);
 }
 
 /**
@@ -86,7 +91,7 @@ export function rankTechnicians(input: {
       considered.push({ id: tech.id, name: tech.name, fit: "busy" });
       continue;
     }
-    const dayLoad = tech.jobs.filter((j) => sameDay(j.scheduledAt, input.scheduledAt)).length;
+    const dayLoad = tech.jobs.filter((j) => sameDay(j.scheduledAt, input.scheduledAt, input.timezone ?? "America/New_York")).length;
     eligible.push({ tech, specialist, dayLoad });
     considered.push({ id: tech.id, name: tech.name, fit: "available" });
   }

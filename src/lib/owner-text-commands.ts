@@ -582,24 +582,38 @@ const DONE_JOB_SELECT = {
   customer: { select: { name: true, phone: true } },
 } as const;
 
+type DoneJob = NonNullable<Awaited<ReturnType<typeof findDoneJob>>>;
+
+function findDoneJob(id: string) {
+  return prisma.job.findUnique({ where: { id }, select: DONE_JOB_SELECT });
+}
+
 /*
-  The job a bare DONE means: the one from the owner's latest alert if it is
-  still open (or being re-billed), else the job a tech is on right now, else
-  the most recent one that was due. The reply names the customer either way.
+  The job a bare DONE means, only when there is one plain answer: the job a
+  tech is on right now, or the one from the owner's latest alert, or the most
+  recent one that was due. When the latest alert is for one job and a tech is
+  working another, or two techs are working, a bare DONE could be either, so
+  nothing is changed and the owner is asked.
 */
-async function jobToFinish(businessId: string, amountCents: number | null, now: Date) {
+async function jobToFinish(businessId: string, amountCents: number | null, now: Date): Promise<{ job: DoneJob | null } | { ambiguous: DoneJob[] }> {
   const lead = await targetLead(businessId, now);
   const alertJob = lead?.job;
-  if (alertJob && alertJob.status !== "cancelled" && (alertJob.status !== "completed" || amountCents)) {
-    return prisma.job.findUnique({ where: { id: alertJob.id }, select: DONE_JOB_SELECT });
-  }
-  const working = await prisma.job.findFirst({
+  const alertCounts = alertJob && alertJob.status !== "cancelled" && (alertJob.status !== "completed" || amountCents);
+  const working = await prisma.job.findMany({
     where: { businessId, status: { in: ["on_site", "en_route"] } },
     orderBy: [{ onSiteAt: "desc" }, { dispatchedAt: "desc" }],
     select: DONE_JOB_SELECT,
+    take: 5,
   });
-  if (working) return working;
-  return prisma.job.findFirst({
+  const candidates = new Map<string, DoneJob>();
+  if (alertCounts) {
+    const fromAlert = await findDoneJob(alertJob.id);
+    if (fromAlert) candidates.set(fromAlert.id, fromAlert);
+  }
+  for (const job of working) candidates.set(job.id, job);
+  if (candidates.size > 1) return { ambiguous: [...candidates.values()] };
+  if (candidates.size === 1) return { job: [...candidates.values()][0] };
+  const due = await prisma.job.findFirst({
     where: {
       businessId,
       status: { notIn: ["completed", "cancelled"] },
@@ -608,7 +622,10 @@ async function jobToFinish(businessId: string, amountCents: number | null, now: 
     orderBy: { scheduledAt: "desc" },
     select: DONE_JOB_SELECT,
   });
+  return { job: due };
 }
+
+const STATUS_WORDS: Record<string, string> = { on_site: "on site now", en_route: "on the way", completed: "already done" };
 
 async function finishJobByText(
   shop: Shop,
@@ -616,7 +633,14 @@ async function finishJobByText(
   now: Date,
 ): Promise<string> {
   const { amountCents } = command;
-  const job = await jobToFinish(shop.id, amountCents, now);
+  const target = await jobToFinish(shop.id, amountCents, now);
+  if ("ambiguous" in target) {
+    const names = target.ambiguous.map(
+      (j) => `${j.customer?.name?.trim() || j.lead?.name?.trim() || j.lead?.phone || "a customer"} (${STATUS_WORDS[j.status] ?? "scheduled"})`,
+    );
+    return `Which job? ${names.join(" or ")}. Nothing was changed. Finish the right one in the app under Jobs.`;
+  }
+  const job = target.job;
   if (!job) return "No open job to finish right now. Reply TODAY to see the board.";
   const who = job.customer?.name?.trim() || job.lead?.name?.trim() || job.lead?.phone || "the customer";
 

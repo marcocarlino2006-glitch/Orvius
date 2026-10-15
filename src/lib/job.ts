@@ -472,6 +472,10 @@ async function ownerClash(params: {
       }),
     ]);
     if (!tech) return null;
+    const skills = parseSkills(tech.skillsJson);
+    if (params.skill !== "general" && skills.length > 0 && !skills.includes(params.skill)) {
+      return `${tech.name} isn't set up for this kind of job.`;
+    }
     const off = techUnavailable(toShift(tech), params.at, params.durationMin, params.timezone);
     if (off) return `${tech.name} is ${off === "time_off" ? "on time off" : "off shift"} then.`;
     const clash = theirs.some((j) => {
@@ -483,7 +487,12 @@ async function ownerClash(params: {
     if (policy.gapMin > 0) {
       const neighbours = await techNeighbours({ ...params, technicianId: params.technicianId, gapMin: policy.gapMin });
       const check = adjacentJobs({ start: params.at, durationMin: params.durationMin, gapMin: policy.gapMin, jobs: neighbours });
-      return gapClashWords(tech.name, check, policy.gapMin);
+      const words = gapClashWords(tech.name, check, policy.gapMin);
+      if (words) return words;
+    }
+    // Visits booked in the shop's field software aren't tied to a technician here, so they count against the team.
+    if (outside.booked.length && (await slotProblem(prisma, { ...params, callId: null, outside })) === "full") {
+      return "Your field software already has the team booked then.";
     }
     return null;
   }
