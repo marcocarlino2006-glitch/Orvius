@@ -29,6 +29,7 @@ import {
   setSetupStep,
   startSetup,
 } from "@/lib/setup-sandbox";
+import { activationVersions } from "@/lib/activation-ack";
 import { openingWithNotice } from "@/lib/vapi";
 import { ACTIVE_SHOP_COOKIE } from "@/lib/workspace-access";
 import { NOT_YET_TRADE } from "@/lib/trades";
@@ -113,6 +114,7 @@ async function view(business: Business | null) {
       testedAt: setup.testedAt ?? null,
       test,
       opening: openingWithNotice(business.greeting ?? "", business.name),
+      activation: activationVersions(business),
       checklist: buildGoLiveChecklist({
         sandbox: true,
         line: business.vapiPhoneNumber ?? business.twilioPhone ?? null,

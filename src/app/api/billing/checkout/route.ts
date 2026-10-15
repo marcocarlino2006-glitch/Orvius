@@ -32,6 +32,7 @@ import { forbiddenResponse } from "@/lib/tenant";
 import { z } from "zod";
 import { HIPAA_TRADE_REFUSAL, isHipaaTrade } from "@/lib/trades";
 import { consentSchema, shopDraftMetadata, shopDraftSchema } from "@/lib/checkout-shop";
+import { checkActivationClaim, recordActivationAck } from "@/lib/activation-ack";
 import { resolveShopAccess } from "@/lib/workspace-access";
 import { isSetupSandbox } from "@/lib/setup-flow";
 import { ACQUISITION_COOKIE, parseAcquisition } from "@/lib/acquisition";
@@ -45,6 +46,15 @@ const checkoutSchema = z.object({
   interval: z.enum(["month", "year"]).default("month"),
   /** A new shop's details, so paying is the last step before the line exists. */
   shop: shopDraftSchema.merge(consentSchema).optional(),
+  /** Turning a test shop on: the notice and permissions the owner approved, by the versions they saw. */
+  activation: z
+    .object({
+      recording: z.literal(true),
+      approved: z.literal(true),
+      noticeVersion: z.string().max(64),
+      setupVersion: z.string().max(64),
+    })
+    .optional(),
 });
 
 async function expireOpenPlanCheckouts(stripe: ReturnType<typeof getStripe>, email: string, customerId: string | null) {
@@ -165,6 +175,18 @@ export async function POST(request: NextRequest) {
         { status: 409 },
       );
     }
+    let activationAckId: string | null = null;
+    if (turningOn && business) {
+      const refusal = checkActivationClaim(business, body.activation);
+      if (refusal) return NextResponse.json(refusal, { status: 409 });
+      const ack = await recordActivationAck({
+        business,
+        actorEmail: sessionEmail,
+        acceptedTerms: Boolean(body.shop?.acceptedTerms),
+        acceptedSms: Boolean(body.shop?.acceptedSms),
+      });
+      activationAckId = ack.id;
+    }
     const shopMetadata =
       (!business || turningOn) && body.shop ? shopDraftMetadata(shopDraftSchema.parse(body.shop), new Date()) : {};
     const acquisition = business && !turningOn ? null : parseAcquisition(request.cookies.get(ACQUISITION_COOKIE)?.value);
@@ -216,6 +238,7 @@ export async function POST(request: NextRequest) {
         businessId: business?.id ?? "",
         legalEntity: company.legalName,
         ...shopMetadata,
+        ...(activationAckId ? { activation_ack: activationAckId } : {}),
         ...acquisitionMetadata(acquisition),
       },
     });

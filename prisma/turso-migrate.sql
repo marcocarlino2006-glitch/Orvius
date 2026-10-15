@@ -1271,3 +1271,24 @@ ALTER TABLE "Call" ADD COLUMN "networkConsentJson" TEXT;
 ALTER TABLE "Call" ADD COLUMN "networkOfferJson" TEXT;
 ALTER TABLE "Call" ADD COLUMN "slotOfferJson" TEXT;
 ALTER TABLE "NetworkHandoff" ADD COLUMN "sharesJson" TEXT;
+
+
+-- Activation acknowledgement: the notice, permissions, versions, actor and time an owner approved when turning a shop on
+CREATE TABLE IF NOT EXISTS "ActivationAcknowledgement" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "actorEmail" TEXT NOT NULL,
+    "noticeVersion" TEXT NOT NULL,
+    "noticeText" TEXT NOT NULL,
+    "setupVersion" TEXT NOT NULL,
+    "permissionsJson" TEXT NOT NULL,
+    "termsVersion" TEXT NOT NULL,
+    "acceptedRecording" BOOLEAN NOT NULL,
+    "approvedTurnOn" BOOLEAN NOT NULL,
+    "acceptedTerms" BOOLEAN NOT NULL,
+    "acceptedSms" BOOLEAN NOT NULL,
+    "checkoutSessionId" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "ActivationAcknowledgement_checkoutSessionId_key" ON "ActivationAcknowledgement"("checkoutSessionId");
+CREATE INDEX IF NOT EXISTS "ActivationAcknowledgement_businessId_createdAt_idx" ON "ActivationAcknowledgement"("businessId", "createdAt");

@@ -10,6 +10,8 @@ import { parseAcquisition } from "@/lib/acquisition";
 import { attachAcquisition, creditReferralOnPayment } from "@/lib/referrals";
 import { TRADES } from "@/lib/trades";
 import { isSetupSandbox } from "@/lib/setup-flow";
+import { bindActivationAck } from "@/lib/activation-ack";
+import { recordAudit } from "@/lib/audit";
 
 /*
   The owner types their shop once, before paying. The details ride on the
@@ -147,6 +149,27 @@ export async function provisionFromCheckout(params: {
       billing,
       ...(existing ? { promoteBusinessId: existing.id } : {}),
     });
+    if (existing) {
+      const ack = await bindActivationAck({
+        ackId: session.metadata?.activation_ack,
+        businessId: existing.id,
+        actorEmail: email,
+        checkoutSessionId: session.id,
+      });
+      if (!ack.bound) {
+        logWarn("checkout_shop.activation_ack_unbound", { businessId: business.id, reason: ack.reason });
+        await recordAudit({
+          businessId: business.id,
+          entityType: "shop",
+          entityId: business.id,
+          action: "activation.ack_unbound",
+          actor: "system",
+          summary: "Turned on from a paid checkout with no matching approval of the call notice and permissions on record. Review them in Settings.",
+          detail: { reason: ack.reason, checkoutSessionId: session.id },
+          idempotencyKey: `activation-ack-unbound:${session.id}`,
+        }).catch(() => null);
+      }
+    }
     await linkPaidCheckoutToBusiness(billing, business.id).catch((error: unknown) => {
       logWarn("checkout_shop.link_failed", { error: error instanceof Error ? error.message : "unknown" });
     });

@@ -42,6 +42,7 @@ type Sandbox = {
   testedAt: string | null;
   test: SetupTestResult | null;
   opening: string;
+  activation: { noticeVersion: string; setupVersion: string };
   checklist: GoLiveItem[];
   timezone: string;
 };
@@ -866,6 +867,7 @@ function LiveStep({ sandbox, checkoutOpen, canceled }: { sandbox: Sandbox; check
             acceptedTerms: true,
             acceptedSms: true,
           },
+          activation: { recording: true, approved: true, ...sandbox.activation },
         }),
       });
       const json = await res.json().catch(() => ({}));

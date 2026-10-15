@@ -1880,6 +1880,26 @@ model CallReplay {
 
 /// A job one shop could not take, passed to a nearby shop in the same trade.
 /// The caller is always asked first; nothing is shared until they say yes.
+/// What an owner approved when turning a shop on (lib/activation-ack.ts). Append-only; kept even if the shop is deleted.
+model ActivationAcknowledgement {
+  id                String   @id @default(cuid())
+  businessId        String
+  actorEmail        String
+  noticeVersion     String
+  noticeText        String
+  setupVersion      String
+  permissionsJson   String
+  termsVersion      String
+  acceptedRecording Boolean
+  approvedTurnOn    Boolean
+  acceptedTerms     Boolean
+  acceptedSms       Boolean
+  checkoutSessionId String?  @unique
+  createdAt         DateTime @default(now())
+
+  @@index([businessId, createdAt])
+}
+
 model NetworkHandoff {
   id                    String    @id @default(cuid())
   fromBusinessId        String
