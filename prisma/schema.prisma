@@ -165,6 +165,7 @@ model Business {
   payments         Payment[]
   deposits         Deposit[]
   copilotActions   CopilotAction[]
+  commandGrants    CommandGrant[]
   ownerNotifications OwnerNotification[]
   pushSubscriptions  PushSubscription[]
   webhookEvents      WebhookEvent[]
@@ -968,9 +969,40 @@ model CopilotAction {
   resultJson String?
   createdAt  DateTime  @default(now())
   executedAt DateTime?
+  /** Who asked Orvius for this plan; null when Orvius proposed it on its own. */
+  proposedByEmail String?
+  proposedByRole  String?
+  /** owner_approval, owner_confirmation (the owner confirming their own request; not dual control), grant, grant_self. */
+  approvalKind    String?
+  approvedByEmail String?
+  grantId         String?
 
   @@index([businessId, status])
   @@index([businessId, createdAt])
+}
+
+/**
+ * An owner's explicit, expiring permission for one person to approve one kind
+ * of Command plan. Independent of workspace role, autopilot and dispatch
+ * access; rechecked at execution. Revoked, never deleted.
+ */
+model CommandGrant {
+  id             String    @id @default(cuid())
+  businessId     String
+  business       Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  granteeEmail   String
+  action         String
+  /** The effect in plain words, as the owner granted it. */
+  effect         String
+  conditionsJson String    @default("{}")
+  expiresAt      DateTime
+  policyVersion  String
+  grantedByEmail String
+  createdAt      DateTime  @default(now())
+  revokedAt      DateTime?
+  revokedByEmail String?
+
+  @@index([businessId, granteeEmail])
 }
 
 model WaitlistEntry {

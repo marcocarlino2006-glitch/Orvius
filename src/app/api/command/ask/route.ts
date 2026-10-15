@@ -25,7 +25,7 @@ export async function POST(request: Request) {
   if (!limited.ok) return tooManyRequests(limited.retryAfterSec);
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Say what Orvius should do." }, { status: 400 });
-  const result = await askToAct(business, parsed.data.text);
+  const result = await askToAct(business, parsed.data.text, new Date(), { role: authResult.role, email: authResult.email });
   if (result) return NextResponse.json(result);
   try {
     const answer = await askShop(parsed.data.text, business.id);

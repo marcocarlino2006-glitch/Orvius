@@ -5,7 +5,8 @@ import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
 import { personActor, recordAudit } from "@/lib/audit";
 import { sharedRateLimit, tooManyRequests } from "@/lib/rate-limit";
-import { requireEntitledSession, requirePermission } from "@/lib/tenant";
+import { requireEntitledSession } from "@/lib/tenant";
+import { grantsForActor, mayResolve, mayWithdraw } from "@/lib/command-authority";
 import { z } from "zod";
 
 const proposeSchema = z.object({
@@ -120,14 +121,15 @@ export async function POST(request: Request) {
   const url = new URL(request.url);
   const mode = url.searchParams.get("mode") ?? "propose";
 
-  if (mode === "cancel" || mode === "execute" || mode === "resolve") {
-    const approver = await requirePermission("command.approve");
-    if ("error" in approver) return approver.error;
-  }
+  const actor = { role: authResult.role, email: authResult.email };
 
   try {
     if (mode === "resolve") {
       const body = resolveSchema.parse(await request.json());
+      const item = await prisma.copilotAction.findFirst({ where: { id: body.proposalId, businessId: business.id }, select: { action: true } });
+      if (item && !mayResolve(actor, item.action, await grantsForActor(business.id, actor.email))) {
+        return NextResponse.json({ error: "Only the owner, or someone the owner granted this kind of plan, can resolve it." }, { status: 403 });
+      }
       const outcome = await resolveReconcile({ business, proposalId: body.proposalId, happened: body.outcome === "done", by: authResult });
       if (!outcome.ok) return NextResponse.json({ error: outcome.error }, { status: outcome.status });
       return NextResponse.json(outcome);
@@ -145,10 +147,16 @@ export async function POST(request: Request) {
       if (!proposal) {
         return NextResponse.json({ error: "Proposal not found or already used" }, { status: 404 });
       }
-      await prisma.copilotAction.update({
-        where: { id: proposal.id },
+      if (!mayWithdraw(actor, proposal, await grantsForActor(business.id, actor.email))) {
+        return NextResponse.json({ error: "Only the owner, whoever asked for this plan, or a grant holder can withdraw it." }, { status: 403 });
+      }
+      const withdrawn = await prisma.copilotAction.updateMany({
+        where: { id: proposal.id, status: "proposed" },
         data: { status: "cancelled" },
       });
+      if (withdrawn.count === 0) {
+        return NextResponse.json({ error: "This plan already started, so it can't be withdrawn. If it stops partway it is flagged to check." }, { status: 409 });
+      }
       const params = JSON.parse(proposal.paramsJson) as ProposalParams;
       await recordAudit({
         businessId: business.id,
@@ -174,7 +182,7 @@ export async function POST(request: Request) {
     }
 
     const body = proposeSchema.parse(await request.json());
-    const outcome = await proposeAction(business, body);
+    const outcome = await proposeAction(business, body, actor);
     if (!outcome.ok) {
       return NextResponse.json(
         { error: outcome.error, reason: outcome.reason, alternatives: outcome.alternatives },

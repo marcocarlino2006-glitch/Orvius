@@ -52,7 +52,7 @@ export type AskActResult =
 
 type Shop = Pick<Business, "id" | "name" | "timezone" | "hoursJson" | "servicesJson" | "trade"> & { jobLengthsJson?: string | null };
 
-export async function askToAct(shop: Shop, text: string, now = new Date()): Promise<AskActResult | null> {
+export async function askToAct(shop: Shop, text: string, now = new Date(), proposer?: { role: string; email: string }): Promise<AskActResult | null> {
   const parsed = parseActVerb(text);
   if (!parsed) return null;
   const tz = shop.timezone ?? "America/New_York";
@@ -72,7 +72,7 @@ export async function askToAct(shop: Shop, text: string, now = new Date()): Prom
     const job = matchName(tech.rest, named);
     if (!job) return { kind: "clarify", message: `Which customer's job should ${tech.match.name} take?` };
     if ("ambiguous" in job) return { kind: "clarify", message: `More than one open job matches: ${job.ambiguous.map((j) => j.name).join(", ")}. Use the full name.` };
-    const outcome = await proposeAction(shop, { action: "assign_tech", jobId: job.match.id, technicianId: tech.match.id });
+    const outcome = await proposeAction(shop, { action: "assign_tech", jobId: job.match.id, technicianId: tech.match.id }, proposer);
     return outcome.ok
       ? { kind: "proposal", proposal: outcome, message: "Here's the plan. Nothing changes until you approve it." }
       : { kind: "refused", message: outcome.error };
@@ -101,7 +101,7 @@ export async function askToAct(shop: Shop, text: string, now = new Date()): Prom
         options: options.map((d) => ({ label: windowLabel(d, tz), action: "book_window", at: d.toISOString(), leadId: lead.match.id })),
       };
     }
-    const outcome = await proposeAction(shop, { action: "book_window", leadId: lead.match.id, at: at.toISOString() });
+    const outcome = await proposeAction(shop, { action: "book_window", leadId: lead.match.id, at: at.toISOString() }, proposer);
     return outcome.ok
       ? { kind: "proposal", proposal: outcome, message: "Here's the plan. Nothing changes until you approve it." }
       : { kind: "refused", message: outcome.error, alternatives: outcome.alternatives };
@@ -127,7 +127,7 @@ export async function askToAct(shop: Shop, text: string, now = new Date()): Prom
       options: options.map((d) => ({ label: windowLabel(d, tz), action: "reschedule", at: d.toISOString(), jobId: job.match.id })),
     };
   }
-  const outcome = await proposeAction(shop, { action: "reschedule", jobId: job.match.id, at: at.toISOString() });
+  const outcome = await proposeAction(shop, { action: "reschedule", jobId: job.match.id, at: at.toISOString() }, proposer);
   return outcome.ok
     ? { kind: "proposal", proposal: outcome, message: "Here's the plan. Nothing changes until you approve it." }
     : { kind: "refused", message: outcome.error, alternatives: outcome.alternatives };

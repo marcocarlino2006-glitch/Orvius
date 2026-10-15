@@ -3,6 +3,7 @@ import { DEFAULT_JOB_DURATION_MIN, formatShopTime, MAX_SCHEDULE_DAYS } from "@/l
 import { findOpenSlots } from "@/lib/job";
 import { prisma } from "@/lib/prisma";
 import { classifyRequest } from "@/lib/trade-playbooks";
+import { grantsForActor, mayPropose } from "@/lib/command-authority";
 
 export const COPILOT_ACTIONS = ["assign_tech", "mark_contacted", "sms_followup", "book_window", "reschedule"] as const;
 export type CopilotActionName = (typeof COPILOT_ACTIONS)[number];
@@ -91,7 +92,10 @@ async function refuseTaken(shop: Shop, target: SlotTarget, at: Date, what: strin
  * Turn a request into a proposal the owner approves. Nothing changes here: the
  * preview is the plan, and execution re-checks every step (copilot-execute).
  */
-export async function proposeAction(shop: Shop, input: ProposeInput): Promise<ProposeOutcome> {
+export async function proposeAction(shop: Shop, input: ProposeInput, proposer?: { role: string; email: string }): Promise<ProposeOutcome> {
+  if (proposer && !mayPropose(proposer, input.action, await grantsForActor(shop.id, proposer.email))) {
+    return { ok: false, error: "Asking Orvius for this kind of plan needs a Command grant from the owner.", status: 403, reason: "no_command_grant" };
+  }
   let preview = "";
   const params: Record<string, string> = {};
   const tz = shop.timezone;
@@ -183,7 +187,15 @@ export async function proposeAction(shop: Shop, input: ProposeInput): Promise<Pr
   }
 
   const proposal = await prisma.copilotAction.create({
-    data: { businessId: shop.id, action: input.action, paramsJson: JSON.stringify(params), preview, status: "proposed" },
+    data: {
+      businessId: shop.id,
+      action: input.action,
+      paramsJson: JSON.stringify(params),
+      preview,
+      status: "proposed",
+      proposedByEmail: proposer?.email.trim().toLowerCase() ?? null,
+      proposedByRole: proposer?.role ?? null,
+    },
   });
   return { ok: true, proposalId: proposal.id, action: proposal.action, preview, params };
 }

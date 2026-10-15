@@ -1148,3 +1148,27 @@ ALTER TABLE "Job" ADD COLUMN "techAcceptedAt" DATETIME;
 ALTER TABLE "Job" ADD COLUMN "techDeclinedAt" DATETIME;
 ALTER TABLE "Job" ADD COLUMN "techDeclinedBy" TEXT;
 ALTER TABLE "Job" ADD COLUMN "techDeclineReason" TEXT;
+
+
+-- Command grants: owner-issued, expiring, action-scoped approval rights; who proposed and how each plan was approved (2026-10-15)
+ALTER TABLE "CopilotAction" ADD COLUMN "approvalKind" TEXT;
+ALTER TABLE "CopilotAction" ADD COLUMN "approvedByEmail" TEXT;
+ALTER TABLE "CopilotAction" ADD COLUMN "grantId" TEXT;
+ALTER TABLE "CopilotAction" ADD COLUMN "proposedByEmail" TEXT;
+ALTER TABLE "CopilotAction" ADD COLUMN "proposedByRole" TEXT;
+CREATE TABLE IF NOT EXISTS "CommandGrant" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "granteeEmail" TEXT NOT NULL,
+    "action" TEXT NOT NULL,
+    "effect" TEXT NOT NULL,
+    "conditionsJson" TEXT NOT NULL DEFAULT '{}',
+    "expiresAt" DATETIME NOT NULL,
+    "policyVersion" TEXT NOT NULL,
+    "grantedByEmail" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "revokedAt" DATETIME,
+    "revokedByEmail" TEXT,
+    CONSTRAINT "CommandGrant_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE INDEX IF NOT EXISTS "CommandGrant_businessId_granteeEmail_idx" ON "CommandGrant"("businessId", "granteeEmail");

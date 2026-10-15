@@ -93,8 +93,9 @@ async function assignSetup(shop) {
 const call = (mode, body) =>
   POST(new Request(`http://local.test/api/copilot?mode=${mode}`, { method: "POST", body: JSON.stringify(body) }));
 
-test("every role that dispatches by hand may approve; nobody outside the shop can", () => {
-  for (const role of ["owner", "manager", "dispatcher"]) assert.equal(can(role, "command.approve"), true, role);
+test("only the owner approves Command plans by role; anyone else needs an owner's grant", () => {
+  assert.equal(can("owner", "command.approve"), true);
+  for (const role of ["manager", "dispatcher"]) assert.equal(can(role, "command.approve"), false, role);
 });
 
 test("a failure after the change is flagged to check, never re-run, and a person resolves it", async () => {
@@ -176,6 +177,9 @@ test("approve, dismiss and resolve are refused outside the shop; GET lists items
   const shop = await makeShop();
   const dispatcher = `dispatch-${uid()}@example.test`;
   await prisma.membership.create({ data: { businessId: shop.id, email: dispatcher, role: "dispatcher" } });
+  await prisma.commandGrant.create({
+    data: { businessId: shop.id, granteeEmail: dispatcher, action: "assign_tech", effect: "assigns", expiresAt: new Date(Date.now() + 86_400_000), policyVersion: "command-authority-1", grantedByEmail: shop.ownerEmail },
+  });
   const { proposal } = await assignSetup(shop);
 
   signedInAs = `stranger-${uid()}@example.test`;

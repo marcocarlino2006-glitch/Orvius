@@ -1,3 +1,4 @@
+import { COMMAND_POLICY_VERSION, decideApproval, grantsForActor } from "@/lib/command-authority";
 import type { Business } from "@prisma/client";
 import { personActor, recordAudit, type AuditInput } from "@/lib/audit";
 import { DEFAULT_JOB_DURATION_MIN } from "@/lib/availability";
@@ -345,12 +346,19 @@ async function flagForCheck(proposalId: string, detail: Record<string, unknown>)
 export async function executeProposal(params: {
   business: { id: string; name: string };
   proposalId: string;
-  by?: { role: string; email: string };
+  by: { role: string; email: string };
 }): Promise<ExecuteOutcome> {
   const { business } = params;
+  const pending = await prisma.copilotAction.findFirst({
+    where: { id: params.proposalId, businessId: business.id, status: "proposed" },
+    select: { action: true, proposedByEmail: true },
+  });
+  if (!pending) return { ok: false, error: "Proposal not found or already used", status: 404 };
+  const decision = decideApproval({ actor: params.by, proposal: pending, grants: await grantsForActor(business.id, params.by.email) });
+  if (!decision.ok) return { ok: false, error: decision.error, status: 403, reason: "no_command_authority" };
   const claimed = await prisma.copilotAction.updateMany({
     where: { id: params.proposalId, businessId: business.id, status: "proposed" },
-    data: { status: "executing" },
+    data: { status: "executing", approvalKind: decision.kind, approvedByEmail: params.by.email.trim().toLowerCase(), grantId: decision.grantId },
   });
   if (claimed.count === 0) {
     return { ok: false, error: "Proposal not found or already used", status: 404 };
@@ -402,9 +410,15 @@ export async function executeProposal(params: {
       entityType: outcome.entity.type,
       entityId: outcome.entity.id,
       action: "copilot.executed",
-      ...(params.by ? personActor(params.by) : { actor: "owner" as const }),
-      summary: outcome.summary,
-      detail: { proposalId: proposal.id, action: proposal.action, preview: proposal.preview, ...outcome.result },
+      ...personActor(params.by),
+      summary: decision.kind === "owner_confirmation" ? `${outcome.summary} (Owner confirmed their own request.)` : outcome.summary,
+      detail: {
+        proposalId: proposal.id,
+        action: proposal.action,
+        preview: proposal.preview,
+        approval: { kind: decision.kind, grantId: decision.grantId, policyVersion: COMMAND_POLICY_VERSION, proposedBy: proposal.proposedByEmail, approvedBy: params.by.email },
+        ...outcome.result,
+      },
       jobId: outcome.links.jobId ?? null,
       leadId: outcome.links.leadId ?? null,
       customerId: outcome.links.customerId ?? null,

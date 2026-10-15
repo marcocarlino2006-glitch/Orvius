@@ -97,7 +97,7 @@ test("brief cites the job, recommends the skilled technician, and approval runs 
 
     const proposal = await propose(shop.id, "assign_tech", { jobId: job.id, technicianId: ana.id });
     const runs = await Promise.all(
-      Array.from({ length: 5 }, () => executeProposal({ business: shop, proposalId: proposal.id })),
+      Array.from({ length: 5 }, () => executeProposal({ business: shop, proposalId: proposal.id, by: { role: "owner", email: "owner@example.test" } })),
     );
     assert.equal(runs.filter((r) => r.ok).length, 1, "approval must run exactly once");
     const ok = runs.find((r) => r.ok);
@@ -128,7 +128,7 @@ test("approval re-checks the calendar and refuses a technician who became busy",
     const proposal = await propose(shop.id, "assign_tech", { jobId: job.id, technicianId: ana.id });
     await unassignedJob(shop.id, { title: "Other job", technicianId: ana.id, scheduledAt: tomorrowAt(11) });
 
-    const outcome = await executeProposal({ business: shop, proposalId: proposal.id });
+    const outcome = await executeProposal({ business: shop, proposalId: proposal.id, by: { role: "owner", email: "owner@example.test" } });
     assert.equal(outcome.ok, false);
     assert.equal(outcome.reason, "technician_busy");
     assert.equal((await prisma.job.findUniqueOrThrow({ where: { id: job.id } })).technicianId, null);
@@ -158,13 +158,13 @@ test("a waiting lead gets one follow-up recommendation; failed SMS changes nothi
     assert.ok(brief.uncertainty.some((u) => /generated/.test(u)));
 
     const sms = await propose(shop.id, "sms_followup", { leadId: lead.id });
-    const failed = await executeProposal({ business: shop, proposalId: sms.id });
+    const failed = await executeProposal({ business: shop, proposalId: sms.id, by: { role: "owner", email: "owner@example.test" } });
     assert.equal(failed.ok, false, "no Twilio in tests, so the text cannot send");
     assert.equal((await prisma.lead.findUniqueOrThrow({ where: { id: lead.id } })).status, "new");
     assert.equal((await prisma.copilotAction.findUniqueOrThrow({ where: { id: sms.id } })).status, "proposed");
 
     const mark = await propose(shop.id, "mark_contacted", { leadId: lead.id });
-    const done = await executeProposal({ business: shop, proposalId: mark.id });
+    const done = await executeProposal({ business: shop, proposalId: mark.id, by: { role: "owner", email: "owner@example.test" } });
     assert.equal(done.ok, true);
     assert.equal((await prisma.lead.findUniqueOrThrow({ where: { id: lead.id } })).status, "contacted");
     const audit = await prisma.auditEvent.findFirstOrThrow({ where: { leadId: lead.id, action: "copilot.executed" } });
@@ -230,7 +230,7 @@ test("another workspace cannot run, or be recommended, a proposal it does not ow
     const job = await unassignedJob(a.id);
     const proposal = await propose(a.id, "assign_tech", { jobId: job.id, technicianId: tech.id });
 
-    const foreign = await executeProposal({ business: b, proposalId: proposal.id });
+    const foreign = await executeProposal({ business: b, proposalId: proposal.id, by: { role: "owner", email: "owner@example.test" } });
     assert.equal(foreign.ok, false);
     assert.equal(foreign.status, 404);
     assert.equal((await prisma.job.findUniqueOrThrow({ where: { id: job.id } })).technicianId, null);

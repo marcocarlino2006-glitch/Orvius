@@ -153,7 +153,7 @@ test("a held request is booked only through an approved proposal at a real open 
   const booked = await prisma.job.findUniqueOrThrow({ where: { leadId: lead.id } });
   assert.equal(booked.scheduledAt.getTime(), slot.getTime(), "booked at exactly the approved time");
   assert.ok(await prisma.auditEvent.findFirst({ where: { businessId: shop.id, action: "copilot.executed", jobId: booked.id } }));
-  const twice = await executeProposal({ business: shop, proposalId: proposal.proposalId });
+  const twice = await executeProposal({ business: shop, proposalId: proposal.proposalId, by: { role: "owner", email: "owner@example.test" } });
   assert.equal(twice.ok, false, "a proposal runs once");
 });
 
@@ -171,7 +171,7 @@ test("stale schedules: a window filled after the proposal is refused at approval
   }
   assert.equal(await isWindowOpen(shop, { kind: "lead", lead }, slot), false);
 
-  const outcome = await executeProposal({ business: shop, proposalId: proposal.proposalId });
+  const outcome = await executeProposal({ business: shop, proposalId: proposal.proposalId, by: { role: "owner", email: "owner@example.test" } });
   assert.equal(outcome.ok, false);
   assert.equal(outcome.reason, "stale_window");
   assert.match(outcome.error, /Nothing was changed/);
@@ -198,7 +198,7 @@ test("reschedule: re-checks the window and the tech, clears the old confirmation
   const target = windows.find((d) => d.getTime() !== job.scheduledAt.getTime());
   const proposal = await proposeAction(shop, { action: "reschedule", jobId: job.id, at: target.toISOString() });
   assert.equal(proposal.ok, true, proposal.error);
-  const done = await executeProposal({ business: shop, proposalId: proposal.proposalId });
+  const done = await executeProposal({ business: shop, proposalId: proposal.proposalId, by: { role: "owner", email: "owner@example.test" } });
   assert.equal(done.ok, true, done.error);
   const moved = await prisma.job.findUniqueOrThrow({ where: { id: job.id } });
   assert.equal(moved.scheduledAt.getTime(), target.getTime());
