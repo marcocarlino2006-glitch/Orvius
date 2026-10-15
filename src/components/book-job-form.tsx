@@ -3,6 +3,7 @@
 import { suggestedSchedule } from "@/lib/job-schedule";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { bookJob } from "@/lib/job-patch-client";
 
 function toDatetimeLocal(date: Date) {
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -32,14 +33,10 @@ export function BookJobForm({
     setError(null);
 
     try {
-      const res = await fetch("/api/jobs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          leadId,
-          scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : null,
-          notes: notes.trim() || null,
-        }),
+      const res = await bookJob({
+        leadId,
+        scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : null,
+        notes: notes.trim() || null,
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not book job");

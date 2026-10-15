@@ -4,10 +4,19 @@
  * tech off or already booked, nobody free) and says why; the person can still
  * do it after seeing the reason, and that override lands in the job's history.
  */
-export async function patchJob(jobId: string, body: Record<string, unknown>): Promise<Response> {
+export function patchJob(jobId: string, body: Record<string, unknown>): Promise<Response> {
+  return sendWithClashConfirm(`/api/jobs/${jobId}`, "PATCH", body);
+}
+
+/** Booking a request at a chosen time runs the same check. */
+export function bookJob(body: Record<string, unknown>): Promise<Response> {
+  return sendWithClashConfirm("/api/jobs", "POST", body);
+}
+
+async function sendWithClashConfirm(url: string, method: "PATCH" | "POST", body: Record<string, unknown>): Promise<Response> {
   const send = (extra: Record<string, unknown> = {}) =>
-    fetch(`/api/jobs/${jobId}`, {
-      method: "PATCH",
+    fetch(url, {
+      method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...body, ...extra }),
     });

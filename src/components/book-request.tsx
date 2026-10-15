@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "@/components/toaster";
+import { bookJob } from "@/lib/job-patch-client";
 
 type Window = { at: string; label: string };
 
@@ -45,11 +46,7 @@ export function BookRequest({
     setBusy(key);
     setError(null);
     try {
-      const res = await fetch("/api/jobs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ leadId, scheduledAt: at, scheduledLocal: local, notes: notes.trim() || null }),
-      });
+      const res = await bookJob({ leadId, scheduledAt: at, scheduledLocal: local, notes: notes.trim() || null });
       const data = (await res.json().catch(() => ({}))) as { job?: { id: string }; error?: string; code?: string };
       if (!res.ok || !data.job) {
         throw new Error(
