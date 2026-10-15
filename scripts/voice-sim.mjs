@@ -40,6 +40,8 @@ import { withCallerSpelling } from "../src/lib/spelled-name.ts";
 import { VOICE_SIM_SHOPS, voiceSimToolSecret } from "../src/lib/voice-sim-tools.ts";
 import { summarizeTurnLatencies } from "../src/lib/call-latency.ts";
 import { gradeScenario, hydrateLearned, scenarios as builtIn } from "./voice-scenarios.mjs";
+import { execFileSync } from "node:child_process";
+import { checkVoiceAuthorization, loadVoiceAuthorization, planWithinAuthorization } from "./lib/voice-authorization.mjs";
 
 const KEY = process.env.VAPI_API_KEY?.trim();
 const FROM_ID = process.env.VOICE_SIM_RECEPTIONIST_PHONE_ID?.trim();
@@ -96,6 +98,45 @@ function mergeDeep(base, extra) {
   return out;
 }
 
+/*
+  Paid calls are off unless a separate authorization binds this exact commit,
+  the protected environment, test-only numbers, consented destinations, the
+  scenario profile, and the caps and budget the budget owner chose. Checked
+  before anything reaches Vapi or the app, including the learned-scenario read.
+*/
+function currentCommit() {
+  try {
+    return execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim().toLowerCase();
+  } catch {
+    return process.env.GITHUB_SHA?.trim().toLowerCase() || null;
+  }
+}
+const authorization = (() => {
+  let raw;
+  try {
+    raw = loadVoiceAuthorization();
+  } catch (error) {
+    console.error(`Paid voice test refused: the authorization is not valid JSON (${error.message})`);
+    process.exit(2);
+  }
+  const checked = checkVoiceAuthorization(raw, {
+    headCommit: currentCommit(),
+    environment: process.env.VOICE_TEST_ENVIRONMENT?.trim() || null,
+    receptionistPhoneId: FROM_ID,
+    callerPhoneId: CALLER_ID,
+    transferNumber: process.env.VOICE_SIM_TRANSFER_NUMBER?.trim() || null,
+  });
+  if (!checked.ok) {
+    console.error(`Paid voice test refused:\n- ${checked.problems.join("\n- ")}`);
+    process.exit(2);
+  }
+  return checked.auth;
+})();
+if (args.includes("--learned") && !authorization.scenarioProfile.includes("learned")) {
+  console.error("Paid voice test refused: --learned reads production call history, which this authorization does not include");
+  process.exit(2);
+}
+
 const trade = flag("--trade") ?? "HVAC";
 const shop = VOICE_SIM_SHOPS[trade];
 if (!shop) {
@@ -137,7 +178,7 @@ function receptionistAssistant() {
   });
   delete config.serverUrl;
   delete config.serverUrlSecret;
-  return mergeDeep({ ...config, name: "orvius-voice-sim-receptionist", maxDurationSeconds: 200 }, OVERRIDE);
+  return mergeDeep({ ...config, name: "orvius-voice-sim-receptionist", maxDurationSeconds: Math.min(200, Math.floor(authorization.maxMinutesPerCall * 60)) }, OVERRIDE);
 }
 
 const PERSONA_RULES = `You are a person phoning a heating and cooling company. You are the CALLER, not the business.
@@ -163,7 +204,7 @@ function callerAssistant(s) {
       : { provider: "11labs", voiceId: "pNInz6obpgDQGcFmaJgB" },
     transcriber: es ? { provider: "deepgram", model: "nova-3", language: "multi" } : { provider: "deepgram", model: "nova-2" },
     endCallFunctionEnabled: true,
-    maxDurationSeconds: 200,
+    maxDurationSeconds: Math.min(200, Math.floor(authorization.maxMinutesPerCall * 60)),
   };
 }
 
@@ -333,6 +374,9 @@ async function main() {
   const queue = plan();
   const receptionistPhone = await vapi(`/phone-number/${FROM_ID}`);
   const callerPhone = await vapi(`/phone-number/${CALLER_ID}`);
+  const outside = planWithinAuthorization(authorization, { destination: receptionistPhone.number, scenarios: queue });
+  if (outside.length) throw new Error(`Paid voice test refused before any call:\n- ${outside.join("\n- ")}`);
+  let spentUsd = 0;
   const previousAssistantId = receptionistPhone.assistantId ?? null;
   const config = receptionistAssistant();
   const prompt = config.model.messages?.find((m) => m.role === "system")?.content ?? "";
@@ -347,6 +391,11 @@ async function main() {
     await vapi(`/phone-number/${FROM_ID}`, { method: "PATCH", body: JSON.stringify({ assistantId: receptionist.id }) });
     const worker = async () => {
       while (queue.length) {
+        if (spentUsd >= authorization.budgetUsd) {
+          console.log(`🛑 Budget ceiling $${authorization.budgetUsd} reached ($${spentUsd.toFixed(2)} spent); ${queue.length} calls not placed. Abort owner: ${authorization.abortOwner}`);
+          queue.length = 0;
+          break;
+        }
         const s = queue.shift();
         const wait = nextStart - Date.now();
         nextStart = Math.max(Date.now(), nextStart) + STAGGER_MS;
@@ -367,6 +416,7 @@ async function main() {
             }
           }
           const call = await waitForEnd(legId);
+          spentUsd += Number(call.cost ?? 0);
           const r = grade(s, call, prompt);
           results.push(r);
           console.log(

@@ -1,60 +1,54 @@
-name: Voice nightly
+name: Voice full run
 
-# Real phone calls between the receptionist Orvius provisions and scripted
-# callers (scripts/voice-sim.mjs). Each call is billed by Vapi on both legs, so
-# this runs once a night and only when the three secrets below are set; without
-# them the job says so and exits green rather than pretending to have tested.
+# The full scenario library over real calls (scripts/voice-sim.mjs). Billed by
+# Vapi on both legs, so it is OFF by default: no schedule, no PR trigger. It
+# runs only by hand in the protected `paid-voice-tests` environment with a
+# separate authorization that binds the reviewed commit, test-only numbers,
+# consented destinations, scenario profile, caps and budget. Transfers stay off
+# unless that authorization separately allows them.
 on:
-  schedule:
-    - cron: "17 8 * * *"
   workflow_dispatch:
+    inputs:
+      authorization:
+        description: "Paid voice test authorization (JSON, written by the budget owner). Runs nothing without it."
+        type: string
+        required: true
+
+permissions:
+  contents: read
 
 jobs:
   voice:
     runs-on: ubuntu-latest
+    environment: paid-voice-tests
     timeout-minutes: 120
-    env:
-      VAPI_API_KEY: ${{ secrets.VAPI_API_KEY }}
-      VOICE_SIM_RECEPTIONIST_PHONE_ID: ${{ secrets.VOICE_SIM_RECEPTIONIST_PHONE_ID }}
-      VOICE_SIM_CALLER_PHONE_ID: ${{ secrets.VOICE_SIM_CALLER_PHONE_ID }}
-      # Optional: where warm transfers ring during the sim. Unset runs with transfers off.
-      VOICE_SIM_TRANSFER_NUMBER: ${{ secrets.VOICE_SIM_TRANSFER_NUMBER }}
-      # Optional: replays scenarios learned from last fortnight's real calls that went wrong.
-      ORVIUS_ADMIN_KEY: ${{ secrets.ORVIUS_ADMIN_KEY }}
     steps:
-      - name: Check secrets
-        id: gate
-        run: |
-          if [ -n "$VAPI_API_KEY" ] && [ -n "$VOICE_SIM_RECEPTIONIST_PHONE_ID" ] && [ -n "$VOICE_SIM_CALLER_PHONE_ID" ]; then
-            echo "run=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Skipped — set VAPI_API_KEY, VOICE_SIM_RECEPTIONIST_PHONE_ID and VOICE_SIM_CALLER_PHONE_ID in repo secrets to run real voice calls."
-          fi
-      - if: steps.gate.outputs.run == 'true'
-        uses: actions/checkout@v4
-      - if: steps.gate.outputs.run == 'true'
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ fromJSON(inputs.authorization).commit }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
-      - if: steps.gate.outputs.run == 'true'
-        run: npm ci
-      - if: steps.gate.outputs.run == 'true'
-        name: Run voice simulator
-        # Every launched trade, one receptionist each; a trade that fails still lets the others run.
+      - run: npm ci
+      - name: Run authorized voice simulator
+        env:
+          VOICE_TEST_AUTHORIZATION: ${{ inputs.authorization }}
+          VOICE_TEST_ENVIRONMENT: paid-voice-tests
+          VAPI_API_KEY: ${{ secrets.VAPI_API_KEY }}
+          VOICE_SIM_RECEPTIONIST_PHONE_ID: ${{ secrets.VOICE_SIM_RECEPTIONIST_PHONE_ID }}
+          VOICE_SIM_CALLER_PHONE_ID: ${{ secrets.VOICE_SIM_CALLER_PHONE_ID }}
+          VOICE_SIM_TRANSFER_NUMBER: ${{ fromJSON(inputs.authorization).transfer == true && secrets.VOICE_SIM_TRANSFER_NUMBER || '' }}
         run: |
           status=0
-          npm run sim:voice -- --trade HVAC --learned --min-pass 0.9 --json voice-results-hvac.json --report voice-report-hvac.md || status=1
-          npm run sim:voice -- --trade Plumbing --min-pass 0.9 --json voice-results-plumbing.json --report voice-report-plumbing.md || status=1
-          npm run sim:voice -- --trade Electrical --min-pass 0.9 --json voice-results-electrical.json --report voice-report-electrical.md || status=1
+          for trade in HVAC Plumbing Electrical; do
+            npm run sim:voice -- --trade "$trade" --min-pass 0.9 --json "voice-results-$trade.json" --report "voice-report-$trade.md" || status=1
+          done
           exit $status
-      - if: always() && steps.gate.outputs.run == 'true'
+      - if: always()
         run: cat voice-report-*.md >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
-      # Results hold synthetic callers only — the receptionist's tools answer
-      # from the app's database-free sandbox and call reports go nowhere, so no
-      # shop or customer data is ever in these transcripts.
-      - if: always() && steps.gate.outputs.run == 'true'
+      - if: always()
         uses: actions/upload-artifact@v4
         with:
           name: voice-results

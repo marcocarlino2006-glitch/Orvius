@@ -1,19 +1,19 @@
 name: Voice gate
 
-# Pre-deploy gate for anything that changes what the receptionist says or
-# hears: real calls through the ship-blocking scenarios in
-# scripts/voice-scenarios.mjs (danger instructions, honesty about being
-# automated, no invented prices, times, names or discounts, correct capture).
-# One failure fails the check.
+# Real calls through the ship-blocking scenarios in scripts/voice-scenarios.mjs.
+# Every run is billed by Vapi on both legs, so it is OFF by default.
 #
-# Every run places real calls billed by Vapi on both legs, so it never starts
-# on its own. It runs only when someone opts in: adds the `run-voice-gate`
-# label to a pull request (one run per labelling), or starts it by hand with
-# confirm_paid_calls ticked. On ordinary pushes to a PR that touches these
-# files, the `reminder` job only posts a warning that the change is untested.
+# A pull request that touches the receptionist only gets a warning (the
+# `reminder` job: no checkout, no secrets). Labels, comments and other PR
+# events are requests or status, never permission to run. The paid run starts
+# only by hand, in the protected `paid-voice-tests` environment, with a
+# separate authorization (see scripts/lib/voice-authorization.mjs) that binds
+# the reviewed commit, test-only numbers, consented destinations, scenario
+# profile, and the caps and budget the budget owner chose. The simulator
+# refuses before any provider call when the authorization does not match.
+# Offline voice-policy, grader and tool-reply checks run in perfect-standards.
 on:
   pull_request:
-    types: [opened, synchronize, reopened, labeled]
     paths:
       - src/lib/vapi.ts
       - src/lib/ai-policy.ts
@@ -27,59 +27,52 @@ on:
       - src/lib/voice-sim-tools.ts
   workflow_dispatch:
     inputs:
-      confirm_paid_calls:
-        description: "This places real, billed calls through Vapi. Tick to confirm."
-        type: boolean
+      authorization:
+        description: "Paid voice test authorization (JSON, written by the budget owner). Runs nothing without it."
+        type: string
         required: true
-        default: false
+
+permissions:
+  contents: read
 
 jobs:
   reminder:
-    if: github.event_name == 'pull_request' && github.event.action != 'labeled'
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - run: echo "::warning::This PR changes what the receptionist says or hears. The paid voice gate has not run; add the run-voice-gate label to run it once."
+      - run: echo "::warning::This PR changes what the receptionist says or hears. No paid voice test has run; one needs a separate manual authorization."
 
   gate:
-    if: >-
-      (github.event_name == 'workflow_dispatch' && inputs.confirm_paid_calls) ||
-      (github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'run-voice-gate')
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    environment: paid-voice-tests
     timeout-minutes: 60
-    env:
-      VAPI_API_KEY: ${{ secrets.VAPI_API_KEY }}
-      VOICE_SIM_RECEPTIONIST_PHONE_ID: ${{ secrets.VOICE_SIM_RECEPTIONIST_PHONE_ID }}
-      VOICE_SIM_CALLER_PHONE_ID: ${{ secrets.VOICE_SIM_CALLER_PHONE_ID }}
     steps:
-      - name: Check secrets
-        id: gate
-        run: |
-          if [ -n "$VAPI_API_KEY" ] && [ -n "$VOICE_SIM_RECEPTIONIST_PHONE_ID" ] && [ -n "$VOICE_SIM_CALLER_PHONE_ID" ]; then
-            echo "run=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "run=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::Voice gate NOT run — set VAPI_API_KEY, VOICE_SIM_RECEPTIONIST_PHONE_ID and VOICE_SIM_CALLER_PHONE_ID in repo secrets. This receptionist change has not been call-tested."
-          fi
-      - if: steps.gate.outputs.run == 'true'
-        uses: actions/checkout@v4
-      - if: steps.gate.outputs.run == 'true'
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ fromJSON(inputs.authorization).commit }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
-      - if: steps.gate.outputs.run == 'true'
-        run: npm ci
-      - if: steps.gate.outputs.run == 'true'
-        name: Run gate scenarios
+      - run: npm ci
+      - name: Run authorized gate scenarios
+        env:
+          VOICE_TEST_AUTHORIZATION: ${{ inputs.authorization }}
+          VOICE_TEST_ENVIRONMENT: paid-voice-tests
+          VAPI_API_KEY: ${{ secrets.VAPI_API_KEY }}
+          VOICE_SIM_RECEPTIONIST_PHONE_ID: ${{ secrets.VOICE_SIM_RECEPTIONIST_PHONE_ID }}
+          VOICE_SIM_CALLER_PHONE_ID: ${{ secrets.VOICE_SIM_CALLER_PHONE_ID }}
         run: |
           status=0
           for trade in HVAC Plumbing Electrical; do
             npm run sim:gate -- --trade "$trade" --json "voice-gate-$trade.json" --report "voice-gate-$trade.md" || status=1
           done
           exit $status
-      - if: always() && steps.gate.outputs.run == 'true'
+      - if: always()
         run: cat voice-gate-*.md >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
-      - if: always() && steps.gate.outputs.run == 'true'
+      - if: always()
         uses: actions/upload-artifact@v4
         with:
           name: voice-gate
