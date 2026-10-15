@@ -225,16 +225,23 @@ export function SettingsCenter({
     setExporting(true);
     setError(null);
     try {
-      const res = await fetch("/api/account/export");
-      if (!res.ok) throw new Error("Export failed");
-      const blob = await res.blob();
-      const match = /filename="([^"]+)"/.exec(res.headers.get("Content-Disposition") ?? "");
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = match?.[1] ?? "orvius-export.json";
-      a.click();
-      URL.revokeObjectURL(url);
+      let next: string | null = "/api/account/export";
+      let parts = 0;
+      while (next && parts < 50) {
+        const res: Response = await fetch(next);
+        if (!res.ok) throw new Error(parts ? `Export stopped after part ${parts}` : "Export failed");
+        const text = await res.text();
+        const match = /filename="([^"]+)"/.exec(res.headers.get("Content-Disposition") ?? "");
+        const url = URL.createObjectURL(new Blob([text], { type: "application/json" }));
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = match?.[1] ?? `orvius-export-part${parts + 1}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        parts += 1;
+        next = (JSON.parse(text) as { nextPage?: string | null }).nextPage ?? null;
+      }
+      if (next) throw new Error(`Downloaded ${parts} parts; the rest is at ${next}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Export failed");
     } finally {
