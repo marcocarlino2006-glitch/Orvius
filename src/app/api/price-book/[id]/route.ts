@@ -13,7 +13,7 @@ export async function PATCH(request: Request, { params }: Params) {
     const updated = await prisma.priceBookItem.updateMany({ where: { id, businessId: business.id }, data: entry });
     if (!updated.count) throw new FieldError("Not found", 404);
     return { ok: true };
-  });
+  }, "money.adjust");
 }
 
 /** Retired, not deleted: jobs that used it keep their lines. */
@@ -23,5 +23,5 @@ export async function DELETE(_request: Request, { params }: Params) {
     const updated = await prisma.priceBookItem.updateMany({ where: { id, businessId: business.id }, data: { isActive: false } });
     if (!updated.count) throw new FieldError("Not found", 404);
     return { ok: true };
-  });
+  }, "money.adjust");
 }

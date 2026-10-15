@@ -16,5 +16,5 @@ export async function POST(request: Request) {
       ? await prisma.priceBookItem.update({ where: { id: existing.id }, data: { ...entry, isActive: true } })
       : await prisma.priceBookItem.create({ data: { ...entry, businessId: business.id } });
     return { item: { id: item.id, name: item.name, kind: item.kind, unitCents: item.unitCents, description: item.description } };
-  });
+  }, "money.adjust");
 }

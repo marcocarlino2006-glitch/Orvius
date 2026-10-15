@@ -91,6 +91,9 @@ async function runProposal(
     let smsSid: string | undefined;
     if (action === "sms_followup") {
       if (!lead.phone) return { error: "Lead has no phone", status: 400 };
+      if (lead.status !== "new" && lead.status !== "contacted") {
+        return { error: `${who} is already marked ${lead.status}, so no follow-up went out. Nothing was changed.`, status: 409, reason: "lead_moved_on" };
+      }
       let sms: Awaited<ReturnType<typeof sendCustomerSms>>;
       try {
         sms = await sendCustomerSms({
@@ -308,6 +311,9 @@ export type ExecuteOutcome =
 /** An approval still "executing" after this long crashed mid-run: someone has to check what happened. */
 export const STALE_EXECUTING_MS = 5 * 60_000;
 
+/** A plan approved later than this was made on an old picture of the shop; ask for a fresh one. */
+export const PROPOSAL_FRESH_MS = 12 * 60 * 60_000;
+
 /**
  * Proposal lifecycle (CopilotAction.status):
  *   proposed → executing → executed      confirmed success
@@ -353,9 +359,12 @@ export async function executeProposal(params: {
   const { business } = params;
   const pending = await prisma.copilotAction.findFirst({
     where: { id: params.proposalId, businessId: business.id, status: "proposed" },
-    select: { action: true, proposedByEmail: true },
+    select: { action: true, proposedByEmail: true, createdAt: true },
   });
   if (!pending) return { ok: false, error: "Proposal not found or already used", status: 404 };
+  if (Date.now() - pending.createdAt.getTime() > PROPOSAL_FRESH_MS) {
+    return { ok: false, error: "This plan is more than 12 hours old, so it may not fit the shop any more. Ask Command for a fresh one. Nothing was changed.", status: 409, reason: "proposal_stale" };
+  }
   const decision = decideApproval({ actor: params.by, proposal: pending, grants: await grantsForActor(business.id, params.by.email) });
   if (!decision.ok) return { ok: false, error: decision.error, status: 403, reason: "no_command_authority" };
   const claimed = await prisma.copilotAction.updateMany({

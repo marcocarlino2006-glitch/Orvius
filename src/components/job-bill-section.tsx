@@ -47,6 +47,9 @@ export function JobBillSection({
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  /** Set when the customer already has this bill: changing it needs a reason on the record. */
+  const [reasonNeeded, setReasonNeeded] = useState(false);
+  const [reason, setReason] = useState("");
 
   const totalCents = Math.round(Number(total.replace(/[^0-9.]/g, "")) * 100);
   const valid = Number.isFinite(totalCents) && totalCents >= 100;
@@ -62,10 +65,13 @@ export function JobBillSection({
       const res = await fetch(`/api/jobs/${jobId}/invoice`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ totalCents, send }),
+        body: JSON.stringify({ totalCents, send, ...(reasonNeeded && reason.trim() ? { reason: reason.trim() } : {}) }),
       });
       const data = await res.json();
+      if (res.status === 409 && data.code === "bill_committed") setReasonNeeded(true);
       if (!res.ok) throw new Error(data.error ?? "Could not bill this job");
+      setReasonNeeded(false);
+      setReason("");
       if (send && data.sms?.sent) setNote("Pay link texted to the customer.");
       else if (send) setNote("Link ready, but the text did not send. Copy it below.");
       else setNote("Pay link ready. Copy it below.");
@@ -145,6 +151,19 @@ export function JobBillSection({
           disabled={busy}
         />
       </label>
+      {reasonNeeded ? (
+        <label className="job-bill-field">
+          <span className="label">Why the bill changed</span>
+          <input
+            className="input mt-1.5"
+            value={reason}
+            maxLength={300}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="e.g. Customer added a second zone on site"
+            disabled={busy}
+          />
+        </label>
+      ) : null}
       {priced && priced.taxCents > 0 ? (
         <p className="job-money-lead">
           Plus {formatTaxRate(taxBps)} sales tax ({formatCentsExact(priced.taxCents)}): {formatCentsExact(priced.totalCents)} total.
@@ -162,7 +181,7 @@ export function JobBillSection({
           <button
             type="button"
             className="btn btn-void text-sm"
-            disabled={busy || !valid}
+            disabled={busy || !valid || (reasonNeeded && !reason.trim())}
             onClick={() => void bill_(true)}
           >
             {busy
@@ -175,7 +194,7 @@ export function JobBillSection({
         <button
           type="button"
           className="btn btn-secondary text-sm"
-          disabled={busy || !valid}
+          disabled={busy || !valid || (reasonNeeded && !reason.trim())}
           onClick={() => void bill_(false)}
         >
           {invoice ? "Update bill" : "Create pay link"}
