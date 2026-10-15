@@ -1,0 +1,54 @@
+{
+  "note": "Synthetic. No real shop, call or invoice. 'batches' expand to calls: count calls of the given duration and reported cost spread over the window. Covers a normal monthly shop, an annual shop with a discount, a past-due shop over allowance, a pilot, a demo, a self-test, a cost tail, long/urgent/transfer calls, unreported cost, and overage collected/failed/refunded/disputed/outstanding/waived.",
+  "now": "2026-10-15T00:00:00.000Z",
+  "shops": [
+    { "id": "s-month", "environment": "production", "plan": "pro", "interval": "month", "billingStatus": "active", "pilot": false, "signupMonth": "2026-07" },
+    { "id": "s-year", "environment": "production", "plan": "line", "interval": "year", "billingStatus": "active", "pilot": false, "signupMonth": "2026-08" },
+    { "id": "s-late", "environment": "production", "plan": "line", "interval": "month", "billingStatus": "past_due", "pilot": false, "signupMonth": "2026-08" },
+    { "id": "s-pilot", "environment": "production", "plan": null, "interval": null, "billingStatus": null, "pilot": true, "signupMonth": "2026-09" },
+    { "id": "s-demo", "environment": "demo", "plan": "pro", "interval": "month", "billingStatus": "active", "pilot": false, "signupMonth": "2026-09" },
+    { "id": "s-self", "environment": "production", "plan": "pro", "interval": "month", "billingStatus": "active", "pilot": false, "signupMonth": "2026-09", "selfTest": true }
+  ],
+  "batches": [
+    { "businessId": "s-month", "count": 96, "durationSec": 150, "costMicros": 180000 },
+    { "businessId": "s-month", "count": 2, "durationSec": 1200, "costMicros": 1900000, "tag": "long" },
+    { "businessId": "s-month", "count": 1, "durationSec": 2400, "costMicros": 4200000, "tag": "tail" },
+    { "businessId": "s-month", "count": 1, "durationSec": 0, "costMicros": 0, "answered": false },
+    { "businessId": "s-year", "count": 40, "durationSec": 120, "costMicros": 150000 },
+    { "businessId": "s-year", "count": 5, "durationSec": 200, "costMicros": null, "tag": "unreported" },
+    { "businessId": "s-late", "count": 30, "durationSec": 180, "costMicros": 200000, "urgent": true },
+    { "businessId": "s-late", "count": 3, "durationSec": 400, "costMicros": 500000, "humanTransfer": true },
+    { "businessId": "s-pilot", "count": 25, "durationSec": 140, "costMicros": 170000 },
+    { "businessId": "s-demo", "count": 50, "durationSec": 90, "costMicros": 100000 },
+    { "businessId": "s-self", "count": 4, "durationSec": 60, "costMicros": 90000 }
+  ],
+  "texts": [
+    { "businessId": "s-month", "at": "2026-10-01T12:00:00.000Z", "segments": 220 },
+    { "businessId": "s-year", "at": "2026-10-02T12:00:00.000Z", "segments": 90, "costMicros": 990000 },
+    { "businessId": "s-demo", "at": "2026-10-02T12:00:00.000Z", "segments": 500 }
+  ],
+  "model": [
+    { "businessId": "s-month", "at": "2026-10-03T12:00:00.000Z", "micros": 1500000 },
+    { "businessId": "s-pilot", "at": "2026-10-03T12:00:00.000Z", "micros": 900000 }
+  ],
+  "fixed": [
+    { "businessId": "s-month", "month": "2026-10", "kind": "number", "cents": 115, "source": "invoice" },
+    { "businessId": "s-year", "month": "2026-10", "kind": "number", "cents": 115, "source": "estimate" },
+    { "businessId": "s-month", "month": "2026-10", "kind": "a2p", "cents": 308, "source": "estimate" },
+    { "businessId": "s-month", "month": "2026-10", "kind": "storage", "cents": 12, "source": "estimate" }
+  ],
+  "invoices": [
+    { "id": "in-m-sub", "businessId": "s-month", "at": "2026-10-01T00:00:00.000Z", "kind": "subscription", "interval": "month", "amountCents": 39900, "status": "paid" },
+    { "id": "in-y-sub", "businessId": "s-year", "at": "2026-09-20T00:00:00.000Z", "kind": "subscription", "interval": "year", "amountCents": 199200, "discountCents": 19920, "status": "paid" },
+    { "id": "in-l-sub", "businessId": "s-late", "at": "2026-10-01T00:00:00.000Z", "kind": "subscription", "interval": "month", "amountCents": 19900, "status": "failed" },
+    { "id": "in-m-ovg", "businessId": "s-month", "at": "2026-10-02T00:00:00.000Z", "kind": "overage", "amountCents": 1500, "status": "paid" },
+    { "id": "in-l-ovg", "businessId": "s-late", "at": "2026-10-02T00:00:00.000Z", "kind": "overage", "amountCents": 2500, "status": "failed" },
+    { "id": "in-y-ovg", "businessId": "s-year", "at": "2026-10-02T00:00:00.000Z", "kind": "overage", "amountCents": 1000, "status": "refunded", "refundedCents": 1000 },
+    { "id": "in-x-ovg", "businessId": "s-month", "at": "2026-10-03T00:00:00.000Z", "kind": "overage", "amountCents": 700, "status": "disputed" },
+    { "id": "in-o-ovg", "businessId": "s-late", "at": "2026-10-04T00:00:00.000Z", "kind": "overage", "amountCents": 300, "status": "open" },
+    { "id": "in-d-ovg", "businessId": "s-demo", "at": "2026-10-04T00:00:00.000Z", "kind": "overage", "amountCents": 9900, "status": "paid" }
+  ],
+  "waivers": [
+    { "businessId": "s-year", "period": "2026-09", "overCalls": 1, "amountCents": 50, "reason": "below_minimum" }
+  ]
+}
