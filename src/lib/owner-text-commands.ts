@@ -3,7 +3,8 @@ import { safeTimezone, shopDayBounds, zonedWallToUtc } from "@/lib/availability"
 import { normalizePhone } from "@/lib/customer";
 import { sendCustomerSms } from "@/lib/customer-sms";
 import { isDepositAmountValid, MAX_DEPOSIT_CENTS } from "@/lib/booking-deposit";
-import { createJobFromLead, updateJobStatus } from "@/lib/job";
+import { createJobFromLead, ownerScheduleClash, updateJobStatus } from "@/lib/job";
+import { classifyRequest } from "@/lib/trade-playbooks";
 import { invoiceCompletedJob } from "@/lib/invoice-pay";
 import { logError } from "@/lib/logger";
 import { formatCentsTidy } from "@/lib/money";
@@ -23,12 +24,12 @@ export { OWNER_REPLY_HINT } from "@/lib/owner-alert-message";
 */
 
 export type OwnerCommand =
-  | { kind: "book"; when: string | null }
-  | { kind: "move"; when: string }
+  | { kind: "book"; when: string | null; force?: boolean }
+  | { kind: "move"; when: string; force?: boolean }
   | { kind: "text"; body: string }
   | { kind: "contacted" }
   | { kind: "spam" }
-  | { kind: "assign"; tech: string }
+  | { kind: "assign"; tech: string; force?: boolean }
   | { kind: "today" }
   | { kind: "pass" }
   | { kind: "take" }
@@ -91,14 +92,19 @@ export function parseOwnerCommand(raw: string): OwnerCommand | null {
   const textMatch = text.match(/^(?:text|reply|tell them|send)\s*:?\s+([\s\S]+)$/i);
   if (textMatch && !/^(?:invoice|pay link)/i.test(textMatch[1])) return { kind: "text", body: textMatch[1].trim() };
 
-  const book = lower.match(/^book(?: it| them)?(?: for| at| on)?\s+(.+)$/);
-  if (book) return { kind: "book", when: book[1] };
+  // "ANYWAY" at the end is the owner overriding a clash they were just told about.
+  const forced = /\s+anyway$/.test(lower);
+  const plain = forced ? lower.replace(/\s+anyway$/, "") : lower;
+  const force = forced ? { force: true } : {};
 
-  const move = lower.match(/^(?:move|reschedule|resched|change)(?: it| them)?(?: to)?\s+(.+)$/);
-  if (move) return { kind: "move", when: move[1] };
+  const book = plain.match(/^book(?: it| them)?(?: for| at| on)?\s+(.+)$/);
+  if (book) return { kind: "book", when: book[1], ...force };
 
-  const tech = lower.match(/^(?:tech|assign|give it to|send tech)\s+([a-z][a-z' -]*)$/);
-  if (tech) return { kind: "assign", tech: tech[1].trim() };
+  const move = plain.match(/^(?:move|reschedule|resched|change)(?: it| them)?(?: to)?\s+(.+)$/);
+  if (move) return { kind: "move", when: move[1], ...force };
+
+  const tech = plain.match(/^(?:tech|assign|give it to|send tech)\s+([a-z][a-z' -]*)$/);
+  if (tech) return { kind: "assign", tech: tech[1].trim(), ...force };
 
   return null;
 }
@@ -213,6 +219,25 @@ function when(at: Date | null, timezone: string) {
 
 const LEAD_WINDOW_MS = 48 * 60 * 60 * 1000;
 
+async function textClash(
+  shop: Shop,
+  lead: { serviceType: string | null; notes: string | null },
+  job: { id: string; durationMin: number | null } | null,
+  at: Date,
+  technicianId: string | null,
+) {
+  const service = classifyRequest({ business: shop, serviceType: lead.serviceType, notes: lead.notes, urgency: null }).service;
+  return ownerScheduleClash({
+    businessId: shop.id,
+    at,
+    durationMin: job?.durationMin ?? service.durationMin,
+    skill: service.skill,
+    timezone: shop.timezone,
+    technicianId,
+    excludeJobId: job?.id,
+  });
+}
+
 type Shop = {
   id: string;
   name: string;
@@ -323,6 +348,21 @@ export async function handleOwnerText(params: {
             return `${who}'s job is already ${lead.job.status}. Nothing moved.`;
           }
           const previous = lead.job.scheduledAt;
+          const clash = at ? await textClash(shop, lead, lead.job, at, lead.job.technicianId) : null;
+          if (clash && !command.force) {
+            return `${clash} Nothing moved. Reply ${command.kind.toUpperCase()} ${command.when?.toUpperCase()} ANYWAY to move it regardless.`;
+          }
+          if (clash) {
+            await recordAudit({
+              ...audit,
+              entityType: "job",
+              entityId: lead.job.id,
+              jobId: lead.job.id,
+              action: "job.schedule_override",
+              summary: `Booked over a clash by text: ${clash}`,
+              detail: { clash, at: at?.toISOString() ?? null, via: "owner_sms" },
+            });
+          }
           await prisma.job.update({
             where: { id: lead.job.id },
             data: { scheduledAt: at, customerConfirmedAt: null, techAcceptedAt: null },
@@ -338,7 +378,22 @@ export async function handleOwnerText(params: {
           });
           return `Moved ${who} to ${when(at, shop.timezone)}. Reply TEXT <message> to tell them.`;
         }
+        const clash = at ? await textClash(shop, lead, null, at, null) : null;
+        if (clash && !command.force) {
+          return `${clash} Not booked. Reply BOOK ${command.when?.toUpperCase()} ANYWAY to book it regardless.`;
+        }
         const job = await createJobFromLead({ leadId: lead.id, scheduledAt: at, actor: "owner" });
+        if (clash) {
+          await recordAudit({
+            ...audit,
+            entityType: "job",
+            entityId: job.id,
+            jobId: job.id,
+            action: "job.schedule_override",
+            summary: `Booked over a clash by text: ${clash}`,
+            detail: { clash, at: at?.toISOString() ?? null, via: "owner_sms" },
+          });
+        }
         await prisma.lead.update({ where: { id: lead.id }, data: { status: "booked" } });
         const booked = await prisma.job.findUnique({
           where: { id: job.id },
@@ -362,6 +417,24 @@ export async function handleOwnerText(params: {
         }
         const tech = matches[0];
         if (lead.job.technicianId === tech.id) return `${tech.name} is already on ${who}'s job.`;
+        const clash =
+          lead.job.scheduledAt && lead.job.status !== "completed" && lead.job.status !== "cancelled"
+            ? await textClash(shop, lead, lead.job, lead.job.scheduledAt, tech.id)
+            : null;
+        if (clash && !command.force) {
+          return `${clash} ${tech.name} isn't on it. Reply TECH ${command.tech.toUpperCase()} ANYWAY to assign them regardless.`;
+        }
+        if (clash) {
+          await recordAudit({
+            ...audit,
+            entityType: "job",
+            entityId: lead.job.id,
+            jobId: lead.job.id,
+            action: "job.schedule_override",
+            summary: `Assigned over a clash by text: ${clash}`,
+            detail: { clash, technicianId: tech.id, via: "owner_sms" },
+          });
+        }
         await prisma.job.update({ where: { id: lead.job.id }, data: { technicianId: tech.id } });
         await recordAudit({
           ...audit,

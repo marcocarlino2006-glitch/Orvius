@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useInstantAction } from "@/components/instant-action";
+import { patchJob } from "@/lib/job-patch-client";
 
 export type TechOption = { id: string; name: string };
 
@@ -54,11 +55,7 @@ export function AssignTechButton({
     try {
       await run(
         async () => {
-          const res = await fetch(`/api/jobs/${jobId}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ technicianId: techId }),
-          });
+          const res = await patchJob(jobId, { technicianId: techId });
           const data = (await res.json().catch(() => null)) as {
             error?: string;
             techSms?: { sent: boolean; reason?: string };

@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { ensureJobTechToken, techLinkExpired } from "@/lib/ensure-tech-token";
 import {
   completeJobWithOutcome,
+  JobTransitionError,
   isJobStatus,
   updateJobStatus,
 } from "@/lib/job";
@@ -148,6 +149,7 @@ export async function PATCH(request: Request, { params }: Params) {
     });
   } catch (error) {
     if (error instanceof FieldError) return NextResponse.json({ error: error.message }, { status: error.status });
+    if (error instanceof JobTransitionError) return NextResponse.json({ error: error.message }, { status: 409 });
     const message =
       error instanceof z.ZodError
         ? error.errors.map((e) => e.message).join(", ")

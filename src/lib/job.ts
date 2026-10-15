@@ -30,7 +30,7 @@ import {
   type JobOutcomeCode,
 } from "@/lib/job-outcome";
 import { isDatabaseBusy } from "@/lib/webhook-events";
-import type { JobStatus } from "@/lib/job-status";
+import { jobTransitionProblem, type JobStatus } from "@/lib/job-status";
 
 export { suggestedSchedule, jobTitle } from "@/lib/job-schedule";
 export { JOB_STATUSES, isJobStatus, jobStatusLabel } from "@/lib/job-status";
@@ -324,6 +324,8 @@ type SlotCheck = {
     timezone: string;
     callId: string | null;
     outside: OutsideTime;
+    /** The job being moved, which must not count against its own new time. */
+    excludeJobId?: string;
 };
 
 async function slotProblem(tx: BookingTx, params: SlotCheck): Promise<"blocked" | "full" | null> {
@@ -340,6 +342,7 @@ async function slotProblem(tx: BookingTx, params: SlotCheck): Promise<"blocked" 
         businessId: params.businessId,
         status: { notIn: ["completed", "cancelled"] },
         scheduledAt: { gte: new Date(startMs - 7 * 24 * 60 * 60 * 1000), lt: new Date(endMs) },
+        ...(params.excludeJobId ? { id: { not: params.excludeJobId } } : {}),
       },
       select: { scheduledAt: true, durationMin: true, technicianId: true },
     }),
@@ -396,6 +399,24 @@ export class OwnerClashError extends Error {
   }
 }
 
+/**
+ * The one check every owner-side schedule write runs — a new job, a move, a
+ * reassignment, a text command: closed days, the busy calendar, the tech's
+ * shift and time off, their other jobs, and whether anyone qualified is free. A clash is a reason the owner sees, not a refusal they can't
+ * override.
+ */
+export async function ownerScheduleClash(params: {
+  businessId: string;
+  at: Date;
+  durationMin: number;
+  skill: string;
+  timezone: string;
+  technicianId: string | null;
+  excludeJobId?: string;
+}): Promise<string | null> {
+  return ownerClash(params);
+}
+
 async function ownerClash(params: {
   businessId: string;
   at: Date;
@@ -403,6 +424,7 @@ async function ownerClash(params: {
   skill: string;
   timezone: string;
   technicianId: string | null;
+  excludeJobId?: string;
 }): Promise<string | null> {
   const outside = await outsideTime(params.businessId, params.timezone);
   if (params.technicianId) {
@@ -419,6 +441,7 @@ async function ownerClash(params: {
           technicianId: params.technicianId,
           status: { notIn: ["completed", "cancelled"] },
           scheduledAt: { gte: new Date(startMs - 7 * 24 * 60 * 60 * 1000), lt: new Date(endMs) },
+          ...(params.excludeJobId ? { id: { not: params.excludeJobId } } : {}),
         },
         select: { scheduledAt: true, durationMin: true },
       }),
@@ -1079,7 +1102,20 @@ async function autoAssignTechnician(params: {
 }
 
 /** `at` is when it happened in the field; a late "on the way" (an offline phone catching up) is recorded without texting. */
+export class JobTransitionError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "JobTransitionError";
+  }
+}
+
 export async function updateJobStatus(jobId: string, status: JobStatus, options: { at?: Date; notifyCustomer?: boolean } = {}) {
+  const current = await prisma.job.findUnique({ where: { id: jobId }, select: { status: true } });
+  if (current && current.status !== status) {
+    const paidInvoice = status === "cancelled" && (await prisma.invoice.count({ where: { jobId, status: { in: ["paid", "partial"] } } })) > 0;
+    const problem = jobTransitionProblem(current.status, status, { paidInvoice });
+    if (problem) throw new JobTransitionError(problem);
+  }
   const data: {
     status: JobStatus;
     confirmedAt?: Date;

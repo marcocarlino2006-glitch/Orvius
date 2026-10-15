@@ -20,6 +20,7 @@ import { formatShopTime, shopWallInput } from "@/lib/when";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { patchJob } from "@/lib/job-patch-client";
 
 type Tech = { id: string; name: string; phone: string | null };
 
@@ -173,11 +174,7 @@ export default function JobDetailPage() {
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch(`/api/jobs/${jobId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      const res = await patchJob(jobId, body);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "That didn't go through — nothing changed");
       setJob(data.job);

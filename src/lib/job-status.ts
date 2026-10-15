@@ -71,3 +71,19 @@ export function nextJobStatus(
       return null;
   }
 }
+
+/**
+ * The one rule for moving a job between statuses, applied wherever a status
+ * is written. Skipping steps is fine (a job can go straight from booked to
+ * done) and so is reopening. What it refuses is a move that would make the
+ * record lie: a cancelled job "done" without being reopened, or a job with a
+ * paid invoice cancelled out from under the payment.
+ */
+export function jobTransitionProblem(from: string, to: JobStatus, ctx: { paidInvoice: boolean }): string | null {
+  if (from === to) return null;
+  if (from === "cancelled" && to === "completed") return "This job was cancelled. Reopen it before marking it done.";
+  if (to === "cancelled" && ctx.paidInvoice) {
+    return "This job has a paid invoice, so it can't be cancelled — that would leave the payment on nothing. Mark it done, or refund the payment first.";
+  }
+  return null;
+}

@@ -121,6 +121,28 @@ test("BOOK, TECH and MOVE run the latest lead from the owner's thread", async ()
   }
 });
 
+test("TECH and MOVE by text check the same clashes as the screen; ANYWAY overrides on the record", async () => {
+  const { business, lead, shop } = await fixture();
+  try {
+    assert.deepEqual(parseOwnerCommand("tech ben anyway"), { kind: "assign", tech: "ben", force: true });
+    assert.deepEqual(parseOwnerCommand("MOVE MON 8AM ANYWAY"), { kind: "move", when: "mon 8am", force: true });
+    await handleOwnerText({ shop, body: "book fri 2pm", now: NOW });
+    const job = await prisma.job.findUnique({ where: { leadId: lead.id } });
+    const ben = await prisma.technician.findFirst({ where: { businessId: business.id, name: "Ben Okafor" } });
+    await prisma.job.create({ data: { businessId: business.id, title: "Other", status: "scheduled", technicianId: ben.id, scheduledAt: job.scheduledAt, durationMin: 120 } });
+
+    const refused = await handleOwnerText({ shop, body: "tech ben", now: NOW });
+    assert.match(refused, /Ben Okafor already has a job then\. Ben Okafor isn't on it\. Reply TECH BEN ANYWAY/);
+    assert.notEqual((await prisma.job.findUnique({ where: { id: job.id } })).technicianId, ben.id);
+
+    const forced = await handleOwnerText({ shop, body: "tech ben anyway", now: NOW });
+    assert.match(forced, /^Ben Okafor is on Maria Lopez's job/);
+    assert.ok(await prisma.auditEvent.findFirst({ where: { businessId: business.id, action: "job.schedule_override", entityId: job.id } }));
+  } finally {
+    await prisma.business.delete({ where: { id: business.id } });
+  }
+});
+
 test("CALLED, SPAM, TEXT and the menu answer without touching other leads", async () => {
   const { business, lead, shop } = await fixture();
   try {

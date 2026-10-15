@@ -4,9 +4,10 @@ import { invoiceCompletedJob, invoicePayUrl } from "@/lib/invoice-pay";
 import { claimedCents, collectedCents, collectedHow } from "@/lib/payment-record";
 import { getConnectStatus } from "@/lib/stripe-connect";
 import { personActor, recordAudit } from "@/lib/audit";
-import { shopWallInputToUtc } from "@/lib/availability";
+import { DEFAULT_JOB_DURATION_MIN, shopWallInputToUtc } from "@/lib/availability";
 import { textDelivery } from "@/lib/job-lifecycle";
-import { JOB_INCLUDE, isJobStatus, jobStatusLabel, serializeJob, updateJobStatus } from "@/lib/job";
+import { JOB_INCLUDE, JobTransitionError, isJobStatus, jobStatusLabel, ownerScheduleClash, serializeJob, updateJobStatus } from "@/lib/job";
+import { classifyRequest } from "@/lib/trade-playbooks";
 import { logWarn } from "@/lib/logger";
 import { notifyTechOnAssign } from "@/lib/notify-tech-assign";
 import { notifyTechJobChanged } from "@/lib/tech-app";
@@ -121,6 +122,8 @@ export async function PATCH(request: Request, { params }: Params) {
     technicianId?: string | null;
     /** Why the owner cancelled, moved or reassigned it; kept in the job's history. */
     reason?: string | null;
+    /** The person saw the clash and chose this time or tech anyway. */
+    allowClash?: boolean;
   };
   const reason = typeof body.reason === "string" ? body.reason.trim().slice(0, 300) || null : null;
   const because = reason ? ` Reason: ${reason}` : "";
@@ -137,11 +140,8 @@ export async function PATCH(request: Request, { params }: Params) {
     return forbiddenResponse();
   }
 
-  if (body.status) {
-    if (!isJobStatus(body.status)) {
-      return NextResponse.json({ error: "Invalid status" }, { status: 400 });
-    }
-    await updateJobStatus(id, body.status);
+  if (body.status && !isJobStatus(body.status)) {
+    return NextResponse.json({ error: "Invalid status" }, { status: 400 });
   }
 
   const previousTechnicianId = existing.technicianId;
@@ -162,6 +162,36 @@ export async function PATCH(request: Request, { params }: Params) {
     }
     if (!tech.isActive) {
       return NextResponse.json({ error: `${tech.name} is off the team. Bring them back on the Team page first.` }, { status: 400 });
+    }
+  }
+
+  const nextAt = body.scheduledAt !== undefined ? (body.scheduledAt ? new Date(body.scheduledAt) : null) : existing.scheduledAt;
+  const nextTech = body.technicianId !== undefined ? body.technicianId || null : existing.technicianId;
+  const moved = body.scheduledAt !== undefined && (nextAt?.getTime() ?? null) !== (existing.scheduledAt?.getTime() ?? null);
+  const reassigned = body.technicianId !== undefined && nextTech !== existing.technicianId && Boolean(nextTech);
+  const finalStatus = body.status ?? existing.status;
+  let clash: string | null = null;
+  if (nextAt && (moved || reassigned) && finalStatus !== "completed" && finalStatus !== "cancelled") {
+    clash = await ownerScheduleClash({
+      businessId: business.id,
+      at: nextAt,
+      durationMin: existing.durationMin ?? DEFAULT_JOB_DURATION_MIN,
+      skill: classifyRequest({ business, serviceType: existing.serviceType, notes: existing.notes, urgency: null }).service.skill,
+      timezone: business.timezone ?? "America/New_York",
+      technicianId: nextTech,
+      excludeJobId: existing.id,
+    });
+    if (clash && body.allowClash !== true) {
+      return NextResponse.json({ error: clash, clash: true }, { status: 409 });
+    }
+  }
+
+  if (body.status && isJobStatus(body.status)) {
+    try {
+      await updateJobStatus(id, body.status);
+    } catch (error) {
+      if (error instanceof JobTransitionError) return NextResponse.json({ error: error.message }, { status: 409 });
+      throw error;
     }
   }
 
@@ -218,6 +248,14 @@ export async function PATCH(request: Request, { params }: Params) {
       action: "job.status_changed",
       summary: `Moved the job from ${jobStatusLabel(existing.status)} to ${jobStatusLabel(body.status)}.${because}`,
       detail: { from: existing.status, to: body.status, reason },
+    });
+  }
+  if (clash) {
+    await recordAudit({
+      ...auditBase,
+      action: "job.schedule_override",
+      summary: `Booked over a clash: ${clash}${because}`,
+      detail: { clash, at: nextAt?.toISOString() ?? null, technicianId: nextTech, reason },
     });
   }
   if (assigningTech) {

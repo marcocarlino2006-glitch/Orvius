@@ -428,3 +428,68 @@ test("teammates are named, not shown as email addresses", async () => {
   assert.equal(actorName("Ana@Shop.com", "ana@shop.com"), "You");
   assert.equal(actorName("ana@shop.com", "boss@shop.com"), "Ana");
 });
+
+test("a move or reassignment that clashes is refused with the reason; an override goes through and is on the record", async () => {
+  const jobRoute = await import("../src/app/api/jobs/[id]/route.ts");
+  const shop = await makeShop();
+  await prisma.business.update({ where: { id: shop.id }, data: { timezone: "America/Chicago" } });
+  signedInAs = shop.ownerEmail;
+  const ana = await prisma.technician.create({ data: { businessId: shop.id, name: "Ana Ruiz", isActive: true } });
+  const ben = await prisma.technician.create({ data: { businessId: shop.id, name: "Ben Okafor", isActive: true } });
+  await prisma.technicianTimeOff.create({
+    data: { businessId: shop.id, technicianId: ana.id, startsAt: new Date("2026-11-10T14:00:00Z"), endsAt: new Date("2026-11-10T23:00:00Z") },
+  });
+  const busy = await prisma.job.create({ data: { businessId: shop.id, title: "Water heater", status: "scheduled", technicianId: ben.id, scheduledAt: new Date("2026-11-11T15:00:00Z"), durationMin: 120 } });
+  const job = await prisma.job.create({ data: { businessId: shop.id, title: "Leak repair", status: "scheduled", technicianId: ana.id, scheduledAt: new Date("2026-11-09T15:00:00Z"), durationMin: 60 } });
+  const patch = (body) =>
+    jobRoute.PATCH(new Request(`http://localhost/api/jobs/${job.id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }), { params: Promise.resolve({ id: job.id }) });
+
+  const intoTimeOff = await patch({ scheduledLocal: "2026-11-10T10:00" });
+  assert.equal(intoTimeOff.status, 409);
+  const why = await intoTimeOff.json();
+  assert.equal(why.clash, true);
+  assert.match(why.error, /Ana Ruiz is on time off/);
+  assert.equal((await prisma.job.findUnique({ where: { id: job.id } })).scheduledAt.toISOString(), "2026-11-09T15:00:00.000Z", "nothing moved");
+
+  const onBen = await patch({ scheduledLocal: "2026-11-11T09:30", technicianId: ben.id });
+  assert.equal(onBen.status, 409);
+  assert.match((await onBen.json()).error, /Ben Okafor already has a job then/);
+
+  const sameSlotOwnJob = await patch({ scheduledLocal: "2026-11-09T09:00", technicianId: ana.id, notes: "gate code 1234" });
+  assert.equal(sameSlotOwnJob.status, 200, "a job never clashes with itself");
+
+  const forced = await patch({ scheduledLocal: "2026-11-10T10:00", allowClash: true, reason: "Ana swapped her day off" });
+  assert.equal(forced.status, 200);
+  const override = await prisma.auditEvent.findFirst({ where: { businessId: shop.id, action: "job.schedule_override", entityId: job.id } });
+  assert.match(override.summary, /Booked over a clash: Ana Ruiz is on time off then\. Reason: Ana swapped her day off/);
+  assert.ok(busy);
+});
+
+test("status moves are the server's rule: skip ahead and reopen freely, never cancel a paid job or finish a cancelled one", async () => {
+  const jobRoute = await import("../src/app/api/jobs/[id]/route.ts");
+  const shop = await makeShop();
+  signedInAs = shop.ownerEmail;
+  const job = await prisma.job.create({ data: { businessId: shop.id, title: "Drain clear", status: "scheduled", scheduledAt: new Date("2026-11-12T15:00:00Z") } });
+  const patch = (body) =>
+    jobRoute.PATCH(new Request(`http://localhost/api/jobs/${job.id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }), { params: Promise.resolve({ id: job.id }) });
+
+  assert.equal((await patch({ status: "on_site" })).status, 200, "booked straight to on site");
+  assert.equal((await patch({ status: "completed" })).status, 200);
+  await prisma.invoice.create({ data: { businessId: shop.id, jobId: job.id, amountCents: 18_000, status: "paid", paidAt: new Date(), publicToken: `tok-${uid()}` } });
+  const cancelPaid = await patch({ status: "cancelled" });
+  assert.equal(cancelPaid.status, 409);
+  assert.match((await cancelPaid.json()).error, /paid invoice/);
+  assert.equal((await prisma.job.findUnique({ where: { id: job.id } })).status, "completed");
+
+  assert.equal((await patch({ status: "scheduled", reason: "Came back, still dripping" })).status, 200, "reopening is allowed");
+  const reopened = await prisma.job.findUnique({ where: { id: job.id } });
+  assert.ok(reopened.completedAt, "reopening keeps when it was first finished");
+  assert.equal((await prisma.invoice.findFirst({ where: { jobId: job.id } })).status, "paid", "the paid invoice stands");
+
+  const other = await prisma.job.create({ data: { businessId: shop.id, title: "Faucet", status: "cancelled" } });
+  const finishCancelled = await jobRoute.PATCH(
+    new Request(`http://localhost/api/jobs/${other.id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "completed" }) }),
+    { params: Promise.resolve({ id: other.id }) },
+  );
+  assert.equal(finishCancelled.status, 409);
+});
