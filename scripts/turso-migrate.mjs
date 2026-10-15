@@ -2,15 +2,15 @@
 /**
  * Apply incremental Turso migrations (ALTER TABLE / new tables).
  *
- * This runs in the Vercel build, because there is no migrations directory and
- * `prisma generate` does not touch the database. Without it, a deploy ships
- * code that selects columns the production database has never been given —
- * the dashboard 500s and passwordless sign-in fails outright, since
- * `LoginToken` would not exist at all.
+ * A separate, approved release step, never part of a build: see
+ * `migrationAuthorization`. It must run before the release that needs the new
+ * schema is promoted, or that release selects columns production lacks.
+ * Rolling code back does not roll schema or payment data back.
  *
- * Every statement in the SQL file is idempotent, so running it on each build
- * is safe and a re-deploy is a no-op.
+ * Every statement in the SQL file is idempotent, so a repeated run is a no-op.
  */
+import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -95,6 +95,11 @@ export function splitStatements(sql) {
       continue;
     }
     if (char === ";") {
+      // A trigger body holds its own statements; only the END closes the CREATE TRIGGER.
+      if (/^\s*CREATE\s+TRIGGER\b/i.test(current) && !/\bEND\s*$/i.test(current)) {
+        current += char;
+        continue;
+      }
       statements.push(current);
       current = "";
       continue;
@@ -106,15 +111,27 @@ export function splitStatements(sql) {
   return statements.map((s) => s.trim()).filter(Boolean);
 }
 
+export const MIGRATION_FILE = "prisma/turso-migrate.sql";
+export const MIGRATION_ALLOWLIST_FILE = "ops/migration-targets.json";
+
+/** The checksum an approval binds to: the exact migration file this run would apply. */
+export function migrationPlanSha256(sql) {
+  return createHash("sha256").update(sql).digest("hex");
+}
+
 /**
- * Whether this run may write to the database it points at. Fails closed: a
- * remote database is migrated only by a Vercel Production build, or when the
- * person running it names the exact database host in TURSO_MIGRATE_CONFIRM
- * (a by-hand run, or a Preview wired to its own isolated database). A Preview
- * or unknown build that happens to carry the production URL is refused, so a
- * pull request branch can never alter the production schema.
+ * Whether this run may write to the database it points at. Fails closed, and
+ * decides from the environment alone, before any connection is opened.
+ *
+ * Builds never migrate. A remote database is migrated only by a separate,
+ * deliberate invocation that names: an approval reference, the exact release
+ * commit (which must be the commit being run), the target ("production", or
+ * an isolated "preview"/"staging" identity), a database host listed for that
+ * target in ops/migration-targets.json, the SHA-256 of the migration file it
+ * reviewed, and the backup or recovery point taken first. File-backed SQLite
+ * is skipped: `prisma db push` owns local and test databases.
  */
-export function migrationTarget(databaseUrl, env = process.env) {
+export function migrationAuthorization(databaseUrl, env = process.env, context = {}) {
   if (!databaseUrl) return { action: "skip", reason: "no DATABASE_URL" };
   if (!/^(libsql|wss|https):/.test(databaseUrl)) return { action: "skip", reason: "DATABASE_URL is not a Turso URL" };
   let host;
@@ -123,36 +140,56 @@ export function migrationTarget(databaseUrl, env = process.env) {
   } catch {
     return { action: "refuse", reason: "DATABASE_URL is not a valid URL" };
   }
-  const confirmed = env.TURSO_MIGRATE_CONFIRM?.trim();
-  if (confirmed) {
-    return confirmed === host
-      ? { action: "migrate", reason: `confirmed by TURSO_MIGRATE_CONFIRM for ${host}` }
-      : { action: "refuse", reason: `TURSO_MIGRATE_CONFIRM names ${confirmed}, but DATABASE_URL points at ${host}` };
+  const refuse = (reason) => ({ action: "refuse", reason, host });
+  if (env.CI_BUILD === "1" || env.VERCEL === "1" || env.NEXT_PHASE) {
+    return refuse("migrations never run inside a build; run `npm run db:migrate:turso` as its own approved step");
   }
-  const vercelEnv = env.VERCEL_ENV?.trim();
-  if (vercelEnv === "production") return { action: "migrate", reason: "Vercel production build" };
-  return {
-    action: "refuse",
-    reason: `${vercelEnv ? `a Vercel ${vercelEnv} build` : "an unknown environment"} points at remote database ${host}. Only production builds migrate; to migrate an isolated database on purpose, set TURSO_MIGRATE_CONFIRM=${host}`,
-  };
+  const approval = env.MIGRATION_APPROVAL?.trim();
+  if (!approval) return refuse("MIGRATION_APPROVAL (the approval reference) is not set");
+  const release = env.MIGRATION_RELEASE_COMMIT?.trim().toLowerCase();
+  if (!release || !/^[0-9a-f]{40}$/.test(release)) return refuse("MIGRATION_RELEASE_COMMIT must be the full 40-character release commit");
+  if (!context.headCommit) return refuse("could not read the commit being run, so it cannot be matched to the release");
+  if (context.headCommit !== release) return refuse(`this checkout is ${context.headCommit.slice(0, 12)}, not the approved release ${release.slice(0, 12)}`);
+  const target = env.MIGRATION_TARGET?.trim();
+  if (!["production", "preview", "staging"].includes(target ?? "")) return refuse("MIGRATION_TARGET must be production, preview or staging");
+  const listed = context.allowlist?.[target] ?? [];
+  if (!listed.includes(host)) return refuse(`${host} is not listed for ${target} in ${MIGRATION_ALLOWLIST_FILE}`);
+  for (const [other, hosts] of Object.entries(context.allowlist ?? {})) {
+    if (other !== target && hosts.includes(host)) return refuse(`${host} is also listed for ${other}; each environment needs its own database`);
+  }
+  const sha = env.MIGRATION_PLAN_SHA256?.trim().toLowerCase();
+  if (!sha) return refuse("MIGRATION_PLAN_SHA256 (the reviewed migration file's checksum) is not set");
+  if (sha !== context.planSha256) return refuse(`the migration file's checksum is ${context.planSha256}, not the reviewed ${sha}`);
+  const backup = env.MIGRATION_BACKUP_REF?.trim();
+  if (!backup) return refuse("MIGRATION_BACKUP_REF (the backup or recovery point taken first) is not set");
+  return { action: "migrate", reason: `${target} ${host} at ${release.slice(0, 12)}, approval ${approval}, backup ${backup}`, host };
+}
+
+function headCommit() {
+  try {
+    return execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim().toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+function readAllowlist() {
+  const path = resolve(root, MIGRATION_ALLOWLIST_FILE);
+  if (!existsSync(path)) return {};
+  return JSON.parse(readFileSync(path, "utf8"));
 }
 
 async function main() {
   const databaseUrl = loadDatabaseUrl();
-  const target = migrationTarget(databaseUrl);
+  const sql = readFileSync(resolve(root, MIGRATION_FILE), "utf8");
+  const target = migrationAuthorization(databaseUrl, process.env, {
+    headCommit: headCommit(),
+    allowlist: readAllowlist(),
+    planSha256: migrationPlanSha256(sql),
+  });
   if (target.action === "refuse") {
     throw new Error(`turso-migrate refused: ${target.reason}`);
   }
-
-  /*
-    Skip only where skipping is correct, and say which case applied.
-
-    A local or preview build points at file-backed SQLite, which `prisma db
-    push` owns — migrating it here would be wrong, not merely unnecessary. Any
-    remote libsql URL is production data, so from that point on a failure is a
-    real failure and must stop the build rather than deploy code against a
-    schema that cannot serve it.
-  */
   if (target.action === "skip") {
     console.log(`↷ turso-migrate: ${target.reason} — skipping`);
     return;
@@ -164,7 +201,6 @@ async function main() {
   if (!authToken) throw new Error("Turso DATABASE_URL needs ?authToken=… or TURSO_AUTH_TOKEN");
   parsed.searchParams.delete("authToken");
 
-  const sql = readFileSync(resolve(root, "prisma/turso-migrate.sql"), "utf8");
   const client = createClient({ url: parsed.toString(), authToken });
 
   for (const statement of splitStatements(sql)) {

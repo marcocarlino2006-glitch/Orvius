@@ -16,7 +16,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { migrationTarget, splitStatements } from "./turso-migrate.mjs";
+import { migrationAuthorization, migrationPlanSha256, splitStatements } from "./turso-migrate.mjs";
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 const migrationSql = readFileSync(join(repoRoot, "prisma/turso-migrate.sql"), "utf8");
@@ -189,22 +189,65 @@ test("a database built from the baseline plus every migration matches schema.pri
   }
 });
 
-test("only a production build, or an explicitly confirmed host, may migrate a remote database", () => {
+const SHA = "a".repeat(40);
+const PLAN = migrationPlanSha256(migrationSql);
+const approved = {
+  MIGRATION_APPROVAL: "APPROVAL-1",
+  MIGRATION_RELEASE_COMMIT: SHA,
+  MIGRATION_TARGET: "production",
+  MIGRATION_PLAN_SHA256: PLAN,
+  MIGRATION_BACKUP_REF: "turso-pitr-2026-10-15T20:00Z",
+};
+const context = { headCommit: SHA, planSha256: PLAN, allowlist: { production: ["orvius-prod.turso.io"], preview: ["preview-iso.turso.io"] } };
+
+test("a remote migration needs approval, the exact release, an allow-listed target, the reviewed checksum and a backup", () => {
   const prod = "libsql://orvius-prod.turso.io?authToken=x";
-  assert.equal(migrationTarget(null, {}).action, "skip");
-  assert.equal(migrationTarget("file:./dev.db", { VERCEL_ENV: "preview" }).action, "skip");
-  assert.equal(migrationTarget(prod, { VERCEL_ENV: "production" }).action, "migrate");
-  for (const env of [{ VERCEL_ENV: "preview" }, { VERCEL_ENV: "development" }, {}, { VERCEL_ENV: "" }]) {
-    const target = migrationTarget(prod, env);
-    assert.equal(target.action, "refuse", JSON.stringify(env));
-    assert.match(target.reason, /TURSO_MIGRATE_CONFIRM=orvius-prod\.turso\.io/);
+  assert.equal(migrationAuthorization(null, {}, context).action, "skip");
+  assert.equal(migrationAuthorization("file:./dev.db", {}, context).action, "skip");
+  assert.equal(migrationAuthorization(prod, approved, context).action, "migrate");
+  const refusals = [
+    [{ ...approved, VERCEL: "1" }, /never run inside a build/],
+    [{ ...approved, VERCEL_ENV: "production", VERCEL: "1" }, /never run inside a build/],
+    [{ ...approved, MIGRATION_APPROVAL: "" }, /MIGRATION_APPROVAL/],
+    [{ ...approved, MIGRATION_RELEASE_COMMIT: "abc123" }, /full 40-character/],
+    [{ ...approved, MIGRATION_RELEASE_COMMIT: "b".repeat(40) }, /not the approved release/],
+    [{ ...approved, MIGRATION_TARGET: "" }, /MIGRATION_TARGET/],
+    [{ ...approved, MIGRATION_TARGET: "preview" }, /not listed for preview/],
+    [{ ...approved, MIGRATION_PLAN_SHA256: "0".repeat(64) }, /not the reviewed/],
+    [{ ...approved, MIGRATION_BACKUP_REF: "" }, /MIGRATION_BACKUP_REF/],
+  ];
+  for (const [env, why] of refusals) {
+    const result = migrationAuthorization(prod, env, context);
+    assert.equal(result.action, "refuse", JSON.stringify(env));
+    assert.match(result.reason, why);
   }
-  assert.equal(migrationTarget("libsql://preview-iso.turso.io", { VERCEL_ENV: "preview", TURSO_MIGRATE_CONFIRM: "preview-iso.turso.io" }).action, "migrate");
-  assert.equal(migrationTarget(prod, { VERCEL_ENV: "preview", TURSO_MIGRATE_CONFIRM: "preview-iso.turso.io" }).action, "refuse", "a confirmation for another host does not carry over");
-  assert.equal(migrationTarget(prod, { VERCEL_ENV: "production", TURSO_MIGRATE_CONFIRM: "other.turso.io" }).action, "refuse", "a mismatched confirmation refuses even in production");
+  assert.match(migrationAuthorization(prod, approved, { ...context, headCommit: null }).reason, /could not read the commit/);
+  assert.match(migrationAuthorization("libsql://unknown.turso.io", approved, context).reason, /not listed for production/);
+  const shared = { ...context, allowlist: { production: ["orvius-prod.turso.io"], preview: ["orvius-prod.turso.io"] } };
+  assert.match(migrationAuthorization(prod, approved, shared).reason, /each environment needs its own database/);
+  assert.equal(
+    migrationAuthorization("libsql://preview-iso.turso.io", { ...approved, MIGRATION_TARGET: "preview" }, context).action,
+    "migrate",
+    "an isolated preview database is migrated under its own identity",
+  );
 });
 
-test("the build refuses before it opens a connection", () => {
+test("builds are pure: the Vercel build command generates and compiles, and never migrates", () => {
+  const vercel = JSON.parse(readFileSync(join(repoRoot, "vercel.json"), "utf8"));
+  assert.doesNotMatch(vercel.buildCommand, /migrate|db push|seed|turso/i);
+  const allow = JSON.parse(readFileSync(join(repoRoot, "ops/migration-targets.json"), "utf8"));
+  assert.deepEqual(Object.values(allow).flat(), [], "no database is allow-listed until the owner adds it");
+});
+
+test("a trigger body stays one statement", () => {
+  const sql = `CREATE TRIGGER IF NOT EXISTS "t" BEFORE UPDATE ON "X" BEGIN SELECT RAISE(ABORT, 'no; never'); END;\nCREATE INDEX "i" ON "X"("a");`;
+  assert.deepEqual(splitStatements(sql), [
+    `CREATE TRIGGER IF NOT EXISTS "t" BEFORE UPDATE ON "X" BEGIN SELECT RAISE(ABORT, 'no; never'); END`,
+    `CREATE INDEX "i" ON "X"("a")`,
+  ]);
+});
+
+test("the migration refuses before it opens a connection", () => {
   const source = readFileSync(join(repoRoot, "scripts/turso-migrate.mjs"), "utf8");
   const main = source.slice(source.indexOf("async function main()"));
   assert.ok(main.indexOf('target.action === "refuse"') < main.indexOf("createClient("));

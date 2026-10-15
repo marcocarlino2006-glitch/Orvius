@@ -42,11 +42,18 @@ Events: `checkout.session.completed`, `customer.subscription.updated`, `customer
 
 **Important:** Change `prisma/schema.prisma` provider to `postgresql` and run migrations before production scale. For first deploy testing, Turso SQLite-compatible works.
 
-**Schema migrations on build (`scripts/turso-migrate.mjs`):** the build migrates a remote (Turso) database only when `VERCEL_ENV=production`. A Preview or unknown build whose `DATABASE_URL` points at a remote database fails with "turso-migrate refused" instead of touching it. Owner actions:
+**Builds are pure; schema migrations are a separate approved step (`scripts/turso-migrate.mjs`).** The Vercel build command only generates the Prisma client and compiles (`npm run db:generate && npm run build`). It never connects to a database and refuses to migrate if run inside a build. A remote migration runs only as its own invocation, and refuses before connecting unless all of these are set:
 
-1. In Vercel → Settings → Environment Variables, scope the production `DATABASE_URL` to **Production only**. Give Preview either nothing (file-backed SQLite) or its own isolated Turso database.
-2. If Preview has its own isolated Turso database and should be migrated, set `TURSO_MIGRATE_CONFIRM` to that database's host (for example `orvius-preview-you.turso.io`) in the **Preview** scope only.
-3. To migrate by hand from a laptop, run `TURSO_MIGRATE_CONFIRM=<host> npm run db:migrate:turso`. A confirmation that names a different host than `DATABASE_URL` is refused.
+| Variable | What it binds |
+|---|---|
+| `MIGRATION_APPROVAL` | The approval reference (ticket, message link) |
+| `MIGRATION_RELEASE_COMMIT` | The full commit of the release; must equal the checked-out commit |
+| `MIGRATION_TARGET` | `production`, `preview` or `staging` |
+| `DATABASE_URL` host | Must be listed for that target in `ops/migration-targets.json`, and for no other target (empty until the owner adds hosts) |
+| `MIGRATION_PLAN_SHA256` | SHA-256 of the reviewed `prisma/turso-migrate.sql` (`shasum -a 256 prisma/turso-migrate.sql`) |
+| `MIGRATION_BACKUP_REF` | The backup or point-in-time recovery reference taken first |
+
+Order for a release that changes the schema: take the backup, run the approved migration at the release commit, then promote that commit. Rolling code back does not roll the schema or payment facts back; the additive SQL stays, and money facts are reconciled, never deleted. Preview and staging use their own databases, synthetic data and no live provider effects. After promotion, run `EXPECTED_COMMIT=<full sha> npm run prod:verify`; it fails without `EXPECTED_COMMIT`, or when `/api/health` reports a different `release.commit`.
 
 **Paid voice tests (`.github/workflows/voice-gate.yml`):** real Vapi calls run only when you opt in, either by adding the `run-voice-gate` label to a pull request (one run per labelling) or with Actions → Voice gate → Run workflow with "confirm paid calls" ticked. Ordinary PR pushes that touch receptionist files only post a warning. Create the `run-voice-gate` label once in GitHub → Issues → Labels. `voice-nightly.yml` is unchanged: it still places billed calls every night whenever the three `VOICE_SIM_*`/`VAPI_API_KEY` secrets are set. Decide whether to keep that schedule.
 

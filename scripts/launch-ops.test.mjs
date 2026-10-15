@@ -181,3 +181,11 @@ test("the release identity names the built commit and never invents one", async 
   assert.equal(unknown.commit, null);
   assert.equal(unknown.environment, "production-unknown-host");
 });
+
+test("prod:verify needs the promoted release's full commit and compares it to what production serves", () => {
+  const source = readFileSync(new URL("./prod-verify.mjs", import.meta.url), "utf8");
+  assert.match(source, /EXPECTED_COMMIT must name the full 40-character commit/);
+  assert.match(source, /json\?\.release\?\.commit/, "the comparison reads the serving deployment, not the local checkout");
+  assert.doesNotMatch(source, /git rev-parse/);
+  assert.match(source, /served !== expected/);
+});
