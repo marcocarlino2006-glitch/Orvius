@@ -139,7 +139,7 @@ The branch starts from `main` at `39b17d7`. On top of it are the 34 commits of `
 | `prisma/prepared/receivables-v1.sql` | `715e0c2b25a70b11f82fad2a3386fe570375d279af0f28b939830e31d352bfb0` | Prepared only. Tested on a throwaway libsql file created and deleted by `scripts/receivable-ledger.test.mjs`. |
 | `prisma/turso-migrate.sql` (whole file after this pass) | `20f8abf8adb7a69972413c0905dcd434ace14ca1303961b7443b9144004202b7` | Additive blocks appended (below). Applied only by the approved release step, with this checksum named. |
 
-These additive blocks are appended to `turso-migrate.sql`, all `CREATE TABLE IF NOT EXISTS` / `CREATE [UNIQUE] INDEX IF NOT EXISTS`:
+These additive blocks are appended to `turso-migrate.sql`, using only `CREATE TABLE IF NOT EXISTS`, `CREATE [UNIQUE] INDEX IF NOT EXISTS` and nullable `ALTER TABLE ... ADD COLUMN`:
 - `CommandGrant` plus approval columns on `CopilotAction`;
 - `ShopOperatingPolicy`;
 - `SmsIntent`;
@@ -168,7 +168,14 @@ These new suites are added to `npm run test:trust`. Each runs on a disposable SQ
 - `scripts/overage-economics.test.mjs`
 - `scripts/system-of-record.test.mjs`
 
-Clean-checkout validation results are recorded in the final summary of this pass: a fresh worktree at the branch tip, no `.env`, the full trust suite on a fresh disposable database, `tsc --noEmit`, and `next build`.
+Clean-checkout validation at commit `d321019`: a fresh `git worktree`, no `.env` (only the tracked `.env.example`), and `DATABASE_URL` pointed at a new disposable SQLite file.
+
+| Check | Result |
+| --- | --- |
+| `prisma db push` on the disposable file | ok |
+| `tsc --noEmit -p .` | exit 0 |
+| `npm run test:trust` | 1478 tests, 1478 pass, 0 fail |
+| `npm run build` | exit 0 |
 
 ## Not done here, by instruction
 
