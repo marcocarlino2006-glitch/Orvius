@@ -111,6 +111,42 @@ test("alert_team_now texts the owner once per call, with what the caller said", 
   }
 });
 
+test("alert_team_now: a model-supplied number never displaces caller ID unless the caller said every digit", async () => {
+  const shop = await makeShop();
+  const alertWith = async (callerPhone, callbackNumber, callerWords) => {
+    const call = await prisma.call.create({
+      data: { businessId: shop.id, vapiCallId: `danger-${stamp()}`, callerPhone, status: "in-progress" },
+    });
+    await handleInCallToolCalls({
+      shop: toolsShop(shop),
+      callId: call.id,
+      call,
+      toolCalls: [{ id: "t1", name: "alert_team_now", args: { hazard: "gas smell", callbackNumber } }],
+      callerWords,
+    });
+    const sms = await prisma.ownerNotification.findFirst({ where: { businessId: shop.id, channel: "sms", dedupeKey: `safety-live:${call.vapiCallId}` } });
+    return sms.message;
+  };
+  try {
+    const invented = await alertWith("+15125550123", "+11234567890", "I smell gas, just use the number I'm calling from");
+    assert.match(invented, /\+1 512 555 0123/);
+    assert.doesNotMatch(invented, /123 456 7890|1234567890/);
+
+    const collision = await alertWith("+15125550123", "+13125550123", "I smell gas. My number is five five five, oh one two three.");
+    assert.match(collision, /\+1 512 555 0123/, "same last seven digits, different area code: caller ID wins");
+    assert.doesNotMatch(collision, /312/);
+
+    const alternate = await alertWith("+15125550123", "+17735550199", "I smell gas. I'm on my wife's phone, call me at 773-555-0199.");
+    assert.match(alternate, /\+1 773 555 0199/, "the caller's own alternate number is kept");
+
+    const hidden = await alertWith(null, "+13125550199", "I smell gas in the basement");
+    assert.match(hidden, /number not confirmed, check the call/);
+    assert.doesNotMatch(hidden, /312 555 0199/);
+  } finally {
+    await drop(shop.id);
+  }
+});
+
 test("without a transfer number the caller is told the team will call right back", async () => {
   const shop = await makeShop();
   try {

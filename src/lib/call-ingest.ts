@@ -111,6 +111,9 @@ export async function captureEndOfCallReport(params: {
     if (callback.replaced) {
       logWarn("call.callback_number_replaced", { businessId: business.id, vapiCallId, reason: "caller_never_said_extracted_number" });
     }
+    if (callback.withheld) {
+      logWarn("call.callback_number_withheld", { businessId: business.id, vapiCallId, reason: "no_caller_id_and_caller_never_said_it" });
+    }
     const structured = {
       ...extracted,
       phone: callback.phone ?? undefined,
@@ -232,6 +235,18 @@ export async function finishCallReport(input: Omit<Captured, "duplicate">): Prom
       detail: { durationSec, successEvaluation },
       idempotencyKey: key("answered"),
     });
+    if (!callerId && !lead.phone) {
+      audit.add({
+        businessId: business.id,
+        entityType: "call",
+        entityId: call.id,
+        callId: call.id,
+        leadId: lead.id,
+        action: "call.callback_withheld",
+        summary: "No callback number on record — caller ID was hidden and the caller never said a full number. Check the recording before calling back.",
+        idempotencyKey: key("callback-withheld"),
+      });
+    }
     const invented = inventedNumbers(transcript, [business.vapiPhoneNumber, business.transferPhone]);
     if (invented.length) {
       audit.add({

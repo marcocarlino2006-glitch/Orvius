@@ -155,12 +155,28 @@ test("the shop's own line may be said aloud", () => {
 test("the stored callback number comes from the caller, never from a number the model made up", () => {
   assert.ok(callerUsedCallingNumber(SEPT_26));
   assert.ok(callerUsedCallingNumber(SEPT_26_SPANISH));
-  assert.deepEqual(trustedCallbackNumber({ extracted: "+11234567890", callerId: CALLER_ID, transcript: SEPT_26 }), { phone: CALLER_ID, replaced: true });
+  const pick = (r) => [r.phone, r.source, r.replaced, r.withheld];
+  assert.deepEqual(pick(trustedCallbackNumber({ extracted: "+11234567890", callerId: CALLER_ID, transcript: SEPT_26 })), [CALLER_ID, "caller_id", true, false]);
   const alternate = "User: Calling from my work phone, but call me back at 312-555-0199.";
-  assert.deepEqual(trustedCallbackNumber({ extracted: "+13125550199", callerId: CALLER_ID, transcript: alternate }), { phone: "+13125550199", replaced: false });
-  assert.deepEqual(trustedCallbackNumber({ extracted: null, callerId: CALLER_ID, transcript: SEPT_26 }), { phone: CALLER_ID, replaced: false });
-  assert.deepEqual(trustedCallbackNumber({ extracted: "+13125550199", callerId: null, transcript: SEPT_26 }), { phone: "+13125550199", replaced: false }, "no caller ID: keep it, review flags it");
-  assert.deepEqual(trustedCallbackNumber({ extracted: "+13125550199", callerId: CALLER_ID, transcript: null }), { phone: "+13125550199", replaced: false }, "nothing to check against");
+  assert.deepEqual(pick(trustedCallbackNumber({ extracted: "+13125550199", callerId: CALLER_ID, transcript: alternate })), ["+13125550199", "caller_words", false, false]);
+  assert.deepEqual(pick(trustedCallbackNumber({ extracted: null, callerId: CALLER_ID, transcript: SEPT_26 })), [CALLER_ID, "caller_id", false, false]);
+  assert.deepEqual(pick(trustedCallbackNumber({ extracted: "+13125550199", callerId: null, transcript: SEPT_26 })), [null, "none", false, true], "no caller ID and never said: withheld for review");
+  assert.deepEqual(pick(trustedCallbackNumber({ extracted: "+13125550199", callerId: CALLER_ID, transcript: null })), [CALLER_ID, "caller_id", true, false], "no transcript proves nothing: caller ID wins");
+  assert.deepEqual(pick(trustedCallbackNumber({ extracted: "(312) 555-0177", callerId: "13125550177", transcript: null })), ["13125550177", "caller_id", false, false], "formatting and country code are the same number");
+});
+
+test("a seven-digit suffix cannot vouch for a different area code", () => {
+  const sevenOnly = "User: Yeah call me at five five five, oh one seven seven.";
+  assert.deepEqual(
+    [trustedCallbackNumber({ extracted: "+17735550177", callerId: CALLER_ID, transcript: sevenOnly }).phone],
+    [CALLER_ID],
+    "773 vs 312 with the same last seven: the caller ID is the verified number",
+  );
+  const r = trustedCallbackNumber({ extracted: "+17735550177", callerId: null, transcript: sevenOnly });
+  assert.equal(r.phone, null);
+  assert.equal(r.withheld, true);
+  const spoken = "User: It's seven seven three… uh… five five five, oh one seven seven.";
+  assert.equal(trustedCallbackNumber({ extracted: "+17735550177", callerId: CALLER_ID, transcript: spoken }).phone, "+17735550177", "every digit said in one turn");
 });
 
 test("ingest: a made-up read-back never becomes the lead's callback number, and the trace says so", async () => {

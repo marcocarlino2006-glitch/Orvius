@@ -3,6 +3,7 @@ import { afterResponse } from "@/lib/after-response";
 import { isBusyCalendarUnreadable } from "@/lib/busy-calendar";
 import { isFsmScheduleUnreadable } from "@/lib/fsm-schedule";
 import { displayPhone } from "@/lib/customer";
+import { trustedCallbackNumber } from "@/lib/callback-number";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { findOpenSlots } from "@/lib/job";
 import { recordAudit } from "@/lib/audit";
@@ -199,12 +200,17 @@ async function holdAppointment(
   texts them mid-call. The post-call alert still goes out with the full
   record; this one is keyed to the call so a repeated tool call texts once.
 */
-async function alertTeamNow(shop: ShopForTools, call: CallForTools, args: Record<string, unknown>) {
+async function alertTeamNow(shop: ShopForTools, call: CallForTools, args: Record<string, unknown>, callerWords?: string | null) {
   const hazard = str(args.hazard) ?? "a safety hazard";
   const address = str(args.address);
   const name = str(args.callerName);
-  const rawNumber = str(args.callbackNumber) ?? call.callerPhone ?? null;
-  const number = rawNumber ? displayPhone(rawNumber) : null;
+  // The tool argument is model output: it only beats caller ID when the caller said every digit of it.
+  const callback = trustedCallbackNumber({
+    extracted: str(args.callbackNumber),
+    callerId: call.callerPhone,
+    callerLines: (callerWords ?? "").split("\n").filter((line) => line.trim()),
+  });
+  const number = callback.phone ? displayPhone(callback.phone) : callback.withheld ? "number not confirmed, check the call" : null;
   const transferring = Boolean(shop.transferPhone?.trim());
   let texted = false;
   let reached = false;
@@ -247,7 +253,7 @@ async function alertTeamNow(shop: ShopForTools, call: CallForTools, args: Record
         }),
       ),
     );
-    logInfo("in_call.safety_alert", { businessId: shop.id, callId: call.id, transferring });
+    logInfo("in_call.safety_alert", { businessId: shop.id, callId: call.id, transferring, callbackSource: callback.source, callbackReplaced: callback.replaced });
   }
 
   return safetyAlertReply({ texted, reached, transferring });
@@ -266,7 +272,7 @@ export async function handleInCallToolCalls(params: {
         try {
           return {
             toolCallId: call.id,
-            result: await alertTeamNow(params.shop, params.call ?? { id: params.callId }, call.args),
+            result: await alertTeamNow(params.shop, params.call ?? { id: params.callId }, call.args, params.callerWords),
           };
         } catch (error) {
           logError("in_call.safety_alert_failed", {

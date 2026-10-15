@@ -58,18 +58,39 @@ const tail = (digits: string, n = PHONE_RUN) => digits.replace(/\D/g, "").slice(
 export const USE_CALLING_NUMBER =
   /\b(use|call( me)?( back)? (on|at)|same as|it'?s) (the |this |my )?(same )?(number|one|phone|line|cell)( that)? (i'?m|i am|i'?ve been) (calling|ringing) (you )?(from|on|with)\b|\b(this|the same) (number|phone|line)\b.{0,20}\b(is fine|works|is good|is best|is ok(ay)?)\b|\b(caller id|the number (you|that) (see|have|got))\b|\bel (mismo )?n[uú]mero (del que|de donde|desde el que) (llamo|estoy llamando)\b/i;
 
-function callerDigits(transcript: string | null | undefined): string {
-  return parseTranscript(transcript)
-    .filter((l) => l.role === "caller")
-    .flatMap((l) => digitRuns(l.text))
-    .join("|");
+/** The national number: "+1 (312) 555-0147", "13125550147" and "312.555.0147" are all "3125550147". */
+export function nationalNumber(raw: string | null | undefined): string {
+  const digits = (raw ?? "").replace(/\D/g, "");
+  return digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : digits;
 }
 
-/** The caller said this number on the call (its last seven digits appear in their own words). */
+/** Same full phone number. Shared last seven digits with a different area code is a different person. */
+export function samePhone(a: string | null | undefined, b: string | null | undefined): boolean {
+  const x = nationalNumber(a);
+  const y = nationalNumber(b);
+  return x.length >= 10 && x === y;
+}
+
+/**
+ * The caller said this whole number: its full national digits appear in one
+ * spoken run, or across the runs of one caller turn ("three one two… uh…
+ * five five five, oh one four seven"). Seven spoken digits cannot vouch for
+ * an area code the caller never said.
+ */
 export function callerSaid(transcript: string | null | undefined, phone: string | null | undefined): boolean {
-  const want = tail(phone ?? "");
-  if (want.length < PHONE_RUN) return false;
-  return callerDigits(transcript).split("|").some((run) => run.includes(want));
+  return callerLinesSaid(
+    parseTranscript(transcript).filter((l) => l.role === "caller").map((l) => l.text),
+    phone,
+  );
+}
+
+export function callerLinesSaid(lines: string[], phone: string | null | undefined): boolean {
+  const want = nationalNumber(phone);
+  if (want.length < 10) return false;
+  return lines.some((text) => {
+    const runs = digitRuns(text);
+    return runs.some((run) => run.includes(want)) || runs.join("").includes(want);
+  });
 }
 
 /** The caller asked the shop to use the number they are calling from. */
@@ -100,24 +121,40 @@ export function inventedNumbers(transcript: string | null | undefined, allowed: 
   return invented;
 }
 
+export type CallbackSource = "caller_words" | "caller_id" | "none";
+
+export type TrustedCallback = {
+  phone: string | null;
+  /** A model-supplied number was dropped for the inbound caller ID. */
+  replaced: boolean;
+  /** No trustworthy number: the owner must check the call before calling back. */
+  withheld: boolean;
+  source: CallbackSource;
+};
+
 /**
- * The number to store as the callback. The model's extracted number is kept
- * only when the caller actually said it, or it is the caller-ID number; a
- * number the caller never said falls back to caller ID. Without a transcript
- * there is nothing to check against, so the extraction stands.
+ * The callback number, from caller words or verified inbound identity only.
+ * A model-supplied number survives when it is the full caller-ID number or
+ * the caller said every digit of it; anything else yields to caller ID, and
+ * with no caller ID it is withheld for review rather than trusted.
  */
 export function trustedCallbackNumber(input: {
   extracted: string | null | undefined;
   callerId: string | null | undefined;
-  transcript: string | null | undefined;
-}): { phone: string | null; replaced: boolean } {
+  transcript?: string | null | undefined;
+  callerLines?: string[];
+}): TrustedCallback {
   const extracted = input.extracted?.trim() || null;
-  const callerId = input.callerId?.trim() || null;
-  if (!extracted) return { phone: callerId, replaced: false };
-  if (!callerId) return { phone: extracted, replaced: false };
-  if (tail(extracted) === tail(callerId)) return { phone: extracted, replaced: false };
-  const hasCallerLines = parseTranscript(input.transcript).some((l) => l.role === "caller");
-  if (!hasCallerLines) return { phone: extracted, replaced: false };
-  if (callerSaid(input.transcript, extracted)) return { phone: extracted, replaced: false };
-  return { phone: callerId, replaced: true };
+  const callerId = nationalNumber(input.callerId).length >= 10 ? input.callerId!.trim() : null;
+  const said = (phone: string) =>
+    input.callerLines ? callerLinesSaid(input.callerLines, phone) : callerSaid(input.transcript, phone);
+  if (!extracted) {
+    return callerId
+      ? { phone: callerId, replaced: false, withheld: false, source: "caller_id" }
+      : { phone: null, replaced: false, withheld: false, source: "none" };
+  }
+  if (callerId && samePhone(extracted, callerId)) return { phone: callerId, replaced: false, withheld: false, source: "caller_id" };
+  if (said(extracted)) return { phone: extracted, replaced: false, withheld: false, source: "caller_words" };
+  if (callerId) return { phone: callerId, replaced: true, withheld: false, source: "caller_id" };
+  return { phone: null, replaced: false, withheld: true, source: "none" };
 }
