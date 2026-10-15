@@ -1,5 +1,5 @@
 import type { Business, Deposit } from "@prisma/client";
-import { checkoutSessionPaid, refundDuplicateCheckout, reuseOpenCheckoutSession, sessionPaymentIntentId } from "@/lib/checkout-guard";
+import { checkoutSessionPaid, holdDemoPayment, refundDuplicateCheckout, reserveCheckout, sessionPaymentIntentId } from "@/lib/checkout-guard";
 import type Stripe from "stripe";
 
 import { sendCustomerSms } from "@/lib/customer-sms";
@@ -328,13 +328,6 @@ export async function createDepositCheckoutSession(params: {
     );
   }
 
-  const reused = await reuseOpenCheckoutSession({
-    sessionId: params.deposit.stripeSessionId,
-    stripeAccount: connect.accountId,
-    amountCents: params.deposit.amountCents,
-  });
-  if (reused) return reused;
-
   const stripe = getStripe();
   const baseUrl = getAppBaseUrl();
   const token = params.deposit.publicToken;
@@ -349,7 +342,16 @@ export async function createDepositCheckoutSession(params: {
     publicToken: token,
   };
 
-  const session = await stripe.checkout.sessions.create(
+  const accountId = connect.accountId;
+  return reserveCheckout({
+    scope: `deposit:${params.deposit.id}`,
+    stripeAccount: accountId,
+    amountCents: params.deposit.amountCents,
+    currentSessionId: async () =>
+      (await prisma.deposit.findUnique({ where: { id: params.deposit.id }, select: { stripeSessionId: true } }))?.stripeSessionId,
+    remember: (session) =>
+      prisma.deposit.update({ where: { id: params.deposit.id }, data: { stripeSessionId: session.id, applicationFeeCents } }),
+    create: (idempotencyKey) => stripe.checkout.sessions.create(
     {
       mode: "payment",
       line_items: [
@@ -374,15 +376,9 @@ export async function createDepositCheckoutSession(params: {
       cancel_url: `${baseUrl}/d/${token}?canceled=1`,
       metadata,
     },
-    { stripeAccount: connect.accountId },
-  );
-
-  await prisma.deposit.update({
-    where: { id: params.deposit.id },
-    data: { stripeSessionId: session.id, applicationFeeCents },
+    { stripeAccount: accountId, idempotencyKey },
+  ),
   });
-
-  return session;
 }
 
 /**
@@ -434,6 +430,9 @@ export async function fulfillDepositCheckoutSession(
     return settledDeposit(now, session, businessId);
   }
 
+  if (await holdDemoPayment({ businessId, entityType: "deposit", entityId: deposit.id, sessionId: session.id, amountCents: session.amount_total ?? deposit.amountCents, held: "follow_ups" })) {
+    return { ok: true, reason: "held_in_demo", depositId: deposit.id };
+  }
   return { ok: true, depositId: deposit.id };
 }
 
@@ -444,6 +443,9 @@ async function settledDeposit(
   businessId: string,
 ): Promise<{ ok: boolean; reason?: string; depositId?: string }> {
   if (deposit.stripeSessionId === session.id) return { ok: true, reason: "already_paid", depositId: deposit.id };
+  if (await holdDemoPayment({ businessId, entityType: "deposit", entityId: deposit.id, sessionId: session.id, amountCents: session.amount_total, held: "duplicate_refund" })) {
+    return { ok: true, reason: "duplicate_held", depositId: deposit.id };
+  }
   await refundDuplicateCheckout({ session, businessId, entityType: "deposit", entityId: deposit.id, what: "deposit" });
   return { ok: true, reason: "duplicate_refunded", depositId: deposit.id };
 }

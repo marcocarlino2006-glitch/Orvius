@@ -1,3 +1,6 @@
+import { withLease } from "@/lib/provision-attempt";
+import { isOwnerDemoWorkspaceId } from "@/lib/demo-fence";
+import { pageFounderForShop } from "@/lib/platform-pager";
 import type Stripe from "stripe";
 
 import { recordAudit } from "@/lib/audit";
@@ -48,6 +51,74 @@ export async function reuseOpenCheckoutSession(params: {
     });
   }
   return null;
+}
+
+/**
+ * One open checkout per bill and amount. Two taps on "Pay", two tabs, or a
+ * retry after a timeout used to each open a Stripe session, and a customer
+ * could pay both. The bill's lease serializes the decision across servers;
+ * the idempotency key covers a Stripe call that succeeded but whose answer,
+ * or our write of it, was lost — the retry gets the same session back.
+ * Keyed to the session it replaces, so an expired or re-priced one gets a
+ * fresh session instead of Stripe replaying the dead one.
+ */
+export async function reserveCheckout(params: {
+  scope: string;
+  stripeAccount: string;
+  amountCents: number;
+  currentSessionId: () => Promise<string | null | undefined>;
+  create: (idempotencyKey: string) => Promise<Stripe.Checkout.Session>;
+  remember: (session: Stripe.Checkout.Session) => Promise<unknown>;
+}): Promise<Stripe.Checkout.Session> {
+  return withLease(
+    `checkout:${params.scope}`,
+    async () => {
+      const prior = (await params.currentSessionId()) ?? null;
+      const reused = await reuseOpenCheckoutSession({ sessionId: prior, stripeAccount: params.stripeAccount, amountCents: params.amountCents });
+      if (reused) return reused;
+      const session = await params.create(`checkout:${params.scope}:${params.amountCents}:${prior ?? "first"}`);
+      await params.remember(session);
+      return session;
+    },
+    { leaseMs: 45_000, waitMs: 30_000, forget: true },
+  );
+}
+
+/**
+ * Real money landed on a shop that is now a demo — a checkout opened before
+ * the fence, paid after it. The payment stays on the record (a customer was
+ * charged; hiding it would be worse), but nothing follows from it: no
+ * refund, receipt, payout credit or sync goes out from a demo. Orvius ops is
+ * paged and the trail says what is held, so a person reconciles it.
+ */
+export async function holdDemoPayment(params: {
+  businessId: string;
+  entityType: "invoice" | "deposit";
+  entityId: string;
+  sessionId: string;
+  amountCents: number | null;
+  held: "follow_ups" | "duplicate_refund";
+}): Promise<boolean> {
+  if (!(await isOwnerDemoWorkspaceId(params.businessId))) return false;
+  const amount = params.amountCents != null ? formatCentsExact(params.amountCents) : "A payment";
+  const what = params.held === "duplicate_refund" ? "a second charge on a settled bill — its refund is held" : "receipts, payout credit and sync are held";
+  await recordAudit({
+    businessId: params.businessId,
+    entityType: "shop",
+    entityId: params.businessId,
+    action: "payment.held_in_demo",
+    actor: "system",
+    summary: `${amount} was paid on this demo shop's ${params.entityType} (${params.sessionId}). It is recorded; ${what} until Orvius reviews it.`,
+    detail: { sessionId: params.sessionId, held: params.held, [`${params.entityType}Id`]: params.entityId },
+    idempotencyKey: `payment-held-demo:${params.sessionId}`,
+  }).catch(() => null);
+  await pageFounderForShop(
+    params.businessId,
+    `demo_payment:${params.sessionId}`,
+    `Orvius: ${amount} was paid on demo shop ${params.businessId} (${params.entityType} ${params.entityId}, session ${params.sessionId}). Recorded, follow-ups held. Reconcile by hand.`,
+  ).catch(() => null);
+  logError("payment.held_in_demo", { businessId: params.businessId, sessionId: params.sessionId, held: params.held });
+  return true;
 }
 
 /** The PaymentIntent behind a session, whether Stripe expanded it or not. */

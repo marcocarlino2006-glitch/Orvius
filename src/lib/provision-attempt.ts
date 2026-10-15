@@ -81,7 +81,8 @@ export async function finishProvisionAttempt(
 export async function withLease<T>(
   key: string,
   run: () => Promise<T>,
-  options: { leaseMs?: number; waitMs?: number } = {},
+  /** `forget` drops the lease row afterwards, for keys minted per record that would otherwise pile up. */
+  options: { leaseMs?: number; waitMs?: number; forget?: boolean } = {},
 ): Promise<T> {
   const leaseMs = options.leaseMs ?? 30_000;
   const giveUpAt = Date.now() + (options.waitMs ?? 20_000);
@@ -109,7 +110,8 @@ export async function withLease<T>(
       try {
         return await run();
       } finally {
-        await prisma.provisionAttempt.updateMany({ where: { key, tag }, data: { status: "idle", leaseUntil: new Date(0) } });
+        if (options.forget) await prisma.provisionAttempt.deleteMany({ where: { key, tag } });
+        else await prisma.provisionAttempt.updateMany({ where: { key, tag }, data: { status: "idle", leaseUntil: new Date(0) } });
       }
     }
     if (Date.now() >= giveUpAt) throw new ProvisionBusyError();

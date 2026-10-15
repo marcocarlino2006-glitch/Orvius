@@ -1,3 +1,4 @@
+import { withLease } from "@/lib/provision-attempt";
 import type { Business, Invoice } from "@prisma/client";
 import type Stripe from "stripe";
 
@@ -8,7 +9,7 @@ import { logWarn } from "@/lib/logger";
 import { creditNetworkSender } from "@/lib/orvius-network";
 import { calculateNetworkFeeCents, calculatePlatformFeeCents, isChargeableAmount } from "@/lib/platform-fee";
 import { checkoutPaymentMethods } from "@/lib/financing";
-import { checkoutSessionPaid, refundDuplicateCheckout, reuseOpenCheckoutSession } from "@/lib/checkout-guard";
+import { checkoutSessionPaid, holdDemoPayment, refundDuplicateCheckout, reserveCheckout } from "@/lib/checkout-guard";
 import { collectedCents } from "@/lib/payment-math";
 import { claimWebhookEvent, completeWebhookEvent } from "@/lib/webhook-events";
 import { assertLiveActionAllowed } from "@/lib/demo-fence";
@@ -75,6 +76,15 @@ export async function balanceDueForJob(params: {
  * second one. A paid invoice is never touched.
  */
 export async function upsertJobInvoice(params: {
+  businessId: string;
+  jobId: string;
+  totalCents: number;
+}): Promise<{ invoice: Invoice; created: boolean; depositPaidCents: number }> {
+  // Two completions of one job (owner tap and tech app, two servers) read "no invoice" together; one creates it.
+  return withLease(`invoice-job:${params.businessId}:${params.jobId}`, () => upsertJobInvoiceHeld(params), { forget: true });
+}
+
+async function upsertJobInvoiceHeld(params: {
   businessId: string;
   jobId: string;
   totalCents: number;
@@ -199,13 +209,6 @@ export async function createInvoiceCheckoutSession(params: {
     throw new Error(`Invoice balance below Stripe minimum: ${balanceCents}`);
   }
 
-  const reused = await reuseOpenCheckoutSession({
-    sessionId: params.invoice.openCheckoutSessionId,
-    stripeAccount: connect.accountId,
-    amountCents: balanceCents,
-  });
-  if (reused) return reused;
-
   const token = params.invoice.publicToken;
   const baseUrl = getAppBaseUrl();
   const network = await isNetworkJob(params.invoice.jobId);
@@ -221,7 +224,15 @@ export async function createInvoiceCheckoutSession(params: {
   };
 
   const paymentMethods = checkoutPaymentMethods(params.business, balanceCents);
-  const session = await getStripe().checkout.sessions.create(
+  const accountId = connect.accountId;
+  return reserveCheckout({
+    scope: `invoice:${params.invoice.id}`,
+    stripeAccount: accountId,
+    amountCents: balanceCents,
+    currentSessionId: async () =>
+      (await prisma.invoice.findUnique({ where: { id: params.invoice.id }, select: { openCheckoutSessionId: true } }))?.openCheckoutSessionId,
+    remember: (session) => prisma.invoice.update({ where: { id: params.invoice.id }, data: { openCheckoutSessionId: session.id } }),
+    create: (idempotencyKey) => getStripe().checkout.sessions.create(
     {
       mode: "payment",
       ...(paymentMethods ? { payment_method_types: paymentMethods } : {}),
@@ -245,10 +256,9 @@ export async function createInvoiceCheckoutSession(params: {
         metadata,
       },
     },
-    { stripeAccount: connect.accountId },
-  );
-  await prisma.invoice.update({ where: { id: params.invoice.id }, data: { openCheckoutSessionId: session.id } });
-  return session;
+    { stripeAccount: accountId, idempotencyKey },
+  ),
+  });
 }
 
 /**
@@ -331,6 +341,11 @@ export async function applyCardPaymentToInvoice(params: {
       return { ok: true, reason: "already_paid" };
     }
     if (outcome.kind === "duplicate") {
+      const held = await holdDemoPayment({ businessId, entityType: "invoice", entityId: invoiceId, sessionId: session.id, amountCents: session.amount_total, held: "duplicate_refund" });
+      if (held) {
+        await completeWebhookEvent({ ...claim, status: "processed" });
+        return { ok: true, reason: "duplicate_held" };
+      }
       await refundDuplicateCheckout({ session, businessId, entityType: "invoice", entityId: invoiceId, what: "invoice" });
       await completeWebhookEvent({ ...claim, status: "processed" });
       return { ok: true, reason: "duplicate_refunded" };
@@ -338,6 +353,9 @@ export async function applyCardPaymentToInvoice(params: {
 
     await completeWebhookEvent({ ...claim, status: "processed" });
     const { invoice, amountCents, workCents } = outcome;
+    if (await holdDemoPayment({ businessId, entityType: "invoice", entityId: invoice.id, sessionId: session.id, amountCents, held: "follow_ups" })) {
+      return { ok: true, reason: "held_in_demo" };
+    }
     await textOwnerPaid({ businessId, jobId: invoice.jobId, amountCents }).catch(() => null);
     if (params.network && invoice.jobId) {
       await creditNetworkSender({ jobId: invoice.jobId, amountCents: workCents }).catch((error) =>
