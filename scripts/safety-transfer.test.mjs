@@ -97,7 +97,8 @@ test("alert_team_now texts the owner once per call, with what the caller said", 
     const [first] = await run();
     await run();
 
-    assert.match(first.result, /owner has been texted/);
+    assert.match(first.result, /An alert to the owner is queued; it may not have arrived/);
+    assert.doesNotMatch(first.result, /has been texted/);
     assert.match(first.result, /transfer tool/);
     const sms = await prisma.ownerNotification.findMany({ where: { businessId: shop.id, channel: "sms" } });
     assert.equal(sms.length, 1, "a repeated tool call texts once");
@@ -157,7 +158,7 @@ test("without a transfer number the caller is told the team will call right back
       call,
       toolCalls: [{ id: "t1", name: "alert_team_now", args: { hazard: "CO alarm going off" } }],
     });
-    assert.match(result.result, /call you right back/);
+    assert.match(result.result, /so they can call you back/);
     assert.doesNotMatch(result.result, /transfer tool/);
     const sms = await prisma.ownerNotification.findFirst({ where: { businessId: shop.id, channel: "sms" } });
     assert.match(sms.message, /Call them back now\./);

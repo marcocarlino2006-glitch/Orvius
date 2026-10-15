@@ -153,7 +153,7 @@ export function PublicInvoiceClient({ token }: { token: string }) {
       <div className="public-money-actions">
         {invoice.paid ? (
           <p className="public-money-ok">
-            Payment received. {invoice.shopName} has been notified.
+            Payment received. It&apos;s recorded on {invoice.shopName}&apos;s account.
           </p>
         ) : invoice.cardPayAvailable ? (
           <button

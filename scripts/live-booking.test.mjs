@@ -41,13 +41,19 @@ test("five callers holding the last technician's time at once: exactly one keeps
       ),
     );
     const shopForTools = { id: shop.id, name: shop.name, hoursJson: shop.hoursJson, timezone: shop.timezone, trade: shop.trade, servicesJson: shop.servicesJson };
-    const [offer] = await handleInCallToolCalls({
-      shop: shopForTools,
-      callId: calls[0].id,
-      toolCalls: [{ id: "c", name: "check_availability", args: { serviceType: "Furnace blowing cold air" } }],
-    });
-    const slot = offer.result.match(/\[slot ([^\]]+)\]/)?.[1];
-    assert.ok(slot, offer.result);
+    // Every caller was offered the time on their own call; a hold has to be one it was offered.
+    const offers = await Promise.all(
+      calls.map((call) =>
+        handleInCallToolCalls({
+          shop: shopForTools,
+          callId: call.id,
+          toolCalls: [{ id: "c", name: "check_availability", args: { serviceType: "Furnace blowing cold air" } }],
+        }).then(([r]) => r.result),
+      ),
+    );
+    const slot = offers[0].match(/\[slot ([^\]]+)\]/)?.[1];
+    assert.ok(slot, offers[0]);
+    assert.ok(offers.every((o) => o.includes(`[slot ${slot}]`)), offers.join("\n"));
 
     const replies = await Promise.all(
       calls.map((call) =>

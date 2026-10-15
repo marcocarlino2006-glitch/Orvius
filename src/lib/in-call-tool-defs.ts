@@ -174,6 +174,33 @@ export const NETWORK_OFFER_REPLY =
   "No open times here in the next two weeks. Do not offer a time. Ask once: \"We're booked up. I can share your name, number and what you need with another local company we work with, so they can call you sooner. Is that okay?\" If they say yes, call pass_to_network with their words. If not, take their details and say the office will call to schedule.";
 export const NETWORK_NOT_A_YES_REPLY =
   "That was not a clear yes, so nothing was shared. Take their details and say the office will call to schedule.";
+/** Bump when the question in NETWORK_OFFER_REPLY changes what is shared or with whom. */
+export const NETWORK_DISCLOSURE_VERSION = "network-offer-v1";
+export const NETWORK_SHARES = ["name", "callback number", "what they need"] as const;
+export const NETWORK_OFFER_TTL_MS = 15 * 60_000;
+export const SLOT_OFFER_TTL_MS = 20 * 60_000;
+export const NETWORK_NOT_OFFERED_REPLY =
+  "Nothing was shared: passing them along was not offered on this call. Take their details and say the office will call to schedule.";
+export const UNOFFERED_SLOT_REPLY =
+  "That time was not one the schedule offered on this call, so nothing is held. Call check_availability and offer only the times it returns.";
+
+export function callerLines(words: string | null | undefined): string[] {
+  return (words ?? "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
+/*
+  The yes has to be the caller's own latest words after the question was
+  asked. A yes from earlier in the call ("yes, the AC is out") or a yes only
+  the model reports is not consent.
+*/
+export function networkConsentLine(callerWords: string | null | undefined, callerLinesBefore: number): string | null {
+  const after = callerLines(callerWords).slice(Math.max(0, callerLinesBefore));
+  const latest = after.at(-1);
+  return latest && isClearYes(latest) ? latest.slice(0, 200) : null;
+}
 
 /*
   Passing a caller to another business is only theirs to direct, so the yes is
@@ -219,15 +246,25 @@ export function heldNewTimeReply(at: Date, timezone: string) {
   return `Held ${describeSlot(at, timezone)} as the new time for their existing visit. Tell the caller "I've held ${describeSlot(at, timezone)} for you, and the shop will confirm the change with you." Never say the visit is moved or confirmed.`;
 }
 
-export function safetyAlertReply(params: { texted: boolean; reached?: boolean; transferring: boolean }) {
-  const reached = params.reached ?? params.texted;
-  const told = params.texted ? "The owner has been texted. " : reached ? "The owner has been alerted. " : "";
+/*
+  A queued alert has not been sent, and a sent text has not been read, so the
+  caller never hears that the owner was texted or knows. The safety
+  instruction is the caller's protection and stands whatever happens to the
+  alert.
+*/
+export const SAFETY_STANDS =
+  "Keep giving the safety instruction you were given; it does not depend on this alert. If anyone is in danger, tell them to get to safety and call 911 now.";
+
+export function safetyAlertReply(params: { queued: boolean; transferring: boolean }) {
+  const status = params.queued
+    ? "An alert to the owner is queued; it may not have arrived. Never say the owner was texted, has seen it, or is on the way."
+    : "The alert could not be queued. Do not say the team was alerted.";
   if (params.transferring) {
-    return `${told}Now say "I'm connecting you to the team now" and use the transfer tool in the same reply. If the transfer does not go through, tell them the team will call right back and take their name, number and address.`;
+    return `${status} ${SAFETY_STANDS} Then say "I'm connecting you to the team now" and use the transfer tool in the same reply. If the transfer does not go through, say the team will call back as soon as they can and take their name, number and address.`;
   }
-  return reached
-    ? `${told}Tell them "The team has been alerted and will call you right back." Then take their name, callback number and address if you don't have them yet.`
-    : `The alert could not be sent. Do not say the team was alerted. Tell them that if anyone is in danger they should call 911 now, then take their name, callback number and address so the team can call them back.`;
+  return params.queued
+    ? `${status} ${SAFETY_STANDS} Then tell them "I'm alerting the team so they can call you back." Take their name, callback number and address if you don't have them yet.`
+    : `${status} ${SAFETY_STANDS} Then take their name, callback number and address so the team can call them back.`;
 }
 
 /** Vapi sends arguments as an object, some providers as a JSON string. */

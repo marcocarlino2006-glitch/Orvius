@@ -16,6 +16,7 @@ import { logError, logInfo, logWarn } from "@/lib/logger";
 import { buildLeadAlertDedupeKey, enqueueOwnerAlert } from "@/lib/notifications";
 import { buildOwnerLeadAlertMessage } from "@/lib/owner-alert-message";
 import { passConsentedCallLead } from "@/lib/orvius-network";
+import { NETWORK_DISCLOSURE_VERSION } from "@/lib/in-call-tool-defs";
 import { prisma } from "@/lib/prisma";
 import { inventedNumbers, trustedCallbackNumber } from "@/lib/callback-number";
 import { callerWords } from "@/lib/transcript";
@@ -26,6 +27,16 @@ import type { Business, Call, Lead } from "@prisma/client";
 
 /** Call and lead saved, the rest not yet done. */
 const CAPTURED = "captured";
+
+function hasNetworkConsentEvidence(raw: string | null | undefined) {
+  if (!raw) return false;
+  try {
+    const evidence = JSON.parse(raw) as { callerLine?: string; disclosureVersion?: string };
+    return Boolean(evidence.callerLine) && evidence.disclosureVersion === NETWORK_DISCLOSURE_VERSION;
+  } catch {
+    return false;
+  }
+}
 
 export type IngestResult =
   | { duplicate: true }
@@ -401,7 +412,7 @@ export async function finishCallReport(input: Omit<Captured, "duplicate">): Prom
     }
 
     const network =
-      call.networkConsentAt && !safety && !autoBook.jobId && !nonService
+      call.networkConsentAt && hasNetworkConsentEvidence(call.networkConsentJson) && !safety && !autoBook.jobId && !nonService
         ? await passConsentedCallLead(
             { id: business.id, name: business.name, trade: business.trade, address: business.address, networkOn: business.networkOn },
             { ...freshLead, job: null },

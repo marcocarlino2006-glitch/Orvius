@@ -28,7 +28,7 @@ test("the sandbox offers real open times and holds one the caller picks, in prod
 
 test("the sandbox refuses to book a danger call and answers the alert the way production does", () => {
   assert.match(ask("check_availability", { serviceType: "I smell gas by the furnace" }), /^Do not book this\..*alert_team_now/);
-  assert.match(ask("alert_team_now", { hazard: "gas smell" }), /call you right back/);
+  assert.match(ask("alert_team_now", { hazard: "gas smell" }), /so they can call you back/);
   assert.match(ask("alert_team_now", { hazard: "gas smell" }, { transferring: true }), /use the transfer tool/);
 });
 

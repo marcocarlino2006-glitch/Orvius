@@ -1264,3 +1264,10 @@ CREATE UNIQUE INDEX IF NOT EXISTS "ExternalCorrelation_businessId_system_entityT
 CREATE UNIQUE INDEX IF NOT EXISTS "ExternalCorrelation_businessId_system_entityType_entityId_key" ON "ExternalCorrelation"("businessId", "system", "entityType", "entityId");
 CREATE UNIQUE INDEX IF NOT EXISTS "ReconciliationException_dedupeKey_key" ON "ReconciliationException"("dedupeKey");
 CREATE INDEX IF NOT EXISTS "ReconciliationException_businessId_status_idx" ON "ReconciliationException"("businessId", "status");
+
+
+-- In-call offers: the network question and the times a call was offered, the caller's own consent evidence, and what a call-consented handoff may share
+ALTER TABLE "Call" ADD COLUMN "networkConsentJson" TEXT;
+ALTER TABLE "Call" ADD COLUMN "networkOfferJson" TEXT;
+ALTER TABLE "Call" ADD COLUMN "slotOfferJson" TEXT;
+ALTER TABLE "NetworkHandoff" ADD COLUMN "sharesJson" TEXT;

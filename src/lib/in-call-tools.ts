@@ -33,6 +33,14 @@ import {
   parseSlotPreference,
   PASSED_TO_NETWORK_REPLY,
   NETWORK_NOT_A_YES_REPLY,
+  NETWORK_NOT_OFFERED_REPLY,
+  NETWORK_DISCLOSURE_VERSION,
+  NETWORK_OFFER_TTL_MS,
+  NETWORK_SHARES,
+  SLOT_OFFER_TTL_MS,
+  UNOFFERED_SLOT_REPLY,
+  callerLines,
+  networkConsentLine,
   isClearYes,
   safetyAlertReply,
   SLOT_TAKEN_REPLY,
@@ -96,10 +104,55 @@ async function checkAvailability(shop: ShopForTools, callId: string, args: Recor
     if (slots.length) note = NO_ALT_NOTE;
   }
   if (!slots.length) {
+    await recordOffers(callId, { slots: [] });
     if ((await isBusyCalendarUnreadable(shop.id)) || (await isFsmScheduleUnreadable(shop.id))) return CALENDAR_UNREADABLE_REPLY;
-    return (await networkCanHelp(shop)) ? NETWORK_OFFER_REPLY : NO_SLOTS_REPLY;
+    if (!(await networkCanHelp(shop))) return NO_SLOTS_REPLY;
+    await recordOffers(callId, { slots: [], network: { callerLinesBefore: callerLines(callerWords).length } });
+    return NETWORK_OFFER_REPLY;
   }
+  await recordOffers(callId, { slots });
   return availabilityReply(slots, timezone, note);
+}
+
+/* Each availability answer replaces what the call was offered before it. */
+async function recordOffers(callId: string, offer: { slots: Date[]; network?: { callerLinesBefore: number } }) {
+  const now = Date.now();
+  await prisma.call.updateMany({
+    where: { id: callId },
+    data: {
+      slotOfferJson: offer.slots.length
+        ? JSON.stringify({
+            issuedAt: new Date(now).toISOString(),
+            expiresAt: new Date(now + SLOT_OFFER_TTL_MS).toISOString(),
+            slots: offer.slots.map((at) => at.toISOString()),
+          })
+        : null,
+      networkOfferJson: offer.network
+        ? JSON.stringify({
+            offeredAt: new Date(now).toISOString(),
+            expiresAt: new Date(now + NETWORK_OFFER_TTL_MS).toISOString(),
+            disclosureVersion: NETWORK_DISCLOSURE_VERSION,
+            shares: NETWORK_SHARES,
+            callerLinesBefore: offer.network.callerLinesBefore,
+          })
+        : null,
+    },
+  });
+}
+
+function parseJson<T>(raw: string | null | undefined): T | null {
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+}
+
+function wasOffered(raw: string | null | undefined, at: Date, now = Date.now()) {
+  const offer = parseJson<{ expiresAt?: string; slots?: string[] }>(raw);
+  if (!offer?.expiresAt || !Array.isArray(offer.slots) || new Date(offer.expiresAt).getTime() <= now) return false;
+  return offer.slots.some((slot) => new Date(slot).getTime() === at.getTime());
 }
 
 /* A fully booked shop on the network can still get the caller help today. */
@@ -111,21 +164,42 @@ async function networkCanHelp(shop: ShopForTools) {
   return partners.length > 0;
 }
 
-async function passToNetwork(shop: ShopForTools, callId: string, args: Record<string, unknown>) {
-  const callerSaid = str(args.callerSaid)?.slice(0, 200) ?? null;
-  if (!isClearYes(callerSaid)) {
-    logInfo("in_call.network_consent_refused", { businessId: shop.id, callId });
+async function passToNetwork(shop: ShopForTools, callId: string, args: Record<string, unknown>, callerWords?: string | null) {
+  const modelSaid = str(args.callerSaid)?.slice(0, 200) ?? null;
+  const row = await prisma.call.findUnique({ where: { id: callId }, select: { networkOfferJson: true } });
+  const offer = parseJson<{ offeredAt?: string; expiresAt?: string; disclosureVersion?: string; callerLinesBefore?: number }>(row?.networkOfferJson);
+  if (
+    !offer?.offeredAt ||
+    !offer.expiresAt ||
+    offer.disclosureVersion !== NETWORK_DISCLOSURE_VERSION ||
+    new Date(offer.expiresAt).getTime() <= Date.now()
+  ) {
+    logInfo("in_call.network_consent_not_offered", { businessId: shop.id, callId });
+    return NETWORK_NOT_OFFERED_REPLY;
+  }
+  const callerLine = networkConsentLine(callerWords, offer.callerLinesBefore ?? 0);
+  if (!callerLine) {
+    logInfo("in_call.network_consent_refused", { businessId: shop.id, callId, modelReportedYes: isClearYes(modelSaid) });
     return NETWORK_NOT_A_YES_REPLY;
   }
   if (!(await networkCanHelp(shop))) return NETWORK_UNAVAILABLE_REPLY;
-  await prisma.call.update({ where: { id: callId }, data: { networkConsentAt: new Date() } });
+  const consentedAt = new Date();
+  const evidence = {
+    callerLine,
+    disclosureVersion: offer.disclosureVersion,
+    shares: NETWORK_SHARES,
+    offeredAt: offer.offeredAt,
+    consentedAt: consentedAt.toISOString(),
+  };
+  await prisma.call.update({ where: { id: callId }, data: { networkConsentAt: consentedAt, networkConsentJson: JSON.stringify(evidence) } });
   await recordAudit({
     businessId: shop.id,
     entityType: "call",
     entityId: callId,
     action: "network.consent",
-    actor: "system",
-    summary: `Caller agreed to be passed to a nearby shop: "${callerSaid}"`,
+    actor: "customer",
+    summary: `Caller agreed to have their ${NETWORK_SHARES.join(", ")} passed to a nearby shop: "${callerLine}"`,
+    detail: evidence,
     idempotencyKey: `network-consent:${callId}`,
   });
   logInfo("in_call.network_consent", { businessId: shop.id, callId });
@@ -153,6 +227,11 @@ async function holdAppointment(
   if (outside) return outsideScopeReply(outside.label);
   if (playbook.urgency === "emergency" && intent === "new") return URGENT_NO_BOOK_REPLY;
   if (shop.bookingMode === "alert" || holdsForApproval(await getSchedulingPolicy(shop.id))) return OWNER_SETS_TIMES_REPLY;
+  const offered = await prisma.call.findUnique({ where: { id: callId }, select: { slotOfferJson: true } });
+  if (!wasOffered(offered?.slotOfferJson, at)) {
+    logInfo("in_call.hold_unoffered", { businessId: shop.id, callId });
+    return UNOFFERED_SLOT_REPLY;
+  }
   const slot = {
     businessId: shop.id,
     urgency: null,
@@ -213,8 +292,7 @@ async function alertTeamNow(shop: ShopForTools, call: CallForTools, args: Record
   });
   const number = callback.phone ? displayPhone(callback.phone) : callback.withheld ? "number not confirmed, check the call" : null;
   const transferring = Boolean(shop.transferPhone?.trim());
-  let texted = false;
-  let reached = false;
+  let queued = false;
 
   if (shop.ownerPhone || shop.ownerEmail) {
     const alert = await enqueueOwnerAlert({
@@ -232,7 +310,7 @@ async function alertTeamNow(shop: ShopForTools, call: CallForTools, args: Record
         .filter(Boolean)
         .join(" "),
     });
-    // A repeated tool call finds the first one's rows; what they were is what was sent.
+    // A repeated tool call finds the first one's rows: still queued unless they failed.
     const channels = alert.duplicate
       ? (
           await prisma.ownerNotification.findMany({
@@ -241,8 +319,7 @@ async function alertTeamNow(shop: ShopForTools, call: CallForTools, args: Record
           })
         ).map((row) => row.channel)
       : alert.queued;
-    texted = channels.includes("sms");
-    reached = channels.length > 0;
+    queued = channels.length > 0;
     await afterResponse(() =>
       // This shop's safety text goes first, ahead of any other shop's backlog and the sweeps.
       processNotificationQueue(5, { businessId: shop.id })
@@ -257,7 +334,7 @@ async function alertTeamNow(shop: ShopForTools, call: CallForTools, args: Record
     logInfo("in_call.safety_alert", { businessId: shop.id, callId: call.id, transferring, callbackSource: callback.source, callbackReplaced: callback.replaced });
   }
 
-  return safetyAlertReply({ texted, reached, transferring });
+  return safetyAlertReply({ queued, transferring });
 }
 
 export async function handleInCallToolCalls(params: {
@@ -282,7 +359,7 @@ export async function handleInCallToolCalls(params: {
           });
           return {
             toolCallId: call.id,
-            result: "The alert did not go through. Tell them the team will call right back, and take their name, number and address.",
+            result: safetyAlertReply({ queued: false, transferring: Boolean(params.shop.transferPhone?.trim()) }),
           };
         }
       }
@@ -294,7 +371,7 @@ export async function handleInCallToolCalls(params: {
           return { toolCallId: call.id, result: await holdAppointment(params.shop, params.callId, call.args, "new", params.callerWords) };
         }
         if (call.name === "pass_to_network") {
-          return { toolCallId: call.id, result: await passToNetwork(params.shop, params.callId, call.args) };
+          return { toolCallId: call.id, result: await passToNetwork(params.shop, params.callId, call.args, params.callerWords) };
         }
         if (call.name === "hold_new_time") {
           return { toolCallId: call.id, result: await holdAppointment(params.shop, params.callId, call.args, "reschedule") };
