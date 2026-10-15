@@ -1,0 +1,25 @@
+{
+  "note": "Synthetic. No real shop, customer or payment. Covers: one invoice per job, a redrafted job (two invoices, money on one), money on two invoices (conflict), an invoice with no job, a voided invoice, a paid deposit applied, a deposit bigger than its bill (conflict), an unpaid deposit ignored.",
+  "invoices": [
+    { "id": "inv-a1", "businessId": "biz-1", "jobId": "job-a", "status": "paid", "amountCents": 25000, "subtotalCents": 25000, "taxCents": 0, "taxBps": 0, "createdAt": "2026-09-01T15:00:00.000Z" },
+    { "id": "inv-b1", "businessId": "biz-1", "jobId": "job-b", "status": "draft", "amountCents": 18000, "subtotalCents": 18000, "taxCents": 0, "taxBps": 0, "createdAt": "2026-09-02T15:00:00.000Z" },
+    { "id": "inv-b2", "businessId": "biz-1", "jobId": "job-b", "status": "partial", "amountCents": 21000, "subtotalCents": 20000, "taxCents": 1000, "taxBps": 500, "createdAt": "2026-09-03T15:00:00.000Z" },
+    { "id": "inv-c1", "businessId": "biz-1", "jobId": "job-c", "status": "paid", "amountCents": 9000, "subtotalCents": 9000, "taxCents": 0, "taxBps": 0, "createdAt": "2026-09-04T15:00:00.000Z" },
+    { "id": "inv-c2", "businessId": "biz-1", "jobId": "job-c", "status": "partial", "amountCents": 4000, "subtotalCents": 4000, "taxCents": 0, "taxBps": 0, "createdAt": "2026-09-05T15:00:00.000Z" },
+    { "id": "inv-x1", "businessId": "biz-1", "jobId": null, "status": "open", "amountCents": 3900, "subtotalCents": 3900, "taxCents": 0, "taxBps": 0, "createdAt": "2026-09-06T15:00:00.000Z" },
+    { "id": "inv-v1", "businessId": "biz-1", "jobId": "job-d", "status": "void", "amountCents": 5000, "subtotalCents": 5000, "taxCents": 0, "taxBps": 0, "createdAt": "2026-09-07T15:00:00.000Z" },
+    { "id": "inv-e1", "businessId": "biz-2", "jobId": "job-a", "status": "open", "amountCents": 6000, "subtotalCents": 6000, "taxCents": 0, "taxBps": 0, "createdAt": "2026-09-08T15:00:00.000Z" }
+  ],
+  "payments": [
+    { "id": "pay-a1", "invoiceId": "inv-a1", "amountCents": 25000, "status": "recorded", "createdAt": "2026-09-01T18:00:00.000Z" },
+    { "id": "pay-b2", "invoiceId": "inv-b2", "amountCents": 10000, "status": "recorded", "createdAt": "2026-09-03T18:00:00.000Z" },
+    { "id": "pay-c1", "invoiceId": "inv-c1", "amountCents": 9000, "status": "recorded", "createdAt": "2026-09-04T18:00:00.000Z" },
+    { "id": "pay-c2", "invoiceId": "inv-c2", "amountCents": 2000, "status": "recorded", "createdAt": "2026-09-05T18:00:00.000Z" },
+    { "id": "pay-z", "invoiceId": "inv-x1", "amountCents": 3900, "status": "refunded", "createdAt": "2026-09-06T18:00:00.000Z" }
+  ],
+  "deposits": [
+    { "id": "dep-a", "businessId": "biz-1", "jobId": "job-a", "amountCents": 5000, "status": "paid", "paidAt": "2026-08-30T12:00:00.000Z" },
+    { "id": "dep-e", "businessId": "biz-2", "jobId": "job-a", "amountCents": 8000, "status": "paid", "paidAt": "2026-09-08T12:00:00.000Z" },
+    { "id": "dep-p", "businessId": "biz-1", "jobId": "job-b", "amountCents": 4000, "status": "pending", "paidAt": null }
+  ]
+}
