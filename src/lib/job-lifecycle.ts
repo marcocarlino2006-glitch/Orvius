@@ -115,12 +115,42 @@ export type JobStepsInput = JobLifecycleInput & {
   scheduledAt?: string | Date | null;
   customerConfirmSentAt?: string | Date | null;
   customerConfirmFailedAt?: string | Date | null;
+  /** What the carrier last reported for the confirm text; absent when the caller didn't look it up. */
+  customerConfirmDelivery?: TextDelivery | null;
   techAssignedAt?: string | Date | null;
   techNotifiedAt?: string | Date | null;
   techDeclineReason?: string | null;
   dispatchedAt?: string | Date | null;
   onSiteAt?: string | Date | null;
   completedAt?: string | Date | null;
+};
+
+export type TextDelivery = "delivered" | "simulated" | "pending" | "unknown" | "failed";
+
+/** A carrier receipt this long overdue means nobody knows whether the text arrived. */
+export const RECEIPT_OVERDUE_MS = 30 * 60_000;
+
+/**
+ * Twilio taking a text is not the customer getting it. Only a "delivered"
+ * receipt says it arrived; a demo text is simulated, never delivered.
+ */
+export function textDelivery(
+  text: { sid: string | null | undefined; deliveryStatus: string | null | undefined; sentAt: string | Date | null | undefined },
+  now = new Date(),
+): TextDelivery {
+  if (text.sid?.startsWith("SIM_")) return "simulated";
+  const status = text.deliveryStatus?.toLowerCase() ?? null;
+  if (status === "delivered" || status === "read") return "delivered";
+  if (status === "failed" || status === "undelivered") return "failed";
+  const sentAt = text.sentAt ? new Date(text.sentAt).getTime() : null;
+  return sentAt != null && now.getTime() - sentAt > RECEIPT_OVERDUE_MS ? "unknown" : "pending";
+}
+
+const CONFIRM_SENT_DETAIL: Record<Exclude<TextDelivery, "failed">, string> = {
+  delivered: "Confirm text delivered, no reply yet",
+  simulated: "Confirm text simulated (demo), no reply yet",
+  pending: "Confirm text handed to the carrier, delivery not reported yet",
+  unknown: "No delivery receipt for the confirm text. Call if the time matters.",
 };
 
 /* A job text that Twilio hasn't taken a couple of minutes after assigning did not go out. */
@@ -148,7 +178,10 @@ export function jobSteps(job: JobStepsInput, now = new Date()): JobStep[] {
   } else if (job.customerConfirmFailedAt) {
     steps.push({ key: "customer", label: "Customer confirmed", state: "problem", detail: "The confirm text didn't go through. Call them.", at: iso(job.customerConfirmFailedAt) });
   } else if (job.customerConfirmSentAt) {
-    steps.push({ key: "customer", label: "Customer confirmed", state: "waiting", detail: "Confirm text sent, no reply yet", at: iso(job.customerConfirmSentAt) });
+    const delivery = job.customerConfirmDelivery ?? null;
+    const detail =
+      delivery && delivery !== "failed" ? CONFIRM_SENT_DETAIL[delivery] : "Confirm text sent, delivery not reported";
+    steps.push({ key: "customer", label: "Customer confirmed", state: delivery === "failed" ? "problem" : "waiting", detail: delivery === "failed" ? "The confirm text didn't go through. Call them." : detail, at: iso(job.customerConfirmSentAt) });
   } else {
     steps.push({ key: "customer", label: "Customer confirmed", state: "waiting", detail: started ? "Never confirmed" : "Not asked yet", at: null });
   }

@@ -14,7 +14,7 @@ import {
 import { WorkPanel } from "@/components/work-panel";
 import { displayPhone } from "@/lib/customer";
 import { PAST_DUE_LABEL, jobPastDue, nextJobStatus, pastDueDetail } from "@/lib/job-status";
-import { jobLifecycle, jobSteps } from "@/lib/job-lifecycle";
+import { jobLifecycle, jobSteps, type TextDelivery } from "@/lib/job-lifecycle";
 import { StatusDot } from "@/components/status-dot";
 import { formatShopTime, shopWallInput } from "@/lib/when";
 import Link from "next/link";
@@ -64,6 +64,7 @@ type JobDetail = {
   customerConfirmedAt: string | null;
   customerConfirmSentAt?: string | null;
   customerConfirmFailedAt?: string | null;
+  customerConfirmDelivery?: TextDelivery | null;
   techAssignedAt?: string | null;
   techNotifiedAt?: string | null;
   techAcceptedAt?: string | null;

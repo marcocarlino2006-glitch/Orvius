@@ -5,6 +5,7 @@ import { claimedCents, collectedCents, collectedHow } from "@/lib/payment-record
 import { getConnectStatus } from "@/lib/stripe-connect";
 import { personActor, recordAudit } from "@/lib/audit";
 import { shopWallInputToUtc } from "@/lib/availability";
+import { textDelivery } from "@/lib/job-lifecycle";
 import { JOB_INCLUDE, isJobStatus, jobStatusLabel, serializeJob, updateJobStatus } from "@/lib/job";
 import { logWarn } from "@/lib/logger";
 import { notifyTechOnAssign } from "@/lib/notify-tech-assign";
@@ -57,8 +58,18 @@ export async function GET(_request: Request, { params }: Params) {
     include: { payments: { select: { amountCents: true, status: true, method: true } } },
   });
 
+  const confirmText = job.customerConfirmSid
+    ? await prisma.message.findFirst({
+        where: { businessId: business.id, sid: job.customerConfirmSid, direction: "out" },
+        select: { deliveryStatus: true },
+      })
+    : null;
+  const customerConfirmDelivery = job.customerConfirmSentAt
+    ? textDelivery({ sid: job.customerConfirmSid, deliveryStatus: confirmText?.deliveryStatus, sentAt: job.customerConfirmSentAt })
+    : null;
+
   return NextResponse.json({
-    job: serializeJob(job),
+    job: { ...serializeJob(job), customerConfirmDelivery },
     deposit: deposit
       ? {
           id: deposit.id,
