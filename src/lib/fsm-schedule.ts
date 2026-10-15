@@ -1,3 +1,4 @@
+import { isOwnerDemoWorkspaceId } from "@/lib/demo-fence";
 import { afterResponse } from "@/lib/after-response";
 import { MAX_SCHEDULE_DAYS, type BusyWindow } from "@/lib/availability";
 import { BUSY_REFRESH_MS, BUSY_STALE_MAX_MS } from "@/lib/busy-calendar";
@@ -61,6 +62,7 @@ async function withoutOrviusJobs(businessId: string, visits: Visit[], from: Date
 }
 
 export async function refreshFsmSchedule(businessId: string, now = new Date()): Promise<{ source: FsmSource | null; error: string | null; count: number }> {
+  if (await isOwnerDemoWorkspaceId(businessId)) return { source: null, error: null, count: 0 };
   const source = await connectedSource(businessId);
   if (!source) {
     await prisma.business.update({

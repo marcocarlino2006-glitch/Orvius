@@ -225,7 +225,8 @@ export async function quickbooksAccess(businessId: string, now = new Date()): Pr
 /** Disconnect from our side: revoke at Intuit (best effort), then forget the tokens. */
 export async function disconnectQuickBooks(businessId: string) {
   const conn = await prisma.quickBooksConnection.findUnique({ where: { businessId } });
-  const refresh = openSecret(conn?.refreshTokenEnc ?? null);
+  // A demo shop's token was never Intuit's to revoke: clearing it here is the whole disconnect.
+  const refresh = (await isOwnerDemoWorkspaceId(businessId)) ? null : openSecret(conn?.refreshTokenEnc ?? null);
   if (refresh) {
     await fetch(revokeUrl(), {
       method: "POST",

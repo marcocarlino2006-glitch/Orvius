@@ -1,3 +1,4 @@
+import { isOwnerDemoWorkspaceId } from "@/lib/demo-fence";
 import type { Business } from "@prisma/client";
 import { afterResponse } from "@/lib/after-response";
 import { isValidTimezone, MAX_SCHEDULE_DAYS, zonedWallToUtc, type BusyWindow } from "@/lib/availability";
@@ -367,6 +368,7 @@ type BusyBusiness = Pick<
 /** Pull the calendar now and store its busy times. Keeps the last good copy when a pull fails. */
 export async function refreshBusyCalendar(business: BusyBusiness, now = new Date(), fetchImpl?: typeof fetch) {
   if (!business.busyCalendarUrl) return { windows: [] as BusyWindow[], error: null };
+  if (await isOwnerDemoWorkspaceId(business.id)) return { windows: [] as BusyWindow[], error: null };
   try {
     const ics = await fetchBusyCalendar(business.busyCalendarUrl, fetchImpl);
     const windows = parseBusyWindows(ics, { from: now, to: new Date(now.getTime() + HORIZON_MS), timezone: business.timezone });

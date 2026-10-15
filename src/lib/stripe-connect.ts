@@ -1,3 +1,4 @@
+import { assertLiveActionAllowed } from "@/lib/demo-fence";
 import type { Business } from "@prisma/client";
 import type Stripe from "stripe";
 
@@ -88,6 +89,7 @@ export async function ensureConnectAccount(
     Partial<ConnectFields>,
 ): Promise<string> {
   const existing = business.stripeConnectAccountId?.trim();
+  await assertLiveActionAllowed(business.id, "Card payments setup");
   if (existing) return existing;
 
   const stripe = getStripe();

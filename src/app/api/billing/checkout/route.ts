@@ -1,3 +1,4 @@
+import { isOwnerDemoWorkspace, NOT_OWNER_DEMO } from "@/lib/demo-fence";
 import { NextRequest, NextResponse } from "next/server";
 import { getAllowedEmails } from "@/lib/auth-allowlist";
 import { canCreateShopForEmail } from "@/lib/self-serve-signup";
@@ -102,15 +103,24 @@ export async function POST(request: NextRequest) {
     const stripe = getStripe();
     const baseUrl = getAppBaseUrl();
 
+    const active = await resolveShopAccess(sessionEmail).then((a) => (a?.role === "owner" ? a.business : null));
     const business = body.businessId
       ? await prisma.business.findFirst({
           where: { id: body.businessId, ownerEmail: sessionEmail },
         })
-      : ((await resolveShopAccess(sessionEmail).then((a) => (a?.role === "owner" ? a.business : null))) ??
+      : ((active && !isOwnerDemoWorkspace(active) ? active : null) ??
         (await prisma.business.findFirst({
-          where: { ownerEmail: sessionEmail },
+          where: { ownerEmail: sessionEmail, ...NOT_OWNER_DEMO },
           orderBy: { createdAt: "asc" },
         })));
+
+    // A plan bought "for" the demo shop would bill a sandbox nobody answers calls on.
+    if (business && isOwnerDemoWorkspace(business)) {
+      return NextResponse.json(
+        { error: "The demo shop can't take a plan. Set up your real business, then choose a plan for it." },
+        { status: 409 },
+      );
+    }
 
     /*
       A shop that is already paying changes plans in the billing portal. A

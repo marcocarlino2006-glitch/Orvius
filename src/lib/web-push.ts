@@ -1,3 +1,4 @@
+import { isOwnerDemoWorkspaceId } from "@/lib/demo-fence";
 import webpush from "web-push";
 import { logInfo, logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
@@ -50,6 +51,7 @@ export function pushFromAlert(businessName: string, message: string, leadId?: st
 
 export async function sendOwnerPush(businessId: string, push: OwnerPush): Promise<number> {
   if (!configured()) return 0;
+  if (await isOwnerDemoWorkspaceId(businessId)) return 0;
   const subscriptions = (await prisma.pushSubscription.findMany({ where: { businessId } })).filter((sub) => isBrowserPushEndpoint(sub.endpoint));
   let delivered = 0;
   await Promise.all(
