@@ -10,6 +10,7 @@ import {
   slugify,
   type ServiceOffering,
 } from "@/lib/business";
+import { NOT_OWNER_DEMO } from "@/lib/demo-fence";
 import { getWebhookUrl, isConfigured } from "@/lib/env";
 import { logError } from "@/lib/logger";
 import {
@@ -182,9 +183,10 @@ export function standardServiceNames(trade: Trade): string[] {
   return TRADE_SERVICES[trade].map((s) => s.name);
 }
 
+/** The person's real (or test-mode) shop. Their sample demo shop is never it. */
 export async function findBusinessForOwner(email: string) {
   return prisma.business.findFirst({
-    where: { ownerEmail: email.toLowerCase() },
+    where: { ownerEmail: email.toLowerCase(), ...NOT_OWNER_DEMO },
     orderBy: { createdAt: "asc" },
   });
 }

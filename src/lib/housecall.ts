@@ -1,6 +1,7 @@
 import { describeSlot } from "@/lib/in-call-tool-defs";
 import { displayPhone, normalizePhone } from "@/lib/customer";
 import { logError, logInfo, logWarn } from "@/lib/logger";
+import { assertLiveActionAllowed, isOwnerDemoWorkspaceId } from "@/lib/demo-fence";
 import { prisma } from "@/lib/prisma";
 import { openSecret, sealSecret, secretBoxConfigured } from "@/lib/secret-box";
 
@@ -55,6 +56,7 @@ export async function housecallRequest<T>(apiKey: string, method: "GET" | "POST"
 
 /** A pasted key → a stored, sealed connection, only once Housecall Pro accepts it. */
 export async function connectHousecall(params: { businessId: string; apiKey: string; now?: Date }) {
+  await assertLiveActionAllowed(params.businessId, "Connecting Housecall Pro");
   const apiKey = params.apiKey.trim();
   if (apiKey.length < 16 || /\s/.test(apiKey)) throw new HousecallAuthError("That doesn't look like a Housecall Pro API key.");
   const company = await housecallRequest<{ id?: string | number; name?: string | null }>(apiKey, "GET", "/company");
@@ -82,6 +84,7 @@ export async function disconnectHousecall(businessId: string) {
 }
 
 async function housecallKey(businessId: string): Promise<{ id: string; key: string } | null> {
+  if (await isOwnerDemoWorkspaceId(businessId)) return null;
   const conn = await prisma.housecallConnection.findUnique({ where: { businessId } });
   if (!conn || conn.status !== "active") return null;
   const key = openSecret(conn.apiKeyEnc);
@@ -105,7 +108,7 @@ const NOT_NEW_WORK = new Set(["existing_job", "follow_up", "complaint", "info_on
 export async function enqueueHousecallSync(params: { businessId: string; leadId: string; skipReason?: string | null; nonService?: boolean }) {
   if (params.nonService || (params.skipReason && NOT_NEW_WORK.has(params.skipReason))) return false;
   const conn = await prisma.housecallConnection.findUnique({ where: { businessId: params.businessId }, select: { status: true } });
-  if (conn?.status !== "active") return false;
+  if (conn?.status !== "active" || (await isOwnerDemoWorkspaceId(params.businessId))) return false;
   try {
     await prisma.housecallSync.create({ data: { businessId: params.businessId, leadId: params.leadId } });
     return true;

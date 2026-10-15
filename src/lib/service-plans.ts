@@ -8,6 +8,7 @@ import { isShopDaytime } from "@/lib/lead-follow-up";
 import { logWarn } from "@/lib/logger";
 import { enqueueOwnerAlert } from "@/lib/notifications";
 import { getPlatformFeeBps, isChargeableAmount } from "@/lib/platform-fee";
+import { isOwnerDemoWorkspace } from "@/lib/demo-fence";
 import { prisma } from "@/lib/prisma";
 import { getAppBaseUrl, getStripe } from "@/lib/stripe";
 import { getConnectStatus } from "@/lib/stripe-connect";
@@ -140,6 +141,7 @@ export async function createPlanCheckout(
 ): Promise<{ ok: true; url: string } | { ok: false; reason: "unavailable" | "invalid"; message: string }> {
   const found = await publicPlansShop(slug);
   if (!found) return { ok: false, reason: "unavailable", message: "This business isn't selling plans online right now." };
+  if (isOwnerDemoWorkspace(found.shop)) return { ok: false, reason: "unavailable", message: "The demo shop doesn't take real card payments." };
   const plan = found.plans.find((p) => p.id === input.planId);
   if (!plan) return { ok: false, reason: "invalid", message: "Pick a plan." };
   const phoneNormalized = normalizePhone(input.phone);

@@ -4,7 +4,9 @@ import { recordAudit } from "@/lib/audit";
 import { ingestEndOfCallReport } from "@/lib/call-ingest";
 import { confirmJobByCustomerToken, ensureCustomerConfirmToken } from "@/lib/customer-confirm";
 import { seedDemoDataset } from "@/lib/demo-dataset";
+import { isOwnerDemoWorkspace, OWNER_DEMO_SLUG_PREFIX } from "@/lib/demo-fence";
 import { prisma } from "@/lib/prisma";
+import { withLease } from "@/lib/provision-attempt";
 import { SIMULATED_UNDELIVERABLE_PHONE } from "@/lib/sms-simulation";
 
 /**
@@ -151,7 +153,8 @@ export const DEMO_SCENARIOS: Scenario[] = [
 
 export async function findDemoWorkspace(email: string) {
   return prisma.business.findFirst({
-    where: { ownerEmail: email.toLowerCase(), environment: "demo", isActive: true, slug: { startsWith: "demo-" } },
+    where: { ownerEmail: email.toLowerCase(), environment: "demo", isActive: true, slug: { startsWith: OWNER_DEMO_SLUG_PREFIX } },
+    orderBy: { createdAt: "asc" },
   });
 }
 
@@ -161,22 +164,40 @@ type DemoOptions = {
   timezone?: string | null;
 };
 
-/** The person's demo shop, created on first use. Never touches a production shop. */
+export const demoLeaseKey = (email: string) => `demo:${email.trim().toLowerCase()}`;
+
+/**
+ * The person's demo shop, created on first use. Never touches a production
+ * shop. Creating, seeding and resetting run one at a time per person, so a
+ * double click or two tabs can't make two demo shops or seed one twice.
+ */
 export async function ensureDemoWorkspace(
   email: string,
   options: DemoOptions = {},
 ): Promise<{ business: Business; created: boolean; seeded: boolean }> {
   const owner = email.trim().toLowerCase();
   const existing = await findDemoWorkspace(owner);
+  if (existing && !(options.seed && (await isEmptyDemo(existing.id)))) {
+    return { business: existing, created: false, seeded: false };
+  }
+  return withLease(demoLeaseKey(owner), () => ensureDemoWorkspaceHeld(owner, options));
+}
+
+async function isEmptyDemo(businessId: string) {
+  return (await prisma.job.count({ where: { businessId } })) === 0;
+}
+
+async function ensureDemoWorkspaceHeld(owner: string, options: DemoOptions) {
+  const existing = await findDemoWorkspace(owner);
   if (existing) {
-    const empty = options.seed ? (await prisma.job.count({ where: { businessId: existing.id } })) === 0 : false;
+    const empty = options.seed ? await isEmptyDemo(existing.id) : false;
     if (empty) await seedDemoDataset(existing);
     return { business: existing, created: false, seeded: empty };
   }
   const business = await prisma.business.create({
     data: {
       name: "Summit Heating & Air (demo)",
-      slug: `demo-${randomUUID().slice(0, 12)}`,
+      slug: `${OWNER_DEMO_SLUG_PREFIX}${randomUUID().slice(0, 12)}`,
       environment: "demo",
       trade: "HVAC",
       timezone: validTimezone(options.timezone),
@@ -214,18 +235,25 @@ export async function ensureDemoWorkspace(
  */
 export async function resetDemoWorkspace(email: string, options: Omit<DemoOptions, "seed"> = {}) {
   const owner = email.trim().toLowerCase();
-  const existing = await findDemoWorkspace(owner);
-  if (existing) {
-    if (existing.environment !== "demo" || !existing.slug.startsWith("demo-") || existing.ownerEmail?.toLowerCase() !== owner) {
-      throw new Error("Only a demo workspace can be reset.");
+  const requestedAt = Date.now();
+  return withLease(demoLeaseKey(owner), async () => {
+    const existing = await findDemoWorkspace(owner);
+    // A reset that finished while this one waited already started over at today.
+    if (existing && existing.createdAt.getTime() >= requestedAt) {
+      return { business: existing, created: false, seeded: false };
     }
-    await prisma.$transaction([
-      prisma.lead.deleteMany({ where: { businessId: existing.id } }),
-      prisma.webhookEvent.deleteMany({ where: { businessId: existing.id } }),
-      prisma.business.delete({ where: { id: existing.id } }),
-    ]);
-  }
-  return ensureDemoWorkspace(owner, { seed: true, timezone: options.timezone ?? existing?.timezone });
+    if (existing) {
+      if (!isOwnerDemoWorkspace(existing) || existing.ownerEmail?.toLowerCase() !== owner) {
+        throw new Error("Only a demo workspace can be reset.");
+      }
+      await prisma.$transaction([
+        prisma.lead.deleteMany({ where: { businessId: existing.id } }),
+        prisma.webhookEvent.deleteMany({ where: { businessId: existing.id } }),
+        prisma.business.delete({ where: { id: existing.id } }),
+      ]);
+    }
+    return ensureDemoWorkspaceHeld(owner, { seed: true, timezone: options.timezone ?? existing?.timezone });
+  });
 }
 
 export async function simulateDemoCall(business: Pick<Business, "id" | "environment">, scenarioId: string) {

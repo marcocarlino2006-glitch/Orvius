@@ -1,6 +1,7 @@
 import { displayPhone } from "@/lib/customer";
 import { getAppUrl } from "@/lib/env";
 import { logError, logInfo, logWarn } from "@/lib/logger";
+import { assertLiveActionAllowed, isOwnerDemoWorkspaceId } from "@/lib/demo-fence";
 import { prisma } from "@/lib/prisma";
 import { openSecret, sealSecret, secretBoxConfigured } from "@/lib/secret-box";
 
@@ -133,6 +134,7 @@ async function qboQuery<T>(token: string, realmId: string, sql: string): Promise
 
 /** Code and realm from the OAuth callback → a stored, sealed connection for this shop. */
 export async function connectQuickBooks(params: { businessId: string; code: string; realmId: string; now?: Date }) {
+  await assertLiveActionAllowed(params.businessId, "Connecting QuickBooks");
   const now = params.now ?? new Date();
   const tokens = await tokenRequest({ grant_type: "authorization_code", code: params.code, redirect_uri: quickbooksRedirectUri() });
   const info = await qboRequest<{ CompanyInfo?: { CompanyName?: string } }>(
@@ -170,6 +172,7 @@ async function needsReconnect(connectionId: string, reason: string) {
 
 /** A usable access token and realm. Refreshing is claimed first: Intuit rotates refresh tokens. */
 export async function quickbooksAccess(businessId: string, now = new Date()): Promise<{ token: string; realmId: string; connectionId: string } | null> {
+  if (await isOwnerDemoWorkspaceId(businessId)) return null;
   for (let attempt = 0; attempt < 6; attempt++) {
     const conn = await prisma.quickBooksConnection.findUnique({ where: { businessId } });
     if (!conn || conn.status !== "active") return null;
@@ -242,6 +245,7 @@ export async function disconnectQuickBooks(businessId: string) {
  * means a new payment path cannot be forgotten.
  */
 export async function enqueueQuickBooksPayments(businessId: string, since: Date, now = new Date()) {
+  if (await isOwnerDemoWorkspaceId(businessId)) return 0;
   const [invoices, deposits, existing] = await Promise.all([
     prisma.invoice.findMany({ where: { businessId, status: "paid", paidAt: { gte: since } }, select: { id: true, amountCents: true }, take: 200 }),
     prisma.deposit.findMany({ where: { businessId, status: "paid", paidAt: { gte: since } }, select: { id: true, amountCents: true }, take: 200 }),

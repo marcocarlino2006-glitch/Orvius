@@ -73,6 +73,50 @@ export async function finishProvisionAttempt(
   });
 }
 
+/**
+ * A short per-key lease for work that must not overlap but buys nothing,
+ * such as creating or resetting a person's demo shop. Waits for the holder,
+ * then runs; a crashed holder's lease lapses after `leaseMs`.
+ */
+export async function withLease<T>(
+  key: string,
+  run: () => Promise<T>,
+  options: { leaseMs?: number; waitMs?: number } = {},
+): Promise<T> {
+  const leaseMs = options.leaseMs ?? 30_000;
+  const giveUpAt = Date.now() + (options.waitMs ?? 20_000);
+  const tag = randomBytes(6).toString("hex");
+  for (let pause = 25; ; pause = Math.min(pause * 2, 400)) {
+    const now = new Date();
+    const leaseUntil = new Date(now.getTime() + leaseMs);
+    let held = false;
+    if (!(await prisma.provisionAttempt.findUnique({ where: { key }, select: { key: true } }))) {
+      try {
+        await prisma.provisionAttempt.create({ data: { key, tag, status: "running", leaseUntil } });
+        held = true;
+      } catch (error) {
+        if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== "P2002") throw error;
+      }
+    }
+    if (!held) {
+      const taken = await prisma.provisionAttempt.updateMany({
+        where: { key, leaseUntil: { lte: now } },
+        data: { tag, status: "running", leaseUntil, attempts: { increment: 1 } },
+      });
+      held = taken.count === 1;
+    }
+    if (held) {
+      try {
+        return await run();
+      } finally {
+        await prisma.provisionAttempt.updateMany({ where: { key, tag }, data: { status: "idle", leaseUntil: new Date(0) } });
+      }
+    }
+    if (Date.now() >= giveUpAt) throw new ProvisionBusyError();
+    await new Promise((resolve) => setTimeout(resolve, pause));
+  }
+}
+
 /** A line run can be repeated later (a shop may need a replacement number), so it resets after success. */
 export async function reopenProvisionAttempt(key: string) {
   await prisma.provisionAttempt.deleteMany({ where: { key, status: "succeeded" } });

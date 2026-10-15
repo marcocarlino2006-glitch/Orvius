@@ -11,6 +11,7 @@ import { checkoutPaymentMethods } from "@/lib/financing";
 import { checkoutSessionPaid, refundDuplicateCheckout, reuseOpenCheckoutSession } from "@/lib/checkout-guard";
 import { collectedCents } from "@/lib/payment-math";
 import { claimWebhookEvent, completeWebhookEvent } from "@/lib/webhook-events";
+import { assertLiveActionAllowed } from "@/lib/demo-fence";
 import { prisma } from "@/lib/prisma";
 import { paidDepositCents, shopTaxBps } from "@/lib/invoice-tax";
 import { feeBaseCents, withSalesTax } from "@/lib/sales-tax";
@@ -184,6 +185,7 @@ export async function createInvoiceCheckoutSession(params: {
   business: Pick<Business, "id" | "name"> & ConnectableShop & Partial<Pick<Business, "financingEnabled" | "financingMethods">>;
   jobTitle?: string | null;
 }) {
+  await assertLiveActionAllowed(params.business.id, "Card checkout");
   const connect = getConnectStatus(params.business);
   if (!connect.canAcceptPayments || !connect.accountId) {
     throw new Error("Shop is not cleared to accept card payments");

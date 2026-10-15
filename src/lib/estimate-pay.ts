@@ -2,6 +2,7 @@ import { calculateNetworkFeeCents, calculatePlatformFeeCents, isChargeableAmount
 import { getAppBaseUrl, getStripe } from "@/lib/stripe";
 import { checkoutPaymentMethods } from "@/lib/financing";
 import { getConnectStatus } from "@/lib/stripe-connect";
+import { assertLiveActionAllowed } from "@/lib/demo-fence";
 import { prisma } from "@/lib/prisma";
 import type Stripe from "stripe";
 import { pricedJobInvoice } from "@/lib/invoice-tax";
@@ -86,6 +87,7 @@ export async function createEstimateCheckoutSession(params: {
   jobTitle?: string | null;
   business: ConnectableShop & { financingEnabled?: boolean | null; financingMethods?: string | null };
 }) {
+  await assertLiveActionAllowed(params.businessId, "Card checkout");
   const connect = getConnectStatus(params.business);
   if (!connect.canAcceptPayments || !connect.accountId) {
     throw new Error("Shop is not cleared to accept card payments");

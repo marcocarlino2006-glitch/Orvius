@@ -8,6 +8,7 @@ import {
   calculatePlatformFeeCents,
   isChargeableAmount,
 } from "@/lib/platform-fee";
+import { assertLiveActionAllowed } from "@/lib/demo-fence";
 import { prisma } from "@/lib/prisma";
 import { mintPublicToken } from "@/lib/public-tokens";
 import { withSmsOptOutFooter } from "@/lib/sms-keywords";
@@ -313,6 +314,7 @@ export async function createDepositCheckoutSession(params: {
   business: Pick<Business, "id" | "name"> &
     Parameters<typeof getConnectStatus>[0];
 }) {
+  await assertLiveActionAllowed(params.business.id, "Card checkout");
   const connect = getConnectStatus(params.business);
   if (!connect.canAcceptPayments || !connect.accountId) {
     throw new Error("Shop is not cleared to accept card payments");

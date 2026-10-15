@@ -3,6 +3,7 @@ import { describeSlot } from "@/lib/in-call-tool-defs";
 import { displayPhone, normalizePhone } from "@/lib/customer";
 import { getAppUrl } from "@/lib/env";
 import { logError, logInfo, logWarn } from "@/lib/logger";
+import { assertLiveActionAllowed, isOwnerDemoWorkspaceId } from "@/lib/demo-fence";
 import { prisma } from "@/lib/prisma";
 import { openSecret, sealSecret, secretBoxConfigured } from "@/lib/secret-box";
 
@@ -127,6 +128,7 @@ export async function jobberGraphql<T>(accessToken: string, query: string, varia
 
 /** Code from the OAuth callback → a stored, sealed connection for this shop. */
 export async function connectJobber(params: { businessId: string; code: string; verifier: string; now?: Date }) {
+  await assertLiveActionAllowed(params.businessId, "Connecting Jobber");
   const now = params.now ?? new Date();
   const tokens = await tokenRequest({
     grant_type: "authorization_code",
@@ -166,6 +168,7 @@ async function needsReconnect(connectionId: string, reason: string) {
  * tokens, and two workers redeeming the same one would lose the connection.
  */
 export async function jobberAccessToken(businessId: string, now = new Date()): Promise<string | null> {
+  if (await isOwnerDemoWorkspaceId(businessId)) return null;
   for (let attempt = 0; attempt < 6; attempt++) {
     const conn = await prisma.jobberConnection.findUnique({ where: { businessId } });
     if (!conn || conn.status !== "active") return null;
@@ -254,7 +257,7 @@ const NOT_NEW_WORK = new Set(["existing_job", "follow_up", "complaint", "info_on
 export async function enqueueJobberSync(params: { businessId: string; leadId: string; skipReason?: string | null; nonService?: boolean }) {
   if (params.nonService || (params.skipReason && NOT_NEW_WORK.has(params.skipReason))) return false;
   const conn = await prisma.jobberConnection.findUnique({ where: { businessId: params.businessId }, select: { status: true } });
-  if (conn?.status !== "active") return false;
+  if (conn?.status !== "active" || (await isOwnerDemoWorkspaceId(params.businessId))) return false;
   try {
     await prisma.jobberSync.create({ data: { businessId: params.businessId, leadId: params.leadId } });
     return true;

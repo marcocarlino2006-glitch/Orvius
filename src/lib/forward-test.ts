@@ -7,6 +7,7 @@ import {
   type ForwardTestVerdict,
 } from "@/lib/number-connection";
 import { phonesEqual } from "@/lib/owner-alerts";
+import { isOwnerDemoWorkspaceId } from "@/lib/demo-fence";
 import { prisma } from "@/lib/prisma";
 import { getTwilioClient } from "@/lib/twilio-client";
 
@@ -38,6 +39,9 @@ export async function startForwardTest(params: {
   coverage: Coverage;
   client?: TwilioLike;
 }): Promise<StartResult> {
+  if (await isOwnerDemoWorkspaceId(params.business.id)) {
+    return { ok: false, reason: "unavailable", message: "The demo shop never dials a real phone. Test forwarding from your real shop." };
+  }
   const from = params.business.twilioPhone?.trim() || null;
   const line = from ?? params.business.vapiPhoneNumber?.trim() ?? null;
   if (!line) return { ok: false, reason: "no_line", message: "Your Orvius line isn't ready yet, so there's nothing to test against." };

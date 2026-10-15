@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { ensureDemoWorkspace, resetDemoWorkspace } from "@/lib/demo-workspace";
+import { ProvisionBusyError } from "@/lib/provision-attempt";
 import { sharedRateLimit, tooManyRequests } from "@/lib/rate-limit";
 import { ACTIVE_SHOP_COOKIE } from "@/lib/workspace-access";
 
@@ -17,8 +18,17 @@ export async function POST(req: Request) {
   if (!limited.ok) return tooManyRequests(limited.retryAfterSec);
   const body = (await req.json().catch(() => ({}))) as { reset?: unknown; timezone?: unknown };
   const timezone = typeof body.timezone === "string" ? body.timezone.slice(0, 64) : null;
-  const { business, created, seeded } =
-    body.reset === true ? await resetDemoWorkspace(email, { timezone }) : await ensureDemoWorkspace(email, { seed: true, timezone });
+  let opened: Awaited<ReturnType<typeof ensureDemoWorkspace>>;
+  try {
+    opened =
+      body.reset === true ? await resetDemoWorkspace(email, { timezone }) : await ensureDemoWorkspace(email, { seed: true, timezone });
+  } catch (error) {
+    if (error instanceof ProvisionBusyError) {
+      return NextResponse.json({ error: "Your demo shop is still being set up — try again in a moment." }, { status: 409 });
+    }
+    throw error;
+  }
+  const { business, created, seeded } = opened;
   const response = NextResponse.json({ ok: true, created, seeded, businessId: business.id, name: business.name });
   response.cookies.set(ACTIVE_SHOP_COOKIE, business.id, {
     httpOnly: true,

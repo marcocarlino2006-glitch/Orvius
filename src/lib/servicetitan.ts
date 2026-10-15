@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { describeSlot } from "@/lib/in-call-tool-defs";
 import { displayPhone, normalizePhone } from "@/lib/customer";
 import { logError, logInfo, logWarn } from "@/lib/logger";
+import { assertLiveActionAllowed, isOwnerDemoWorkspaceId } from "@/lib/demo-fence";
 import { prisma } from "@/lib/prisma";
 import { openSecret, sealSecret, secretBoxConfigured } from "@/lib/secret-box";
 
@@ -114,6 +115,7 @@ export function pickProvider(tags: ProviderTag[]): { id: string; name: string | 
 
 /** Pasted credentials → a stored, sealed connection, only once ServiceTitan accepts them. */
 export async function connectServiceTitan(params: { businessId: string; tenantId: string; clientId: string; clientSecret: string; now?: Date }) {
+  await assertLiveActionAllowed(params.businessId, "Connecting ServiceTitan");
   const creds = { tenantId: params.tenantId.trim(), clientId: params.clientId.trim(), clientSecret: params.clientSecret.trim() };
   if (!/^\d{3,20}$/.test(creds.tenantId)) throw new ServiceTitanSetupError("The tenant ID is the number ServiceTitan shows with your client ID.");
   if (!creds.clientId || !creds.clientSecret || /\s/.test(creds.clientId + creds.clientSecret)) {
@@ -152,6 +154,7 @@ export async function disconnectServiceTitan(businessId: string) {
 }
 
 async function connection(businessId: string) {
+  if (await isOwnerDemoWorkspaceId(businessId)) return null;
   const conn = await prisma.serviceTitanConnection.findUnique({ where: { businessId } });
   if (!conn || conn.status !== "active") return null;
   const clientSecret = openSecret(conn.clientSecretEnc);
@@ -175,7 +178,7 @@ const NOT_NEW_WORK = new Set(["existing_job", "follow_up", "complaint", "info_on
 export async function enqueueServiceTitanSync(params: { businessId: string; leadId: string; skipReason?: string | null; nonService?: boolean }) {
   if (params.nonService || (params.skipReason && NOT_NEW_WORK.has(params.skipReason))) return false;
   const conn = await prisma.serviceTitanConnection.findUnique({ where: { businessId: params.businessId }, select: { status: true } });
-  if (conn?.status !== "active") return false;
+  if (conn?.status !== "active" || (await isOwnerDemoWorkspaceId(params.businessId))) return false;
   try {
     await prisma.serviceTitanSync.create({ data: { businessId: params.businessId, leadId: params.leadId } });
     return true;
