@@ -271,6 +271,16 @@ try {
     pass("/api/health", "readiness only, no counts");
   }
 
+  const served = json?.release?.commit ?? null;
+  const expected = process.env.EXPECTED_COMMIT?.trim().toLowerCase() || null;
+  if (!served) {
+    fail("Release", "production does not name the commit it was built from");
+  } else if (expected && !served.startsWith(expected) && !expected.startsWith(served)) {
+    fail("Release", `production serves ${served.slice(0, 12)}, expected ${expected.slice(0, 12)}`);
+  } else {
+    pass("Release", `${served.slice(0, 12)} (${json.release.environment})${expected ? " matches EXPECTED_COMMIT" : ""}`);
+  }
+
   if (json?.configured) {
     pass("Call credentials", `Twilio + Vapi live${json.twilioPhone ? ` on ${json.twilioPhone}` : ""}`);
   } else {

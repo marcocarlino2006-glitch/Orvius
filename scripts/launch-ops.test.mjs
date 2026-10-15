@@ -167,3 +167,17 @@ test("porting steps ask for what a carrier needs and promise no date", () => {
   assert.match(panel, /Don&apos;t cancel your current service/);
   assert.doesNotMatch(panel, /\d+\s*(business )?days/);
 });
+
+test("the release identity names the built commit and never invents one", async () => {
+  const { releaseIdentity } = await import("../src/lib/release.ts");
+  const sha = "0123456789abcdef0123456789abcdef01234567";
+  assert.deepEqual(releaseIdentity({ VERCEL_GIT_COMMIT_SHA: sha.toUpperCase(), VERCEL_GIT_COMMIT_REF: "main", VERCEL_ENV: "production", VERCEL_DEPLOYMENT_ID: "dpl_1" }), {
+    commit: sha,
+    ref: "main",
+    environment: "production",
+    deploymentId: "dpl_1",
+  });
+  const unknown = releaseIdentity({ NODE_ENV: "production", VERCEL_GIT_COMMIT_SHA: "not a sha" });
+  assert.equal(unknown.commit, null);
+  assert.equal(unknown.environment, "production-unknown-host");
+});

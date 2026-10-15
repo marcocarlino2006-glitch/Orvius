@@ -5,6 +5,7 @@ import { getConfigStatus } from "@/lib/env";
 import { isEmailConfigured } from "@/lib/email";
 import { company } from "@/lib/company";
 import { prisma } from "@/lib/prisma";
+import { releaseIdentity } from "@/lib/release";
 import { isUnauthenticatedAccessAllowed } from "@/lib/runtime";
 
 export async function GET(request: NextRequest) {
@@ -25,6 +26,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       ok: true,
       service: "orvius",
+      release: releaseIdentity(),
       configured: config.ready,
       ownerSmsEnabled: config.ownerSmsEnabled,
       twilioLineConfigured: Boolean(config.twilioPhone),
@@ -71,7 +73,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     ok: true,
     service: "orvius",
-    version: "1.0.0",
+    release: releaseIdentity(),
     configured: config.ready,
     appUrl: config.appUrl,
     webhookUrl: config.webhookUrl,

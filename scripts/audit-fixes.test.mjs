@@ -634,6 +634,7 @@ test("21. no customer data on open links or in logs: voicemail plays only signed
     assert.equal(shape.stats, undefined, "a preview on the live database publishes no counts");
     assert.equal(shape.twilioPhone, undefined);
     assert.equal(typeof shape.twilioLineConfigured, "boolean");
+    assert.ok(shape.release && "commit" in shape.release, "even the public answer names the build serving it");
   } finally {
     process.env.DATABASE_URL = localUrl;
   }
