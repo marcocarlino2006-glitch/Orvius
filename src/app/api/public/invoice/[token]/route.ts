@@ -25,7 +25,11 @@ type LoadedInvoice = NonNullable<Awaited<ReturnType<typeof getInvoiceByToken>>>;
 /** Work, tax and any deposit, so the total on the page adds up line by line. */
 function breakdown(invoice: LoadedInvoice) {
   const paidSoFar = invoice.status === "paid" ? 0 : collectedCents(invoice.payments);
-  const paidLine = paidSoFar > 0 ? [{ label: "Paid so far", value: `−${formatCentsExact(paidSoFar)}` }] : [];
+  const refunded = invoice.payments.filter((p) => p.status === "refunded").reduce((sum, p) => sum + p.amountCents, 0);
+  const paidLine = [
+    ...(paidSoFar > 0 ? [{ label: "Paid so far", value: `−${formatCentsExact(paidSoFar)}` }] : []),
+    ...(refunded > 0 ? [{ label: "Refunded to you", value: formatCentsExact(refunded) }] : []),
+  ];
   if (invoice.subtotalCents == null || invoice.taxCents <= 0) {
     return paidLine.length ? [{ label: "Invoice total", value: formatCentsExact(invoice.amountCents) }, ...paidLine] : null;
   }

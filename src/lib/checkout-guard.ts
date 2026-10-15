@@ -9,11 +9,12 @@ import { formatCentsExact } from "@/lib/money";
 import { enqueueOwnerAlert } from "@/lib/notification-queue";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
+import { raiseReconciliation } from "@/lib/system-of-record";
 
 /*
   Shared rules for a customer paying a shop by card through Checkout: one open
   session per bill, money counted only once it has actually cleared, and a
-  second payment on a bill that is already settled handed straight back.
+  second payment on a bill that is already settled held for the owner.
 */
 
 /**
@@ -127,69 +128,54 @@ export function sessionPaymentIntentId(session: Pick<Stripe.Checkout.Session, "p
 }
 
 /**
- * A card payment landed on a bill that was already settled. The customer is
- * refunded in full, fee included, and the owner is told either way, because a
- * refund that fails still leaves a customer charged twice.
+ * A card payment landed on a bill that was already settled, usually an older
+ * checkout link paid late. Whether it is a mistake, a tip or the next visit
+ * paid early is the shop's call, so nothing is refunded on our own: the
+ * payment is held as an open reconciliation exception with its session and
+ * amount, and the owner is told it is waiting on them.
  */
-export async function refundDuplicateCheckout(params: {
+export async function holdLatePayment(params: {
   session: Pick<Stripe.Checkout.Session, "id" | "payment_intent" | "amount_total">;
   businessId: string;
   entityType: "invoice" | "deposit";
   entityId: string;
   what: string;
-}): Promise<{ refunded: boolean }> {
+}): Promise<{ exceptionId: string }> {
   const amount = params.session.amount_total ?? 0;
-  const business = await prisma.business.findUnique({
-    where: { id: params.businessId },
-    select: { name: true, ownerPhone: true, ownerEmail: true, stripeConnectAccountId: true },
-  });
   const paymentIntent = sessionPaymentIntentId(params.session);
-  let refunded = false;
-  if (business?.stripeConnectAccountId && paymentIntent) {
-    try {
-      await getStripe().refunds.create(
-        {
-          payment_intent: paymentIntent,
-          reason: "duplicate",
-          refund_application_fee: true,
-          metadata: { kind: "duplicate_payment", businessId: params.businessId, [`${params.entityType}Id`]: params.entityId },
-        },
-        { stripeAccount: business.stripeConnectAccountId, idempotencyKey: `duplicate-refund:${params.session.id}` },
-      );
-      refunded = true;
-    } catch (error) {
-      logError("checkout.duplicate_refund_failed", {
-        businessId: params.businessId,
-        sessionId: params.session.id,
-        error: error instanceof Error ? error.message : String(error),
-      });
-    }
-  }
-
+  const exceptionId = await raiseReconciliation({
+    businessId: params.businessId,
+    kind: "payment",
+    entityType: params.entityType,
+    entityId: params.entityId,
+    system: "stripe",
+    externalId: params.session.id,
+    expected: { settled: true, extraPaymentCents: 0 },
+    observed: { sessionId: params.session.id, paymentIntent, amountCents: amount, reason: "late_session_payment" },
+  });
   await recordAudit({
     businessId: params.businessId,
     entityType: "shop",
     entityId: params.businessId,
-    action: refunded ? "payment.duplicate_refunded" : "payment.duplicate_unrefunded",
+    action: "payment.late_held",
     actor: "system",
-    summary: refunded
-      ? `A second card payment of ${formatCentsExact(amount)} on the ${params.what} was refunded automatically.`
-      : `A second card payment of ${formatCentsExact(amount)} on the ${params.what} could not be refunded automatically.`,
-    idempotencyKey: `duplicate-payment:${params.session.id}`,
-    detail: { sessionId: params.session.id, paymentIntent, [`${params.entityType}Id`]: params.entityId },
+    summary: `A card payment of ${formatCentsExact(amount)} arrived on the ${params.what} after it was settled. It is held for the owner to refund or apply; nothing was refunded automatically.`,
+    idempotencyKey: `late-payment:${params.session.id}`,
+    detail: { sessionId: params.session.id, paymentIntent, exceptionId, [`${params.entityType}Id`]: params.entityId },
   }).catch(() => null);
-
+  const business = await prisma.business.findUnique({
+    where: { id: params.businessId },
+    select: { name: true, ownerPhone: true, ownerEmail: true },
+  });
   if (business) {
     await enqueueOwnerAlert({
       businessId: params.businessId,
       businessName: business.name,
       ownerPhone: business.ownerPhone,
       ownerEmail: business.ownerEmail,
-      dedupeKey: `duplicate-payment:${params.session.id}`,
-      message: refunded
-        ? `Orvius: a customer paid the ${params.what} twice. The extra ${formatCentsExact(amount)} was refunded to their card.`
-        : `Orvius: a customer paid the ${params.what} twice. Refund the extra ${formatCentsExact(amount)} in Stripe.`,
+      dedupeKey: `late-payment:${params.session.id}`,
+      message: `Orvius: a customer paid the ${params.what} again after it was settled (${formatCentsExact(amount)}). Nothing was refunded automatically. Refund it in Stripe or tell the customer it's credited, then mark it resolved.`,
     }).catch(() => null);
   }
-  return { refunded };
+  return { exceptionId };
 }

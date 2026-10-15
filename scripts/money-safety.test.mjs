@@ -67,7 +67,7 @@ test("only cleared money counts: a bank debit that completed unpaid changes noth
   assert.match(webhook, /case "checkout\.session\.async_payment_failed":\s*\n\s*case "checkout\.session\.expired":/);
 });
 
-test("a second payment on a settled invoice is handed back, never kept or recorded", async () => {
+test("a second payment on a settled invoice is held as an owner exception, never counted or refunded on its own", async () => {
   const shop = await makeShop({ ownerPhone: "+15550002222", ownerEmail: `${uid("o")}@example.test` });
   const { invoice } = await makeInvoice(shop, 40_000);
   const first = session(invoice, shop);
@@ -75,12 +75,16 @@ test("a second payment on a settled invoice is handed back, never kept or record
   assert.equal((await fulfillInvoiceCheckoutSession(first)).reason, "already_paid", "the redirect racing the webhook is a replay");
 
   const second = session(invoice, shop);
-  assert.equal((await fulfillInvoiceCheckoutSession(second)).reason, "duplicate_refunded");
+  assert.equal((await fulfillInvoiceCheckoutSession(second)).reason, "late_payment_held");
   const payments = await prisma.payment.findMany({ where: { invoiceId: invoice.id } });
   assert.equal(payments.length, 1, "the second charge is not counted as money in");
-  const alert = await prisma.ownerNotification.findFirst({ where: { businessId: shop.id, dedupeKey: `duplicate-payment:${second.id}` } });
-  assert.ok(alert, "the owner is told about the double charge");
-  assert.match(alert.message, /paid the invoice twice/);
+  const alert = await prisma.ownerNotification.findFirst({ where: { businessId: shop.id, dedupeKey: `late-payment:${second.id}` } });
+  assert.ok(alert, "the owner is told about the extra charge");
+  assert.match(alert.message, /paid the invoice again after it was settled/);
+  assert.match(alert.message, /Nothing was refunded automatically/);
+  const exception = await prisma.reconciliationException.findFirst({ where: { businessId: shop.id, entityId: invoice.id } });
+  assert.ok(exception, "the extra payment is an open reconciliation exception");
+  assert.equal(exception.externalId, second.id);
 });
 
 test("the webhook and the redirect racing on one session record it once", async () => {
@@ -157,7 +161,7 @@ test("refunding one card payment leaves cash collected, and refunding a duplicat
   assert.equal((await prisma.invoice.findUnique({ where: { id: invoice.id } })).status, "partial", "the card part is owed again");
 });
 
-test("a deposit paid twice keeps the first payment and refunds the second; refunding that one leaves the deposit paid", async () => {
+test("a deposit paid twice keeps the first payment and holds the second for the owner; refunding that one leaves the deposit paid", async () => {
   const shop = await makeShop({ ownerPhone: "+15550004444" });
   const deposit = await prisma.deposit.create({ data: { businessId: shop.id, amountCents: 7_500, status: "pending", publicToken: uid("dep") } });
   const base = { mode: "payment", status: "complete", payment_status: "paid", amount_total: 7_500, metadata: { kind: "booking_deposit", depositId: deposit.id, businessId: shop.id } };
@@ -165,7 +169,8 @@ test("a deposit paid twice keeps the first payment and refunds the second; refun
   const second = { ...base, id: uid("cs_b"), payment_intent: uid("pi_b") };
   assert.equal((await fulfillDepositCheckoutSession(first)).ok, true);
   assert.equal((await fulfillDepositCheckoutSession(first)).reason, "already_paid");
-  assert.equal((await fulfillDepositCheckoutSession(second)).reason, "duplicate_refunded");
+  assert.equal((await fulfillDepositCheckoutSession(second)).reason, "late_payment_held");
+  assert.ok(await prisma.reconciliationException.findFirst({ where: { businessId: shop.id, entityId: deposit.id, externalId: second.id } }));
 
   const refund = await applyChargeRefund({
     metadata: base.metadata,

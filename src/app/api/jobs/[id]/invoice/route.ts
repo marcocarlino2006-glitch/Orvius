@@ -13,6 +13,8 @@ type Params = { params: Promise<{ id: string }> };
 const bodySchema = z.object({
   totalCents: z.number().int().min(100).max(5_000_000),
   send: z.boolean().optional(),
+  /** Required to change a bill the customer was already sent, signed or paid toward. */
+  reason: z.string().trim().max(300).optional(),
 });
 
 /** Bill a job: the final total less any paid deposit, as one reusable pay link. */
@@ -33,13 +35,25 @@ export async function POST(request: Request, { params }: Params) {
 
   try {
     const body = bodySchema.parse(await request.json());
-    const { invoice, created, depositPaidCents } = await upsertJobInvoice({
+    const actor = personActor(authResult);
+    const { invoice, created, depositPaidCents, repriceHeld } = await upsertJobInvoice({
       businessId: business.id,
       jobId: job.id,
       totalCents: body.totalCents,
+      ...(body.reason ? { revision: { reason: body.reason, actor: actor.actor === "owner" ? "owner" : "teammate", actorEmail: actor.actorEmail } } : {}),
     });
     if (invoice.status === "paid") {
       return NextResponse.json({ error: "This job is already paid" }, { status: 409 });
+    }
+    if (repriceHeld) {
+      return NextResponse.json(
+        {
+          error: `The customer already has this bill at ${formatCentsExact(repriceHeld.fromCents)}. To change it to ${formatCentsExact(repriceHeld.toCents)}, add why.`,
+          code: "bill_committed",
+          ...repriceHeld,
+        },
+        { status: 409 },
+      );
     }
 
     await prisma.job.update({ where: { id: job.id }, data: { finalAmountCents: body.totalCents } });
@@ -52,7 +66,7 @@ export async function POST(request: Request, { params }: Params) {
       entityType: "job",
       entityId: job.id,
       jobId: job.id,
-      ...personActor(authResult),
+      ...actor,
       action: created ? "invoice.created" : "invoice.updated",
       summary: `Invoice ${formatCentsExact(invoice.amountCents)}${sms?.sent ? ", texted to the customer" : ""}`,
       detail: { totalCents: body.totalCents, depositPaidCents },

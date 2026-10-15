@@ -424,7 +424,13 @@ export async function techCollect(tech: TechSession, jobId: string, method: unkn
   } else if (method !== "cash" && method !== "check") {
     throw new FieldError("Pick how they're paying.");
   }
-  const { invoice } = await upsertJobInvoice({ businessId: tech.businessId, jobId: job.id, totalCents: total });
+  const { invoice, repriceHeld } = await upsertJobInvoice({ businessId: tech.businessId, jobId: job.id, totalCents: total });
+  if (repriceHeld) {
+    throw new FieldError(
+      `The customer already has this bill at ${formatCentsExact(repriceHeld.fromCents)}. The office has to approve changing it to ${formatCentsExact(repriceHeld.toCents)} before you collect.`,
+      409,
+    );
+  }
   if (method === "text") {
     const phone = detail.job.customerPhone;
     if (!phone) throw new FieldError("There's no customer phone on this job.", 409);

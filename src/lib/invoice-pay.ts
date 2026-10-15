@@ -10,11 +10,12 @@ import { logWarn } from "@/lib/logger";
 import { creditNetworkSender } from "@/lib/orvius-network";
 import { calculateNetworkFeeCents, calculatePlatformFeeCents, isChargeableAmount } from "@/lib/platform-fee";
 import { checkoutPaymentMethods } from "@/lib/financing";
-import { checkoutSessionPaid, holdDemoPayment, refundDuplicateCheckout, reserveCheckout } from "@/lib/checkout-guard";
+import { checkoutSessionPaid, holdDemoPayment, holdLatePayment, reserveCheckout } from "@/lib/checkout-guard";
 import { collectedCents } from "@/lib/payment-math";
 import { claimWebhookEvent, completeWebhookEvent } from "@/lib/webhook-events";
 import { assertLiveActionAllowed } from "@/lib/demo-fence";
 import { prisma } from "@/lib/prisma";
+import { raiseReconciliation } from "@/lib/system-of-record";
 import { paidDepositCents, shopTaxBps } from "@/lib/invoice-tax";
 import { feeBaseCents, withSalesTax } from "@/lib/sales-tax";
 import { mintPublicToken } from "@/lib/public-tokens";
@@ -70,6 +71,17 @@ export async function balanceDueForJob(params: {
   };
 }
 
+/** An owner's explicit change to a bill the customer already has, with the reason on the record. */
+export type InvoiceRevision = { reason: string; actor: "owner" | "teammate"; actorEmail: string };
+
+type UpsertResult = {
+  invoice: Invoice;
+  created: boolean;
+  depositPaidCents: number;
+  /** The new total differs from a bill the customer was sent, signed or paid toward; it was kept, not changed. */
+  repriceHeld?: { fromCents: number; toCents: number };
+};
+
 /**
  * The one open invoice for a job, created or re-priced from the final bill.
  *
@@ -81,7 +93,8 @@ export async function upsertJobInvoice(params: {
   businessId: string;
   jobId: string;
   totalCents: number;
-}): Promise<{ invoice: Invoice; created: boolean; depositPaidCents: number }> {
+  revision?: InvoiceRevision;
+}): Promise<UpsertResult> {
   // Two completions of one job (owner tap and tech app, two servers) read "no invoice" together; one creates it.
   return withLease(`invoice-job:${params.businessId}:${params.jobId}`, () => upsertJobInvoiceHeld(params), { forget: true });
 }
@@ -90,13 +103,15 @@ async function upsertJobInvoiceHeld(params: {
   businessId: string;
   jobId: string;
   totalCents: number;
-}): Promise<{ invoice: Invoice; created: boolean; depositPaidCents: number }> {
+  revision?: InvoiceRevision;
+}): Promise<UpsertResult> {
   const { balanceCents, depositPaidCents, taxBps, taxCents } = await balanceDueForJob(params);
   const priced = { amountCents: balanceCents, subtotalCents: params.totalCents, taxCents, taxBps };
 
   const existing = await prisma.invoice.findFirst({
     where: { businessId: params.businessId, jobId: params.jobId },
     orderBy: { createdAt: "desc" },
+    include: { payments: { select: { id: true } } },
   });
 
   if (existing?.status === "paid") {
@@ -104,6 +119,32 @@ async function upsertJobInvoiceHeld(params: {
   }
 
   if (existing) {
+    /*
+      A bill the customer was sent, signed (an accepted estimate) or paid
+      toward is what they agreed to. A different total from a later step
+      (line items, the tech app, a completion) never silently replaces it:
+      the bill stays as sent and the difference waits on the owner.
+    */
+    const committed = Boolean(existing.sentAt || existing.estimateId || existing.payments.length || existing.status === "partial");
+    const reason = params.revision?.reason.trim();
+    if (committed && priced.amountCents !== existing.amountCents) {
+      const change = { fromCents: existing.amountCents, toCents: priced.amountCents };
+      if (!reason) {
+        await holdInvoiceReprice({ businessId: params.businessId, invoice: existing, ...change });
+        return { invoice: existing, created: false, depositPaidCents, repriceHeld: change };
+      }
+      await recordAudit({
+        businessId: params.businessId,
+        entityType: "job",
+        entityId: params.jobId,
+        jobId: params.jobId,
+        action: "invoice.revised",
+        actor: params.revision!.actor,
+        actorEmail: params.revision!.actorEmail,
+        summary: `Bill changed from ${formatCentsExact(change.fromCents)} to ${formatCentsExact(change.toCents)} after the customer had it. Reason: ${reason}`,
+        detail: { invoiceId: existing.id, ...change, reason, sentAt: existing.sentAt?.toISOString() ?? null, estimateId: existing.estimateId },
+      });
+    }
     const invoice = await prisma.invoice.update({
       where: { id: existing.id },
       data: {
@@ -125,6 +166,29 @@ async function upsertJobInvoiceHeld(params: {
     },
   });
   return { invoice, created: true, depositPaidCents };
+}
+
+async function holdInvoiceReprice(params: { businessId: string; invoice: Invoice; fromCents: number; toCents: number }) {
+  await raiseReconciliation({
+    businessId: params.businessId,
+    kind: "change",
+    entityType: "invoice",
+    entityId: params.invoice.id,
+    system: "orvius",
+    expected: { amountCents: params.fromCents, basis: params.invoice.estimateId ? "signed_estimate" : params.invoice.sentAt ? "sent_bill" : "paid_toward" },
+    observed: { amountCents: params.toCents },
+  });
+  await recordAudit({
+    businessId: params.businessId,
+    entityType: "job",
+    entityId: params.invoice.jobId ?? params.invoice.id,
+    jobId: params.invoice.jobId,
+    action: "invoice.reprice_held",
+    actor: "system",
+    summary: `The bill stays at ${formatCentsExact(params.fromCents)}, what the customer was given. A new total of ${formatCentsExact(params.toCents)} needs the owner to change it, with a reason.`,
+    detail: { invoiceId: params.invoice.id, fromCents: params.fromCents, toCents: params.toCents },
+    idempotencyKey: `invoice-reprice-held:${params.invoice.id}:${params.fromCents}:${params.toCents}`,
+  });
 }
 
 /** Text the customer their invoice link through the shop-scoped STOP list. */
@@ -298,7 +362,7 @@ export async function fulfillInvoiceCheckoutSession(
  * Record one cleared card payment against an invoice, exactly once per
  * session. The invoice is paid only when the money in covers it; anything
  * less leaves it part-paid with the rest still owed. A payment on an invoice
- * that was already settled is refunded rather than kept.
+ * that was already settled is held for the owner, never counted or refunded on its own.
  */
 export async function applyCardPaymentToInvoice(params: {
   session: Pick<Stripe.Checkout.Session, "id" | "amount_total" | "payment_intent">;
@@ -356,9 +420,9 @@ export async function applyCardPaymentToInvoice(params: {
         await completeWebhookEvent({ ...claim, status: "processed" });
         return { ok: true, reason: "duplicate_held" };
       }
-      await refundDuplicateCheckout({ session, businessId, entityType: "invoice", entityId: invoiceId, what: "invoice" });
+      await holdLatePayment({ session, businessId, entityType: "invoice", entityId: invoiceId, what: "invoice" });
       await completeWebhookEvent({ ...claim, status: "processed" });
-      return { ok: true, reason: "duplicate_refunded" };
+      return { ok: true, reason: "late_payment_held" };
     }
 
     await completeWebhookEvent({ ...claim, status: "processed" });
@@ -449,7 +513,7 @@ export async function invoiceCompletedJob(
     (job.estimate?.status === "accepted" ? job.estimate.amountCents : null);
   if (!totalCents) return { invoiced: false as const, reason: "no_amount" as const };
 
-  const { invoice } = await upsertJobInvoice({
+  const { invoice, repriceHeld } = await upsertJobInvoice({
     businessId: job.businessId,
     jobId: job.id,
     totalCents,
@@ -459,7 +523,9 @@ export async function invoiceCompletedJob(
   const blocked =
     invoice.status === "paid"
       ? "paid"
-      : !phone
+      : repriceHeld
+        ? "reprice_held"
+        : !phone
         ? "no_phone"
         : !getConnectStatus(job.business).canAcceptPayments
           ? "connect_incomplete"
