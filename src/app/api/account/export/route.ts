@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { publicTechnician } from "@/lib/tech-app-link";
 import { prisma } from "@/lib/prisma";
 import { recordAudit } from "@/lib/audit";
+import { EXPORT_PAGE } from "@/lib/export-pages";
 import { requirePermission } from "@/lib/tenant";
 
 /**
@@ -9,8 +10,6 @@ import { requirePermission } from "@/lib/tenant";
  * JSON download of customers, leads, jobs, estimates, invoices, payments.
  * Link tokens stay out: the file gets emailed around, and each one opens a live page.
  */
-/* Largest collections come in pages so one file can't time out; the file says when there is more. */
-export const EXPORT_PAGE = { leads: 5000, jobs: 5000, auditEvents: 20000 } as const;
 
 export async function GET(request: Request) {
   const session = await requirePermission("data.export", { entitled: false });

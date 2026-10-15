@@ -16,7 +16,8 @@ mock.module(new URL("../src/auth.ts", import.meta.url).href, {
   },
 });
 
-const { GET, EXPORT_PAGE } = await import("../src/app/api/account/export/route.ts");
+const { GET } = await import("../src/app/api/account/export/route.ts");
+const { EXPORT_PAGE } = await import("../src/lib/export-pages.ts");
 const { prisma } = await import("../src/lib/prisma.ts");
 
 const uid = () => `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
