@@ -16,7 +16,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { splitStatements } from "./turso-migrate.mjs";
+import { migrationTarget, splitStatements } from "./turso-migrate.mjs";
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 const migrationSql = readFileSync(join(repoRoot, "prisma/turso-migrate.sql"), "utf8");
@@ -187,4 +187,25 @@ test("a database built from the baseline plus every migration matches schema.pri
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
+});
+
+test("only a production build, or an explicitly confirmed host, may migrate a remote database", () => {
+  const prod = "libsql://orvius-prod.turso.io?authToken=x";
+  assert.equal(migrationTarget(null, {}).action, "skip");
+  assert.equal(migrationTarget("file:./dev.db", { VERCEL_ENV: "preview" }).action, "skip");
+  assert.equal(migrationTarget(prod, { VERCEL_ENV: "production" }).action, "migrate");
+  for (const env of [{ VERCEL_ENV: "preview" }, { VERCEL_ENV: "development" }, {}, { VERCEL_ENV: "" }]) {
+    const target = migrationTarget(prod, env);
+    assert.equal(target.action, "refuse", JSON.stringify(env));
+    assert.match(target.reason, /TURSO_MIGRATE_CONFIRM=orvius-prod\.turso\.io/);
+  }
+  assert.equal(migrationTarget("libsql://preview-iso.turso.io", { VERCEL_ENV: "preview", TURSO_MIGRATE_CONFIRM: "preview-iso.turso.io" }).action, "migrate");
+  assert.equal(migrationTarget(prod, { VERCEL_ENV: "preview", TURSO_MIGRATE_CONFIRM: "preview-iso.turso.io" }).action, "refuse", "a confirmation for another host does not carry over");
+  assert.equal(migrationTarget(prod, { VERCEL_ENV: "production", TURSO_MIGRATE_CONFIRM: "other.turso.io" }).action, "refuse", "a mismatched confirmation refuses even in production");
+});
+
+test("the build refuses before it opens a connection", () => {
+  const source = readFileSync(join(repoRoot, "scripts/turso-migrate.mjs"), "utf8");
+  const main = source.slice(source.indexOf("async function main()"));
+  assert.ok(main.indexOf('target.action === "refuse"') < main.indexOf("createClient("));
 });

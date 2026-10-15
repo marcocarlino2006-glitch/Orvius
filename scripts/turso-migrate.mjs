@@ -106,8 +106,43 @@ export function splitStatements(sql) {
   return statements.map((s) => s.trim()).filter(Boolean);
 }
 
+/**
+ * Whether this run may write to the database it points at. Fails closed: a
+ * remote database is migrated only by a Vercel Production build, or when the
+ * person running it names the exact database host in TURSO_MIGRATE_CONFIRM
+ * (a by-hand run, or a Preview wired to its own isolated database). A Preview
+ * or unknown build that happens to carry the production URL is refused, so a
+ * pull request branch can never alter the production schema.
+ */
+export function migrationTarget(databaseUrl, env = process.env) {
+  if (!databaseUrl) return { action: "skip", reason: "no DATABASE_URL" };
+  if (!/^(libsql|wss|https):/.test(databaseUrl)) return { action: "skip", reason: "DATABASE_URL is not a Turso URL" };
+  let host;
+  try {
+    host = new URL(databaseUrl).host;
+  } catch {
+    return { action: "refuse", reason: "DATABASE_URL is not a valid URL" };
+  }
+  const confirmed = env.TURSO_MIGRATE_CONFIRM?.trim();
+  if (confirmed) {
+    return confirmed === host
+      ? { action: "migrate", reason: `confirmed by TURSO_MIGRATE_CONFIRM for ${host}` }
+      : { action: "refuse", reason: `TURSO_MIGRATE_CONFIRM names ${confirmed}, but DATABASE_URL points at ${host}` };
+  }
+  const vercelEnv = env.VERCEL_ENV?.trim();
+  if (vercelEnv === "production") return { action: "migrate", reason: "Vercel production build" };
+  return {
+    action: "refuse",
+    reason: `${vercelEnv ? `a Vercel ${vercelEnv} build` : "an unknown environment"} points at remote database ${host}. Only production builds migrate; to migrate an isolated database on purpose, set TURSO_MIGRATE_CONFIRM=${host}`,
+  };
+}
+
 async function main() {
   const databaseUrl = loadDatabaseUrl();
+  const target = migrationTarget(databaseUrl);
+  if (target.action === "refuse") {
+    throw new Error(`turso-migrate refused: ${target.reason}`);
+  }
 
   /*
     Skip only where skipping is correct, and say which case applied.
@@ -118,14 +153,11 @@ async function main() {
     real failure and must stop the build rather than deploy code against a
     schema that cannot serve it.
   */
-  if (!databaseUrl) {
-    console.log("↷ turso-migrate: no DATABASE_URL — skipping");
+  if (target.action === "skip") {
+    console.log(`↷ turso-migrate: ${target.reason} — skipping`);
     return;
   }
-  if (!/^(libsql|wss|https):/.test(databaseUrl)) {
-    console.log("↷ turso-migrate: DATABASE_URL is not a Turso URL — skipping");
-    return;
-  }
+  console.log(`→ turso-migrate: ${target.reason}`);
 
   const parsed = new URL(databaseUrl);
   const authToken = parsed.searchParams.get("authToken") ?? process.env.TURSO_AUTH_TOKEN?.trim();

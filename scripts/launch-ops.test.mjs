@@ -144,10 +144,17 @@ test("nightly voice run skips honestly without secrets and never uploads shop da
   assert.doesNotMatch(wf, /backups\/|db-backup/);
 });
 
-test("voice gate runs on receptionist changes and says loudly when it was skipped", () => {
+test("voice gate places paid calls only on explicit opt-in, and warns on receptionist changes it didn't test", () => {
   const wf = readFileSync(".github/workflows/voice-gate.yml", "utf8");
   assert.match(wf, /pull_request:/);
   for (const path of ["src/lib/vapi.ts", "src/lib/ai-policy.ts", "src/lib/business.ts", "scripts/voice-scenarios.mjs"]) assert.ok(wf.includes(path), path);
+  const gate = wf.slice(wf.indexOf("\n  gate:"));
+  const condition = gate.slice(0, gate.indexOf("runs-on:"));
+  assert.match(condition, /inputs\.confirm_paid_calls/);
+  assert.match(condition, /github\.event\.label\.name == 'run-voice-gate'/);
+  assert.match(condition, /github\.event\.action == 'labeled'/, "a push to a labelled PR doesn't re-bill");
+  assert.doesNotMatch(wf, /schedule:/);
+  assert.match(wf, /reminder:[\s\S]*::warning::[^\n]*has not run/);
   assert.match(wf, /::warning::Voice gate NOT run/);
   assert.match(wf, /npm run sim:gate/);
 });

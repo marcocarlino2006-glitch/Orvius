@@ -4,10 +4,16 @@ name: Voice gate
 # hears: real calls through the ship-blocking scenarios in
 # scripts/voice-scenarios.mjs (danger instructions, honesty about being
 # automated, no invented prices, times, names or discounts, correct capture).
-# One failure fails the check. Billed by Vapi on both legs, so it runs only on
-# PRs that touch these files, and only when the three secrets are set.
+# One failure fails the check.
+#
+# Every run places real calls billed by Vapi on both legs, so it never starts
+# on its own. It runs only when someone opts in: adds the `run-voice-gate`
+# label to a pull request (one run per labelling), or starts it by hand with
+# confirm_paid_calls ticked. On ordinary pushes to a PR that touches these
+# files, the `reminder` job only posts a warning that the change is untested.
 on:
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
     paths:
       - src/lib/vapi.ts
       - src/lib/ai-policy.ts
@@ -20,9 +26,24 @@ on:
       - src/lib/trade-playbooks.ts
       - src/lib/voice-sim-tools.ts
   workflow_dispatch:
+    inputs:
+      confirm_paid_calls:
+        description: "This places real, billed calls through Vapi. Tick to confirm."
+        type: boolean
+        required: true
+        default: false
 
 jobs:
+  reminder:
+    if: github.event_name == 'pull_request' && github.event.action != 'labeled'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "::warning::This PR changes what the receptionist says or hears. The paid voice gate has not run; add the run-voice-gate label to run it once."
+
   gate:
+    if: >-
+      (github.event_name == 'workflow_dispatch' && inputs.confirm_paid_calls) ||
+      (github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.label.name == 'run-voice-gate')
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
