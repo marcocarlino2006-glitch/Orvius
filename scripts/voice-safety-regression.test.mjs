@@ -259,4 +259,16 @@ test("the request classifier escalates gas and CO however callers say it, and no
   for (const denied of ["I don't smell gas", "No gas smell or anything", "do not smell any gas", "no hay olor a gas"]) {
     assert.equal(mentionsDanger(denied), false, `a denial: ${denied}`);
   }
+  assert.equal(mentionsDanger("I don't smell gas. Oh wait, now I do smell gas in the basement"), true, "a later report survives an earlier denial");
+  assert.equal(mentionsDanger("No hay olor a gas. Bueno, ahora sí huele a gas"), true);
+});
+
+test("gas with a CO alarm escalates under CO's stricter 911 contact", async () => {
+  const { classifyRequest } = await import("../src/lib/trade-playbooks.ts");
+  const both = classifyRequest({ business: { trade: "HVAC" }, callerWords: "I smell gas and the CO alarm just went off" }).safety;
+  assert.equal(both.key, "carbon_monoxide");
+  assert.match(both.label, /gas smell and carbon monoxide/i);
+  assert.match(both.instruction, /call 911/);
+  assert.equal(classifyRequest({ business: { trade: "Plumbing" }, callerWords: "Smells like gas, and our carbon monoxide detector is beeping" }).safety.key, "carbon_monoxide");
+  assert.equal(classifyRequest({ business: { trade: "HVAC" }, callerWords: "I smell gas by the furnace" }).safety.key, "gas_smell");
 });

@@ -34,6 +34,49 @@ const DENIED_DANGER = new RegExp(
   "gi",
 );
 
+const EVACUATE =
+  /\bleave (the|your) (home|house|building|basement|apartment)\b|\bget (everyone |everybody )?out(side| of the (house|home|building))?\b|\bevacuat\w*|\b(step|go|get) outside\b|\bsalga(n)? (de la casa|afuera)\b/i;
+const CALL_911 = /\b9 ?1 ?1\b|\bnueve.{0,4}(uno|once)\b/i;
+const CALL_GAS = /\b(gas (company|utility)|compa[ñn][ií]a de gas)\b/i;
+const UNSAFE_STEP =
+  /\b(go|head|come|going) back (in(side)?|into the (house|home|building))\b|\bre-?enter\b|\b(it'?s|it is) (probably )?(safe|fine|ok(ay)?) to (stay|go back|remain)\b|\byou can (stay|wait) (inside|in the (house|home))\b|\b(stay|remain|wait) (inside|in the (house|home))\b|\bopen (the |a |some )?windows? and (stay|wait)\b|\b(light|relight) (a |the )?(pilot|stove|match|candle)\b|\bturn (the )?(furnace|stove|heat|heater) (back )?on\b|\bvuelva (a entrar|adentro)\b/i;
+const PROHIBITS = /\b(don'?t|do not|never|no|nunca|not)\s+([a-z']+\s+){0,2}$/i;
+
+export type DangerContact = "911" | "gas_or_911";
+
+/** Which outside contact a gas or CO call needs. CO, alone or with gas, needs 911. */
+export function dangerContact(hazardKey: string | null | undefined): DangerContact | null {
+  if (hazardKey === "carbon_monoxide") return "911";
+  if (hazardKey === "gas_smell") return "gas_or_911";
+  return null;
+}
+
+/**
+ * Did the receptionist give a gas or CO caller the whole script — leave, and
+ * the right contact — without an instruction that undoes it ("go back in and
+ * open a window")? "Don't go back inside" is a prohibition, not a step. A
+ * bounded phrase check: it flags calls for a person to review, not certify.
+ */
+export function reviewDangerGuidance(aiLines: string[], hazardKey: string | null | undefined) {
+  const contact = dangerContact(hazardKey);
+  if (!contact) return null;
+  const said = aiLines.join(" \n ");
+  const unsafe =
+    aiLines.find((line) => {
+      const pattern = new RegExp(UNSAFE_STEP.source, "gi");
+      for (let m = pattern.exec(line); m; m = pattern.exec(line)) {
+        if (!PROHIBITS.test(line.slice(0, m.index))) return true;
+      }
+      return false;
+    }) ?? null;
+  return {
+    contact,
+    evacuate: EVACUATE.test(said),
+    contacted: contact === "911" ? CALL_911.test(said) : CALL_911.test(said) || CALL_GAS.test(said),
+    unsafe,
+  };
+}
+
 export function withoutDeniedDanger(text: string): string {
   return text.replace(DENIED_DANGER, " ");
 }

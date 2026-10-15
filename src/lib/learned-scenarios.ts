@@ -53,6 +53,8 @@ const LEARNABLE = new Set<CallFinding["key"]>([
   "missing_capture",
   "safety_not_emergency",
   "safety_no_guidance",
+  "safety_incomplete",
+  "safety_unsafe_instruction",
   "not_booked",
   "repeated_self",
   "asked_for_person",

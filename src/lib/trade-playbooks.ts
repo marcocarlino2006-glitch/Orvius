@@ -580,7 +580,14 @@ export function classifyRequest(input: {
   const safetyRules = playbook
     ? [...playbook.safety, ...ALL_SAFETY.filter((r) => !playbook.safety.some((p) => p.key === r.key))]
     : ALL_SAFETY;
-  const hazard = safetyRules.find((rule) => matches(withoutDeniedDanger(text), rule.keywords)) ?? null;
+  const heardText = withoutDeniedDanger(text);
+  const heard = safetyRules.filter((rule) => matches(heardText, rule.keywords));
+  const first = heard[0] ?? null;
+  // Gas with a CO alarm keeps CO's stricter contact: 911, not just the gas utility.
+  const hazard =
+    first && heard.some((r) => r.key === "gas_smell") && heard.some((r) => r.key === "carbon_monoxide")
+      ? { key: "carbon_monoxide", label: "Gas smell and carbon monoxide alarm", instruction: "Tell the caller to get everyone outside and call 911 from outside, then the gas utility. Call them back now.", keywords: [] }
+      : first;
   if (hazard) reasons.push(`Safety: ${hazard.label.toLowerCase()} mentioned`);
 
   const category = trade ? classifyDemand({ text, trade }) : null;
