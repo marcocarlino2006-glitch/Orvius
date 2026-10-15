@@ -51,7 +51,19 @@ const CREW = [
   { name: "Chris Lee", phone: "+13125550133", skills: ["airflow", "heating", "cooling"] },
 ];
 
-export type DemoScenarioId = "no_cool" | "repeat_caller" | "gas_smell" | "bounced_text" | "no_address" | "furnace_out";
+export type DemoScenarioId =
+  | "no_cool"
+  | "repeat_caller"
+  | "gas_smell"
+  | "bounced_text"
+  | "no_address"
+  | "furnace_out"
+  | "plumb_burst"
+  | "plumb_water_heater"
+  | "plumb_sewage"
+  | "elec_burning"
+  | "elec_breaker"
+  | "elec_power_out";
 
 type Scenario = {
   id: DemoScenarioId;
@@ -150,6 +162,98 @@ export const DEMO_SCENARIOS: Scenario[] = [
     ],
   },
 ];
+
+/**
+ * Sample calls for the other launch trades. They run through the same ingest,
+ * playbook and booking code as the HVAC set; only the words differ.
+ */
+export const TRADE_SAMPLE_CALLS: Record<"Plumbing" | "Electrical", Scenario[]> = {
+  Plumbing: [
+    {
+      id: "plumb_burst",
+      label: "Burst pipe",
+      expect: "Emergency: not put in a slot. The owner is alerted to call back now.",
+      name: "Rosa Diaz",
+      phone: "+13125550151",
+      serviceType: "Burst pipe, water everywhere in the basement",
+      urgency: "emergency",
+      address: "910 Maple Ave, Evanston IL 60202",
+      lines: [
+        "User: A pipe burst in the basement and there's water everywhere.",
+        "AI: Shut the main water valve if you can reach it safely. What's the address?",
+        "User: 910 Maple Avenue, Evanston.",
+      ],
+    },
+    {
+      id: "plumb_water_heater",
+      label: "No hot water",
+      expect: "Water heater job on an open window with a water-heater tech, confirm text sent.",
+      name: "Alan Brooks",
+      phone: "+13125550152",
+      serviceType: "Water heater, no hot water",
+      urgency: "same-day",
+      address: "33 Lake St, Evanston IL 60201",
+      lines: ["User: Our water heater stopped, no hot water since this morning.", "AI: Let's get someone out. Address?", "User: 33 Lake Street."],
+    },
+    {
+      id: "plumb_sewage",
+      label: "Sewage backing up (safety)",
+      expect: "Safety guidance, no booking, owner alerted as SAFETY.",
+      name: "Grace Kim",
+      phone: "+13125550153",
+      serviceType: "Raw sewage coming up through the floor drain",
+      urgency: "emergency",
+      address: "5 Pine Ct, Evanston IL 60201",
+      lines: [
+        "User: Raw sewage is coming up through the floor drain.",
+        "AI: Stop using water and keep everyone away from it. I'm alerting the owner now.",
+      ],
+    },
+  ],
+  Electrical: [
+    {
+      id: "elec_burning",
+      label: "Burning smell at an outlet (safety)",
+      expect: "Safety guidance, no booking, owner alerted as SAFETY.",
+      name: "Victor Hale",
+      phone: "+13125550161",
+      serviceType: "Burning smell from a bedroom outlet",
+      urgency: "emergency",
+      address: "120 Oak Ave, Evanston IL 60202",
+      lines: [
+        "User: There's a burning smell coming from an outlet in the bedroom.",
+        "AI: Shut off the main breaker if it's safe, and call 911 if you see fire. I'm alerting the owner now.",
+      ],
+    },
+    {
+      id: "elec_breaker",
+      label: "Breaker keeps tripping",
+      expect: "Troubleshooting job on an open window, confirm text sent.",
+      name: "Nina Shah",
+      phone: "+13125550162",
+      serviceType: "Kitchen breaker keeps tripping",
+      urgency: "same-day",
+      address: "48 Grove St, Evanston IL 60201",
+      lines: ["User: The kitchen breaker keeps tripping whenever we run the microwave.", "AI: We can look at that. Address?", "User: 48 Grove Street."],
+    },
+    {
+      id: "elec_power_out",
+      label: "Half the house has no power",
+      expect: "Emergency: not put in a slot. The owner is alerted to call back now.",
+      name: "Omar Reed",
+      phone: "+13125550163",
+      serviceType: "No power in half the house",
+      urgency: "emergency",
+      address: "702 Davis St, Evanston IL 60201",
+      lines: ["User: Half the house has no power and the breakers look fine.", "AI: We'll get someone out first thing. Address?", "User: 702 Davis Street."],
+    },
+  ],
+};
+
+/** The sample calls that match a demo shop's trade; HVAC and anything else get the HVAC set. */
+export function demoScenariosFor(trade: string | null | undefined): Scenario[] {
+  return trade === "Plumbing" || trade === "Electrical" ? TRADE_SAMPLE_CALLS[trade] : DEMO_SCENARIOS;
+}
 
 export async function findDemoWorkspace(email: string) {
   return prisma.business.findFirst({
@@ -256,9 +360,12 @@ export async function resetDemoWorkspace(email: string, options: Omit<DemoOption
   });
 }
 
-export async function simulateDemoCall(business: Pick<Business, "id" | "environment">, scenarioId: string) {
+export async function simulateDemoCall(
+  business: Pick<Business, "id" | "environment"> & Partial<Pick<Business, "name" | "trade">>,
+  scenarioId: string,
+) {
   if (business.environment !== "demo") throw new Error("Simulated calls only run in a demo workspace.");
-  const scenario = DEMO_SCENARIOS.find((s) => s.id === scenarioId);
+  const scenario = demoScenariosFor(business.trade).find((s) => s.id === scenarioId);
   if (!scenario) throw new Error("Unknown scenario");
   const vapiCallId = `demo_${business.id}_${scenario.id}_${randomUUID().slice(0, 8)}`;
   const result = await ingestEndOfCallReport({
@@ -269,7 +376,7 @@ export async function simulateDemoCall(business: Pick<Business, "id" | "environm
       call: { id: vapiCallId, customer: { number: scenario.phone } },
       summary: `${scenario.name} called about ${scenario.serviceType}.`,
       durationSeconds: 60 + scenario.lines.length * 15,
-      transcript: ["AI: Summit Heating & Air, this is Orvius. What's going on?", ...scenario.lines].join("\n"),
+      transcript: [`AI: ${(business.name ?? "Summit Heating & Air").replace(/\s*\(demo\)$/, "")}, this is Orvius. What's going on?`, ...scenario.lines].join("\n"),
       analysis: {
         structuredData: {
           name: scenario.name,
