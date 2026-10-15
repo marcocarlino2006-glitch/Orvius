@@ -38,11 +38,12 @@ export default function CustomersPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [forgotten, setForgotten] = useState(false);
+  const [forgotten, setForgotten] = useState<"done" | "pending" | null>(null);
 
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("forgotten") !== "1") return;
-    setForgotten(true);
+    const state = new URLSearchParams(window.location.search).get("forgotten");
+    if (state !== "1" && state !== "pending") return;
+    setForgotten(state === "pending" ? "pending" : "done");
     window.history.replaceState(null, "", "/dashboard/customers");
   }, []);
 
@@ -100,7 +101,12 @@ export default function CustomersPage() {
       title="Customers"
     >
       <PlanUpgradeGate module="customers">
-      {forgotten ? <ShellAlert tone="success">Their data is deleted. Calls and jobs stay in your records without their details.</ShellAlert> : null}
+      {forgotten === "done" ? <ShellAlert tone="success">Their data is deleted here and at our call providers. Calls and jobs stay in your records without their details.</ShellAlert> : null}
+      {forgotten === "pending" ? (
+        <ShellAlert tone="success">
+          Their data is deleted from Orvius. Copies at our call providers are still being deleted; Orvius retries daily and records it in the activity log when each one is confirmed.
+        </ShellAlert>
+      ) : null}
       {loading && !customers.length ? (
         <DashboardSkeleton />
       ) : (

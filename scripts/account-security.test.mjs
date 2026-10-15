@@ -117,7 +117,7 @@ test("forgetting a customer removes who they are and keeps the shop's records an
       { businessId: business.id, customerId: customer.id, actorEmail: business.ownerEmail, role: "owner" },
       { deleteVapi: async (id) => (vapi.push(id), "deleted"), deleteTwilio: async (sid) => (twilio.push(sid), "deleted") },
     );
-    assert.deepEqual(result, { ok: true, calls: 1, requests: 1, jobs: 1, texts: 1, remotePending: 0 });
+    assert.deepEqual(result, { ok: true, calls: 1, requests: 1, jobs: 1, texts: 1, remotePending: 0, local: "scrubbed", provider: "confirmed" });
     assert.deepEqual(vapi, [call.vapiCallId]);
     assert.deepEqual(twilio, [`RE${"a".repeat(32)}`]);
 
@@ -164,6 +164,9 @@ test("when Vapi or Twilio can't delete yet, the retention sweep finishes the job
     );
     assert.equal(result.ok, true);
     assert.equal(result.remotePending, 2);
+    assert.equal(result.local, "scrubbed");
+    assert.equal(result.provider, "pending", "local success is not reported as provider deletion");
+    assert.match((await prisma.auditEvent.findFirst({ where: { businessId: business.id, action: "customer.forgotten" } })).summary, /2 provider copies are still being deleted/);
     const pendingCall = await prisma.call.findUnique({ where: { id: call.id } });
     assert.equal(pendingCall.transcript, null, "our copy goes now");
     assert.equal(pendingCall.contentPurgedAt, null);
@@ -175,6 +178,9 @@ test("when Vapi or Twilio can't delete yet, the retention sweep finishes the job
     await purgeExpiredCallContent({ deleteVapi: async (id) => (vapi.push(id), "deleted"), deleteTwilio: async () => "deleted" });
     assert.ok(vapi.includes(call.vapiCallId), "a forgotten call is picked up long before 24 months");
     assert.ok((await prisma.call.findUnique({ where: { id: call.id } })).contentPurgedAt);
+    assert.equal(await prisma.auditEvent.count({ where: { businessId: business.id, action: "customer.provider_deletion_confirmed", entityId: call.id } }), 1);
+    await purgeExpiredCallContent({ deleteVapi: async () => "deleted", deleteTwilio: async () => "deleted" });
+    assert.equal(await prisma.auditEvent.count({ where: { businessId: business.id, action: "customer.provider_deletion_confirmed" } }), 1, "confirmed once");
     assert.doesNotMatch((await prisma.lead.findUnique({ where: { id: lead.id } })).notes, /Recordings\/RE/);
   } finally {
     await drop(business.id);

@@ -312,7 +312,7 @@ function ForgetCustomerPanel({ customerId, name }: { customerId: string; name: s
       const res = await fetch(`/api/customers/${customerId}`, { method: "DELETE" });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error ?? "Nothing was deleted. Try again.");
-      router.replace("/dashboard/customers?forgotten=1");
+      router.replace(data.provider === "pending" ? "/dashboard/customers?forgotten=pending" : "/dashboard/customers?forgotten=1");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Nothing was deleted. Try again.");
       setBusy(false);
