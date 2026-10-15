@@ -166,6 +166,7 @@ model Business {
   deposits         Deposit[]
   copilotActions   CopilotAction[]
   commandGrants    CommandGrant[]
+  operatingPolicy  ShopOperatingPolicy?
   ownerNotifications OwnerNotification[]
   pushSubscriptions  PushSubscription[]
   webhookEvents      WebhookEvent[]
@@ -1003,6 +1004,24 @@ model CommandGrant {
   revokedByEmail String?
 
   @@index([businessId, granteeEmail])
+}
+
+/// The shop's own scheduling rules. No row means a shop from before this policy
+/// existed (legacy_no_travel_policy); new shops get a row in not_configured.
+model ShopOperatingPolicy {
+  businessId              String   @id
+  business                Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  /** not_configured | duration_only | min_gap */
+  travelMode              String   @default("not_configured")
+  /** Minutes the owner requires between one tech's jobs; set only in min_gap. */
+  travelGapMin            Int?
+  /** Work the owner has said can be finished without a visit (remote help, office fix). */
+  remoteCompletionAllowed Boolean  @default(false)
+  version                 Int      @default(1)
+  updatedByEmail          String?
+  updatedByRole           String?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
 }
 
 model WaitlistEntry {

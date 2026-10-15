@@ -6,6 +6,7 @@ import { isTextableNumber } from "@/lib/sms-destination";
 import { sendCustomerConfirmSms } from "@/lib/customer-confirm";
 import { recordMarketingOptIn } from "@/lib/marketing-consent";
 import { createJobFromLead, findOpenSlots, SlotTakenError } from "@/lib/job";
+import { getSchedulingPolicy, holdsForApproval } from "@/lib/scheduling-policy";
 import { logWarn } from "@/lib/logger";
 import { buildLeadAlertDedupeKey, enqueueOwnerAlert } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
@@ -125,6 +126,7 @@ function shape(shop: BookingShop, serviceType: string) {
 
 export async function bookingSlots(shop: BookingShop, serviceType: string) {
   const timezone = shop.timezone ?? "America/New_York";
+  if (holdsForApproval(await getSchedulingPolicy(shop.id))) return [];
   const slots = await findOpenSlots(shape(shop, serviceType), {
     count: BOOKING_SLOT_SCAN,
     minGapMin: BOOKING_SLOT_GAP_MIN,
@@ -159,7 +161,7 @@ export type BookingInput = {
 
 export type BookingResult =
   | { ok: true; jobId: string; scheduledAt: string; label: string; confirmTextSent: boolean }
-  | { ok: false; reason: "bad_phone" | "bad_service" | "bad_time" | "slot_taken" | "safety"; message: string };
+  | { ok: false; reason: "bad_phone" | "bad_service" | "bad_time" | "slot_taken" | "safety" | "owner_sets_times"; message: string };
 
 export async function bookOnline(shop: BookingShop, input: BookingInput): Promise<BookingResult> {
   const phone = normalizePhone(input.phone);
@@ -184,6 +186,13 @@ export async function bookOnline(shop: BookingShop, input: BookingInput): Promis
     };
   }
 
+  if (holdsForApproval(await getSchedulingPolicy(shop.id))) {
+    return {
+      ok: false,
+      reason: "owner_sets_times",
+      message: `${shop.name} sets appointment times themselves. Call or text them${shop.vapiPhoneNumber ? ` at ${shop.vapiPhoneNumber}` : ""} and they'll confirm a time.`,
+    };
+  }
   const slot = shape(shop, input.serviceType);
   if (!(await findOpenSlots(slot, { count: 1, onlyAt: at })).length) {
     return { ok: false, reason: "slot_taken", message: "That time was just taken. Pick another." };

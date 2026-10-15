@@ -56,7 +56,8 @@ function NewJobForm() {
     if (options?.timezone && !whenTouched) setWhen(tomorrowMorning(options.timezone));
   }, [options?.timezone, whenTouched]);
 
-  async function submit(e: React.FormEvent | null, allowClash = false) {
+  async function submit(e: React.FormEvent | null, override: string | null = null) {
+    const allowClash = override !== null;
     e?.preventDefault();
     setSaving(true);
     setError(null);
@@ -71,12 +72,14 @@ function NewJobForm() {
           technicianId: technicianId || null,
           notes: notes.trim() || null,
           allowClash,
+          ...(override ? { reason: override } : {}),
         }),
       });
       const data = await res.json().catch(() => ({}));
       if (res.status === 409 && data.clash && !allowClash) {
         setSaving(false);
-        if (window.confirm(`${data.error} Book it anyway?`)) await submit(null, true);
+        const reason = window.prompt(`${data.error} To book it anyway, say why. This goes in the job's history.`)?.trim();
+        if (reason) await submit(null, reason);
         return;
       }
       if (!res.ok) throw new Error(data.error ?? `Could not book the ${terms.job}`);

@@ -6,6 +6,7 @@ import { displayPhone } from "@/lib/customer";
 import { trustedCallbackNumber } from "@/lib/callback-number";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { findOpenSlots } from "@/lib/job";
+import { getSchedulingPolicy, holdsForApproval } from "@/lib/scheduling-policy";
 import { recordAudit } from "@/lib/audit";
 import { logError, logInfo } from "@/lib/logger";
 import { enqueueOwnerAlert, processNotificationQueue } from "@/lib/notification-queue";
@@ -77,7 +78,7 @@ async function checkAvailability(shop: ShopForTools, callId: string, args: Recor
   const outside = outsideScope(shop.trade, serviceType);
   if (outside) return outsideScopeReply(outside.label);
   if (playbook.urgency === "emergency") return URGENT_NO_BOOK_REPLY;
-  if (shop.bookingMode === "alert") return OWNER_SETS_TIMES_REPLY;
+  if (shop.bookingMode === "alert" || holdsForApproval(await getSchedulingPolicy(shop.id))) return OWNER_SETS_TIMES_REPLY;
   const base = {
     businessId: shop.id,
     urgency: playbook.urgency ?? urgency,
@@ -151,7 +152,7 @@ async function holdAppointment(
   const outside = intent === "new" ? outsideScope(shop.trade, str(args.serviceType)) : null;
   if (outside) return outsideScopeReply(outside.label);
   if (playbook.urgency === "emergency" && intent === "new") return URGENT_NO_BOOK_REPLY;
-  if (shop.bookingMode === "alert") return OWNER_SETS_TIMES_REPLY;
+  if (shop.bookingMode === "alert" || holdsForApproval(await getSchedulingPolicy(shop.id))) return OWNER_SETS_TIMES_REPLY;
   const slot = {
     businessId: shop.id,
     urgency: null,

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { serializeJob } from "@/lib/job";
 import { publicTechnician } from "@/lib/tech-app-link";
 import { parseSkills } from "@/lib/technician-match";
+import { getSchedulingPolicy } from "@/lib/scheduling-policy";
 
 /** Ring 4 — every shop gets a crew so dispatch is never empty. */
 export async function ensureCrew(businessId: string) {
@@ -95,10 +96,11 @@ export async function getDispatchBoard(
     orderBy: { startsAt: "asc" },
     select: { id: true, technicianId: true, startsAt: true, endsAt: true, reason: true },
   });
-  const [crew, jobs, timeOff] = await Promise.all([crewP, jobsP, timeOffP]);
+  const [crew, jobs, timeOff, policy] = await Promise.all([crewP, jobsP, timeOffP, getSchedulingPolicy(businessId)]);
   const offFor = (techId: string) => timeOff.filter((t) => t.technicianId === techId);
 
   const schedule = buildDispatchSchedule({
+    gapMin: policy.gapMin,
     timezone,
     business: business ?? {},
     crew: crew.map((t) => ({
@@ -182,7 +184,7 @@ export async function getDispatchWeek(businessId: string, isoDay?: string | null
   const start = bounds[0]!.start;
   const end = bounds[6]!.end;
 
-  const [crew, jobs, timeOff] = await Promise.all([
+  const [crew, jobs, timeOff, policy] = await Promise.all([
     listCrew(businessId),
     prisma.job.findMany({
       where: { businessId, status: { not: "cancelled" }, scheduledAt: { gte: start, lt: end } },
@@ -196,6 +198,7 @@ export async function getDispatchWeek(businessId: string, isoDay?: string | null
       where: { businessId, endsAt: { gt: start }, startsAt: { lt: end } },
       select: { technicianId: true, startsAt: true, endsAt: true, reason: true },
     }),
+    getSchedulingPolicy(businessId),
   ]);
 
   const crewInput = crew.map((t) => ({
@@ -213,6 +216,7 @@ export async function getDispatchWeek(businessId: string, isoDay?: string | null
     days: days.map((day, i) => {
       const { start: dayStart, end: dayEnd } = bounds[i]!;
       const schedule = buildDispatchSchedule({
+        gapMin: policy.gapMin,
         timezone,
         business: business ?? {},
         crew: crewInput,

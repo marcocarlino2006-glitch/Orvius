@@ -21,6 +21,17 @@ export const COMMAND_ACTION_EFFECT: Record<CopilotActionName, { risk: "low" | "h
   reschedule: { risk: "high", effect: "moves a customer's appointment and texts them the new time", touches: ["schedule", "customer_message"] },
 };
 
+/** Rights outside Command plans that an owner may still grant one person, on the same terms. */
+export const EXTRA_GRANTS = {
+  schedule_override: { risk: "high", effect: "books or moves work over a schedule conflict, with a reason on record", touches: ["schedule"] },
+} as const satisfies Record<string, { risk: "low" | "high"; effect: string; touches: string[] }>;
+
+export type GrantableAction = CopilotActionName | keyof typeof EXTRA_GRANTS;
+
+export function grantEffect(action: GrantableAction): { risk: "low" | "high"; effect: string; touches: readonly string[] } {
+  return action in EXTRA_GRANTS ? EXTRA_GRANTS[action as keyof typeof EXTRA_GRANTS] : COMMAND_ACTION_EFFECT[action as CopilotActionName];
+}
+
 /** Never approvable through a grant, whatever a future plan type is called. */
 export const NEVER_GRANTABLE = [
   "money", "price", "invoice", "payment", "refund",
@@ -44,10 +55,14 @@ type Actor = { role: ShopRole | string; email: string };
 
 const norm = (email: string | null | undefined) => (email ?? "").trim().toLowerCase();
 
-export function grantableAction(action: string): action is CopilotActionName {
-  if (!(COPILOT_ACTIONS as readonly string[]).includes(action)) return false;
-  const touches = COMMAND_ACTION_EFFECT[action as CopilotActionName].touches;
+export function grantableAction(action: string): action is GrantableAction {
+  if (!(COPILOT_ACTIONS as readonly string[]).includes(action) && !(action in EXTRA_GRANTS)) return false;
+  const touches = grantEffect(action as GrantableAction).touches;
   return !touches.some((t) => (NEVER_GRANTABLE as readonly string[]).includes(t));
+}
+
+function isPlanAction(action: string): action is CopilotActionName {
+  return (COPILOT_ACTIONS as readonly string[]).includes(action);
 }
 
 function conditions(grant: GrantRow): CommandGrantConditions {
@@ -87,7 +102,7 @@ export function decideApproval(params: {
   const { actor, proposal } = params;
   const own = Boolean(proposal.proposedByEmail) && norm(proposal.proposedByEmail) === norm(actor.email);
   if (actor.role === "owner") return { ok: true, kind: own ? "owner_confirmation" : "owner_approval", grantId: null };
-  if (!grantableAction(proposal.action)) return { ok: false, error: "Only the owner can approve this kind of plan." };
+  if (!isPlanAction(proposal.action) || !grantableAction(proposal.action)) return { ok: false, error: "Only the owner can approve this kind of plan." };
   const grant = activeGrantsFor(params.grants, actor, proposal.action, params.now)[0];
   if (!grant) return { ok: false, error: "You need a Command grant from the owner to approve this kind of plan." };
   if (!own) return { ok: true, kind: "grant", grantId: grant.id };
@@ -100,6 +115,7 @@ export function decideApproval(params: {
 /** Owners and managers may ask for routine plans; anyone else needs a grant for that kind of plan. */
 export function mayPropose(actor: Actor, action: string, grants: GrantRow[], now = new Date()): boolean {
   if (actor.role === "owner") return true;
+  if (!isPlanAction(action)) return false;
   if (actor.role === "manager") return grantableAction(action);
   return activeGrantsFor(grants, actor, action, now).length > 0;
 }

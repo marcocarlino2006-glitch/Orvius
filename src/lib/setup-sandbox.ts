@@ -92,6 +92,7 @@ export async function startSetup(
       bookingMode: "alert",
       autopilot: false,
       setupJson: JSON.stringify({ sandbox: true, step: "goal" } satisfies SetupState),
+      operatingPolicy: { create: { travelMode: "not_configured" } },
     },
   });
   await recordAudit({

@@ -643,7 +643,7 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
             },
           });
         })
-      : await prisma.business.create({ data: { ...shop, slug } });
+      : await prisma.business.create({ data: { ...shop, slug, operatingPolicy: { create: { travelMode: "not_configured" } } } });
 
     await finishProvisionAttempt(key, { status: "succeeded", businessId: business.id });
     await syncBusinessAssistant(business);

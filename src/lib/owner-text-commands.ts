@@ -1,9 +1,11 @@
+import { DEFAULT_JOB_DURATION_MIN } from "@/lib/availability";
 import { recordAudit } from "@/lib/audit";
 import { safeTimezone, shopDayBounds, zonedWallToUtc } from "@/lib/availability";
 import { normalizePhone } from "@/lib/customer";
 import { sendCustomerSms } from "@/lib/customer-sms";
 import { isDepositAmountValid, MAX_DEPOSIT_CENTS } from "@/lib/booking-deposit";
-import { createJobFromLead, ownerScheduleClash, scheduleOverrideDetail, updateJobStatus } from "@/lib/job";
+import { createJobFromLead, ownerScheduleClash, updateJobStatus } from "@/lib/job";
+import { authorizeScheduleOverride, scheduleOverrideRecord } from "@/lib/scheduling-policy";
 import { classifyRequest } from "@/lib/trade-playbooks";
 import { invoiceCompletedJob } from "@/lib/invoice-pay";
 import { logError } from "@/lib/logger";
@@ -24,12 +26,12 @@ export { OWNER_REPLY_HINT } from "@/lib/owner-alert-message";
 */
 
 export type OwnerCommand =
-  | { kind: "book"; when: string | null; force?: boolean }
-  | { kind: "move"; when: string; force?: boolean }
+  | { kind: "book"; when: string | null; force?: boolean; reason?: string }
+  | { kind: "move"; when: string; force?: boolean; reason?: string }
   | { kind: "text"; body: string }
   | { kind: "contacted" }
   | { kind: "spam" }
-  | { kind: "assign"; tech: string; force?: boolean }
+  | { kind: "assign"; tech: string; force?: boolean; reason?: string }
   | { kind: "today" }
   | { kind: "pass" }
   | { kind: "take" }
@@ -92,10 +94,10 @@ export function parseOwnerCommand(raw: string): OwnerCommand | null {
   const textMatch = text.match(/^(?:text|reply|tell them|send)\s*:?\s+([\s\S]+)$/i);
   if (textMatch && !/^(?:invoice|pay link)/i.test(textMatch[1])) return { kind: "text", body: textMatch[1].trim() };
 
-  // "ANYWAY" at the end is the owner overriding a clash they were just told about.
-  const forced = /\s+anyway$/.test(lower);
-  const plain = forced ? lower.replace(/\s+anyway$/, "") : lower;
-  const force = forced ? { force: true } : {};
+  // "ANYWAY <why>" at the end is the owner overriding a clash they were just told about.
+  const anyway = text.trim().match(/\s+anyway(?:\s*[:,-]?\s+(.+))?$/i);
+  const plain = anyway ? lower.slice(0, lower.length - anyway[0].length) : lower;
+  const force = anyway ? { force: true, ...(anyway[1]?.trim() ? { reason: anyway[1].trim().slice(0, 300) } : {}) } : {};
 
   const book = plain.match(/^book(?: it| them)?(?: for| at| on)?\s+(.+)$/);
   if (book) return { kind: "book", when: book[1], ...force };
@@ -350,17 +352,30 @@ export async function handleOwnerText(params: {
           const previous = lead.job.scheduledAt;
           const clash = at ? await textClash(shop, lead, lead.job, at, lead.job.technicianId) : null;
           if (clash && !command.force) {
-            return `${clash} Nothing moved. Reply ${command.kind.toUpperCase()} ${command.when?.toUpperCase()} ANYWAY to move it regardless.`;
+            return `${clash} Nothing moved. Reply ${command.kind.toUpperCase()} ${command.when?.toUpperCase()} ANYWAY <why> to move it regardless.`;
           }
           if (clash) {
+            const authority = await authorizeScheduleOverride({ businessId: shop.id, actor: { role: "owner" }, reason: command.reason });
+            if (!authority.ok) return `${clash} Nothing moved. Add why: ${command.kind.toUpperCase()} ${command.when?.toUpperCase()} ANYWAY <why>.`;
             await recordAudit({
               ...audit,
               entityType: "job",
               entityId: lead.job.id,
               jobId: lead.job.id,
               action: "job.schedule_override",
-              summary: `Booked over a clash by text: ${clash}`,
-              detail: scheduleOverrideDetail({ clash, at, technicianId: lead.job.technicianId, role: "owner", via: "owner_sms" }),
+              summary: `Booked over a clash by text: ${clash} Reason: ${authority.reason}`,
+              detail: await scheduleOverrideRecord({
+                businessId: shop.id,
+                clash,
+                before: { at: previous, technicianId: lead.job.technicianId },
+                after: { at, technicianId: lead.job.technicianId },
+                durationMin: lead.job.durationMin ?? DEFAULT_JOB_DURATION_MIN,
+                excludeJobId: lead.job.id,
+                actor: { role: "owner" },
+                authority,
+                via: "owner_sms",
+                notify: { customer: "owner_texts_customer", technician: "none" },
+              }),
             });
           }
           await prisma.job.update({
@@ -380,18 +395,33 @@ export async function handleOwnerText(params: {
         }
         const clash = at ? await textClash(shop, lead, null, at, null) : null;
         if (clash && !command.force) {
-          return `${clash} Not booked. Reply BOOK ${command.when?.toUpperCase()} ANYWAY to book it regardless.`;
+          return `${clash} Not booked. Reply BOOK ${command.when?.toUpperCase()} ANYWAY <why> to book it regardless.`;
         }
+        const authority = clash
+          ? await authorizeScheduleOverride({ businessId: shop.id, actor: { role: "owner" }, reason: command.reason })
+          : null;
+        if (clash && authority && !authority.ok) return `${clash} Not booked. Add why: BOOK ${command.when?.toUpperCase()} ANYWAY <why>.`;
         const job = await createJobFromLead({ leadId: lead.id, scheduledAt: at, actor: "owner" });
-        if (clash) {
+        if (clash && authority?.ok) {
           await recordAudit({
             ...audit,
             entityType: "job",
             entityId: job.id,
             jobId: job.id,
             action: "job.schedule_override",
-            summary: `Booked over a clash by text: ${clash}`,
-            detail: scheduleOverrideDetail({ clash, at, role: "owner", via: "owner_sms" }),
+            summary: `Booked over a clash by text: ${clash} Reason: ${authority.reason}`,
+            detail: await scheduleOverrideRecord({
+              businessId: shop.id,
+              clash,
+              before: { at: null, technicianId: null },
+              after: { at, technicianId: job.technicianId ?? null },
+              durationMin: job.durationMin ?? DEFAULT_JOB_DURATION_MIN,
+              excludeJobId: job.id,
+              actor: { role: "owner" },
+              authority,
+              via: "owner_sms",
+              notify: { customer: "booking_confirmation", technician: job.technicianId ? "assignment_text" : "none" },
+            }),
           });
         }
         await prisma.lead.update({ where: { id: lead.id }, data: { status: "booked" } });
@@ -422,17 +452,30 @@ export async function handleOwnerText(params: {
             ? await textClash(shop, lead, lead.job, lead.job.scheduledAt, tech.id)
             : null;
         if (clash && !command.force) {
-          return `${clash} ${tech.name} isn't on it. Reply TECH ${command.tech.toUpperCase()} ANYWAY to assign them regardless.`;
+          return `${clash} ${tech.name} isn't on it. Reply TECH ${command.tech.toUpperCase()} ANYWAY <why> to assign them regardless.`;
         }
         if (clash) {
+          const authority = await authorizeScheduleOverride({ businessId: shop.id, actor: { role: "owner" }, reason: command.reason });
+          if (!authority.ok) return `${clash} ${tech.name} isn't on it. Add why: TECH ${command.tech.toUpperCase()} ANYWAY <why>.`;
           await recordAudit({
             ...audit,
             entityType: "job",
             entityId: lead.job.id,
             jobId: lead.job.id,
             action: "job.schedule_override",
-            summary: `Assigned over a clash by text: ${clash}`,
-            detail: scheduleOverrideDetail({ clash, at: lead.job.scheduledAt, technicianId: tech.id, role: "owner", via: "owner_sms" }),
+            summary: `Assigned over a clash by text: ${clash} Reason: ${authority.reason}`,
+            detail: await scheduleOverrideRecord({
+              businessId: shop.id,
+              clash,
+              before: { at: lead.job.scheduledAt, technicianId: lead.job.technicianId },
+              after: { at: lead.job.scheduledAt, technicianId: tech.id },
+              durationMin: lead.job.durationMin ?? DEFAULT_JOB_DURATION_MIN,
+              excludeJobId: lead.job.id,
+              actor: { role: "owner" },
+              authority,
+              via: "owner_sms",
+              notify: { customer: "none", technician: "assignment_text" },
+            }),
           });
         }
         await prisma.job.update({ where: { id: lead.job.id }, data: { technicianId: tech.id } });

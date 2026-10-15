@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { recordAudit, personActor } from "@/lib/audit";
-import { COMMAND_ACTION_EFFECT, COMMAND_POLICY_VERSION, grantableAction } from "@/lib/command-authority";
+import { COMMAND_POLICY_VERSION, grantEffect, grantableAction } from "@/lib/command-authority";
 import { prisma } from "@/lib/prisma";
 import { requirePermission } from "@/lib/tenant";
 
@@ -63,10 +63,10 @@ export async function POST(request: Request) {
   if (granteeEmail === owner.email) return NextResponse.json({ error: "The owner already holds every Command right." }, { status: 400 });
   const member = await prisma.membership.findFirst({ where: { businessId: owner.business.id, email: granteeEmail }, select: { id: true } });
   if (!member) return NextResponse.json({ error: "Grants go to people already on the team." }, { status: 400 });
-  if (conditions?.allowSelfExecution && COMMAND_ACTION_EFFECT[action].risk === "high") {
+  if (conditions?.allowSelfExecution && grantEffect(action).risk === "high") {
     return NextResponse.json({ error: "Plans that reach a customer can't be self-approved." }, { status: 400 });
   }
-  const effect = COMMAND_ACTION_EFFECT[action].effect;
+  const effect = grantEffect(action).effect;
   const grant = await prisma.commandGrant.create({
     data: {
       businessId: owner.business.id,

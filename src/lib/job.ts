@@ -22,6 +22,7 @@ import { notifyCustomerOnTheWay } from "@/lib/on-the-way";
 import { classifyRequest } from "@/lib/trade-playbooks";
 import { parseSkills, recommendTechnician } from "@/lib/technician-match";
 import { slotHasRoom, techUnavailable, type TechShift } from "@/lib/tech-hours";
+import { adjacentJobs, authorizeScheduleOverride, gapClashWords, getSchedulingPolicy, scheduleOverrideRecord, techNeighbours } from "@/lib/scheduling-policy";
 import { prisma } from "@/lib/prisma";
 import { isAfterHours, parseJson, type BusinessHours } from "@/lib/business";
 import { jobTitle } from "@/lib/job-schedule";
@@ -171,7 +172,7 @@ export async function findOpenSlots(
   options: { count: number; minGapMin?: number; preference?: SlotPreference; onlyAt?: Date },
 ): Promise<Date[]> {
   const now = new Date();
-  const [existing, technicians, holds, busy, shop, outside] = await Promise.all([
+  const [existing, technicians, holds, busy, shop, outside, policy] = await Promise.all([
     prisma.job.findMany({
       where: {
         businessId: params.businessId,
@@ -207,6 +208,7 @@ export async function findOpenSlots(
     getBusyWindows(params.businessId, now),
     prisma.business.findUnique({ where: { id: params.businessId }, select: { closedDatesJson: true } }),
     getExternalSchedule(params.businessId, now),
+    getSchedulingPolicy(params.businessId),
   ]);
   // A holiday is a full calendar for every booking path: live calls, auto-booking, reschedules.
   const blocked = [...busy, ...outside.blocked, ...closureWindows(parseClosures(shop?.closedDatesJson), params.timezone, now)];
@@ -247,7 +249,7 @@ export async function findOpenSlots(
       capacity: Math.max(1, activeTechnicians),
       blocked,
       hasRoom: (start, durationMin) =>
-        slotHasRoom({ pool: shifts, booked, start, durationMin, timezone: params.timezone }),
+        slotHasRoom({ pool: shifts, booked, start, durationMin, timezone: params.timezone, gapMin: policy.gapMin }),
       existing: [
         ...relevant.flatMap((job) =>
           job.scheduledAt
@@ -337,12 +339,14 @@ async function slotProblem(tx: BookingTx, params: SlotCheck): Promise<"blocked" 
   const own = params.callId
     ? await tx.call.findUnique({ where: { id: params.callId }, select: { heldSeq: true, heldSlotAt: true } })
     : null;
+  const policy = await getSchedulingPolicy(params.businessId, tx as never);
+  const gapMs = policy.gapMin * 60_000;
   const [jobs, technicians, holds] = await Promise.all([
     tx.job.findMany({
       where: {
         businessId: params.businessId,
         status: { notIn: ["completed", "cancelled"] },
-        scheduledAt: { gte: new Date(startMs - 7 * 24 * 60 * 60 * 1000), lt: new Date(endMs) },
+        scheduledAt: { gte: new Date(startMs - 7 * 24 * 60 * 60 * 1000), lt: new Date(endMs + gapMs) },
         ...(params.excludeJobId ? { id: { not: params.excludeJobId } } : {}),
       },
       select: { scheduledAt: true, durationMin: true, technicianId: true },
@@ -354,7 +358,7 @@ async function slotProblem(tx: BookingTx, params: SlotCheck): Promise<"blocked" 
     tx.call.findMany({
       where: {
         businessId: params.businessId,
-        heldSlotAt: { gte: new Date(Math.max(now, startMs - 7 * 24 * 60 * 60 * 1000)), lt: new Date(endMs) },
+        heldSlotAt: { gte: new Date(Math.max(now, startMs - 7 * 24 * 60 * 60 * 1000)), lt: new Date(endMs + gapMs) },
         updatedAt: { gte: new Date(now - HOLD_TTL_MS) },
         ...(params.callId ? { id: { not: params.callId } } : {}),
         AND: [
@@ -388,12 +392,10 @@ async function slotProblem(tx: BookingTx, params: SlotCheck): Promise<"blocked" 
     start: params.at,
     durationMin: params.durationMin,
     timezone: params.timezone,
+    gapMin: policy.gapMin,
   });
   return open ? null : "full";
 }
-
-/** Bumped whenever the checks in `ownerScheduleClash` change, so an override record says which rules it overrode. */
-export const SCHEDULE_POLICY_VERSION = "owner-clash-2";
 
 /** Only configured hours count; a shop with none set has not told Orvius when it is closed. */
 function outsideShopHours(at: Date, durationMin: number, hoursJson: string | null | undefined, timezone: string): boolean {
@@ -403,34 +405,21 @@ function outsideShopHours(at: Date, durationMin: number, hoursJson: string | nul
   return isAfterHours(at, hoursJson!, timezone) || isAfterHours(lastMinute, hoursJson!, timezone);
 }
 
-/**
- * What an override audit records: the rule set it overrode, who overrode it in
- * which role, why, and the conflict as it stood at that moment.
- */
-export function scheduleOverrideDetail(params: {
-  clash: string;
-  at: Date | null;
-  technicianId?: string | null;
-  role: string;
-  reason?: string | null;
-  via: "dashboard" | "owner_sms";
-}) {
-  return {
-    policyVersion: SCHEDULE_POLICY_VERSION,
-    clash: params.clash,
-    at: params.at?.toISOString() ?? null,
-    technicianId: params.technicianId ?? null,
-    role: params.role,
-    reason: params.reason?.trim() || null,
-    via: params.via,
-  };
-}
-
 /** An owner-picked time that clashes; the owner can still book it after seeing why. */
 export class OwnerClashError extends Error {
   constructor(message: string) {
     super(message);
     this.name = "OwnerClashError";
+  }
+}
+
+/** A booking over a clash by someone without override authority, or without a reason. */
+export class OverrideRefusedError extends Error {
+  readonly status: 403 | 422;
+  constructor(message: string, status: 403 | 422) {
+    super(message);
+    this.status = status;
+    this.name = "OverrideRefusedError";
   }
 }
 
@@ -494,7 +483,14 @@ async function ownerClash(params: {
       const s = j.scheduledAt!.getTime();
       return s < endMs && startMs < s + (j.durationMin ?? DEFAULT_JOB_DURATION_MIN) * 60_000;
     });
-    return clash ? `${tech.name} already has a job then.` : null;
+    if (clash) return `${tech.name} already has a job then.`;
+    const policy = await getSchedulingPolicy(params.businessId);
+    if (policy.gapMin > 0) {
+      const neighbours = await techNeighbours({ ...params, technicianId: params.technicianId, gapMin: policy.gapMin });
+      const check = adjacentJobs({ start: params.at, durationMin: params.durationMin, gapMin: policy.gapMin, jobs: neighbours });
+      return gapClashWords(tech.name, check, policy.gapMin);
+    }
+    return null;
   }
   const problem = await slotProblem(prisma, { ...params, callId: null, outside });
   if (problem === "blocked") return "Your busy calendar or a closed day already covers that time.";
@@ -945,6 +941,10 @@ export async function createOwnerJob(params: {
   });
   if (clash && !params.allowClash) throw new OwnerClashError(clash);
   const by = params.bookedBy ?? { actor: "owner" as AuditActor, role: "owner" };
+  const authority = clash
+    ? await authorizeScheduleOverride({ businessId: business.id, actor: { role: by.role, email: by.actorEmail }, reason: by.reason })
+    : null;
+  if (authority && !authority.ok) throw new OverrideRefusedError(authority.error, authority.status);
   const customer = await linkTouchToCustomer({
     businessId: business.id,
     phone: params.phone,
@@ -989,7 +989,7 @@ export async function createOwnerJob(params: {
     detail: { scheduledAt: params.scheduledAt.toISOString(), durationMin, chosenBy: "owner" },
     idempotencyKey: `job:${job.id}:booked`,
   });
-  if (clash) {
+  if (clash && authority?.ok) {
     audit.add({
       ...link,
       entityType: "job",
@@ -998,13 +998,17 @@ export async function createOwnerJob(params: {
       ...(by.actorEmail ? { actorEmail: by.actorEmail } : {}),
       action: "job.schedule_override",
       summary: `Booked over a clash: ${clash}`,
-      detail: scheduleOverrideDetail({
+      detail: await scheduleOverrideRecord({
+        businessId: business.id,
         clash,
-        at: params.scheduledAt,
-        technicianId: params.technicianId ?? null,
-        role: by.role,
-        reason: by.reason,
+        before: { at: null, technicianId: null },
+        after: { at: params.scheduledAt, technicianId: params.technicianId ?? null },
+        durationMin,
+        excludeJobId: job.id,
+        actor: { role: by.role, email: by.actorEmail },
+        authority,
         via: "dashboard",
+        notify: { customer: "booking_confirmation", technician: params.technicianId ? "assignment_text" : "none" },
       }),
       idempotencyKey: `job:${job.id}:override`,
     });
@@ -1084,8 +1088,9 @@ async function autoAssignTechnician(params: {
   // the tech's calendar is read after it: the second booking always sees the
   // first one's claim, rolls back and re-ranks, so two calls can never put
   // one tech in two places.
-  const start = job.scheduledAt.getTime();
-  const end = start + job.durationMin * 60_000;
+  const gapMs = (await getSchedulingPolicy(link.businessId)).gapMin * 60_000;
+  const start = job.scheduledAt.getTime() - gapMs;
+  const end = job.scheduledAt.getTime() + job.durationMin * 60_000 + gapMs;
   for (let attempt = 0; ranking.pick && attempt < 3; attempt++) {
     const techId = ranking.pick.technicianId;
     let outcome: "kept" | "gone" | "taken";

@@ -125,6 +125,7 @@ test("TECH and MOVE by text check the same clashes as the screen; ANYWAY overrid
   const { business, lead, shop } = await fixture();
   try {
     assert.deepEqual(parseOwnerCommand("tech ben anyway"), { kind: "assign", tech: "ben", force: true });
+    assert.deepEqual(parseOwnerCommand("TECH BEN ANYWAY: Customer asked for Ben"), { kind: "assign", tech: "ben", force: true, reason: "Customer asked for Ben" });
     assert.deepEqual(parseOwnerCommand("MOVE MON 8AM ANYWAY"), { kind: "move", when: "mon 8am", force: true });
     await handleOwnerText({ shop, body: "book fri 2pm", now: NOW });
     const job = await prisma.job.findUnique({ where: { leadId: lead.id } });
@@ -132,10 +133,13 @@ test("TECH and MOVE by text check the same clashes as the screen; ANYWAY overrid
     await prisma.job.create({ data: { businessId: business.id, title: "Other", status: "scheduled", technicianId: ben.id, scheduledAt: job.scheduledAt, durationMin: 120 } });
 
     const refused = await handleOwnerText({ shop, body: "tech ben", now: NOW });
-    assert.match(refused, /Ben Okafor already has a job then\. Ben Okafor isn't on it\. Reply TECH BEN ANYWAY/);
+    assert.match(refused, /Ben Okafor already has a job then\. Ben Okafor isn't on it\. Reply TECH BEN ANYWAY <why>/);
     assert.notEqual((await prisma.job.findUnique({ where: { id: job.id } })).technicianId, ben.id);
 
-    const forced = await handleOwnerText({ shop, body: "tech ben anyway", now: NOW });
+    assert.match(await handleOwnerText({ shop, body: "tech ben anyway", now: NOW }), /Add why: TECH BEN ANYWAY <why>/, "no reason, no override");
+    assert.notEqual((await prisma.job.findUnique({ where: { id: job.id } })).technicianId, ben.id);
+
+    const forced = await handleOwnerText({ shop, body: "tech ben anyway other job is a 10 min check", now: NOW });
     assert.match(forced, /^Ben Okafor is on Maria Lopez's job/);
     assert.ok(await prisma.auditEvent.findFirst({ where: { businessId: business.id, action: "job.schedule_override", entityId: job.id } }));
   } finally {

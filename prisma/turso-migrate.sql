@@ -1172,3 +1172,18 @@ CREATE TABLE IF NOT EXISTS "CommandGrant" (
     CONSTRAINT "CommandGrant_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 CREATE INDEX IF NOT EXISTS "CommandGrant_businessId_granteeEmail_idx" ON "CommandGrant"("businessId", "granteeEmail");
+
+
+-- Per-shop scheduling policy (travel gap, remote completion). Additive; no row = legacy shop, unchanged.
+CREATE TABLE IF NOT EXISTS "ShopOperatingPolicy" (
+    "businessId" TEXT NOT NULL PRIMARY KEY,
+    "travelMode" TEXT NOT NULL DEFAULT 'not_configured',
+    "travelGapMin" INTEGER,
+    "remoteCompletionAllowed" BOOLEAN NOT NULL DEFAULT false,
+    "version" INTEGER NOT NULL DEFAULT 1,
+    "updatedByEmail" TEXT,
+    "updatedByRole" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "ShopOperatingPolicy_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);

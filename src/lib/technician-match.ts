@@ -1,3 +1,4 @@
+import { getSchedulingPolicy } from "@/lib/scheduling-policy";
 import { DEFAULT_JOB_DURATION_MIN } from "@/lib/availability";
 import { prisma } from "@/lib/prisma";
 import { techUnavailable, type TechShift } from "@/lib/tech-hours";
@@ -37,9 +38,9 @@ export function parseSkills(skillsJson: string | null | undefined): string[] {
   }
 }
 
-function overlaps(aStart: Date, aMin: number, bStart: Date, bMin: number) {
-  const a0 = aStart.getTime();
-  const a1 = a0 + aMin * 60_000;
+function overlaps(aStart: Date, aMin: number, bStart: Date, bMin: number, gapMin = 0) {
+  const a0 = aStart.getTime() - gapMin * 60_000;
+  const a1 = aStart.getTime() + (aMin + gapMin) * 60_000;
   const b0 = bStart.getTime();
   const b1 = b0 + bMin * 60_000;
   return a0 < b1 && b0 < a1;
@@ -62,6 +63,8 @@ export function rankTechnicians(input: {
   skill: string | null;
   /** Shop timezone; needed to read a technician's own hours. */
   timezone?: string;
+  /** The shop's required minutes between one technician's jobs. */
+  gapMin?: number;
 }): TechRanking {
   const considered: TechRanking["considered"] = [];
   const eligible: { tech: TechCandidate; specialist: boolean; dayLoad: number }[] = [];
@@ -78,7 +81,7 @@ export function rankTechnicians(input: {
       considered.push({ id: tech.id, name: tech.name, fit: "off" });
       continue;
     }
-    const busy = tech.jobs.some((j) => overlaps(input.scheduledAt, input.durationMin, j.scheduledAt, j.durationMin));
+    const busy = tech.jobs.some((j) => overlaps(input.scheduledAt, input.durationMin, j.scheduledAt, j.durationMin, input.gapMin));
     if (busy) {
       considered.push({ id: tech.id, name: tech.name, fit: "busy" });
       continue;
@@ -171,14 +174,16 @@ export async function recommendTechnician(params: {
   excludeJobId?: string;
   timezone?: string | null;
 }): Promise<TechRanking> {
-  const [candidates, shop] = await Promise.all([
+  const [candidates, shop, policy] = await Promise.all([
     loadTechCandidates(params.businessId, params.excludeJobId, params.scheduledAt),
     params.timezone
       ? null
       : prisma.business.findUnique({ where: { id: params.businessId }, select: { timezone: true } }),
+    getSchedulingPolicy(params.businessId),
   ]);
   return rankTechnicians({
     timezone: params.timezone ?? shop?.timezone ?? "America/New_York",
+    gapMin: policy.gapMin,
     candidates,
     scheduledAt: params.scheduledAt,
     durationMin: params.durationMin ?? DEFAULT_JOB_DURATION_MIN,

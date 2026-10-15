@@ -6,7 +6,8 @@ import { getConnectStatus } from "@/lib/stripe-connect";
 import { personActor, recordAudit } from "@/lib/audit";
 import { DEFAULT_JOB_DURATION_MIN, shopWallInputToUtc } from "@/lib/availability";
 import { textDelivery } from "@/lib/job-lifecycle";
-import { JOB_INCLUDE, JobTransitionError, isJobStatus, jobStatusLabel, ownerScheduleClash, scheduleOverrideDetail, serializeJob, updateJobStatus } from "@/lib/job";
+import { authorizeScheduleOverride, scheduleOverrideRecord, type OverrideAuthority } from "@/lib/scheduling-policy";
+import { JOB_INCLUDE, JobTransitionError, isJobStatus, jobStatusLabel, ownerScheduleClash, serializeJob, updateJobStatus } from "@/lib/job";
 import { classifyRequest } from "@/lib/trade-playbooks";
 import { logWarn } from "@/lib/logger";
 import { notifyTechOnAssign } from "@/lib/notify-tech-assign";
@@ -171,6 +172,7 @@ export async function PATCH(request: Request, { params }: Params) {
   const reassigned = body.technicianId !== undefined && nextTech !== existing.technicianId && Boolean(nextTech);
   const finalStatus = body.status ?? existing.status;
   let clash: string | null = null;
+  let override: Extract<OverrideAuthority, { ok: true }> | null = null;
   if (nextAt && (moved || reassigned) && finalStatus !== "completed" && finalStatus !== "cancelled") {
     clash = await ownerScheduleClash({
       businessId: business.id,
@@ -183,6 +185,15 @@ export async function PATCH(request: Request, { params }: Params) {
     });
     if (clash && body.allowClash !== true) {
       return NextResponse.json({ error: clash, clash: true }, { status: 409 });
+    }
+    if (clash) {
+      const authority = await authorizeScheduleOverride({
+        businessId: business.id,
+        actor: { role: authResult.role, email: authResult.email },
+        reason,
+      });
+      if (!authority.ok) return NextResponse.json({ error: authority.error, clash: true, needsReason: authority.status === 422 }, { status: authority.status });
+      override = authority;
     }
   }
 
@@ -250,12 +261,26 @@ export async function PATCH(request: Request, { params }: Params) {
       detail: { from: existing.status, to: body.status, reason },
     });
   }
-  if (clash) {
+  if (clash && override) {
     await recordAudit({
       ...auditBase,
       action: "job.schedule_override",
       summary: `Booked over a clash: ${clash}${because}`,
-      detail: scheduleOverrideDetail({ clash, at: nextAt, technicianId: nextTech, role: authResult.role, reason, via: "dashboard" }),
+      detail: await scheduleOverrideRecord({
+        businessId: business.id,
+        clash,
+        before: { at: existing.scheduledAt, technicianId: existing.technicianId },
+        after: { at: nextAt, technicianId: nextTech },
+        durationMin: existing.durationMin ?? DEFAULT_JOB_DURATION_MIN,
+        excludeJobId: existing.id,
+        actor: { role: authResult.role, email: authResult.email },
+        authority: override,
+        via: "dashboard",
+        notify: {
+          customer: moved ? "reconfirm_new_time" : "none",
+          technician: reassigned ? "assignment_text" : moved && nextTech ? "moved_text" : "none",
+        },
+      }),
     });
   }
   if (assigningTech) {

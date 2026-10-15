@@ -1,8 +1,10 @@
+import { DEFAULT_JOB_DURATION_MIN } from "@/lib/availability";
 import { NextResponse } from "next/server";
 import { isLeadQualifiedForBooking } from "@/lib/auto-job";
 import { safeTimezone, shopWallInputToUtc, zonedWallToUtc } from "@/lib/availability";
 import { normalizePhone } from "@/lib/customer";
-import { JOB_INCLUDE, OwnerClashError, createJobFromLead, createOwnerJob, ownerScheduleClash, scheduleOverrideDetail, serializeJob } from "@/lib/job";
+import { JOB_INCLUDE, OverrideRefusedError, OwnerClashError, createJobFromLead, createOwnerJob, ownerScheduleClash, serializeJob } from "@/lib/job";
+import { authorizeScheduleOverride, scheduleOverrideRecord } from "@/lib/scheduling-policy";
 import { personActor, recordAudit } from "@/lib/audit";
 import { classifyRequest } from "@/lib/trade-playbooks";
 import { requirePlanModule } from "@/lib/plan-gate";
@@ -113,12 +115,22 @@ export async function POST(request: Request) {
       });
       if (clash && body.allowClash !== true) return NextResponse.json({ error: clash, clash: true }, { status: 409 });
     }
+    const authority = clash
+      ? await authorizeScheduleOverride({
+          businessId: business.id,
+          actor: { role: authResult.role, email: authResult.email },
+          reason: typeof body.reason === "string" ? body.reason : null,
+        })
+      : null;
+    if (authority && !authority.ok) {
+      return NextResponse.json({ error: authority.error, clash: true, needsReason: authority.status === 422 }, { status: authority.status });
+    }
     const job = await createJobFromLead({
       leadId: body.leadId.trim(),
       scheduledAt,
       notes: body.notes,
     });
-    if (clash) {
+    if (clash && authority?.ok) {
       await recordAudit({
         businessId: business.id,
         entityType: "job",
@@ -128,12 +140,17 @@ export async function POST(request: Request) {
         ...personActor(authResult),
         action: "job.schedule_override",
         summary: `Booked over a clash: ${clash}`,
-        detail: scheduleOverrideDetail({
+        detail: await scheduleOverrideRecord({
+          businessId: business.id,
           clash,
-          at,
-          role: authResult.role,
-          reason: typeof body.reason === "string" ? body.reason.trim().slice(0, 300) : null,
+          before: { at: null, technicianId: null },
+          after: { at, technicianId: job.technicianId ?? null },
+          durationMin: job.durationMin ?? DEFAULT_JOB_DURATION_MIN,
+          excludeJobId: job.id,
+          actor: { role: authResult.role, email: authResult.email },
+          authority,
           via: "dashboard",
+          notify: { customer: "booking_confirmation", technician: job.technicianId ? "assignment_text" : "none" },
         }),
       });
     }
@@ -208,6 +225,9 @@ async function bookOwnerJob(
     });
   } catch (error) {
     if (error instanceof OwnerClashError) return NextResponse.json({ error: error.message, clash: true }, { status: 409 });
+    if (error instanceof OverrideRefusedError) {
+      return NextResponse.json({ error: error.message, clash: true, needsReason: error.status === 422 }, { status: error.status });
+    }
     throw error;
   }
   const full = await prisma.job.findUnique({ where: { id: job.id }, include: JOB_INCLUDE });

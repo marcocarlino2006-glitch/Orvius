@@ -47,7 +47,7 @@ test("lanes place jobs on the time axis and name double-bookings", () => {
   assert.ok(ana.blocks.every((b) => b.conflict));
 });
 
-test("back-to-back jobs in different ZIPs are a travel conflict", () => {
+test("without an owner-set gap, back-to-back jobs make no travel claim", () => {
   const s = buildDispatchSchedule({
     business,
     crew,
@@ -55,11 +55,26 @@ test("back-to-back jobs in different ZIPs are a travel conflict", () => {
     jobs: [
       job("a", { technicianId: "gus", postalCode: "60201" }),
       job("b", { technicianId: "gus", scheduledAt: at(11, 10), postalCode: "60614" }),
+    ],
+  });
+  assert.equal(s.conflicts.length, 0);
+});
+
+test("the owner's minimum gap names jobs closer than it, whatever the ZIP", () => {
+  const s = buildDispatchSchedule({
+    business,
+    crew,
+    dayStart,
+    gapMin: 30,
+    jobs: [
+      job("a", { technicianId: "gus", postalCode: "60201" }),
+      job("b", { technicianId: "gus", scheduledAt: at(11, 10), postalCode: "60201" }),
       job("c", { technicianId: "gus", scheduledAt: at(14), postalCode: "60614" }),
     ],
   });
   assert.equal(s.conflicts.length, 1);
-  assert.match(s.conflicts[0].message, /10 min to get from 60201 to 60614/);
+  assert.match(s.conflicts[0].message, /10 min between .* your policy is at least 30 min/);
+  assert.doesNotMatch(s.conflicts[0].message, /get from|drive/);
 });
 
 test("recommendations pick the skilled technician and never collide with each other", () => {

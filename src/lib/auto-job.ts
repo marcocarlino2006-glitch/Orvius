@@ -2,6 +2,7 @@ import { isInformationOnlyRequest } from "@/lib/info-request";
 import { recordAudit, type AuditQueue } from "@/lib/audit";
 import { detectCallIntent, type CallIntent } from "@/lib/call-intent";
 import { createJobFromLead, findOpenSlots, RepeatCallerError, SlotTakenError } from "@/lib/job";
+import { getSchedulingPolicy, holdsForApproval } from "@/lib/scheduling-policy";
 import { classifyRequest, normalizeUrgency, type RequestClassification } from "@/lib/trade-playbooks";
 import { outsideScope } from "@/lib/trade-scope";
 import { callerWords } from "@/lib/transcript";
@@ -443,6 +444,12 @@ export async function maybeAutoBookLead(
   if (lead.business.bookingMode === "alert") {
     await decide("lead.held", "Held for you — you chose to decide every booking yourself, so Orvius did not book it", {
       bookingMode: "alert",
+    });
+    return { jobId: null, created: false, qualified: true, skipReason: "owner_first", classification, intent };
+  }
+  if (holdsForApproval(await getSchedulingPolicy(businessId))) {
+    await decide("lead.held", "Held for you — you haven't set how travel time works between jobs yet, so Orvius did not pick a time", {
+      travelPolicy: "not_configured",
     });
     return { jobId: null, created: false, qualified: true, skipReason: "owner_first", classification, intent };
   }
