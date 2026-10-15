@@ -280,11 +280,27 @@ export async function ensureDemoWorkspace(
   options: DemoOptions = {},
 ): Promise<{ business: Business; created: boolean; seeded: boolean }> {
   const owner = email.trim().toLowerCase();
-  const existing = await findDemoWorkspace(owner);
-  if (existing && !(options.seed && (await isEmptyDemo(existing.id)))) {
-    return { business: existing, created: false, seeded: false };
-  }
+  // Opening waits for a reset in flight, so it never hands back a shop that reset is deleting.
   return withLease(demoLeaseKey(owner), () => ensureDemoWorkspaceHeld(owner, options));
+}
+
+/* Only this person's demo shops: environment demo, demo-* slug, their email. A real shop never matches. */
+function ownerDemos(owner: string) {
+  return prisma.business.findMany({
+    where: { ownerEmail: owner, environment: "demo", slug: { startsWith: OWNER_DEMO_SLUG_PREFIX } },
+    orderBy: { createdAt: "asc" },
+  });
+}
+
+async function deleteDemo(business: Business, owner: string) {
+  if (!isOwnerDemoWorkspace(business) || business.ownerEmail?.toLowerCase() !== owner) {
+    throw new Error("Only a demo workspace can be reset.");
+  }
+  await prisma.$transaction([
+    prisma.lead.deleteMany({ where: { businessId: business.id } }),
+    prisma.webhookEvent.deleteMany({ where: { businessId: business.id } }),
+    prisma.business.delete({ where: { id: business.id } }),
+  ]);
 }
 
 async function isEmptyDemo(businessId: string) {
@@ -292,7 +308,9 @@ async function isEmptyDemo(businessId: string) {
 }
 
 async function ensureDemoWorkspaceHeld(owner: string, options: DemoOptions) {
-  const existing = await findDemoWorkspace(owner);
+  // One demo per person: the oldest is the one; any left by an older race go.
+  const [existing, ...extra] = (await ownerDemos(owner)).filter((b) => b.isActive);
+  for (const duplicate of extra) await deleteDemo(duplicate, owner);
   if (existing) {
     const empty = options.seed ? await isEmptyDemo(existing.id) : false;
     if (empty) await seedDemoDataset(existing);
@@ -341,21 +359,13 @@ export async function resetDemoWorkspace(email: string, options: Omit<DemoOption
   const owner = email.trim().toLowerCase();
   const requestedAt = Date.now();
   return withLease(demoLeaseKey(owner), async () => {
-    const existing = await findDemoWorkspace(owner);
+    const demos = await ownerDemos(owner);
+    const existing = demos.find((b) => b.isActive) ?? null;
     // A reset that finished while this one waited already started over at today.
-    if (existing && existing.createdAt.getTime() >= requestedAt) {
+    if (existing && demos.length === 1 && existing.createdAt.getTime() >= requestedAt) {
       return { business: existing, created: false, seeded: false };
     }
-    if (existing) {
-      if (!isOwnerDemoWorkspace(existing) || existing.ownerEmail?.toLowerCase() !== owner) {
-        throw new Error("Only a demo workspace can be reset.");
-      }
-      await prisma.$transaction([
-        prisma.lead.deleteMany({ where: { businessId: existing.id } }),
-        prisma.webhookEvent.deleteMany({ where: { businessId: existing.id } }),
-        prisma.business.delete({ where: { id: existing.id } }),
-      ]);
-    }
+    for (const demo of demos) await deleteDemo(demo, owner);
     return ensureDemoWorkspaceHeld(owner, { seed: true, timezone: options.timezone ?? existing?.timezone });
   });
 }

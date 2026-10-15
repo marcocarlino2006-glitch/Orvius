@@ -97,6 +97,53 @@ test("simultaneous resets leave one fresh demo, and the real shop is untouched",
   assert.equal(results.filter((r) => r.created).length, 1, "the resets collapse into one start-over");
 });
 
+test("opens that overlap a reset all get the shop that exists afterwards", async () => {
+  const email = `overlap-${stamp()}@orvius.test`;
+  const first = await ensureDemoWorkspace(email, { seed: true });
+  cleanup.add(first.business.id);
+  const results = await Promise.all([
+    ensureDemoWorkspace(email, { seed: true }),
+    resetDemoWorkspace(email),
+    ensureDemoWorkspace(email, { seed: true }),
+    ensureDemoWorkspace(email, { seed: true }),
+  ]);
+  for (const r of results) cleanup.add(r.business.id);
+  const demos = await demosFor(email);
+  assert.equal(demos.length, 1);
+  for (const r of results) {
+    assert.ok(await prisma.business.findUnique({ where: { id: r.business.id } }), "no open hands back a shop the reset deleted");
+  }
+  assert.equal(results[1].business.id, demos[0].id);
+});
+
+test("a duplicate demo left by an older race is folded into one; a real shop with a demo-like slug is never touched", async () => {
+  const email = `dupe-${stamp()}@orvius.test`;
+  const first = await ensureDemoWorkspace(email, { seed: false });
+  cleanup.add(first.business.id);
+  const extra = await prisma.business.create({
+    data: { name: "Old duplicate (demo)", slug: `demo-${stamp()}`, environment: "demo", ownerEmail: email, hoursJson: "{}", servicesJson: "[]" },
+  });
+  cleanup.add(extra.id);
+  const lookalike = await prisma.business.create({
+    data: { name: "Real, odd slug", slug: `demo-real-${stamp()}`, environment: "production", ownerEmail: email, hoursJson: "{}", servicesJson: "[]" },
+  });
+  cleanup.add(lookalike.id);
+
+  const opened = await ensureDemoWorkspace(email, { seed: false });
+  assert.equal(opened.business.id, first.business.id, "the oldest demo is the one");
+  assert.equal(await prisma.business.findUnique({ where: { id: extra.id } }), null, "the duplicate is gone");
+  assert.ok(await prisma.business.findUnique({ where: { id: lookalike.id } }), "a production shop is out of reach");
+
+  const extra2 = await prisma.business.create({
+    data: { name: "Another duplicate (demo)", slug: `demo-${stamp()}`, environment: "demo", ownerEmail: email, hoursJson: "{}", servicesJson: "[]" },
+  });
+  cleanup.add(extra2.id);
+  const reset = await resetDemoWorkspace(email);
+  cleanup.add(reset.business.id);
+  assert.deepEqual((await demosFor(email)).map((b) => b.id), [reset.business.id], "reset leaves exactly one demo");
+  assert.ok(await prisma.business.findUnique({ where: { id: lookalike.id } }));
+});
+
 test("opening the demo first does not stand in for the real shop", async () => {
   const email = `first-${stamp()}@orvius.test`;
   const demo = await ensureDemoWorkspace(email, { seed: true });
