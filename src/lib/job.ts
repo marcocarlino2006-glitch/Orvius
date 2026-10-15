@@ -23,6 +23,7 @@ import { classifyRequest } from "@/lib/trade-playbooks";
 import { parseSkills, recommendTechnician } from "@/lib/technician-match";
 import { slotHasRoom, techUnavailable, type TechShift } from "@/lib/tech-hours";
 import { prisma } from "@/lib/prisma";
+import { isAfterHours, parseJson, type BusinessHours } from "@/lib/business";
 import { jobTitle } from "@/lib/job-schedule";
 import {
   isJobOutcomeCode,
@@ -391,6 +392,40 @@ async function slotProblem(tx: BookingTx, params: SlotCheck): Promise<"blocked" 
   return open ? null : "full";
 }
 
+/** Bumped whenever the checks in `ownerScheduleClash` change, so an override record says which rules it overrode. */
+export const SCHEDULE_POLICY_VERSION = "owner-clash-2";
+
+/** Only configured hours count; a shop with none set has not told Orvius when it is closed. */
+function outsideShopHours(at: Date, durationMin: number, hoursJson: string | null | undefined, timezone: string): boolean {
+  const hours = parseJson<BusinessHours>(hoursJson ?? "{}", {});
+  if (!hours || Object.keys(hours).length === 0) return false;
+  const lastMinute = new Date(at.getTime() + Math.max(durationMin - 1, 0) * 60_000);
+  return isAfterHours(at, hoursJson!, timezone) || isAfterHours(lastMinute, hoursJson!, timezone);
+}
+
+/**
+ * What an override audit records: the rule set it overrode, who overrode it in
+ * which role, why, and the conflict as it stood at that moment.
+ */
+export function scheduleOverrideDetail(params: {
+  clash: string;
+  at: Date | null;
+  technicianId?: string | null;
+  role: string;
+  reason?: string | null;
+  via: "dashboard" | "owner_sms";
+}) {
+  return {
+    policyVersion: SCHEDULE_POLICY_VERSION,
+    clash: params.clash,
+    at: params.at?.toISOString() ?? null,
+    technicianId: params.technicianId ?? null,
+    role: params.role,
+    reason: params.reason?.trim() || null,
+    via: params.via,
+  };
+}
+
 /** An owner-picked time that clashes; the owner can still book it after seeing why. */
 export class OwnerClashError extends Error {
   constructor(message: string) {
@@ -401,7 +436,7 @@ export class OwnerClashError extends Error {
 
 /**
  * The one check every owner-side schedule write runs — a new job, a move, a
- * reassignment, a text command: closed days, the busy calendar, the tech's
+ * reassignment, a text command: shop hours, closed days, the busy calendar, the tech's
  * shift and time off, their other jobs, and whether anyone qualified is free. A clash is a reason the owner sees, not a refusal they can't
  * override.
  */
@@ -426,7 +461,13 @@ async function ownerClash(params: {
   technicianId: string | null;
   excludeJobId?: string;
 }): Promise<string | null> {
-  const outside = await outsideTime(params.businessId, params.timezone);
+  const [outside, shop] = await Promise.all([
+    outsideTime(params.businessId, params.timezone),
+    prisma.business.findUnique({ where: { id: params.businessId }, select: { hoursJson: true } }),
+  ]);
+  if (outsideShopHours(params.at, params.durationMin, shop?.hoursJson, params.timezone)) {
+    return "That's outside your shop hours.";
+  }
   if (params.technicianId) {
     const startMs = params.at.getTime();
     const endMs = startMs + params.durationMin * 60_000;
@@ -882,6 +923,8 @@ export async function createOwnerJob(params: {
   technicianId?: string | null;
   /** The owner saw the clash and chose this time anyway. */
   allowClash?: boolean;
+  /** Who is booking, for the audit trail and any override record. */
+  bookedBy?: { actor: AuditActor; actorEmail?: string; role: string; reason?: string | null };
 }) {
   const business = await prisma.business.findUniqueOrThrow({
     where: { id: params.businessId },
@@ -892,17 +935,16 @@ export async function createOwnerJob(params: {
   const notes = params.notes?.trim() || null;
   const playbook = classifyRequest({ business, serviceType: params.serviceType, notes, urgency: null });
   const durationMin = playbook.service.durationMin;
-  if (!params.allowClash) {
-    const clash = await ownerClash({
-      businessId: business.id,
-      at: params.scheduledAt,
-      durationMin,
-      skill: playbook.service.skill,
-      timezone: business.timezone ?? "America/New_York",
-      technicianId: params.technicianId ?? null,
-    });
-    if (clash) throw new OwnerClashError(clash);
-  }
+  const clash = await ownerClash({
+    businessId: business.id,
+    at: params.scheduledAt,
+    durationMin,
+    skill: playbook.service.skill,
+    timezone: business.timezone ?? "America/New_York",
+    technicianId: params.technicianId ?? null,
+  });
+  if (clash && !params.allowClash) throw new OwnerClashError(clash);
+  const by = params.bookedBy ?? { actor: "owner" as AuditActor, role: "owner" };
   const customer = await linkTouchToCustomer({
     businessId: business.id,
     phone: params.phone,
@@ -940,12 +982,33 @@ export async function createOwnerJob(params: {
     ...link,
     entityType: "job",
     entityId: job.id,
-    actor: "owner",
+    actor: by.actor,
+    ...(by.actorEmail ? { actorEmail: by.actorEmail } : {}),
     action: "job.booked",
-    summary: `Booked by the owner — ${params.serviceType}, ${formatShopTime(params.scheduledAt, business.timezone ?? "America/New_York")}`,
+    summary: `Booked by the ${by.actor === "owner" ? "owner" : "team"} — ${params.serviceType}, ${formatShopTime(params.scheduledAt, business.timezone ?? "America/New_York")}`,
     detail: { scheduledAt: params.scheduledAt.toISOString(), durationMin, chosenBy: "owner" },
     idempotencyKey: `job:${job.id}:booked`,
   });
+  if (clash) {
+    audit.add({
+      ...link,
+      entityType: "job",
+      entityId: job.id,
+      actor: by.actor,
+      ...(by.actorEmail ? { actorEmail: by.actorEmail } : {}),
+      action: "job.schedule_override",
+      summary: `Booked over a clash: ${clash}`,
+      detail: scheduleOverrideDetail({
+        clash,
+        at: params.scheduledAt,
+        technicianId: params.technicianId ?? null,
+        role: by.role,
+        reason: by.reason,
+        via: "dashboard",
+      }),
+      idempotencyKey: `job:${job.id}:override`,
+    });
+  }
 
   if (params.technicianId) {
     const techId = params.technicianId;

@@ -6,7 +6,7 @@ import { getConnectStatus } from "@/lib/stripe-connect";
 import { personActor, recordAudit } from "@/lib/audit";
 import { DEFAULT_JOB_DURATION_MIN, shopWallInputToUtc } from "@/lib/availability";
 import { textDelivery } from "@/lib/job-lifecycle";
-import { JOB_INCLUDE, JobTransitionError, isJobStatus, jobStatusLabel, ownerScheduleClash, serializeJob, updateJobStatus } from "@/lib/job";
+import { JOB_INCLUDE, JobTransitionError, isJobStatus, jobStatusLabel, ownerScheduleClash, scheduleOverrideDetail, serializeJob, updateJobStatus } from "@/lib/job";
 import { classifyRequest } from "@/lib/trade-playbooks";
 import { logWarn } from "@/lib/logger";
 import { notifyTechOnAssign } from "@/lib/notify-tech-assign";
@@ -255,7 +255,7 @@ export async function PATCH(request: Request, { params }: Params) {
       ...auditBase,
       action: "job.schedule_override",
       summary: `Booked over a clash: ${clash}${because}`,
-      detail: { clash, at: nextAt?.toISOString() ?? null, technicianId: nextTech, reason },
+      detail: scheduleOverrideDetail({ clash, at: nextAt, technicianId: nextTech, role: authResult.role, reason, via: "dashboard" }),
     });
   }
   if (assigningTech) {

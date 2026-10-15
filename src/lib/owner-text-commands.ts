@@ -3,7 +3,7 @@ import { safeTimezone, shopDayBounds, zonedWallToUtc } from "@/lib/availability"
 import { normalizePhone } from "@/lib/customer";
 import { sendCustomerSms } from "@/lib/customer-sms";
 import { isDepositAmountValid, MAX_DEPOSIT_CENTS } from "@/lib/booking-deposit";
-import { createJobFromLead, ownerScheduleClash, updateJobStatus } from "@/lib/job";
+import { createJobFromLead, ownerScheduleClash, scheduleOverrideDetail, updateJobStatus } from "@/lib/job";
 import { classifyRequest } from "@/lib/trade-playbooks";
 import { invoiceCompletedJob } from "@/lib/invoice-pay";
 import { logError } from "@/lib/logger";
@@ -360,7 +360,7 @@ export async function handleOwnerText(params: {
               jobId: lead.job.id,
               action: "job.schedule_override",
               summary: `Booked over a clash by text: ${clash}`,
-              detail: { clash, at: at?.toISOString() ?? null, via: "owner_sms" },
+              detail: scheduleOverrideDetail({ clash, at, technicianId: lead.job.technicianId, role: "owner", via: "owner_sms" }),
             });
           }
           await prisma.job.update({
@@ -391,7 +391,7 @@ export async function handleOwnerText(params: {
             jobId: job.id,
             action: "job.schedule_override",
             summary: `Booked over a clash by text: ${clash}`,
-            detail: { clash, at: at?.toISOString() ?? null, via: "owner_sms" },
+            detail: scheduleOverrideDetail({ clash, at, role: "owner", via: "owner_sms" }),
           });
         }
         await prisma.lead.update({ where: { id: lead.id }, data: { status: "booked" } });
@@ -432,7 +432,7 @@ export async function handleOwnerText(params: {
             jobId: lead.job.id,
             action: "job.schedule_override",
             summary: `Assigned over a clash by text: ${clash}`,
-            detail: { clash, technicianId: tech.id, via: "owner_sms" },
+            detail: scheduleOverrideDetail({ clash, at: lead.job.scheduledAt, technicianId: tech.id, role: "owner", via: "owner_sms" }),
           });
         }
         await prisma.job.update({ where: { id: lead.job.id }, data: { technicianId: tech.id } });

@@ -161,6 +161,37 @@ test("an owner booking on a technician who is busy is asked first, and can book 
   }
 });
 
+test("an owner booking outside shop hours is asked first, and the override records who, why and which rules", async () => {
+  const closed = { open: "08:00", close: "17:00", closed: true };
+  const week = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+  const business = await shop({ hoursJson: JSON.stringify(Object.fromEntries(week.map((d) => [d, closed]))) });
+  try {
+    const booking = { businessId: business.id, phone: randomPhone(), serviceType: "AC repair", scheduledAt: futureHour(3) };
+    await assert.rejects(createOwnerJob(booking), (error) => error instanceof OwnerClashError && /outside your shop hours/.test(error.message));
+    const job = await createOwnerJob({
+      ...booking,
+      allowClash: true,
+      bookedBy: { actor: "teammate", actorEmail: "disp@example.com", role: "dispatcher", reason: "Customer asked for after-hours" },
+    });
+    let override = null;
+    for (let i = 0; i < 20 && !override; i++) {
+      override = await prisma.auditEvent.findFirst({ where: { businessId: business.id, action: "job.schedule_override", entityId: job.id } });
+      if (!override) await new Promise((r) => setTimeout(r, 25));
+    }
+    assert.ok(override, "the override is on the record");
+    assert.equal(override.actor, "teammate");
+    assert.equal(override.actorEmail, "disp@example.com");
+    const detail = JSON.parse(override.detailJson);
+    assert.equal(detail.policyVersion, "owner-clash-2");
+    assert.equal(detail.role, "dispatcher");
+    assert.equal(detail.reason, "Customer asked for after-hours");
+    assert.match(detail.clash, /outside your shop hours/);
+    assert.equal(detail.at, booking.scheduledAt.toISOString());
+  } finally {
+    await prisma.business.delete({ where: { id: business.id } }).catch(() => {});
+  }
+});
+
 test("a confirm text with no reply for 12 hours asks for a call, well before the visit", async () => {
   const business = await shop({ autopilot: true });
   try {

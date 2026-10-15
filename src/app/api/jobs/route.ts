@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { isLeadQualifiedForBooking } from "@/lib/auto-job";
 import { safeTimezone, shopWallInputToUtc, zonedWallToUtc } from "@/lib/availability";
 import { normalizePhone } from "@/lib/customer";
-import { JOB_INCLUDE, OwnerClashError, createJobFromLead, createOwnerJob, ownerScheduleClash, serializeJob } from "@/lib/job";
+import { JOB_INCLUDE, OwnerClashError, createJobFromLead, createOwnerJob, ownerScheduleClash, scheduleOverrideDetail, serializeJob } from "@/lib/job";
 import { personActor, recordAudit } from "@/lib/audit";
 import { classifyRequest } from "@/lib/trade-playbooks";
 import { requirePlanModule } from "@/lib/plan-gate";
@@ -57,10 +57,15 @@ export async function POST(request: Request) {
     serviceType?: string | null;
     technicianId?: string | null;
     allowClash?: boolean;
+    reason?: string | null;
   };
 
   if (!body.leadId?.trim() && body.customer) {
-    return bookOwnerJob(business.id, business.timezone, body);
+    return bookOwnerJob(business.id, business.timezone, body, {
+      ...personActor(authResult),
+      role: authResult.role,
+      reason: typeof body.reason === "string" ? body.reason.trim().slice(0, 300) || null : null,
+    });
   }
 
   if (!body.leadId?.trim()) {
@@ -123,7 +128,13 @@ export async function POST(request: Request) {
         ...personActor(authResult),
         action: "job.schedule_override",
         summary: `Booked over a clash: ${clash}`,
-        detail: { clash, at: at?.toISOString() ?? null },
+        detail: scheduleOverrideDetail({
+          clash,
+          at,
+          role: authResult.role,
+          reason: typeof body.reason === "string" ? body.reason.trim().slice(0, 300) : null,
+          via: "dashboard",
+        }),
       });
     }
 
@@ -153,6 +164,7 @@ async function bookOwnerJob(
     technicianId?: string | null;
     allowClash?: boolean;
   },
+  bookedBy: NonNullable<Parameters<typeof createOwnerJob>[0]["bookedBy"]>,
 ) {
   const phone = normalizePhone(body.customer?.phone);
   if (!phone || phone.replace(/\D/g, "").length < 10) {
@@ -192,6 +204,7 @@ async function bookOwnerJob(
       scheduledAt,
       technicianId,
       allowClash: body.allowClash === true,
+      bookedBy,
     });
   } catch (error) {
     if (error instanceof OwnerClashError) return NextResponse.json({ error: error.message, clash: true }, { status: 409 });
