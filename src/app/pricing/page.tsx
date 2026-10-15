@@ -13,6 +13,7 @@ import { getPublicLaunchReadiness } from "@/lib/public-launch-readiness";
 const entry = getPaidPlans().reduce((low, plan) => (plan.price < low.price ? plan : low));
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/pricing" },
   title: "Pricing",
   description:
     `Orvius Line, Pro and Fleet: from $${getLowestPaidPrice("month")} a month, or $${getLowestPaidPrice("year")} a month billed annually. Answered calls included; ${OVERAGE_CENTS_PER_CALL}¢ per call past the allowance.`,

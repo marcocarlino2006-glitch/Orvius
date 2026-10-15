@@ -9,6 +9,7 @@ import "../p/[id]/replay.css";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/calls" },
   title: "Real calls Orvius answered",
   description: "Real customer calls to HVAC, plumbing and electrical shops, answered by Orvius and shared by the owners with the callers' permission.",
 };

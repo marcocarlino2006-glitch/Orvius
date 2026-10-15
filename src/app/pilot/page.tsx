@@ -6,6 +6,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/pilot" },
   title: "Book a live call audit",
   description:
     "Book a live Orvius call audit — we review your after-hours and overflow pattern, then set up your shop line.",

@@ -10,6 +10,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/security" },
   title: "Security",
   description: `Security practices for ${company.productName}. No third-party audit certification claimed.`,
 };

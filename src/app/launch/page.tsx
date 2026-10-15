@@ -15,6 +15,7 @@ import "../p/[id]/replay.css";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/launch" },
   title: "Orvius: the phone answered, the job booked",
   description: "Talk to the Orvius receptionist in your browser, read real calls it answered for shops, and get your line.",
 };

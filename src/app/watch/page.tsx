@@ -4,6 +4,7 @@ import { PublicDemo } from "@/components/public-demo";
 import { publicScenarios } from "@/lib/public-demo";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/watch" },
   title: "Watch Orvius run an HVAC shop",
   description:
     "Pick a call: no cooling, gas smell, a text that bounces. Watch Orvius check the schedule, book or hold the job and log every step. No account needed.",

@@ -6,6 +6,7 @@ import { company } from "@/lib/company";
 import { HELP_ARTICLES, HELP_CATEGORIES } from "@/lib/help-center";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/help" },
   title: "Help center",
   description: `Set up your line, forward calls, and get the most from ${company.productName}.`,
 };

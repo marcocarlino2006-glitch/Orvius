@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/enterprise" },
   title: "Enterprise",
   description: `${company.productName} for multi-location businesses: every location side by side, roles for owners, managers and dispatchers, and a record of every change.`,
 };

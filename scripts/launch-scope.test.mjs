@@ -157,3 +157,15 @@ test("the terms name every launch trade", async () => {
   const { company } = await import("../src/lib/company.ts");
   assert.deepEqual(company.trades.map((t) => t.toLowerCase()), LAUNCH_TRADES.map((t) => t.toLowerCase()));
 });
+
+test("every sitemap page names itself as canonical, and nothing inherits the homepage's", () => {
+  assert.doesNotMatch(read("src/app/layout.tsx"), /canonical/);
+  assert.match(read("src/app/page.tsx"), /canonical: "\/"/);
+  for (const p of ["watch", "launch", "calls", "try", "product", "enterprise", "pricing", "resources", "help", "pilot", "about", "security", "status", "changelog", "legal", "terms", "privacy", "cookies", "sms-terms", "refunds", "dmca"]) {
+    assert.match(read(`src/app/${p}/page.tsx`), new RegExp(`canonical: "/${p}"`), p);
+  }
+  assert.match(read("src/app/help/[slug]/page.tsx"), /canonical: `\/help\/\$\{article\.slug\}`/);
+  const config = read("next.config.ts");
+  assert.match(config, /source: "\/press", destination: "\/about", permanent: true/);
+  assert.match(config, /appliance-repair\)", destination: "\/trades"/);
+});

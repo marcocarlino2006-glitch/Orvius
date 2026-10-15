@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/cookies" },
   title: "Cookie Policy",
   description: `Cookie Policy for ${company.domain}, operated by ${company.legalName}.`,
 };

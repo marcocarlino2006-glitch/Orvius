@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { MarketingShell } from "@/components/marketing-shell";
 import { HomeLineHero } from "@/components/home-line-hero";
 import { HomeStatement } from "@/components/home-statement";
@@ -13,6 +14,9 @@ import "./home-sections.css";
  * Hero (live call on a painting) → what every call gets → one row per idea
  * with the real screen → industries → compare → call close.
  */
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
+
 export default function HomePage() {
   return (
     <MarketingShell premium>

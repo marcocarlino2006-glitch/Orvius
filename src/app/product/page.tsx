@@ -6,6 +6,7 @@ import { getPublicLaunchReadiness } from "@/lib/public-launch-readiness";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/product" },
   title: "Product",
   description: `${company.productName} — ${company.categoryClaim} ${company.proofLine}`,
 };

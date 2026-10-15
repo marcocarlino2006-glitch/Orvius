@@ -7,6 +7,7 @@ import Link from "next/link";
 import { SIGNUP_HREF } from "@/lib/signup-href";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/about" },
   title: "About",
   description: `${company.productName} — ${company.mission} ${company.categoryClaim}`,
 };

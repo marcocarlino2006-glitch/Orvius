@@ -9,6 +9,7 @@ import type { Metadata } from "next";
 import { SIGNUP_HREF } from "@/lib/signup-href";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/try" },
   title: "Hear your business answer",
   description:
     "Type your business name, pick your industry, call from your phone, and hear Orvius answer as your business before you pay.",

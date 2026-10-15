@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/dmca" },
   title: "DMCA / Copyright",
   description: `Copyright and trademark policy for ${company.productName} / ${company.legalName}.`,
 };

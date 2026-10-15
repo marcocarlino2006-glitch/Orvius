@@ -12,6 +12,7 @@ import type { Metadata } from "next";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/status" },
   title: "Status",
   description: `Live status of ${company.productName} and the providers every call depends on.`,
 };
