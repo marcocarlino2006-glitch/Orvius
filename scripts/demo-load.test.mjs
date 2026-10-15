@@ -129,3 +129,31 @@ test("a shop spend cut pages the owner once, then stays silent", async () => {
   const demoSkipped = await alertSpendCut({ shop: owner, cut: { reason: "demo_live_cap", say: "x", count: 7 }, callerPhone: caller });
   assert.equal(demoSkipped, null, "the demo line pages the platform, never the owner");
 });
+
+test("the demo live cap is a claimed slot: a burst for the last slot admits one, and an ended or lapsed call frees it", async () => {
+  await prisma.provisionAttempt.deleteMany({ where: { key: { startsWith: "demo-line:slot:" } } });
+  const shop = await makeShop();
+  const cap = load.demoLiveCallCap();
+  const now = new Date();
+  const ids = Array.from({ length: cap + 4 }, () => `vc-burst-${uid()}`);
+  const admitted = await Promise.all(ids.map((id) => load.reserveDemoSlot(id, now)));
+  assert.equal(admitted.filter(Boolean).length, cap, "exactly the cap gets in, however the writes interleave");
+
+  const winner = ids[admitted.indexOf(true)];
+  assert.equal(await load.reserveDemoSlot(winner, now), true, "the same call asking again keeps its slot");
+  const loser = ids[admitted.indexOf(false)];
+  assert.equal(await load.reserveDemoSlot(loser, now), false);
+
+  await load.releaseDemoSlot(winner);
+  assert.equal(await load.reserveDemoSlot(loser, now), true, "a finished call's slot goes to the next caller");
+  assert.equal(await load.reserveDemoSlot(`vc-late-${uid()}`, now), false);
+
+  const later = new Date(now.getTime() + 12 * 60_000);
+  assert.equal(await load.reserveDemoSlot(`vc-after-${uid()}`, later), true, "a call whose report was lost frees its slot when the lease lapses");
+
+  const cut = await callSpendCut({ shop, callerPhone: "+15125550111", demo: true, vapiCallId: `vc-cut-${uid()}`, now });
+  assert.equal(cut?.reason, "demo_live_cap");
+  await prisma.provisionAttempt.deleteMany({ where: { key: { startsWith: "demo-line:slot:" } } });
+  assert.equal(await callSpendCut({ shop, callerPhone: "+15125550111", demo: true, vapiCallId: `vc-ok-${uid()}`, now }), null);
+  await prisma.provisionAttempt.deleteMany({ where: { key: { startsWith: "demo-line:slot:" } } });
+});

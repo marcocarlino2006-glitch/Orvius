@@ -1,4 +1,5 @@
-import { liveCallSince } from "@/lib/live-call";
+import { Prisma } from "@prisma/client";
+import { LIVE_CALL_WINDOW_MS, liveCallSince } from "@/lib/live-call";
 import { prisma } from "@/lib/prisma";
 
 /*
@@ -55,4 +56,57 @@ export async function readDemoLoad(businessId: string, now = new Date()): Promis
 /** For the website: would a new call right now be turned away? */
 export function demoLineBusyForVisitor(load: DemoLoad, limits = { cap: demoLiveCallCap(), ceiling: demoDailyCeiling() }) {
   return demoVerdict({ live: load.live + 1, today: load.today + 1 }, limits).busy;
+}
+
+/*
+  Counting live calls and cutting the ones past the cap lets a burst through:
+  every call that connects in the same second reads the same count. The cap
+  is instead a fixed set of slots, each claimed by one call with a single
+  conditional write, so N callers racing for the last slot get one winner.
+  A slot is freed by the end-of-call report, or lapses after the longest a
+  call can run, so a lost report can't hold it forever.
+*/
+const SLOT_PREFIX = "demo-line:slot:";
+const slotTag = (vapiCallId: string) => `demo-call:${vapiCallId}`;
+
+const isUniqueClash = (error: unknown) => error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
+
+export async function reserveDemoSlot(vapiCallId: string, now = new Date(), cap = demoLiveCallCap()): Promise<boolean> {
+  const tag = slotTag(vapiCallId);
+  const leaseUntil = new Date(now.getTime() + LIVE_CALL_WINDOW_MS);
+  const mine = await prisma.provisionAttempt.findUnique({ where: { tag }, select: { key: true, leaseUntil: true } });
+  if (mine?.key.startsWith(SLOT_PREFIX)) {
+    if (mine.leaseUntil > now) return true;
+    // This call held a slot before and let it go: re-arm that one, so the tag stays unique.
+    const again = await prisma.provisionAttempt.updateMany({ where: { tag, leaseUntil: { lte: now } }, data: { status: "live", leaseUntil } });
+    if (again.count) return true;
+  }
+  for (let i = 0; i < cap; i++) {
+    const key = `${SLOT_PREFIX}${i}`;
+    if (!(await prisma.provisionAttempt.findUnique({ where: { key }, select: { key: true } }))) {
+      try {
+        await prisma.provisionAttempt.create({ data: { key, tag, status: "live", leaseUntil } });
+        return true;
+      } catch (error) {
+        if (!isUniqueClash(error)) throw error;
+      }
+    }
+    try {
+      const taken = await prisma.provisionAttempt.updateMany({
+        where: { key, leaseUntil: { lte: now } },
+        data: { tag, status: "live", leaseUntil, attempts: { increment: 1 } },
+      });
+      if (taken.count) return true;
+    } catch (error) {
+      if (!isUniqueClash(error)) throw error;
+    }
+  }
+  return false;
+}
+
+export async function releaseDemoSlot(vapiCallId: string) {
+  await prisma.provisionAttempt.updateMany({
+    where: { tag: slotTag(vapiCallId), key: { startsWith: SLOT_PREFIX } },
+    data: { status: "idle", leaseUntil: new Date(0) },
+  });
 }
