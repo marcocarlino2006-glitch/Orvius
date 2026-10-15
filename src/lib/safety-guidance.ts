@@ -17,11 +17,22 @@ export const DANGER_INSTRUCTION =
  * flagged as a false alarm.
  */
 export const DANGER_MENTION =
-  /\b(gas|propane|carbon monoxide|co (alarm|detector)|smoke|fire|spark\w*|burning|chest pain|can'?t breathe|trouble breathing|stroke|bleeding|unconscious|suicid\w*|harm (myself|themselves)|overdose|gasolina|humo|fuego|olor a gas)\b/i;
+  /\b(gas|propane|carbon[- ]?monoxide|co (alarm|detector|monitor)|rotten[- ]egg|smoke|fire|spark\w*|burning|chest pain|can'?t breathe|trouble breathing|stroke|bleeding|unconscious|suicid\w*|harm (myself|themselves)|overdose|gasolina|humo|fuego|olor a gas)\b/i;
 
-/** "I don't smell gas" and "no hay olor a gas" deny the danger rather than report it. */
-const DENIED_DANGER =
-  /\b(no|not|don'?t|doesn'?t|didn'?t|isn'?t|there'?s no|never|without|nothing like|no hay|no huele a|no es)\b(\s+\w+){0,3}?\s+(gas|propane|carbon monoxide|smoke|fire|spark\w*|burning|gasolina|humo|fuego|olor a gas)\b/gi;
+/**
+ * "I don't smell gas", "no gas smell" and "no hay olor a gas" deny the danger
+ * rather than report it. Only a closed set of words may sit between the
+ * denial and the hazard, so "No, it smells like gas", "never smelled gas
+ * this strong" and "didn't smell gas until now" still count as reports.
+ */
+const HAZARD = "(natural\\s+)?(gas|propane|carbon[- ]?monoxide|smoke|fire|spark\\w*|burning)(\\s+(smell|leak|odou?r))?";
+const DENIED_DANGER = new RegExp(
+  "\\b(no|not|don'?t|do not|doesn'?t|does not|didn'?t|did not|isn'?t|is not|there'?s no|there is no|without)\\s+" +
+    "(any\\s+)?((smell(ing|ed)?|notice|detect|see|have)\\s+(any\\s+|a\\s+)?((of|like)\\s+)?)?(a\\s+)?" +
+    HAZARD +
+    "\\b(?![\\s,]+(until|till|before|at first|earlier|but now))|\\b(no hay (olor a gas|humo|fuego)|no huele a gas)\\b",
+  "gi",
+);
 
 export function withoutDeniedDanger(text: string): string {
   return text.replace(DENIED_DANGER, " ");

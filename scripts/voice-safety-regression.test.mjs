@@ -221,3 +221,26 @@ test("the live prompt separates urgent from dangerous and forbids reading out un
 });
 
 test.after(() => prisma.$disconnect());
+
+test("the request classifier escalates gas and CO however callers say it, and not when they deny it", async () => {
+  const { classifyRequest } = await import("../src/lib/trade-playbooks.ts");
+  const { mentionsDanger } = await import("../src/lib/safety-guidance.ts");
+  const shop = (trade) => ({ trade, name: "Sample", servicesJson: "[]" });
+  const safety = (trade, words) => classifyRequest({ business: shop(trade), callerWords: words }).safety?.key ?? null;
+
+  assert.equal(safety("HVAC", "No heat and a newborn, it's freezing. I don't smell gas."), null, "the Sept 26 caller denied gas");
+  assert.equal(safety("Plumbing", "Water heater leaking, no gas smell"), null);
+  assert.equal(safety("HVAC", "I smell gas by the furnace"), "gas_smell");
+  assert.equal(safety("Plumbing", "There's a rotten egg smell by the water heater"), "gas_smell", "mercaptan is how people describe gas");
+  assert.equal(safety("HVAC", "The carbon-monoxide detector keeps going off"), "carbon_monoxide");
+  assert.equal(safety("Electrical", "My CO alarm is beeping"), "carbon_monoxide", "CO escalates on any trade's line");
+  assert.equal(safety("Electrical", "The smoke detector needs a new battery"), null, "a battery chirp is not a fire");
+  assert.equal(safety("Electrical", "The smoke alarm is going off and the outlet is hot"), "sparking");
+
+  for (const reported of ["No, it smells like gas", "I've never smelled gas this strong", "I didn't smell gas until now", "There's no smoke but I smell gas"]) {
+    assert.equal(mentionsDanger(reported), true, `still a report: ${reported}`);
+  }
+  for (const denied of ["I don't smell gas", "No gas smell or anything", "do not smell any gas", "no hay olor a gas"]) {
+    assert.equal(mentionsDanger(denied), false, `a denial: ${denied}`);
+  }
+});

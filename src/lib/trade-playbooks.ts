@@ -1,5 +1,12 @@
 import { classifyDemand } from "@/lib/job-taxonomy";
+import { withoutDeniedDanger } from "@/lib/safety-guidance";
 import { inferTradeFromBusiness, TRADES, type Trade } from "@/lib/trades";
+
+/** Natural gas is odorised with mercaptan, so callers often describe it as rotten eggs or sulfur. */
+const GAS_WORDS = [/smell(s|ing|ed)? (like |of )?(natural )?gas/, /gas (smell|leak)/, /rotten[- ]egg/, /sulfur smell|smells? (like )?sulfur/, /(huele|olor) a gas/, /fuga de gas/];
+
+/** Smoke, but not a smoke detector chirping for a battery; a detector going off still counts. */
+const SMOKE_WORDS = [/\bsmok(e|ing)\b(?!\s+(detector|alarm)s?\b)/, /smoke (detector|alarm)s? (is |are |keeps? )?(going off|sounding|blaring)/];
 
 /**
  * Trade playbooks — one shared platform, three trades. A playbook turns what a
@@ -66,8 +73,8 @@ const HVAC: TradePlaybook = {
   ],
   fallback: { key: "hvac_diagnostic", label: "HVAC diagnostic", durationMin: 120, skill: "general", keywords: [] },
   safety: [
-    { key: "gas_smell", label: "Gas smell", instruction: "Tell the caller to leave the home and call the gas utility or 911. Call them back now.", keywords: [/smell(s|ing|ed)? (like |of )?(natural )?gas/, /gas (smell|leak)/, /(huele|olor) a gas/, /fuga de gas/] },
-    { key: "carbon_monoxide", label: "Carbon monoxide alarm", instruction: "Tell the caller to get outside and call 911. Call them back now.", keywords: [/carbon monoxide/, /\bco (alarm|detector)\b/, /mon[oó]xido de carbono/] },
+    { key: "gas_smell", label: "Gas smell", instruction: "Tell the caller to leave the home and call the gas utility or 911. Call them back now.", keywords: GAS_WORDS },
+    { key: "carbon_monoxide", label: "Carbon monoxide alarm", instruction: "Tell the caller to get outside and call 911. Call them back now.", keywords: [/carbon[- ]?monoxide/, /\bco (alarm|detector|monitor)s?\b/, /mon[oó]xido de carbono/] },
     { key: "burning_unit", label: "Burning smell or smoke from the unit", instruction: "Tell the caller to shut the system off at the breaker. Call them back now.", keywords: [/(burning|smoke|smoking).{0,20}(unit|furnace|system|vent)/, /(unit|furnace).{0,20}(burning|smoke)/] },
   ],
   emergency: [
@@ -102,7 +109,7 @@ const PLUMBING: TradePlaybook = {
   ],
   fallback: { key: "plumbing_diagnostic", label: "Plumbing diagnostic", durationMin: 90, skill: "general", keywords: [] },
   safety: [
-    { key: "gas_smell", label: "Gas smell near a gas appliance", instruction: "Tell the caller to leave the home and call the gas utility or 911. Call them back now.", keywords: [/smell(s|ing|ed)? (like |of )?(natural )?gas/, /gas (smell|leak)/, /(huele|olor) a gas/, /fuga de gas/] },
+    { key: "gas_smell", label: "Gas smell near a gas appliance", instruction: "Tell the caller to leave the home and call the gas utility or 911. Call them back now.", keywords: GAS_WORDS },
     { key: "water_on_electrical", label: "Water reaching the electrical panel or outlets", instruction: "Tell the caller to stay out of the water and away from the panel, and call 911 or the utility if anything sparks. Call them back now.", keywords: [/water.{0,40}\b(electrical panel|breaker (box|panel)|fuse box|outlets?|wiring)\b/, /\b(electrical panel|breaker (box|panel)|fuse box|outlets?)\b.{0,30}\b(wet|under water|flooded|flooding|soaked)\b/] },
     { key: "sewage_backup", label: "Sewage backing up into the home", instruction: "Tell the caller to stop using water and keep people away from it. Call them back now.", keywords: [/sewage (backing|coming) (up|in)/, /raw sewage/] },
   ],
@@ -121,7 +128,7 @@ const ELECTRICAL: TradePlaybook = {
   ],
   fallback: { key: "electrical_diagnostic", label: "Electrical diagnostic", durationMin: 90, skill: "general", keywords: [] },
   safety: [
-    { key: "sparking", label: "Sparking, burning smell, or smoke", instruction: "Tell the caller to shut off the main breaker if it is safe and call 911 if there is fire. Call them back now.", keywords: [/spark/, /burning smell/, /smell(s|ing)? (like )?burning/, /smok(e|ing)/, /electrical fire/, /chispa/, /\bhumo\b/, /olor a quemado/] },
+    { key: "sparking", label: "Sparking, burning smell, or smoke", instruction: "Tell the caller to shut off the main breaker if it is safe and call 911 if there is fire. Call them back now.", keywords: [/spark/, /burning smell/, /smell(s|ing)? (like )?burning/, ...SMOKE_WORDS, /electrical fire/, /chispa/, /\bhumo\b/, /olor a quemado/] },
     { key: "shock", label: "Someone was shocked", instruction: "If anyone is hurt, the caller should call 911. Call them back now.", keywords: [/(got|was|been) shocked/, /electrocut/] },
     { key: "exposed_wires", label: "Exposed or hot wires", instruction: "Tell the caller to keep everyone away and shut off the breaker. Call them back now.", keywords: [/exposed wire/, /wires? (hanging|exposed|hot)/, /downed (power )?line/] },
   ],
@@ -133,7 +140,7 @@ const GAS_SMELL: SafetyRule = {
   key: "gas_smell",
   label: "Gas smell",
   instruction: "Tell the caller to leave the home and call the gas utility or 911. Call them back now.",
-  keywords: [/smell(s|ing|ed)? (like |of )?(natural )?gas/, /gas (smell|leak)/, /(huele|olor) a gas/, /fuga de gas/],
+  keywords: GAS_WORDS,
 };
 
 const MEDICAL_EMERGENCY: SafetyRule = {
@@ -272,7 +279,7 @@ const APPLIANCE_REPAIR: TradePlaybook = {
   fallback: general("appliance_diagnostic", "Appliance diagnostic", 60),
   safety: [
     GAS_SMELL,
-    { key: "appliance_fire", label: "Sparks, smoke or burning from an appliance", instruction: "Tell the caller to unplug it or shut off the breaker if it's safe, and call 911 if there is fire. Call them back now.", keywords: [/spark/, /smok(e|ing)/, /(burning|melting) smell/, /on fire/] },
+    { key: "appliance_fire", label: "Sparks, smoke or burning from an appliance", instruction: "Tell the caller to unplug it or shut off the breaker if it's safe, and call 911 if there is fire. Call them back now.", keywords: [/spark/, ...SMOKE_WORDS, /(burning|melting) smell/, /on fire/] },
   ],
   emergency: [/(washer|dishwasher).{0,30}(flood|leak|water everywhere)/],
   sameDay: [/(fridge|refrigerator|freezer).{0,30}(not cooling|warm|stopped|died)/, /\btoday\b/, /\basap\b/, /\burgent\b/],
@@ -573,7 +580,7 @@ export function classifyRequest(input: {
   const safetyRules = playbook
     ? [...playbook.safety, ...ALL_SAFETY.filter((r) => !playbook.safety.some((p) => p.key === r.key))]
     : ALL_SAFETY;
-  const hazard = safetyRules.find((rule) => matches(text, rule.keywords)) ?? null;
+  const hazard = safetyRules.find((rule) => matches(withoutDeniedDanger(text), rule.keywords)) ?? null;
   if (hazard) reasons.push(`Safety: ${hazard.label.toLowerCase()} mentioned`);
 
   const category = trade ? classifyDemand({ text, trade }) : null;
