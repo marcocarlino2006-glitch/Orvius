@@ -7,8 +7,15 @@ import { getPlanById, getPlanPrice, type PlanId } from "@/lib/pricing-plans";
   cancel, so it is named on the founders' board while there is time to fix it
   (a number that stopped forwarding, a calendar with no open time) or refund.
   Booked work is valued only at the owner's own average ticket; without one,
-  only money actually collected counts.
+  only money actually collected counts. Only work that traces back to a call
+  or text Orvius handled is credited.
 */
+
+/**
+ * A lead Orvius itself captured: a call it answered or a text it handled. Work
+ * the owner typed in, or that came through another channel, is the shop's own.
+ */
+export const ORVIUS_CAPTURED_LEAD = { OR: [{ callId: { not: null } }, { source: "sms" }] };
 
 export const VALUE_WINDOW_DAYS = 30;
 /** A shop this new has not had a fair month yet. */
@@ -87,13 +94,23 @@ export async function payingShopValue(now = new Date()): Promise<ValueVerdict[]>
   });
   if (!shops.length) return [];
   const ids = shops.map((s) => s.id);
+  const capturedJob = { lead: { is: ORVIUS_CAPTURED_LEAD } };
   const [calls, jobs, deposits, invoices] = await Promise.all([
     prisma.call.groupBy({ by: ["businessId"], where: { businessId: { in: ids }, direction: "inbound", createdAt: { gte: since } }, _count: { _all: true } }),
-    prisma.job.groupBy({ by: ["businessId"], where: { businessId: { in: ids }, leadId: { not: null }, createdAt: { gte: since } }, _count: { _all: true } }),
-    prisma.deposit.groupBy({ by: ["businessId"], where: { businessId: { in: ids }, status: "paid", paidAt: { gte: since } }, _sum: { amountCents: true } }),
+    prisma.job.groupBy({ by: ["businessId"], where: { businessId: { in: ids }, createdAt: { gte: since }, ...capturedJob }, _count: { _all: true } }),
+    prisma.deposit.groupBy({
+      by: ["businessId"],
+      where: {
+        businessId: { in: ids },
+        status: "paid",
+        paidAt: { gte: since },
+        OR: [{ lead: { is: ORVIUS_CAPTURED_LEAD } }, { job: { is: capturedJob } }],
+      },
+      _sum: { amountCents: true },
+    }),
     prisma.invoice.groupBy({
       by: ["businessId"],
-      where: { businessId: { in: ids }, status: "paid", paidAt: { gte: since }, stripeSessionId: { not: null } },
+      where: { businessId: { in: ids }, status: "paid", paidAt: { gte: since }, stripeSessionId: { not: null }, job: { is: capturedJob } },
       _sum: { amountCents: true },
     }),
   ]);

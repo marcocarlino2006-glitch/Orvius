@@ -12,7 +12,7 @@ import { countChannels, signupChannelText } from "@/lib/acquisition";
 import { cancelReasonCounts, cancelReasonText } from "@/lib/cancel-signal";
 import { relianceLines } from "@/lib/reliance-lines";
 import { payingShopReliance, type RelianceVerdict } from "@/lib/shop-reliance";
-import { payingShopValue, planMonthlyCents, type ValueVerdict } from "@/lib/value-check";
+import { ORVIUS_CAPTURED_LEAD, payingShopValue, planMonthlyCents, type ValueVerdict } from "@/lib/value-check";
 import { densityClusters, densityText, networkReadyAreas, zip3FromAddress, type DensityCluster } from "@/lib/network-density";
 
 /**
@@ -110,7 +110,7 @@ const pct = (part: number, whole: number) => (whole > 0 ? Math.round((part / who
 async function week(start: Date, end: Date, now: Date): Promise<ScoreboardWeek> {
   const inWindow = { gte: start, lt: end };
   const stuckBefore = new Date(Math.min(end.getTime(), now.getTime() - STUCK_CALL_MS));
-  const fromOrvius = { lead: { is: { OR: [{ callId: { not: null } }, { source: "sms" }] } } };
+  const fromOrvius = { lead: { is: ORVIUS_CAPTURED_LEAD } };
   const [
     newShops,
     churnedShops,
@@ -222,7 +222,7 @@ export async function getCompanyScoreboard(now = new Date()): Promise<CompanySco
     prisma.networkHandoff.count({ where: { status: "taken", takenAt: { gte: new Date(now.getTime() - 30 * DAY_MS) } } }),
   ]);
   const signedUp30d = { ...realShop, createdAt: { gte: new Date(now.getTime() - 30 * DAY_MS) } };
-  const orvJob = { lead: { is: { OR: [{ callId: { not: null } }, { source: "sms" }] } } };
+  const orvJob = { lead: { is: ORVIUS_CAPTURED_LEAD } };
   const [plans, calls30d, value, reliance, leaving, payers, signedUp, lineAnswered, numberProven, withFirstJob, firstJobs] = await Promise.all([
     prisma.business.groupBy({
       by: ["billingPlan", "billingInterval"],
