@@ -62,7 +62,8 @@ export default function TermsPage() {
         <p>
           You must provide accurate account and business information and keep it updated. You are
           responsible for activity under your account and for safeguarding access credentials. The
-          Service is intended for business use by persons 18 years of age or older.
+          Service is intended for business use by persons 18 years of age or older. The Service is
+          offered only to businesses located and operating in {company.serviceCountry}.
         </p>
       </LegalSection>
 

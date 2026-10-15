@@ -169,3 +169,9 @@ test("every sitemap page names itself as canonical, and nothing inherits the hom
   assert.match(config, /source: "\/press", destination: "\/about", permanent: true/);
   assert.match(config, /appliance-repair\)", destination: "\/trades"/);
 });
+
+test("pricing and the Terms say Orvius is for U.S. businesses only", () => {
+  assert.match(read("src/lib/company.ts"), /serviceCountry: "the United States"/);
+  assert.match(read("src/app/pricing/page.tsx"), /For businesses in \{company\.serviceCountry\} only/);
+  assert.match(read("src/app/terms/page.tsx"), /offered only to businesses located and operating in \{company\.serviceCountry\}/);
+});

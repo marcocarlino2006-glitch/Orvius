@@ -4,7 +4,7 @@ import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
 import { StartActions } from "@/components/start-actions";
 import { PricingPagePlans } from "@/components/pricing-page-plans";
 import { PricingTerms } from "@/components/pricing-terms";
-import { getLowestPaidPrice } from "@/lib/company";
+import { company, getLowestPaidPrice } from "@/lib/company";
 import { getPaidPlans, OVERAGE_CENTS_PER_CALL, perCallCents } from "@/lib/pricing-plans";
 import { EXAMPLE_BILL_CENTS, PAYMENT_STEPS, STRIPE_STANDARD_LABEL, paymentExample, usd } from "@/lib/payments-intro";
 import { formatPlatformFeeRate, getPlatformFeeBps } from "@/lib/platform-fee";
@@ -36,6 +36,9 @@ export default function PricingPage() {
               <StartActions signupOpen={selfServeReady} />
             }
           />
+          <p className="mt-4 max-w-2xl font-sans text-sm text-ash">
+            For businesses in {company.serviceCountry} only, for now.
+          </p>
           {!selfServeReady ? (
             <p className="mt-4 max-w-2xl font-sans text-sm text-ash">
               Card signup isn&apos;t open yet. Until it is, book a{" "}

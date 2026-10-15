@@ -18,6 +18,8 @@ export const company = {
   dmcaEmail: "support@orvius.im",
   foundedYear: 2026,
   trades: ["HVAC", "plumbing", "electrical"] as const,
+  /** Payouts, phone numbers, texting registration and tax all assume U.S. businesses today. */
+  serviceCountry: "the United States",
   /**
    * Mission (founder decision 2026-10-01). Public copy states it as the goal
    * we work toward, never as a guarantee about today's product: calls can
