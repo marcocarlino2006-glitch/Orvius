@@ -26,8 +26,7 @@ import {
   getShopLines,
   validateOwnerPhoneForAlerts,
 } from "@/lib/owner-alerts";
-import { autoEnsureCustomerShopLine } from "@/lib/provision-business";
-import { syncBusinessAssistant } from "@/lib/sync-business-assistant";
+import { applyReceptionistSettings, receptionistApplyStatus, type ReceptionistApply } from "@/lib/assistant-apply";
 import { getBillingReadiness, isStripeCheckoutConfigured, isStripeConfigured } from "@/lib/stripe";
 import {
   isBillingEntitled,
@@ -191,10 +190,16 @@ export async function GET(request: Request) {
 
   /* Readiness costs three round trips and no screen reads it from here; Command gets it from ring1. */
   const withReadiness = new URL(request.url).searchParams.get("include") === "readiness";
-  const [health, monthValue, billableCalls] = await Promise.all([
+  const [health, monthValue, billableCalls, receptionistApply] = await Promise.all([
     business && withReadiness ? getShopHealth(business.id) : null,
     business ? getMonthValue(business.id) : null,
     businessRecord ? countBillableCalls(businessRecord, { gte: usagePeriodStart() }) : null,
+    // An unreadable record reads as unconfirmed, never as applied.
+    businessRecord
+      ? receptionistApplyStatus(businessRecord).catch(
+          (): ReceptionistApply => ({ state: "unconfirmed", appliedAt: null, error: null, next: "Couldn't check whether the receptionist has your latest settings.", canApply: Boolean(businessRecord.vapiAssistantId) }),
+        )
+      : null,
   ]);
   const wedge = business && health ? await getWedgeReadiness(business.id, health) : null;
 
@@ -235,6 +240,7 @@ export async function GET(request: Request) {
       image: session.user.image ?? null,
     },
     business,
+    receptionistApply,
     role,
     shops: summarizeShops(shops),
     line: business ? getShopLineForBusiness(business) : null,
@@ -572,7 +578,8 @@ export async function PATCH(request: Request) {
       },
     });
 
-    const { business: saved } = await autoEnsureCustomerShopLine(business);
+    // A settings save never buys or repairs a line; the dashboard's own line check and setup do that.
+    const saved = business;
 
     const changed = settingsChanges(existing as unknown as Record<string, unknown>, business as unknown as Record<string, unknown>);
     if (changed.length) {
@@ -588,30 +595,27 @@ export async function PATCH(request: Request) {
       });
     }
 
-    let assistantSynced = true;
-    let syncError: string | null = null;
-    let syncWarning: string | null = null;
-
     /*
       The assistant is built from name, trade, greeting, transfer number, hours, days closed, and services only.
-      Everything else (autopilot, deposits, ticket, capture path) skips the two
-      Vapi round trips, which is what makes save-as-you-go feel instant.
+      Everything else (autopilot, deposits, ticket, capture path) skips the
+      Vapi round trip, which is what makes save-as-you-go feel instant. The
+      save is already done; what comes back says whether the receptionist
+      took it, from the provider's reply, never from the save alone.
     */
     const touchesAssistant = ASSISTANT_FIELDS.some((key) => body[key] !== undefined);
-    if (touchesAssistant) {
-      try {
-        const sync = await syncBusinessAssistant(saved);
-        syncWarning = sync.warning;
-        if (!sync.assistantUpdated) {
-          assistantSynced = false;
-          syncError = sync.warning ?? "Assistant sync failed";
-        }
-      } catch (error) {
-        assistantSynced = false;
-        syncError =
-          error instanceof Error ? error.message : "Assistant sync failed";
-      }
-    }
+    const who = { actor: access.role === "owner" ? ("owner" as const) : ("teammate" as const), email };
+    const receptionistApply = await (touchesAssistant ? applyReceptionistSettings(saved, who) : receptionistApplyStatus(saved)).catch(
+      (error: unknown): ReceptionistApply => ({
+        state: "unconfirmed",
+        appliedAt: null,
+        error: error instanceof Error ? error.message : "unknown",
+        next: "Your settings are saved, but Orvius couldn't check the receptionist. Apply them again.",
+        canApply: Boolean(saved.vapiAssistantId),
+      }),
+    );
+    const assistantSynced = !touchesAssistant || receptionistApply.state === "applied";
+    const syncError = touchesAssistant && !assistantSynced ? (receptionistApply.error ?? receptionistApply.next) : null;
+    const syncWarning = touchesAssistant && receptionistApply.state === "not_applicable" ? receptionistApply.next : null;
 
     return NextResponse.json({
       business: {
@@ -653,6 +657,8 @@ export async function PATCH(request: Request) {
         depositAmountCents: saved.depositAmountCents,
       },
       deposits: depositsPayload(saved),
+      saved: true,
+      receptionistApply,
       assistantSynced,
       syncError,
       syncWarning,

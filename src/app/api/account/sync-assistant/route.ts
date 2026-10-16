@@ -1,34 +1,16 @@
 import { NextResponse } from "next/server";
-import { ensureDedicatedShopLine } from "@/lib/provision-business";
-import { syncBusinessAssistant } from "@/lib/sync-business-assistant";
+import { applyReceptionistSettings } from "@/lib/assistant-apply";
 import { requirePermission } from "@/lib/tenant";
 
+/**
+ * Apply the shop's saved settings to its existing receptionist, again.
+ * Settings only: it reads what is saved, sends it, and records the provider's
+ * answer. It never buys, provisions, reattaches or repairs a phone line.
+ */
 export async function POST() {
   const authResult = await requirePermission("settings.edit", { entitled: false });
   if ("error" in authResult) return authResult.error;
-  const { business } = authResult;
-
-  try {
-    const { business: updated, repaired, dedicatedLine } =
-      await ensureDedicatedShopLine(business);
-    const sync = await syncBusinessAssistant(updated);
-
-    return NextResponse.json({
-      ok: true,
-      repaired,
-      dedicatedLine,
-      line: updated.vapiPhoneNumber ?? updated.twilioPhone,
-      business: {
-        id: updated.id,
-        name: updated.name,
-        greeting: updated.greeting,
-        twilioPhone: updated.twilioPhone,
-        vapiPhoneNumber: updated.vapiPhoneNumber,
-      },
-      sync,
-    });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Sync failed";
-    return NextResponse.json({ error: message }, { status: 400 });
-  }
+  const { business, email, role } = authResult;
+  const receptionistApply = await applyReceptionistSettings(business, { actor: role === "owner" ? "owner" : "teammate", email });
+  return NextResponse.json({ ok: receptionistApply.state === "applied", receptionistApply });
 }

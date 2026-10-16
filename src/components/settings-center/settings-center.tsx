@@ -8,6 +8,9 @@ import { OperatingMetricsPanel } from "@/components/operating-metrics-panel";
 import { ProEconomicsPanel } from "@/components/pro-economics-panel";
 import { NumbersGroup } from "./sections/numbers-group";
 import { fetchAccount, invalidateAccount } from "@/lib/account-client";
+import type { ReceptionistApply } from "@/lib/assistant-apply";
+import { isUncertain, sendWrite, serialQueue } from "@/lib/client-write";
+import { formatWhen } from "@/lib/when";
 import type { CaptureMode, CarrierId } from "@/lib/carrier-forward";
 import { displayPhone } from "@/lib/customer";
 import type { ManusPostStep } from "@/lib/manus-post";
@@ -61,6 +64,8 @@ export function SettingsCenter({
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [apply, setApply] = useState<ReceptionistApply | null>(null);
+  const [applying, setApplying] = useState(false);
   const [crew, setCrew] = useState<Technician[] | null>(null);
   const [hours, setHours] = useState<HoursForm>(() => parseHoursForm(null));
   const [certChecks, setCertChecks] = useState<boolean[]>(() => FOUNDER_CERT.map(() => false));
@@ -79,6 +84,7 @@ export function SettingsCenter({
       if (!res.ok) throw new Error();
       const data = (await res.json()) as Account;
       setAccount(data);
+      setApply(data.receptionistApply ?? null);
       setHours(parseHoursForm(data.business?.hoursJson));
       setCertChecks(parseCert(data.business?.founderCertJson));
     } catch {
@@ -164,34 +170,59 @@ export function SettingsCenter({
     return () => clearTimeout(t);
   }, [saveState]);
 
-  const patch = useCallback(async (fields: Patch): Promise<boolean> => {
-    setSaveState("saving");
+  /*
+    Saves go one at a time, so a slow earlier reply can't land on top of a
+    newer edit. Each reply's canonical values are merged, except fields a
+    later save still in line is about to change.
+  */
+  const enqueue = useRef(serialQueue()).current;
+  const inFlight = useRef(new Map<string, number>());
+  const patch = useCallback(
+    (fields: Patch): Promise<boolean> => {
+      const keys = Object.keys(fields);
+      for (const k of keys) inFlight.current.set(k, (inFlight.current.get(k) ?? 0) + 1);
+      return enqueue(async () => {
+        setSaveState("saving");
+        setError(null);
+        try {
+          invalidateAccount();
+          const data = await sendWrite<{ business?: Partial<NonNullable<Account["business"]>>; receptionistApply?: ReceptionistApply | null }>("/api/account", "PATCH", fields);
+          const later = new Set([...inFlight.current].filter(([k, n]) => n > (keys.includes(k) ? 1 : 0)).map(([k]) => k));
+          const canonical = Object.fromEntries(Object.entries(data.business ?? (fields as object)).filter(([k]) => !later.has(k)));
+          setAccount((prev) => (prev && prev.business ? { ...prev, business: { ...prev.business, ...canonical } } : prev));
+          if (data.receptionistApply) setApply(data.receptionistApply);
+          setSaveState("saved");
+          return true;
+        } catch (err) {
+          setError(
+            isUncertain(err)
+              ? "Orvius didn't get an answer, so this may not have saved. Reopen settings to see what's saved before changing it again."
+              : err instanceof Error
+                ? err.message
+                : "That wasn't saved.",
+          );
+          setSaveState("idle");
+          return false;
+        } finally {
+          for (const k of keys) inFlight.current.set(k, Math.max(0, (inFlight.current.get(k) ?? 1) - 1));
+        }
+      });
+    },
+    [enqueue],
+  );
+
+  const applyNow = useCallback(async () => {
+    setApplying(true);
     setError(null);
     try {
-      invalidateAccount();
-      const res = await fetch("/api/account", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(fields),
-      });
-      const data = (await res.json().catch(() => ({}))) as {
-        error?: string;
-        syncWarning?: string | null;
-        business?: Partial<NonNullable<Account["business"]>>;
-      };
-      if (!res.ok) throw new Error(data.error ?? "That did not save. Nothing changed.");
-      setAccount((prev) =>
-        prev && prev.business ? { ...prev, business: { ...prev.business, ...(fields as object) } } : prev,
-      );
-      if (data.syncWarning) setNotice(data.syncWarning);
-      setSaveState("saved");
-      return true;
+      const data = await enqueue(() => sendWrite<{ receptionistApply?: ReceptionistApply }>("/api/account/sync-assistant", "POST"));
+      if (data.receptionistApply) setApply(data.receptionistApply);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "That did not save. Nothing changed.");
-      setSaveState("idle");
-      return false;
+      setError(isUncertain(err) ? "Orvius didn't hear back from the receptionist check. Reopen settings to see where it stands." : err instanceof Error ? err.message : "That didn't go through.");
+    } finally {
+      setApplying(false);
     }
-  }, []);
+  }, [enqueue]);
 
   function updateDay(day: (typeof WEEKDAYS)[number], change: Partial<HoursForm[(typeof WEEKDAYS)[number]]>) {
     setHours((prev) => {
@@ -500,6 +531,7 @@ export function SettingsCenter({
               </p>
             ) : null}
             {notice ? <p className="sc-banner">{notice}</p> : null}
+            {apply ? <ReceptionistApplyBanner apply={apply} section={section} applying={applying} onApply={() => void applyNow()} /> : null}
             {loadError ? (
               <div className="sc-banner sc-banner--error">
                 {loadError}{" "}
@@ -530,6 +562,41 @@ export function SettingsCenter({
           </div>
         </section>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Saved and applied are different facts. Anything short of the provider
+ * confirming this exact version stays visible, with the one step that helps;
+ * a confirmation is shown as when it happened, not as the line being healthy.
+ */
+function ReceptionistApplyBanner({ apply, section, applying, onApply }: { apply: ReceptionistApply; section: SettingsSectionId; applying: boolean; onApply: () => void }) {
+  const receptionistPane = section === "receptionist" || section === "hours";
+  if (apply.state === "applied") {
+    return receptionistPane && apply.appliedAt ? (
+      <p className="sc-banner" role="status">
+        Saved and applied: the receptionist confirmed these settings {formatWhen(apply.appliedAt)}. That was the last confirmation, not a live check of your line.
+      </p>
+    ) : null;
+  }
+  if (apply.state === "not_applicable") {
+    return receptionistPane ? (
+      <p className="sc-banner" role="status">
+        Saved. {apply.next}
+      </p>
+    ) : null;
+  }
+  return (
+    <div className={`sc-banner${apply.state === "failed" ? " sc-banner--error" : ""}`} role="status">
+      <strong>{apply.state === "failed" ? "Saved, but the receptionist didn't take it." : "Saved, not confirmed on the receptionist."}</strong>{" "}
+      {apply.error ? `${apply.error} ` : ""}
+      {apply.next}{" "}
+      {apply.canApply ? (
+        <button type="button" className="sc-link" disabled={applying} onClick={onApply}>
+          {applying ? "Applying…" : "Apply to receptionist"}
+        </button>
+      ) : null}
     </div>
   );
 }

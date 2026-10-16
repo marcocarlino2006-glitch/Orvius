@@ -45,6 +45,8 @@ export type QuickBooksLink = {
 
 export type Account = {
   founder?: boolean;
+  /** Whether the saved settings are confirmed on the receptionist, from the record. */
+  receptionistApply?: import("@/lib/assistant-apply").ReceptionistApply | null;
   role?: "owner" | "manager" | "dispatcher" | null;
   calendarFeedUrl?: string | null;
   busyCalendar?: BusyCalendar;

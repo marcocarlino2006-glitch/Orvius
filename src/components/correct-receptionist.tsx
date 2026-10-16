@@ -22,15 +22,15 @@ export function CorrectReceptionist({ callId }: { callId: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text, callId }),
       });
-      const data = (await res.json().catch(() => ({}))) as { error?: string; synced?: boolean };
+      const data = (await res.json().catch(() => ({}))) as { error?: string; synced?: boolean; receptionistApply?: { state: string; next: string | null } };
       if (!res.ok) throw new Error(data.error ?? "Could not save the correction. Try again.");
       setText("");
       setOpen(false);
       setNote({
-        tone: "ok",
+        tone: data.synced ? "ok" : "error",
         text: data.synced
-          ? "Saved. The receptionist follows it from the next call."
-          : "Saved. It reaches the receptionist the next time your line syncs.",
+          ? "Saved, and the receptionist confirmed it. It follows it from the next call."
+          : `Saved, but the receptionist hasn't confirmed it. ${data.receptionistApply?.next ?? "Settings shows whether it has your latest changes."}`,
       });
     } catch (error) {
       setNote({ tone: "error", text: error instanceof Error ? error.message : "Could not save the correction." });

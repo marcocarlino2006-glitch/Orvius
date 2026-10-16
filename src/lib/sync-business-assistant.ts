@@ -164,6 +164,7 @@ export async function ensureAssistantCurrent(
       return "updated";
     }
     confirmed.set(assistantId, expected);
+    await (await import("@/lib/assistant-apply")).recordLiveMatch(business, expected);
     return "current";
   } catch (error) {
     logWarn("vapi.assistant.resync_failed", {
