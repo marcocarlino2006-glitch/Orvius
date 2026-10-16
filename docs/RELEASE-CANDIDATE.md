@@ -95,14 +95,16 @@ The base `turso-migrate.sql` at `dd5c23f` hashed `20f8abf8adb7a69972413c0905dcd4
 
 ## Validation
 
-Clean checkout of commit `2875c4b` in a detached worktree. The only env file present was the tracked `.env.example`, the database was a disposable local SQLite file, and no provider credentials were loaded.
+Clean checkout of commit `45f6689fc0044d880899dd2312e7b520dda0e85a` in a detached worktree. The only env file present was the tracked `.env.example`, the database was a disposable local SQLite file, and no provider credentials were loaded.
 
 - `prisma db push` to the disposable database: ok
 - `tsc --noEmit`: exit 0
-- `npm run test:trust`: 1526 tests, 1526 pass, 0 fail
+- `npm run test:trust`: 1572 tests, 1572 pass, 0 fail (new in this pass: `activation-paths`, `provider-effects`, `record-authority`, `money-authority`, `command-stale`, `money-invariants`, `proof-report`; extended: `tool-call-speed`, `authority-boundaries`, `checkout-concurrency`, `signup-scale`)
 - `npm run build`: exit 0
-- `git diff --check dd5c23f..HEAD`: clean
+- `git diff --check 39b17d7..HEAD`: clean (one trailing blank line inherited from `4e0fc23` in `src/lib/job.ts` was removed in `45f6689`)
 - `eslint --quiet src`: no errors. One warning in `jobs/page.tsx` that was already present at the base commit.
+
+The commit after `45f6689` changes only this file.
 
 These are isolated results. They do not show production delivery, provider behaviour or launch readiness.
 
