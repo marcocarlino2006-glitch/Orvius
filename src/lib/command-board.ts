@@ -405,7 +405,12 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
       at: failedAlerts[0]!.createdAt.toISOString(),
     });
   }
+  const billing = await billingItems(businessId, now);
+  /* A bill text that failed is one problem: the bill item says which bill, so no generic text item is added for it. */
+  const billFailure = (a: { entityId: string; createdAt: Date }) =>
+    billing.attempts.some((t) => t.to === a.entityId && a.createdAt >= t.from && a.createdAt.getTime() <= t.from.getTime() + 60_000);
   for (const m of failedTexts) {
+    if (m.sid && billing.sids.has(m.sid)) continue;
     exceptions.push({
       id: `text-failed:${m.id}`,
       lane: "exceptions",
@@ -417,6 +422,7 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
     });
   }
   for (const a of smsFailures) {
+    if (billFailure(a)) continue;
     if (exceptions.some((x) => x.exception === "failed_message" && x.phone && phoneKey(x.phone) === a.entityId)) continue;
     exceptions.push({
       id: `sms-failed:${a.id}`,
@@ -456,15 +462,6 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
   }
 
   exceptions.push(...(await mismatchItems(businessId, mismatches)));
-  const billing = await billingItems(businessId, now);
-  /* A bill text that failed is one problem: the bill item says which bill, so the generic text item for it goes. */
-  const covered = new Set([
-    ...failedTexts.filter((m) => m.sid && billing.sids.has(m.sid)).map((m) => `text-failed:${m.id}`),
-    ...smsFailures
-      .filter((a) => billing.attempts.some((t) => t.to === a.entityId && a.createdAt >= t.from && a.createdAt.getTime() <= t.from.getTime() + 60_000))
-      .map((a) => `sms-failed:${a.id}`),
-  ]);
-  for (let i = exceptions.length - 1; i >= 0; i--) if (covered.has(exceptions[i]!.id)) exceptions.splice(i, 1);
   exceptions.push(...billing.items);
 
   const order: Record<ExceptionKind, number> = {
