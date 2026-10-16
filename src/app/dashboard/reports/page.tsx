@@ -10,6 +10,57 @@ type ReportResponse = { period: ReportPeriodId; start: string; end: string; prev
 const money = (cents: number | null) => (cents == null ? "—" : (formatCents(cents) ?? "$0"));
 const pct = (rate: number | null) => (rate == null ? "—" : `${Math.round(rate * 100)}%`);
 
+type ProofResponse = {
+  window: { days: number };
+  outcomes: { closedLoops: number; leadSourcedJobs: { count: number } };
+  causal: { measured: false; why: string };
+  manual: { jobsNotFromAnInboundRequest: number; manualPayments: { count: number; cents: number } };
+  costs: { voice: { cents: number; calls: number }; telephony: { cents: number }; texts: { cents: number; count: number } };
+  missing: Array<{ what: string; count: number | null; note?: string }>;
+};
+
+const MISSING_LABEL: Record<string, string> = {
+  calls_without_reported_cost: "calls with no cost reported by the voice provider",
+  completed_jobs_without_a_recorded_completion: "jobs marked done without a recorded completion",
+  jobs_without_a_link_to_the_record_of_truth: "jobs not linked to the system that owns your jobs",
+};
+
+function ProofPanel() {
+  const [proof, setProof] = useState<ProofResponse | null>(null);
+  useEffect(() => {
+    fetch("/api/reports/proof?days=30", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then(setProof)
+      .catch(() => setProof(null));
+  }, []);
+  if (!proof) return null;
+  const gaps = proof.missing.filter((m) => m.count);
+  return (
+    <section className="tm-section" aria-label="What Orvius can show">
+      <h2 className="tm-h">What Orvius can show, last {proof.window.days} days</h2>
+      <ul className="rp-open">
+        <li>
+          <span className="rp-open-label">Closed loops: a caller&apos;s request, done and paid on that job</span>
+          <span className="rp-open-money">{proof.outcomes.closedLoops}</span>
+          <span className="rp-open-age">observed, not proof Orvius caused them</span>
+        </li>
+        <li>
+          <span className="rp-open-label">Entered by your team: jobs not from a call, text or web request</span>
+          <span className="rp-open-money">{proof.manual.jobsNotFromAnInboundRequest}</span>
+          <span className="rp-open-age">plus {proof.manual.manualPayments.count} cash/check payments ({money(proof.manual.manualPayments.cents)})</span>
+        </li>
+        <li>
+          <span className="rp-open-label">What your calls and texts cost Orvius</span>
+          <span className="rp-open-money">{money(proof.costs.voice.cents + proof.costs.telephony.cents + proof.costs.texts.cents)}</span>
+          <span className="rp-open-age">voice {money(proof.costs.voice.cents)} as reported; phone and texts estimated at list rate</span>
+        </li>
+      </ul>
+      <p className="tm-help">{proof.causal.why}</p>
+      {gaps.length ? <p className="tm-help">Missing: {gaps.map((m) => `${m.count} ${MISSING_LABEL[m.what] ?? m.what}`).join("; ")}.</p> : null}
+    </section>
+  );
+}
+
 function range(startIso: string, endIso: string, timezone: string) {
   const fmt = (d: Date) => d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: timezone });
   const end = new Date(new Date(endIso).getTime() - 1);
@@ -222,6 +273,7 @@ export default function ReportsPage() {
               </p>
             </div>
           )}
+          <ProofPanel />
         </div>
       ) : null}
     </OsShell>
