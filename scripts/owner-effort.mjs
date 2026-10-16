@@ -30,7 +30,12 @@ for (const key of [
 }
 
 const nextServer = await import("next/server");
-mock.module("next/server", { namedExports: { ...nextServer, after: () => {} } });
+/* Work a route defers until after its response runs here, once the response is back. */
+const deferred = [];
+mock.module("next/server", { namedExports: { ...nextServer, after: (task) => deferred.push(task) } });
+async function drain() {
+  while (deferred.length) await deferred.shift()();
+}
 let signedInAs = null;
 mock.module(new URL("../src/auth.ts", import.meta.url).href, {
   namedExports: { auth: async () => (signedInAs ? { user: { email: signedInAs } } : null), signIn: async () => {}, signOut: async () => {}, handlers: {} },
@@ -75,6 +80,7 @@ class Tally {
     const t0 = performance.now();
     const res = await fn();
     const body = await res.json().catch(() => null);
+    await drain();
     this.requests.push({ label, status: res.status, ms: Math.round(performance.now() - t0) });
     return { status: res.status, body };
   }
