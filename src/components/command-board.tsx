@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { OutcomeCard } from "@/components/outcome-card";
 import { toast } from "@/components/toaster";
+import type { Outcome } from "@/lib/outcome";
 import type { RequestTrace } from "@/lib/request-trace";
 import { formatWhen } from "@/lib/when";
 
@@ -14,7 +16,7 @@ type AskResult =
   | { kind: "answer"; message: string; records?: { href: string; title: string; summary: string }[] }
   | { kind: "refused" | "clarify"; message: string };
 
-export type PlanOutcome = { ok: boolean; text: string };
+export type PlanOutcome = { ok: boolean; text: string; outcome?: Outcome | null };
 
 async function post(url: string, body: unknown) {
   const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -41,7 +43,7 @@ export function PlanCard({
     try {
       const data = await post(`/api/copilot?mode=${mode}`, mode === "execute" ? { proposalId: proposal.proposalId, approved: true } : { proposalId: proposal.proposalId });
       const text = mode === "execute" ? (data.confirmation?.summary ?? "Done") : "Dismissed. Nothing changed.";
-      if (onResult) onResult({ ok: mode === "execute", text });
+      if (onResult) onResult({ ok: mode === "execute", text, outcome: mode === "execute" ? (data.outcome ?? null) : null });
       else toast({ title: text });
       onDone();
     } catch (err) {
@@ -303,6 +305,15 @@ export function AskBar({ onChange, below }: { onChange: () => void; below?: Reac
           <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" onClick={() => setOutcome(null)}>
             Clear
           </button>
+          {outcome.outcome ? (
+            <OutcomeCard
+              outcome={outcome.outcome}
+              onChange={(next) => {
+                setOutcome({ ...outcome, outcome: next });
+                onChange();
+              }}
+            />
+          ) : null}
         </div>
       ) : null}
       <div className="cb-ask-chips" aria-label="Start with">
