@@ -32,7 +32,7 @@ import { forbiddenResponse } from "@/lib/tenant";
 import { z } from "zod";
 import { HIPAA_TRADE_REFUSAL, isHipaaTrade } from "@/lib/trades";
 import { consentSchema, shopDraftMetadata, shopDraftSchema } from "@/lib/checkout-shop";
-import { checkActivationClaim, recordActivationAck } from "@/lib/activation-ack";
+import { checkActivationClaim, draftActivationBusiness, recordActivationAck } from "@/lib/activation-ack";
 import { resolveShopAccess } from "@/lib/workspace-access";
 import { isSetupSandbox } from "@/lib/setup-flow";
 import { ACQUISITION_COOKIE, parseAcquisition } from "@/lib/acquisition";
@@ -46,7 +46,7 @@ const checkoutSchema = z.object({
   interval: z.enum(["month", "year"]).default("month"),
   /** A new shop's details, so paying is the last step before the line exists. */
   shop: shopDraftSchema.merge(consentSchema).optional(),
-  /** Turning a test shop on: the notice and permissions the owner approved, by the versions they saw. */
+  /** Turning a shop on: the notice and permissions the owner approved, by the versions they saw. */
   activation: z
     .object({
       recording: z.literal(true),
@@ -176,6 +176,17 @@ export async function POST(request: NextRequest) {
       );
     }
     let activationAckId: string | null = null;
+    let activationClaim: Record<string, string> = {};
+    if (!business && body.shop) {
+      /* A new shop answers real callers the moment this checkout is paid, so the owner approves the notice it will run with first. */
+      const refusal = checkActivationClaim(draftActivationBusiness(body.shop.name), body.activation);
+      if (refusal) return NextResponse.json(refusal, { status: 409 });
+      activationClaim = {
+        activation_notice: body.activation!.noticeVersion,
+        activation_setup: body.activation!.setupVersion,
+        activation_at: new Date().toISOString(),
+      };
+    }
     if (turningOn && business) {
       const refusal = checkActivationClaim(business, body.activation);
       if (refusal) return NextResponse.json(refusal, { status: 409 });
@@ -239,6 +250,7 @@ export async function POST(request: NextRequest) {
         legalEntity: company.legalName,
         ...shopMetadata,
         ...(activationAckId ? { activation_ack: activationAckId } : {}),
+        ...activationClaim,
         ...acquisitionMetadata(acquisition),
       },
     });

@@ -14,6 +14,7 @@ import {
   updateAssistant,
 } from "@/lib/vapi";
 import { z } from "zod";
+import { ActivationRequiredError, defaultGreeting, draftActivationBusiness, recordSettledActivation, settleActivation } from "@/lib/activation-ack";
 
 const createBusinessSchema = z.object({
   name: z.string().min(2),
@@ -25,6 +26,21 @@ const createBusinessSchema = z.object({
   greeting: z.string().optional(),
   hoursJson: z.string().optional(),
   servicesJson: z.string().optional(),
+  /**
+   * The owner's approval of the call notice and of turning the line on, given
+   * to Orvius staff outside the app. Recorded as an operator record with the
+   * versions the owner was shown.
+   */
+  acknowledgement: z
+    .object({
+      ownerEmail: z.string().email(),
+      method: z.enum(["written", "call", "in_person"]),
+      reference: z.string().trim().min(3).max(300),
+      operator: z.string().trim().min(2).max(120),
+      noticeVersion: z.string().max(64),
+      setupVersion: z.string().max(64),
+    })
+    .optional(),
 });
 
 export async function GET(request: NextRequest) {
@@ -61,8 +77,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const greeting =
-      body.greeting ?? `Thank you for calling ${body.name}. How can I help you today?`;
+    const greeting = body.greeting?.trim() || defaultGreeting(body.name);
+    const ack = body.acknowledgement;
+    let settled;
+    try {
+      settled = await settleActivation(draftActivationBusiness(body.name, greeting), {
+        actorEmail: `operator:${ack?.operator ?? ""}`,
+        claim: ack ? { recording: true, approved: true, noticeVersion: ack.noticeVersion, setupVersion: ack.setupVersion } : null,
+        operator: ack ? { ownerEmail: ack.ownerEmail, method: ack.method, reference: ack.reference } : null,
+        acceptedTerms: false,
+        acceptedSms: false,
+      });
+    } catch (error) {
+      if (!(error instanceof ActivationRequiredError)) throw error;
+      return NextResponse.json(
+        { error: "Record the owner's approval of this notice before the line goes live.", code: error.code, activation: error.terms },
+        { status: 409 },
+      );
+    }
     const hoursJson = body.hoursJson ?? DEFAULT_HOURS_JSON;
     const servicesJson = body.servicesJson ?? "[]";
 
@@ -83,7 +115,8 @@ export async function POST(request: NextRequest) {
       }),
     );
 
-    const business = await prisma.business.create({
+    const business = await prisma.$transaction(async (tx) => {
+      const created = await tx.business.create({
       data: {
         name: body.name,
         slug,
@@ -98,6 +131,9 @@ export async function POST(request: NextRequest) {
         vapiPhoneNumber: null,
         vapiAssistantId: assistant.id,
       },
+      });
+      await recordSettledActivation(tx, created.id, settled);
+      return created;
     });
 
     assertCustomerShopLine({ phone: null, business });

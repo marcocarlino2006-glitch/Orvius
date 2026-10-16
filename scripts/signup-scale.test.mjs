@@ -89,6 +89,13 @@ globalThis.fetch = async (input, init = {}) => {
 };
 
 const prisma = createScriptPrisma();
+const { activationVersions, draftActivationBusiness } = await import("../src/lib/activation-ack.ts");
+const approved = (name, actorEmail) => ({
+  actorEmail,
+  claim: { recording: true, approved: true, ...activationVersions(draftActivationBusiness(name)) },
+  acceptedTerms: true,
+  acceptedSms: true,
+});
 const stamp = Date.now();
 const emails = Array.from({ length: SHOPS }, (_, i) => `scale-${stamp}-${i}@orvius.test`);
 
@@ -105,6 +112,7 @@ test(`${SHOPS} signups each get their own number on their own receptionist`, { t
         ownerEmail: email,
         ownerPhone: `+1${["312", "512", "602", "212"][i % 4]}8${String(stamp).slice(-2)}${String(i).padStart(4, "0")}`,
         billing: { customerId: `cus_${i}`, subscriptionId: `sub_${i}`, planId: "starter" },
+        activation: approved(`Scale Shop ${stamp} ${i}`, email),
       });
       shops.push(business);
     }
@@ -148,6 +156,7 @@ test("a double-clicked checkout makes one shop with one number", { timeout: 60_0
     ownerEmail: email,
     ownerPhone: `+1415870${String(stamp).slice(-4)}`,
     billing: { customerId: "cus_d", subscriptionId: "sub_d", planId: "starter" },
+    activation: approved(`Double Shop ${stamp}`, email),
   };
   try {
     const results = await Promise.allSettled([provisionBusiness(input), provisionBusiness(input)]);

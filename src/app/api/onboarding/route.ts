@@ -20,6 +20,10 @@ import { z } from "zod";
 /* Details are optional: a checkout that carried them builds the shop from Stripe. */
 const createSchema = shopDraftSchema.partial({ name: true, trade: true, ownerPhone: true }).extend({
   checkoutSessionId: z.string().min(8, "Paid checkout is required"),
+  /** Approved on this form, when the checkout's approval doesn't match the shop being built. */
+  activation: z
+    .object({ recording: z.literal(true), approved: z.literal(true), noticeVersion: z.string().max(64), setupVersion: z.string().max(64) })
+    .optional(),
 });
 
 export async function GET(request: NextRequest) {
@@ -138,7 +142,7 @@ export async function POST(request: NextRequest) {
       { status: 400 },
     );
   }
-  const { checkoutSessionId, ...typed } = parsed.data;
+  const { checkoutSessionId, activation, ...typed } = parsed.data;
   if (isHipaaTrade(typed.trade)) {
     return NextResponse.json({ error: HIPAA_TRADE_REFUSAL, code: "trade_not_offered" }, { status: 400 });
   }
@@ -153,7 +157,7 @@ export async function POST(request: NextRequest) {
   try {
     let result;
     try {
-      result = await provisionFromCheckout({ sessionId: checkoutSessionId, email, draft: draft?.data });
+      result = await provisionFromCheckout({ sessionId: checkoutSessionId, email, draft: draft?.data, activation });
     } catch (error) {
       if (!(error instanceof CheckoutNotPaidError)) throw error;
       console.error("Paid checkout could not be verified:", error);
@@ -170,6 +174,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "Tell us your shop name and mobile to finish.", code: "shop_details_needed" },
         { status: 400 },
+      );
+    }
+    if (result.status === "needs_activation") {
+      return NextResponse.json(
+        {
+          error:
+            result.code === "activation_stale"
+              ? "Your shop's details changed since you approved what callers hear. Read the notice below and approve it to finish."
+              : "Approve what callers will hear before your line turns on.",
+          code: "activation_needed",
+          activation: result.terms,
+        },
+        { status: 409 },
       );
     }
     if (result.status === "busy") {

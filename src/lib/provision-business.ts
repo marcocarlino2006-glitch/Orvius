@@ -10,6 +10,7 @@ import {
   slugify,
   type ServiceOffering,
 } from "@/lib/business";
+import { ActivationRequiredError, defaultGreeting, recordSettledActivation, settleActivation, type ShopActivation } from "@/lib/activation-ack";
 import { NOT_OWNER_DEMO } from "@/lib/demo-fence";
 import { getWebhookUrl, isConfigured } from "@/lib/env";
 import { logError } from "@/lib/logger";
@@ -220,6 +221,8 @@ export type ProvisionInput = {
   };
   /** The owner's test-mode shop. It goes live in place, keeping its settings and team. */
   promoteBusinessId?: string;
+  /** The approval of the call notice and permissions this shop will run with. Checked before anything is bought. */
+  activation: ShopActivation;
 };
 
 export type ProvisionResult = {
@@ -382,6 +385,10 @@ export async function ensureDedicatedShopLine(business: Business): Promise<{
   if (!business.vapiAssistantId) {
     throw new Error("Night line is not provisioned for this shop");
   }
+  // A test shop gets a real number only by turning on, which carries the owner's approval.
+  if (isSetupSandbox(business)) {
+    throw new ActivationRequiredError({ code: "activation_missing", error: "Turn this shop on from setup before it gets a real line." }, business);
+  }
 
   const currentLine = business.vapiPhoneNumber ?? business.twilioPhone;
   const needsLine =
@@ -539,7 +546,12 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
   const greeting =
     input.greeting?.trim() ||
     promoting?.greeting?.trim() ||
-    `Thank you for calling ${name}. How can I help you today?`;
+    defaultGreeting(name);
+  const settled = await settleActivation(
+    promoting ? { ...promoting, name, greeting } : { id: "", name, greeting, bookingMode: "book", autopilot: true, followUpMode: "ask", transferPhone: null, setupJson: null },
+    input.activation,
+    { existingBusinessId: promoting?.id ?? null },
+  );
   const hoursJson = input.hoursJson ?? promoting?.hoursJson ?? DEFAULT_HOURS_JSON;
   const servicesJson =
     promoting && promoting.trade === input.trade ? promoting.servicesJson : servicesForTrade(input.trade);
@@ -629,6 +641,7 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
     const business = promoting
       ? await prisma.$transaction(async (tx) => {
           await clearTestRecords(promoting.id, tx);
+          await recordSettledActivation(tx, promoting.id, settled);
           return tx.business.update({
             where: { id: promoting.id },
             data: {
@@ -643,7 +656,11 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
             },
           });
         })
-      : await prisma.business.create({ data: { ...shop, slug, operatingPolicy: { create: { travelMode: "not_configured" } } } });
+      : await prisma.$transaction(async (tx) => {
+          const created = await tx.business.create({ data: { ...shop, slug, operatingPolicy: { create: { travelMode: "not_configured" } } } });
+          await recordSettledActivation(tx, created.id, settled);
+          return created;
+        });
 
     await finishProvisionAttempt(key, { status: "succeeded", businessId: business.id });
     await syncBusinessAssistant(business);

@@ -82,6 +82,9 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
   const [provisionedLine, setProvisionedLine] = useState<string | null>(null);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [acceptedSms, setAcceptedSms] = useState(false);
+  /** What callers will hear, and the versions the server checks the approval against. */
+  const [notice, setNotice] = useState<{ notice: string; noticeVersion: string; setupVersion: string } | null>(null);
+  const [approvedNotice, setApprovedNotice] = useState(false);
   const [resuming, setResuming] = useState(true);
   /** The first look for an existing shop failed, so we can't tell new from already paid. */
   const [checkFailed, setCheckFailed] = useState(false);
@@ -104,6 +107,35 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
     setNumbers(null);
     setPickedNumber(null);
   }, [areaCode]);
+
+  useEffect(() => {
+    const shopName = name.trim();
+    if (shopName.length < 2) {
+      setNotice(null);
+      return;
+    }
+    let live = true;
+    const timer = window.setTimeout(() => {
+      fetch(`/api/onboarding/activation-terms?name=${encodeURIComponent(shopName)}`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((terms) => {
+          if (!live) return;
+          setNotice((current) => {
+            if (current?.noticeVersion !== terms?.noticeVersion || current?.setupVersion !== terms?.setupVersion) setApprovedNotice(false);
+            return terms;
+          });
+        })
+        .catch(() => live && setNotice(null));
+    }, 350);
+    return () => {
+      live = false;
+      window.clearTimeout(timer);
+    };
+  }, [name]);
+
+  const activationClaim = notice && approvedNotice
+    ? { recording: true as const, approved: true as const, noticeVersion: notice.noticeVersion, setupVersion: notice.setupVersion }
+    : undefined;
 
   async function searchNumbers() {
     if (!/^[2-9]\d{2}$/.test(areaCode)) return;
@@ -227,7 +259,18 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ checkoutSessionId: sessionId }),
           });
-          const json = (await res.json().catch(() => ({}))) as { error?: string; code?: string; line?: string | null };
+          const json = (await res.json().catch(() => ({}))) as {
+            error?: string;
+            code?: string;
+            line?: string | null;
+            activation?: { notice: string; noticeVersion: string; setupVersion: string };
+          };
+          if (json.code === "activation_needed" && json.activation) {
+            setNotice(json.activation);
+            setApprovedNotice(false);
+            setError(json.error ?? "Approve what callers will hear to finish.");
+            return;
+          }
           if (res.ok) {
             window.localStorage.removeItem(SETUP_DRAFT_KEY);
             if (json.line) setProvisionedLine(json.line);
@@ -311,7 +354,7 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
       const res = await fetch("/api/billing/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planId, interval, shop }),
+        body: JSON.stringify({ planId, interval, shop, activation: activationClaim }),
       });
       const json = (await res.json().catch(() => ({}))) as { url?: string; error?: string; code?: string; manageUrl?: string };
       if (res.ok && json.url) {
@@ -350,10 +393,22 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
           checkoutSessionId,
           ...(/^[2-9]\d{2}$/.test(areaCode) ? { areaCode } : {}),
           ...(pickedNumber ? { phoneNumber: pickedNumber } : {}),
+          activation: activationClaim,
         }),
       });
 
-      const json = (await res.json()) as { error?: string; line?: string | null };
+      const json = (await res.json()) as {
+        error?: string;
+        code?: string;
+        line?: string | null;
+        activation?: { notice: string; noticeVersion: string; setupVersion: string };
+      };
+      if (json.code === "activation_needed" && json.activation) {
+        setNotice(json.activation);
+        setApprovedNotice(false);
+        setError(json.error ?? "Approve what callers will hear to finish.");
+        return;
+      }
       if (!res.ok) {
         if (res.status === 409 && (await resumeExisting().catch(() => false))) return;
         setError(json.error ?? "Setup failed. Try again.");
@@ -379,6 +434,7 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
     ownerPhone.trim().length >= 10 &&
     acceptedTerms &&
     acceptedSms &&
+    Boolean(activationClaim) &&
     !submitting;
 
   if (resuming || checkFailed) {
@@ -657,6 +713,24 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
               </p>
 
               <div className="onboarding-consent font-sans">
+                <label className="onboarding-check">
+                  <input
+                    type="checkbox"
+                    checked={approvedNotice}
+                    disabled={!notice}
+                    onChange={(e) => setApprovedNotice(e.target.checked)}
+                  />
+                  <span>
+                    {notice ? (
+                      <>
+                        Callers will hear: &ldquo;{notice.notice}&rdquo; I approve this notice, that calls are recorded, and turning
+                        the line on to answer them.
+                      </>
+                    ) : (
+                      "Enter your shop name to see the notice callers will hear."
+                    )}
+                  </span>
+                </label>
                 <label className="onboarding-check">
                   <input
                     type="checkbox"
