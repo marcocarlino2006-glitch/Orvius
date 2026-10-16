@@ -73,7 +73,16 @@ The base `turso-migrate.sql` at `dd5c23f` hashed `20f8abf8adb7a69972413c0905dcd4
 
 ## Validation
 
-See the summary handed over with this branch for the exact counts from the clean-checkout run (no `.env`, disposable database, no provider credentials).
+Clean checkout of commit `2875c4b` in a detached worktree. The only env file present was the tracked `.env.example`, the database was a disposable local SQLite file, and no provider credentials were loaded.
+
+- `prisma db push` to the disposable database: ok
+- `tsc --noEmit`: exit 0
+- `npm run test:trust`: 1526 tests, 1526 pass, 0 fail
+- `npm run build`: exit 0
+- `git diff --check dd5c23f..HEAD`: clean
+- `eslint --quiet src`: no errors. One warning in `jobs/page.tsx` that was already present at the base commit.
+
+These are isolated results. They do not show production delivery, provider behaviour or launch readiness.
 
 ## Separately authorized live verification still needed
 
