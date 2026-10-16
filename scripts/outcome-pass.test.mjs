@@ -171,6 +171,14 @@ test("a bill the carrier refused reads as failed, not as waiting on the customer
   const item = work.items.find((i) => i.id === job.id);
   assert.ok(item?.problems?.some((p) => p.kind === "invoice_undelivered" || /Bill delivery/.test(p.label)), "Work keeps it visible");
   assert.doesNotMatch(item.nextAction ?? "", /waiting on .* to pay/i);
+
+  const board = (await buildCommandBoard(shop.id)).lanes.exceptions;
+  assert.equal(board.filter((i) => i.id === `invoice-undelivered:${intent.eventId}`).length, 1);
+  const failures = await prisma.auditEvent.findMany({ where: { businessId: shop.id, action: "sms.failed" }, select: { id: true, createdAt: true } });
+  const billFailures = failures.filter((a) => a.createdAt >= intent.createdAt);
+  assert.ok(billFailures.length > 0, "the refused bill text left its own failure row");
+  for (const a of billFailures) assert.ok(!board.some((i) => i.id === `sms-failed:${a.id}`), "one refused bill text is one board item");
+  for (const a of failures.filter((f) => f.createdAt < intent.createdAt)) assert.ok(board.some((i) => i.id === `sms-failed:${a.id}`), "an earlier failed text to the same number stays");
 });
 
 test("workflow measurement rows stay out of the job's history", async () => {
