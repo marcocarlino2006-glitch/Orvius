@@ -291,7 +291,8 @@ export async function buildOutcome(businessId: string, target: { jobId?: string 
     const accepted = Boolean(job.techAcceptedAt);
     const name = job.technician.name;
     /* Same rule as the job steps: a job text Twilio hasn't taken a couple of minutes after assigning did not go out. */
-    const untold = !accepted && !job.techNotifiedAt && job.techAssignedAt != null && now.getTime() - job.techAssignedAt.getTime() > 2 * 60_000;
+    const started = Boolean(job.dispatchedAt || job.onSiteAt || job.completedAt) || ["en_route", "on_site", "completed"].includes(job.status);
+    const untold = !accepted && !started && !job.techNotifiedAt && job.techAssignedAt != null && now.getTime() - job.techAssignedAt.getTime() > 2 * 60_000;
     const noNumber = !job.technician.phone?.trim();
     stages.push(
       stage("assignment", {
