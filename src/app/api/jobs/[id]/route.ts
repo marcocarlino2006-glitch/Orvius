@@ -13,6 +13,8 @@ import { classifyRequest } from "@/lib/trade-playbooks";
 import { logWarn } from "@/lib/logger";
 import { notifyTechOnAssign } from "@/lib/notify-tech-assign";
 import { notifyTechJobChanged } from "@/lib/tech-app";
+import { buildOutcome, type Outcome, type OutcomeStage } from "@/lib/outcome";
+import { recordWorkflowDecision, recordWorkflowProgress } from "@/lib/workflow-events";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
 import { forbiddenResponse, requireEntitledSession } from "@/lib/tenant";
@@ -312,7 +314,10 @@ export async function PATCH(request: Request, { params }: Params) {
   }
 
   let invoiceSent: boolean | undefined;
+  let invoice: OutcomeStage | null = null;
+  let outcome: Outcome | null = null;
   if (body.status === "completed" && existing.status !== "completed") {
+    /* The job stays done either way; a bill that didn't get made or sent is read back from the records below. */
     const billed = await invoiceCompletedJob(id).catch((error) => {
       logWarn("invoice.on_complete_failed", {
         jobId: id,
@@ -321,6 +326,13 @@ export async function PATCH(request: Request, { params }: Params) {
       return null;
     });
     invoiceSent = Boolean(billed && "sms" in billed && billed.sms?.sent);
+    outcome = await buildOutcome(business.id, { jobId: id }).catch(() => null);
+    invoice = outcome?.stages.find((s) => s.stage === "invoice") ?? null;
+    if (outcome) {
+      const who = { actor: personActor(authResult).actor as "owner" | "teammate", email: authResult.email };
+      await recordWorkflowDecision(outcome, "recorded_completion", who, id);
+      await recordWorkflowProgress(outcome, who);
+    }
   }
 
   let techSms: { sent: boolean; reason?: string } | undefined;
@@ -354,5 +366,7 @@ export async function PATCH(request: Request, { params }: Params) {
     ...(techSms ? { techSms } : {}),
     ...(techChange ? { techChange } : {}),
     ...(invoiceSent !== undefined ? { invoiceSent } : {}),
+    ...(invoice ? { invoice } : {}),
+    ...(outcome ? { outcome } : {}),
   });
 }

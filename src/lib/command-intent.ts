@@ -43,6 +43,11 @@ export function matchName<T extends { name: string | null }>(text: string, candi
 }
 
 const FILLER = /\b(for|at|on|to|the|job|appointment|visit|please|in|around|them|her|him)\b/g;
+/** "the next suitable window", "first opening", "asap": the earliest real opening, not a parsed time. */
+const NEXT_OPENING = /^(?:(?:the\s+)?(?:next|soonest|earliest|first)(?:\s+(?:suitable|available|open|free|good))?(?:\s+(?:window|slot|time|opening|appointment))?|asap|as soon as possible)$/i;
+/** "and assign an available qualified technician": what booking already does. Anything more specific is a second instruction. */
+const ASSIGN_CLAUSE = /\s*,?\s+and\s+(?:assign|send|give it to|dispatch)\b(.*)$/i;
+const GENERIC_ASSIGNEE = /^(?:\s|an?|any|the|available|qualified|free|technician|tech|someone|somebody|who(?:ever)?|is|it|them|to|one|right|best)*$/i;
 
 export type AskActResult =
   | { kind: "proposal"; proposal: Extract<ProposeOutcome, { ok: true }>; message: string }
@@ -92,10 +97,22 @@ export async function askToAct(shop: Shop, text: string, now = new Date(), propo
       take: 100,
       select: { id: true, name: true, serviceType: true, notes: true, urgency: true },
     });
-    const lead = matchName(parsed.rest, leads);
+    const assignClause = ASSIGN_CLAUSE.exec(parsed.rest);
+    if (assignClause && !GENERIC_ASSIGNEE.test(assignClause[1] ?? "")) {
+      return { kind: "clarify", message: "Booking assigns a free qualified technician on its own. To pick a specific person, book first, then say “send Ben to Maria”." };
+    }
+    const lead = matchName(assignClause ? parsed.rest.slice(0, assignClause.index) : parsed.rest, leads);
     if (!lead) return { kind: "clarify", message: "I don't see an open request by that name. Say the caller's name as it shows in Requests." };
     if ("ambiguous" in lead) return { kind: "clarify", message: `More than one request matches: ${lead.ambiguous.map((l) => l.name).join(", ")}. Use the full name.` };
-    const whenText = lead.rest.replace(FILLER, " ").trim();
+    const whenText = lead.rest.replace(FILLER, " ").replace(/\s+/g, " ").trim();
+    if (NEXT_OPENING.test(whenText)) {
+      const [first] = await openWindows(shop, { kind: "lead", lead: lead.match }, 1);
+      if (!first) return { kind: "refused", message: "Nothing is open in the next two weeks for this kind of job. Add a technician or hours, or call to arrange it." };
+      const outcome = await proposeAction(shop, { action: "book_window", leadId: lead.match.id, at: first.toISOString() }, proposer);
+      return outcome.ok
+        ? { kind: "proposal", proposal: outcome, message: `The first real opening is ${windowLabel(first, tz)}. Here's the plan — nothing changes until you approve it.` }
+        : { kind: "refused", message: outcome.error, alternatives: outcome.alternatives };
+    }
     const at = whenText ? parseShopTime(whenText, tz, now) : null;
     if (!at) {
       const options = await openWindows(shop, { kind: "lead", lead: lead.match }, 3);

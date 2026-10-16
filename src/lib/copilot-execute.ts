@@ -8,7 +8,9 @@ import { sendCustomerSms } from "@/lib/customer-sms";
 import { createJobFromLead, SlotTakenError } from "@/lib/job";
 import { notifyTechOnAssign, notifyTechOnReschedule } from "@/lib/notify-tech-assign";
 import { prisma } from "@/lib/prisma";
-import { loadTechCandidates } from "@/lib/technician-match";
+import { loadTechCandidates, recommendTechnician } from "@/lib/technician-match";
+import { classifyRequest } from "@/lib/trade-playbooks";
+import { textingHeld } from "@/lib/twilio-sms";
 
 export type ProposalParams = { jobId?: string; leadId?: string; technicianId?: string; at?: string };
 
@@ -203,11 +205,18 @@ async function runWindowProposal(
       select: { technician: { select: { name: true } } },
     });
     const who = lead.name ?? lead.phone ?? "the caller";
+    const held = lead.phone ? await textingHeld(business.id) : null;
     return {
       result: { jobId: job.id, leadId: lead.id, scheduledAt: at.toISOString(), technician: booked.technician?.name ?? null },
       summary: `Booked ${who} for ${when} as a proposed window${
-        booked.technician ? ` with ${booked.technician.name}` : " — no technician was free to assign, so pick one"
-      }. ${lead.phone ? "The confirmation text is on its way; the trace shows when it lands." : "No phone on file — call to confirm."}`,
+        booked.technician ? ` with ${booked.technician.name}` : ". No qualified technician is free then, so the booking is kept and assignment needs you"
+      }. ${
+        !lead.phone
+          ? "No phone on file — call to confirm."
+          : held
+            ? `Texting isn't ready (${held.detail}), so no confirmation text goes out — call ${who} to confirm.`
+            : "The confirmation text is queued; the outcome shows whether it went."
+      }`,
       entity: { type: "job", id: job.id },
       links: { jobId: job.id, leadId: lead.id, customerId: job.customerId },
     };
@@ -291,12 +300,27 @@ async function runWindowProposal(
       address: job.address,
     });
   }
+  /* A move chosen to get someone on the job assigns the qualified technician free at the new time. */
+  let assigned: { name: string; sent: boolean } | null = null;
+  if (!job.technician) {
+    const skill = classifyRequest({ business: shop, serviceType: job.serviceType, notes: job.notes, urgency: null }).service.skill;
+    const ranking = await recommendTechnician({ businessId: business.id, scheduledAt: at, durationMin: duration, skill, excludeJobId: job.id, timezone: shop.timezone });
+    if (ranking.pick) {
+      const claimed = await prisma.job.updateMany({ where: { id: job.id, technicianId: null }, data: { technicianId: ranking.pick.technicianId } });
+      if (claimed.count) {
+        const sms = await notifyTechOnAssign({ jobId: job.id, previousTechnicianId: null, nextTechnicianId: ranking.pick.technicianId });
+        assigned = { name: ranking.pick.name, sent: sms.sent };
+      }
+    }
+  }
   const who = job.customer?.name ?? job.lead?.name ?? "the customer";
   return {
-    result: { jobId: job.id, from: from?.toISOString() ?? null, to: at.toISOString(), customerText: confirm, techText: techSent },
+    result: { jobId: job.id, from: from?.toISOString() ?? null, to: at.toISOString(), customerText: confirm, techText: techSent, technician: assigned?.name ?? job.technician?.name ?? null },
     summary: `Moved ${job.title} to ${when}. ${
       confirm.sent ? `Texted ${who} the new window to confirm` : `The text to ${who} did not send (${(confirm.reason ?? "unknown").replace(/_/g, " ")}) — call them`
-    }${job.technician ? (techSent ? ` and told ${job.technician.name}` : `; tell ${job.technician.name} directly`) : ""}.`,
+    }${job.technician ? (techSent ? ` and told ${job.technician.name}` : `; tell ${job.technician.name} directly`) : ""}${
+      assigned ? `. Assigned ${assigned.name}${assigned.sent ? " and texted them" : `; tell ${assigned.name} directly`}` : job.technician ? "" : ". Still nobody qualified free then — assignment needs you"
+    }.`,
     entity: { type: "job", id: job.id },
     links: { jobId: job.id, leadId: job.leadId ?? undefined, customerId: job.customerId },
   };
