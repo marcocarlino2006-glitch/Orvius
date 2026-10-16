@@ -110,7 +110,7 @@ export const MIGRATION_FILE = "prisma/turso-migrate.sql";
  * CREATE TRIGGER bodies; splitStatements keeps each trigger whole, which
  * scripts/turso-migrate.test.mjs proves against a disposable database.
  */
-export const MIGRATION_PLAN_FILES = [MIGRATION_FILE, "prisma/prepared/receivables-v1.sql"];
+export const MIGRATION_PLAN_FILES = [MIGRATION_FILE, "prisma/prepared/receivables-v1.sql", "prisma/releases/2026-10-16-merge-all.sql"];
 export const MIGRATION_LEDGER_TABLE = "_OrviusReleaseMigration";
 
 export function migrationPlanFile(env = process.env) {

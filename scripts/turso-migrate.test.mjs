@@ -274,6 +274,51 @@ test("only reviewed plan files can be applied, and the checksum binds the chosen
   }
 });
 
+test("the merge-all release delta only adds, and a second run changes nothing", async () => {
+  const { applyMigrationPlan, MIGRATION_LEDGER_TABLE } = await import("./turso-migrate.mjs");
+  const { createClient } = await import("@libsql/client");
+  const { mkdtempSync, rmSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const planFile = "prisma/releases/2026-10-16-merge-all.sql";
+  const sql = readFileSync(join(repoRoot, planFile), "utf8");
+  const statements = splitStatements(sql);
+  assert.equal(statements.length, 36);
+  for (const s of statements) {
+    assert.match(s, /^(ALTER TABLE "\w+" ADD COLUMN "\w+" TEXT|CREATE TABLE IF NOT EXISTS|CREATE (UNIQUE )?INDEX IF NOT EXISTS)/, s.slice(0, 80));
+  }
+  const dir = mkdtempSync(join(tmpdir(), "migrate-release-"));
+  const client = createClient({ url: `file:${join(dir, "disposable.db")}` });
+  try {
+    await client.executeMultiple(`CREATE TABLE "Call" ("id" TEXT PRIMARY KEY); CREATE TABLE "CopilotAction" ("id" TEXT PRIMARY KEY); CREATE TABLE "NetworkHandoff" ("id" TEXT PRIMARY KEY); INSERT INTO "Call" VALUES ('c1');`);
+    const tuple = { sql, planFile, planSha256: migrationPlanSha256(sql), release: SHA, target: "staging", host: "disposable", approval: "TEST-2", backupRef: "none-disposable" };
+    await applyMigrationPlan(client, tuple);
+    const shape = async () => (await client.execute(`SELECT type, name, sql FROM sqlite_master WHERE name <> '${MIGRATION_LEDGER_TABLE}' AND name NOT LIKE 'sqlite_%' ORDER BY type, name`)).rows.map((r) => `${r.type}:${r.name}:${r.sql}`);
+    const first = await shape();
+    await applyMigrationPlan(client, tuple);
+    assert.deepEqual(await shape(), first);
+    assert.equal(first.filter((s) => s.startsWith("table:")).length, 3 + 11);
+    const { rows } = await client.execute(`SELECT "id", "slotOfferJson" FROM "Call"`);
+    assert.deepEqual(rows.map((r) => ({ ...r })), [{ id: "c1", slotOfferJson: null }]);
+    const ledger = await client.execute(`SELECT "status" FROM "${MIGRATION_LEDGER_TABLE}"`);
+    assert.deepEqual(ledger.rows.map((r) => r.status), ["applied", "applied"]);
+  } finally {
+    client.close();
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("the release schema check passes only when the live gap is the plan", async () => {
+  const { compareToPlan } = await import("./release-schema-check.mjs");
+  const plan = `-- c\nALTER TABLE "Call" ADD COLUMN "x" TEXT;\nCREATE TABLE IF NOT EXISTS "T" ("id" TEXT NOT NULL PRIMARY KEY);\n`;
+  const gap = `-- CreateTable\nCREATE TABLE "T" (\n  "id" TEXT NOT NULL PRIMARY KEY\n);\n-- AlterTable\nALTER TABLE "Call" ADD COLUMN "x" TEXT;\n`;
+  assert.deepEqual(compareToPlan(gap, plan), { unexpected: [], alreadyPresent: [] });
+  assert.deepEqual(compareToPlan("-- This is an empty migration.", null), { unexpected: [], alreadyPresent: [] });
+  assert.deepEqual(compareToPlan(`${gap}DROP TABLE "Leftover";`, plan).unexpected, ['DROP TABLE "Leftover"']);
+  assert.deepEqual(compareToPlan(`ALTER TABLE "Call" ADD COLUMN "x" TEXT;`, plan).alreadyPresent, ['CREATE TABLE "T" ("id" TEXT NOT NULL PRIMARY KEY)']);
+  const source = readFileSync(join(repoRoot, "scripts/release-schema-check.mjs"), "utf8");
+  assert.doesNotMatch(source, /SELECT \* FROM|loadEnvFile|\.env"/, "reads definitions only, and never a local .env");
+});
+
 test("the receivables SQL, split by this step, builds the same guards on a disposable database and records the applied release", async () => {
   const { applyMigrationPlan, MIGRATION_LEDGER_TABLE } = await import("./turso-migrate.mjs");
   const { createClient } = await import("@libsql/client");
