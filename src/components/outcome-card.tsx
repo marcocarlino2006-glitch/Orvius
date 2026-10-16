@@ -46,6 +46,7 @@ export function OutcomeCard({ outcome, onChange }: { outcome: Outcome; onChange:
   const [plan, setPlan] = useState<Proposal | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [note, setNote] = useState<string | null>(null);
   const byStage = new Map(outcome.stages.map((s) => [s.stage, s]));
   const invoice = byStage.get("invoice")!;
   const completion = byStage.get("completion")!;
@@ -62,6 +63,7 @@ export function OutcomeCard({ outcome, onChange }: { outcome: Outcome; onChange:
     if (option.kind === "link") return;
     setBusy(true);
     setError(null);
+    setNote(null);
     try {
       const body = option.kind === "assign_tech" ? { action: "assign_tech", jobId: option.jobId, technicianId: option.technicianId } : { action: "reschedule", jobId: option.jobId, at: option.at };
       const data = await send("/api/copilot", "POST", body);
@@ -117,7 +119,7 @@ export function OutcomeCard({ outcome, onChange }: { outcome: Outcome; onChange:
                 ) : null}
               </span>
             ) : null}
-            {s.nextAction && s.state !== "done" ? (
+            {s.nextAction && (s.state !== "done" || s.nextActor === "you") ? (
               <span className="cb-oc-next">
                 {s.nextActor ? `${ACTOR_WORD[s.nextActor]}: ` : ""}
                 {s.nextAction}
@@ -154,7 +156,7 @@ export function OutcomeCard({ outcome, onChange }: { outcome: Outcome; onChange:
       {plan ? (
         <PlanCard
           proposal={plan}
-          onResult={() => undefined}
+          onResult={(result) => setNote(result.text)}
           onDone={() => {
             setPlan(null);
             void reload();
@@ -168,6 +170,11 @@ export function OutcomeCard({ outcome, onChange }: { outcome: Outcome; onChange:
             {invoice.state === "unknown" ? "I checked with them — send the bill again" : invoice.state === "failed" && outcome.money.billedCents ? "Resend the bill" : "Create and send the bill"}
           </button>
         </div>
+      ) : null}
+      {note ? (
+        <p className="cb-oc-sub" role="status">
+          {note}
+        </p>
       ) : null}
       {error ? (
         <p className="cb-error" role="alert">

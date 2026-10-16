@@ -289,12 +289,16 @@ export async function buildOutcome(businessId: string, target: { jobId?: string 
     stages.push(stage("assignment", { state: cancelled ? "not_needed" : "not_yet", evidence: "", nextActor: null, nextAction: null, at: null, source: "Job" }));
   } else if (job.technician) {
     const accepted = Boolean(job.techAcceptedAt);
+    const name = job.technician.name;
+    /* Same rule as the job steps: a job text Twilio hasn't taken a couple of minutes after assigning did not go out. */
+    const untold = !accepted && !job.techNotifiedAt && job.techAssignedAt != null && now.getTime() - job.techAssignedAt.getTime() > 2 * 60_000;
+    const noNumber = !job.technician.phone?.trim();
     stages.push(
       stage("assignment", {
         state: "done",
-        evidence: `${job.technician.name} assigned${accepted ? " and accepted" : job.techNotifiedAt ? "; job text sent, not accepted yet" : ""}`,
-        nextActor: accepted ? null : "technician",
-        nextAction: accepted ? null : `${job.technician.name} accepts in the tech app`,
+        evidence: `${name} assigned${accepted ? " and accepted" : job.techNotifiedAt ? "; job text sent, not accepted yet" : untold ? "; the job text didn't go out" : ""}`,
+        nextActor: accepted ? null : untold ? "you" : "technician",
+        nextAction: accepted ? null : untold ? (noNumber ? `Add ${name}'s mobile number in Team, or call them` : `Call ${name}; the job text didn't go out`) : `${name} accepts in the tech app`,
         at: (job.techAcceptedAt ?? job.techAssignedAt ?? job.updatedAt).toISOString(),
         source: "Job.technician",
       }),
