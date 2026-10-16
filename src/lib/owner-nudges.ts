@@ -1,5 +1,5 @@
 import type { Business } from "@prisma/client";
-import { PAST_DUE_GRACE_DAYS } from "@/lib/billing-entitlement";
+import { PAST_DUE_GRACE_DAYS, PILOT_DAYS, PILOT_LINE_GRACE_DAYS, resolvePilotEndsAt } from "@/lib/billing-entitlement";
 import { countBillableCalls } from "@/lib/billable-calls";
 import { includedCallsForPlan, usagePeriodStart } from "@/lib/call-usage";
 import { getAppUrl } from "@/lib/env";
@@ -11,14 +11,18 @@ import { getPlanById, OVERAGE_CENTS_PER_CALL, type PlanId } from "@/lib/pricing-
 import { prisma } from "@/lib/prisma";
 
 /*
-  Messages the owner needs about their own account: a failed card, a line
-  that isn't catching their main number yet, a month running past its calls.
-  They ride the owner-alert queue, so they text and email with its retries,
-  and each carries a dedupe key so a daily sweep sends it once.
+  Messages the owner needs about their own account: a failed card, a pilot
+  about to lapse, a line that isn't catching their main number yet, a month
+  running past its calls. They ride the owner-alert queue, so they text and
+  email with its retries, and each carries a dedupe key so a daily sweep
+  sends it once.
 */
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const PAST_DUE_REMINDER_DAY = 5;
+const PILOT_WARN_DAYS_LEFT = 7;
+const PILOT_URGENT_DAYS_LEFT = 2;
+const PILOT_FOUNDER_DAYS_DARK = 3;
 const FORWARD_NUDGE_AFTER_MS = DAY_MS;
 const FORWARD_REMINDER_DAY = 4;
 const FORWARD_FOUNDER_DAY = 7;
@@ -53,13 +57,14 @@ export async function alertPaymentFailed(shop: NudgeShop & { pastDueSince: Date 
 }
 
 export async function sendOwnerNudges(now = new Date()) {
-  const [pastDue, forwarding, usage] = await Promise.all([
+  const [pastDue, pilot, forwarding, usage] = await Promise.all([
     pastDueReminders(now),
+    pilotSaveReminders(now),
     forwardingNudges(now),
     usageAlerts(now),
   ]);
-  const sent = { pastDue, forwarding, usage };
-  if (pastDue + forwarding + usage) logInfo("owner_nudges.queued", sent);
+  const sent = { pastDue, pilot, forwarding, usage };
+  if (pastDue + pilot + forwarding + usage) logInfo("owner_nudges.queued", sent);
   return sent;
 }
 
@@ -93,6 +98,92 @@ async function pastDueReminders(now: Date) {
   one, and at a week a person from Orvius calls to do it with them. A shop that
   is already getting real calls (forwarded or published) is left alone.
 */
+/*
+  A pilot nobody pays for lapses in silence: the forwarding nudges only cover
+  paid plans, and the dashboard pay-prompt only speaks to owners who log in.
+  A pilot costs a call audit to win, so its last week gets a text, its last
+  days a sharper one, expiry names the grace left, and a pilot that proved
+  value (the line took real calls) pages a person once it goes dark. Each
+  milestone carries its own dedupe key, and every message stops the day the
+  plan goes active, because the plan filter does.
+*/
+async function pilotSaveReminders(now: Date) {
+  const shops = await prisma.business.findMany({
+    where: {
+      environment: { notIn: ["test", "demo"] },
+      billingStatus: { in: ["pilot", "none"] },
+    },
+    select: {
+      id: true,
+      name: true,
+      ownerPhone: true,
+      ownerEmail: true,
+      transferPhone: true,
+      createdAt: true,
+      pilotEndsAt: true,
+    },
+  });
+  let queued = 0;
+  for (const shop of shops) {
+    if (!shop.ownerPhone && !shop.ownerEmail) continue;
+    const ends = resolvePilotEndsAt({ pilotEndsAt: shop.pilotEndsAt, createdAt: shop.createdAt });
+    if (!ends) continue;
+    const daysLeft = Math.ceil((ends.getTime() - now.getTime()) / DAY_MS);
+    if (daysLeft > PILOT_WARN_DAYS_LEFT) continue;
+    const daysDark = Math.max(0, Math.ceil((now.getTime() - ends.getTime()) / DAY_MS));
+    const calls = await countBillableCalls(shop, { gte: new Date(ends.getTime() - PILOT_DAYS * DAY_MS) });
+    const callWord = calls === 1 ? "call" : "calls";
+    const leftWord = (n: number) => `${n} day${n === 1 ? "" : "s"}`;
+    if (daysLeft > PILOT_URGENT_DAYS_LEFT) {
+      const result = await nudge(
+        shop,
+        `setup:pilot:${shop.id}:week`,
+        calls > 0
+          ? `Orvius: ${shop.name}'s pilot ends in ${leftWord(daysLeft)}. Your line took ${calls} ${callWord} — pay with card to keep it answering: ${link("/dashboard/billing")}`
+          : `Orvius: ${shop.name}'s pilot ends in ${leftWord(daysLeft)} and no customer calls have come through yet. Call your Orvius line once, then forward your main number (about 2 minutes): ${link("/dashboard?settings=phone")}`,
+      );
+      if (result.queued.length) queued += 1;
+      continue;
+    }
+    if (daysLeft > 0) {
+      const result = await nudge(
+        shop,
+        `setup:pilot:${shop.id}:urgent`,
+        calls > 0
+          ? `Orvius: ${shop.name}'s pilot ends in ${leftWord(daysLeft)}. Don't lose the line that took ${calls} ${callWord} — pay with card: ${link("/dashboard/billing")}`
+          : `Orvius: ${shop.name}'s pilot ends in ${leftWord(daysLeft)} and still no customer calls. Forward your main number now (about 2 minutes) or the pilot ends unproven: ${link("/dashboard?settings=phone")}`,
+      );
+      if (result.queued.length) queued += 1;
+      continue;
+    }
+    const graceLeft = PILOT_LINE_GRACE_DAYS - daysDark;
+    if (graceLeft > 0) {
+      const result = await nudge(
+        shop,
+        `setup:pilot:${shop.id}:ended`,
+        `Orvius: ${shop.name}'s pilot ended. Your line keeps answering for ${leftWord(graceLeft)} while you decide — one tap keeps it: ${link("/dashboard/billing")}`,
+      );
+      if (result.queued.length) queued += 1;
+      continue;
+    }
+    const result = await nudge(
+      shop,
+      `setup:pilot:${shop.id}:dark`,
+      `Orvius: ${shop.name}'s line stopped answering — the pilot ended and the grace ran out. Pay with card to turn it back on: ${link("/dashboard/billing")}`,
+    );
+    if (result.queued.length) queued += 1;
+    if (daysDark >= PILOT_FOUNDER_DAYS_DARK && calls > 0) {
+      await pageFounderForShop(
+        shop.id,
+        "pilot_lapsed",
+        `Orvius: ${shop.name}'s pilot ended ${daysDark} days ago after the line took ${calls} ${callWord}, and nobody paid. Worth a call before they go cold: ${shop.ownerPhone ?? "no phone"}${shop.ownerEmail ? `, ${shop.ownerEmail}` : ""}.`,
+        now,
+      ).catch(() => null);
+    }
+  }
+  return queued;
+}
+
 async function forwardingNudges(now: Date) {
   const shops = await prisma.business.findMany({
     where: {
