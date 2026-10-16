@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { recordAudit } from "@/lib/audit";
+import { writeAudit } from "@/lib/audit";
 import { logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 
@@ -167,7 +167,7 @@ export async function raiseIntentException(intent: Pick<IntentRow, "id" | "busin
   const claimed = await prisma.smsIntent.updateMany({ where: { id: intent.id, exceptionRaisedAt: null }, data: { exceptionRaisedAt: new Date() } });
   if (!claimed.count) return false;
   try {
-    await recordAudit({
+    await writeAudit({
       businessId: intent.businessId,
       entityType: "notification",
       entityId: intent.id,
