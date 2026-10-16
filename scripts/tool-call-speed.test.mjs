@@ -59,7 +59,7 @@ test("a tool call on a call with no row yet creates exactly one, even when repli
   });
 });
 
-test("a tool call on a call that already has a row reuses it untouched", async () => {
+test("a tool call on a call that already has a row reuses it, writing only what it offered", async () => {
   await withShop(async (shop, line) => {
     const vapiCallId = `speed-old-${stamp()}`;
     const existing = await prisma.call.create({
@@ -71,7 +71,11 @@ test("a tool call on a call that already has a row reuses it untouched", async (
     const after = await prisma.call.findMany({ where: { vapiCallId } });
     assert.equal(after.length, 1);
     assert.equal(after[0].id, existing.id);
-    assert.equal(after[0].updatedAt.getTime(), existing.updatedAt.getTime(), "no write on the caller's wait");
+    for (const field of ["businessId", "callerPhone", "status", "createdAt"]) {
+      assert.deepEqual(after[0][field], existing[field], `${field} is untouched on the caller's wait`);
+    }
+    // The one write is the offer itself, by primary key: a hold is only accepted for a time this call was offered.
+    assert.ok(after[0].slotOfferJson || /Nothing is open/.test(results[0].result), "the offered times are on the call");
   });
 });
 
