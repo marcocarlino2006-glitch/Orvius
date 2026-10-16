@@ -3,8 +3,8 @@ import { personActor } from "@/lib/audit";
 import { confirmCustomerClaim, OWNER_METHODS, recordShopPayment, rejectCustomerClaim } from "@/lib/payment-record";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
-import { forbiddenResponse, requireEntitledSession, roleForbiddenResponse } from "@/lib/tenant";
-import { can } from "@/lib/workspace-access-labels";
+import { requireMoney } from "@/lib/money-authority";
+import { forbiddenResponse, requireEntitledSession } from "@/lib/tenant";
 import { z } from "zod";
 
 /*
@@ -43,7 +43,16 @@ export async function POST(request: Request) {
   const base = { businessId: business.id, invoiceId: invoice.id, jobId, actor: who.actor, actorEmail: who.actorEmail };
 
   // Logging cash in hand is dispatch work; vouching for money nobody on the team took is not.
-  if (body.action !== "record" && !can(authResult.role, "money.adjust")) return roleForbiddenResponse("money.adjust");
+  if (body.action !== "record") {
+    const claimed = await prisma.payment.findFirst({ where: { invoiceId: invoice.id, status: "claimed" }, select: { amountCents: true } });
+    const money = await requireMoney({ businessId: business.id, role: authResult.role, email: authResult.email }, "confirm_payment", {
+      amountCents: body.action === "confirm" ? (claimed?.amountCents ?? null) : null,
+      entityType: "invoice",
+      entityId: invoice.id,
+      jobId: invoice.jobId ?? invoice.estimate?.jobId ?? null,
+    });
+    if ("error" in money) return money.error;
+  }
   if (body.action === "confirm") {
     const result = await confirmCustomerClaim(base);
     if (!result.ok) return NextResponse.json({ error: result.error }, { status: 409 });

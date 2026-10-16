@@ -9,6 +9,7 @@ import {
   resolveReconciliation,
   setRecordContract,
 } from "@/lib/system-of-record";
+import { requireMoney } from "@/lib/money-authority";
 import { requirePermission } from "@/lib/tenant";
 
 export async function GET() {
@@ -47,6 +48,11 @@ export async function POST(request: Request) {
   if (auth.role !== "owner" && auth.role !== "manager") return NextResponse.json({ error: "Only the owner or a manager resolves these." }, { status: 403 });
   const body = (await request.json().catch(() => null)) as { id?: unknown; resolution?: unknown } | null;
   if (typeof body?.id !== "string" || typeof body.resolution !== "string") return NextResponse.json({ error: "Say which exception and how it was resolved." }, { status: 422 });
+  const exception = await prisma.reconciliationException.findFirst({ where: { id: body.id, businessId: auth.business.id }, select: { kind: true, entityType: true, entityId: true } });
+  if (exception?.kind === "payment") {
+    const money = await requireMoney({ businessId: auth.business.id, role: auth.role, email: auth.email }, "resolve_payment", { entityType: exception.entityType, entityId: exception.entityId });
+    if ("error" in money) return money.error;
+  }
   try {
     await resolveReconciliation({ businessId: auth.business.id, id: body.id, actorEmail: auth.email, resolution: body.resolution });
     return NextResponse.json({ ok: true });

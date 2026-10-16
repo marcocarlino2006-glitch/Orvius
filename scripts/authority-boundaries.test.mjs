@@ -52,7 +52,7 @@ test("money, integration and team rights come from the role, not from being a me
     assert.equal(can("dispatcher", permission), false, permission);
     assert.equal(can("owner", permission), true, permission);
   }
-  assert.equal(can("manager", "money.adjust"), true);
+  assert.equal(can("manager", "money.adjust"), false, "a manager needs a scoped money grant from the owner");
   assert.equal(can("manager", "billing.manage"), false);
 });
 
@@ -99,7 +99,11 @@ test("a dispatcher can bill a job but not change a bill the customer already has
   await prisma.invoice.create({ data: { businessId: other.id, jobId: otherJob.id, amountCents: 18_500, status: "open", sentAt: new Date(), publicToken: `tok-${uid()}` } });
   signedInAs = manager;
   try {
-    const res = await invoiceRoute.POST(json(`http://x/api/jobs/${otherJob.id}/invoice`, "POST", { totalCents: 27_500, reason: "Extra part" }), { params: Promise.resolve({ id: otherJob.id }) });
+    const revise = () => invoiceRoute.POST(json(`http://x/api/jobs/${otherJob.id}/invoice`, "POST", { totalCents: 27_500, reason: "Extra part" }), { params: Promise.resolve({ id: otherJob.id }) });
+    assert.equal((await revise()).status, 403, "manager role alone is not money authority");
+    const { grantMoneyAuthority } = await import("../src/lib/money-authority.ts");
+    await grantMoneyAuthority({ businessId: other.id, ownerEmail: other.ownerEmail, granteeEmail: manager, scope: "revise_bill", days: 7 });
+    const res = await revise();
     assert.equal(res.status, 200);
     const audit = await prisma.auditEvent.findFirst({ where: { businessId: other.id, action: "invoice.revised" } });
     assert.equal(audit.actor, "teammate");

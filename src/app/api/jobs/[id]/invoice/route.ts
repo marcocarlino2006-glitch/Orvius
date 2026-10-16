@@ -6,8 +6,8 @@ import { sendInvoiceLink, upsertJobInvoice } from "@/lib/invoice-pay";
 import { formatCentsExact } from "@/lib/money";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
-import { requireEntitledSession, roleForbiddenResponse } from "@/lib/tenant";
-import { can } from "@/lib/workspace-access-labels";
+import { requireMoney } from "@/lib/money-authority";
+import { requireEntitledSession } from "@/lib/tenant";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -36,7 +36,10 @@ export async function POST(request: Request, { params }: Params) {
 
   try {
     const body = bodySchema.parse(await request.json());
-    if (body.reason && !can(authResult.role, "money.adjust")) return roleForbiddenResponse("money.adjust");
+    if (body.reason) {
+      const money = await requireMoney({ businessId: business.id, role: authResult.role, email: authResult.email }, "revise_bill", { amountCents: body.totalCents, entityType: "job", entityId: job.id, jobId: job.id });
+      if ("error" in money) return money.error;
+    }
     const actor = personActor(authResult);
     const { invoice, created, depositPaidCents, repriceHeld } = await upsertJobInvoice({
       businessId: business.id,
