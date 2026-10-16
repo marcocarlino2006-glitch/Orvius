@@ -163,13 +163,14 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
   const savedKeyRef = useRef<string | null>(null);
   const restoredRef = useRef(false);
 
-  const applyDraft = useCallback((d: SetupDraft) => {
+  /* `replace`: the account's newer copy wins whole, so an empty area code there clears this form's too. */
+  const applyDraft = useCallback((d: SetupDraft, replace = false) => {
     setName(d.name);
     setTrade(d.trade);
     setOwnerPhone(d.ownerPhone);
-    if (d.areaCode) {
-      setAreaCode(d.areaCode);
-      setAreaCodeTouched(true);
+    if (d.areaCode || replace) {
+      setAreaCode(d.areaCode ?? "");
+      setAreaCodeTouched(Boolean(d.areaCode));
     }
     setFound(d.found ?? null);
   }, []);
@@ -196,7 +197,7 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
           revRef.current = Math.max(newer.rev, json.rev ?? 0);
           savedKeyRef.current = draftKey(newer);
           writeSetupDraft({ ...newer, rev: revRef.current });
-          applyDraft(newer);
+          applyDraft(newer, true);
           setSaveState({ kind: "replaced" });
           return;
         }
