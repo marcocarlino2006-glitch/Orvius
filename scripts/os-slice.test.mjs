@@ -272,7 +272,7 @@ test("ask to act: real choices or a plan to approve — never an invented time",
   });
   const assign = await askToAct(shop, "Send Dana West to Water pooling under the furnace");
   assert.equal(assign.kind, "proposal", assign.message);
-  const ran = await executeProposal({ business: shop, proposalId: assign.proposal.proposalId });
+  const ran = await executeProposal({ business: shop, proposalId: assign.proposal.proposalId, by: { role: "owner", email: "owner@example.test" } });
   assert.equal(ran.ok, true, ran.error);
   assert.equal((await prisma.job.findUniqueOrThrow({ where: { id: titled.id } })).technicianId, dana.id);
 });

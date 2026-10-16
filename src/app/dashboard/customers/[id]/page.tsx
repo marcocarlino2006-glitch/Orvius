@@ -4,7 +4,7 @@ import { CustomerTimeline } from "@/components/customer-timeline";
 import { RecordFetchError, recordFailureFrom } from "@/lib/dashboard-fetch";
 import { RecordLoadFailure } from "@/components/record-load-failure";
 import { OsShell } from "@/components/os-shell";
-import { ShellAlert, ShellLoading, ShellPanel } from "@/components/shell-primitives";
+import { ShellAlert, ShellLoading } from "@/components/shell-primitives";
 import { displayPhone } from "@/lib/customer";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -367,7 +367,10 @@ function ForgetCustomerPanel({ customerId, name }: { customerId: string; name: s
   }
 
   return (
-    <ShellPanel title="Privacy" dense>
+    <section className="rec">
+      <header className="rec-head">
+        <h2 className="rec-title">Privacy</h2>
+      </header>
       {open ? (
         <div className="font-sans">
           <p style={{ margin: "0 0 0.5rem", color: "var(--ox-text-2)" }}>
@@ -379,7 +382,7 @@ function ForgetCustomerPanel({ customerId, name }: { customerId: string; name: s
             Type DELETE to confirm
           </label>
           <div className="flex flex-wrap gap-2">
-            <input id="forget-confirm" className="sc-input" value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" />
+            <input id="forget-confirm" className="rec-field rec-field--short" value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" />
             <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm ox-btn--danger" disabled={busy || typed.trim() !== "DELETE"} onClick={() => void forget()}>
               {busy ? "Deleting…" : "Delete their data"}
             </button>
@@ -405,6 +408,6 @@ function ForgetCustomerPanel({ customerId, name }: { customerId: string; name: s
           </div>
         </div>
       )}
-    </ShellPanel>
+    </section>
   );
 }

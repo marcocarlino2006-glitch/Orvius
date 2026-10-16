@@ -29,10 +29,9 @@ test("the week sheet groups minutes by technician", () => {
   assert.equal(end.toISOString().slice(0, 10), "2026-10-12");
 });
 
-test("Dispatch Hours is a third view on the same board", () => {
+test("the hours view is served by the dispatch API while Dispatch itself lives on Schedule", () => {
   const page = readFileSync(new URL("../src/app/dashboard/dispatch/page.tsx", import.meta.url), "utf8");
   const route = readFileSync(new URL("../src/app/api/dispatch/route.ts", import.meta.url), "utf8");
-  assert.match(page, /"hours"/);
-  assert.match(page, /"Hours"/);
+  assert.match(page, /redirect\("\/dashboard\/schedule"\)/);
   assert.match(route, /get\("view"\) === "hours"/);
 });
