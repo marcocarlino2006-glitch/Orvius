@@ -54,7 +54,13 @@ export async function GET(request: NextRequest) {
   }
 
   /* Only a person without a live shop has a paid setup in flight. */
-  const provisioning = !business || sandbox || demoActive ? await provisioningStatus(email) : null;
+  const provisioning =
+    !business || sandbox || demoActive
+      ? await provisioningStatus(email).catch((error: unknown) => {
+          logWarn("onboarding.provisioning_lookup_failed", { error: error instanceof Error ? error.message : "unknown" });
+          return null;
+        })
+      : null;
 
   return NextResponse.json({
     provisioned: Boolean(business) && !sandbox,
