@@ -87,6 +87,9 @@ async function runProposal(
     const lead = await prisma.lead.findFirst({ where: { id: params.leadId, businessId: business.id } });
     if (!lead) return { error: "Lead not found", status: 404 };
     const who = lead.name ?? lead.phone ?? "the caller";
+    if (action === "mark_contacted" && lead.status !== "new" && lead.status !== "contacted") {
+      return { error: `${who} is already marked ${lead.status}. Nothing was changed.`, status: 409, reason: "lead_moved_on" };
+    }
 
     let smsSid: string | undefined;
     if (action === "sms_followup") {
@@ -351,6 +354,15 @@ async function flagForCheck(proposalId: string, detail: Record<string, unknown>)
  * the cause and approve again; anything that fails after a change started is
  * held for a person to check instead of being retried.
  */
+async function stillOnTeam(businessId: string, email: string) {
+  const who = email.trim().toLowerCase();
+  const [shop, member] = await Promise.all([
+    prisma.business.findUnique({ where: { id: businessId }, select: { ownerEmail: true } }),
+    prisma.membership.findUnique({ where: { businessId_email: { businessId, email: who } }, select: { id: true } }),
+  ]);
+  return Boolean(member) || shop?.ownerEmail?.trim().toLowerCase() === who;
+}
+
 export async function executeProposal(params: {
   business: { id: string; name: string };
   proposalId: string;
@@ -364,6 +376,11 @@ export async function executeProposal(params: {
   if (!pending) return { ok: false, error: "Proposal not found or already used", status: 404 };
   if (Date.now() - pending.createdAt.getTime() > PROPOSAL_FRESH_MS) {
     return { ok: false, error: "This plan is more than 12 hours old, so it may not fit the shop any more. Ask Command for a fresh one. Nothing was changed.", status: 409, reason: "proposal_stale" };
+  }
+  // The 12-hour limit only bounds how old the picture the approver saw can be; who may act, and whether the
+  // target is still eligible, is read again now (here and in runProposal), never trusted from the proposal.
+  if (pending.proposedByEmail && !(await stillOnTeam(business.id, pending.proposedByEmail))) {
+    return { ok: false, error: "The person who asked for this plan is no longer on the team, so it won't run. Ask Command for a fresh one. Nothing was changed.", status: 409, reason: "proposer_removed" };
   }
   const decision = decideApproval({ actor: params.by, proposal: pending, grants: await grantsForActor(business.id, params.by.email) });
   if (!decision.ok) return { ok: false, error: decision.error, status: 403, reason: "no_command_authority" };
