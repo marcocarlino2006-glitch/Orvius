@@ -461,7 +461,7 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
   const covered = new Set([
     ...failedTexts.filter((m) => m.sid && billing.sids.has(m.sid)).map((m) => `text-failed:${m.id}`),
     ...smsFailures
-      .filter((a) => billing.attempts.some((t) => t.to === a.entityId && a.createdAt >= t.from && a.createdAt.getTime() <= t.until.getTime() + 60_000))
+      .filter((a) => billing.attempts.some((t) => t.to === a.entityId && a.createdAt >= t.from && a.createdAt.getTime() <= t.from.getTime() + 60_000))
       .map((a) => `sms-failed:${a.id}`),
   ]);
   for (let i = exceptions.length - 1; i >= 0; i--) if (covered.has(exceptions[i]!.id)) exceptions.splice(i, 1);
@@ -617,7 +617,7 @@ const BILL_TEXT_FAILED = ["undelivered", "rejected", "retry_exhausted", "unknown
  * may not have gone out. Both are read from the job, the invoice and the text
  * ledger, so they stay on the board through a reload until the record changes.
  */
-async function billingItems(businessId: string, now: Date): Promise<{ items: BoardItem[]; sids: Set<string>; attempts: { to: string; from: Date; until: Date }[] }> {
+async function billingItems(businessId: string, now: Date): Promise<{ items: BoardItem[]; sids: Set<string>; attempts: { to: string; from: Date }[] }> {
   const month = new Date(now.getTime() - 30 * DAY);
   const [unbilled, intents] = await Promise.all([
     prisma.job.findMany({
@@ -644,7 +644,8 @@ async function billingItems(businessId: string, now: Date): Promise<{ items: Boa
       })
     : [];
   const sids = new Set(bills.map((b) => latest.get(b.id)!.providerSid).filter((sid): sid is string => Boolean(sid)));
-  const attempts = bills.map((b) => latest.get(b.id)!).map((t) => ({ to: t.recipientNormalized, from: t.createdAt, until: t.updatedAt }));
+  /* A send refused before the carrier took it leaves no message row, only its failure written right after the attempt. */
+  const attempts = bills.map((b) => latest.get(b.id)!).filter((t) => !t.providerSid).map((t) => ({ to: t.recipientNormalized, from: t.createdAt }));
   const items = [
     ...unbilled.map((job) => ({
       id: `billing-gap:${job.id}`,
