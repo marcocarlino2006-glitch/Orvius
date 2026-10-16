@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { COLLECTED_STATUSES } from "@/lib/payment-math";
+import { COLLECTED_STATUSES, moneyTotals, refundedOf } from "@/lib/payment-math";
 import { MIN_ESTIMATES_FOR_RATE, type CallLeadRow, type EstimateRow, type JobRow, type MoneyRow, type OpenInvoiceRow, type OwnerReport, type ReportPeriodId, type ReportRow } from "@/lib/owner-report-types";
 
 export { MIN_ESTIMATES_FOR_RATE, REPORT_PERIODS } from "@/lib/owner-report-types";
@@ -64,7 +64,7 @@ function zonedMidnight(dateUtc: Date, timezone: string) {
 
 export function summarizeReport(input: {
   money: MoneyRow[];
-  previousMoney: Array<{ amountCents: number }>;
+  previousMoney: Array<{ amountCents: number; refundedCents?: number }>;
   estimates: EstimateRow[];
   jobs: JobRow[];
   callLeads: CallLeadRow[];
@@ -72,6 +72,8 @@ export function summarizeReport(input: {
   openInvoices?: OpenInvoiceRow[];
 }): OwnerReport {
   const sum = (rows: Array<{ amountCents: number }>) => rows.reduce((s, r) => s + r.amountCents, 0);
+  const totals = (rows: Array<{ amountCents: number; refundedCents?: number }>) => moneyTotals(rows.map((r) => ({ amountCents: r.amountCents, status: "paid", refundedCents: r.refundedCents ?? 0 })));
+  const kept = (m: { amountCents: number; refundedCents?: number }) => totals([m]).netCents;
   const invoices = input.money.filter((m) => m.kind === "invoice");
   const won = input.estimates.filter((e) => e.won);
   const booked = input.callLeads.filter((l) => l.booked).length;
@@ -87,7 +89,7 @@ export function summarizeReport(input: {
   };
   for (const m of input.money) {
     const row = techRow(m.technicianId);
-    row.collectedCents += m.amountCents;
+    row.collectedCents += kept(m);
     row.payments += 1;
   }
   for (const j of input.jobs) techRow(j.technicianId).jobsCompleted! += 1;
@@ -102,15 +104,16 @@ export function summarizeReport(input: {
     const key = m.source && SOURCE_LABELS[m.source] ? m.source : "none";
     if (!sourceRows.has(key)) sourceRows.set(key, { key, label: key === "none" ? NO_SOURCE_LABEL : SOURCE_LABELS[key], collectedCents: 0, payments: 0 });
     const row = sourceRows.get(key)!;
-    row.collectedCents += m.amountCents;
+    row.collectedCents += kept(m);
     row.payments += 1;
   }
 
   const byMoney = (a: ReportRow, b: ReportRow) => b.collectedCents - a.collectedCents || a.label.localeCompare(b.label);
   const open = (input.openInvoices ?? []).filter((i) => i.balanceCents > 0);
   return {
-    collectedCents: sum(input.money),
-    previousCollectedCents: sum(input.previousMoney),
+    collectedCents: totals(input.money).netCents,
+    money: totals(input.money),
+    previousCollectedCents: totals(input.previousMoney).netCents,
     payments: input.money.length,
     averageInvoiceCents: invoices.length ? Math.round(sum(invoices) / invoices.length) : null,
     jobsCompleted: input.jobs.length,
@@ -146,20 +149,21 @@ async function moneyIn(businessId: string, start: Date, end: Date): Promise<Mone
   const inWindow = (field: "paidAt") => ({ OR: [dated(field), { [field]: null, ...dated("updatedAt") }] });
   const [invoices, deposits] = await Promise.all([
     prisma.invoice.findMany({
-      where: { businessId, status: "paid", ...inWindow("paidAt") },
-      select: { amountCents: true, job: { select: { technicianId: true, lead: { select: { source: true } } } } },
+      where: { businessId, status: { in: ["paid", "refunded"] }, ...inWindow("paidAt") },
+      select: { amountCents: true, payments: { select: { amountCents: true, status: true, refundedCents: true } }, job: { select: { technicianId: true, lead: { select: { source: true } } } } },
       take: ROW_CAP,
     }),
     prisma.deposit.findMany({
-      where: { businessId, status: "paid", ...inWindow("paidAt") },
-      select: { amountCents: true, lead: { select: { source: true } }, job: { select: { technicianId: true, lead: { select: { source: true } } } } },
+      where: { businessId, status: { in: ["paid", "refunded"] }, ...inWindow("paidAt") },
+      select: { amountCents: true, status: true, refundedCents: true, lead: { select: { source: true } }, job: { select: { technicianId: true, lead: { select: { source: true } } } } },
       take: ROW_CAP,
     }),
   ]);
   return [
-    ...invoices.map((i) => ({ amountCents: i.amountCents, technicianId: i.job?.technicianId ?? null, source: i.job?.lead?.source ?? null, kind: "invoice" as const })),
+    ...invoices.map((i) => ({ amountCents: i.amountCents, refundedCents: Math.min(i.amountCents, moneyTotals(i.payments).refundedCents), technicianId: i.job?.technicianId ?? null, source: i.job?.lead?.source ?? null, kind: "invoice" as const })),
     ...deposits.map((d) => ({
       amountCents: d.amountCents,
+      refundedCents: refundedOf(d),
       technicianId: d.job?.technicianId ?? null,
       source: d.job?.lead?.source ?? d.lead?.source ?? null,
       kind: "deposit" as const,
@@ -230,10 +234,13 @@ export function reportCsv(report: OwnerReport) {
   };
   const money = (c: number) => (c / 100).toFixed(2);
   const lines = [
-    ["Section", "Name", "Collected ($)", "Payments", "Jobs completed", "Estimates sent", "Estimates won"],
+    ["Section", "Name", "Kept after refunds ($)", "Payments", "Jobs completed", "Estimates sent", "Estimates won"],
     ...report.byTechnician.map((r) => ["Technician", r.label, money(r.collectedCents), r.payments, r.jobsCompleted ?? 0, r.estimatesSent ?? 0, r.estimatesWon ?? 0]),
     ...report.bySource.map((r) => ["Source", r.label, money(r.collectedCents), r.payments, "", "", ""]),
     ["Total", "", money(report.collectedCents), report.payments, report.jobsCompleted, report.estimates.sent, report.estimates.won],
+    ...(report.money && report.money.refundedCents > 0
+      ? [["Before refunds", "", money(report.money.grossCents), "", "", "", ""], ["Refunded", "", money(report.money.refundedCents), "", "", "", ""]]
+      : []),
   ];
   return lines.map((row) => row.map(cell).join(",")).join("\n");
 }

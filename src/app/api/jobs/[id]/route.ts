@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { depositPayUrl, getDepositReadiness } from "@/lib/booking-deposit";
 import { invoiceCompletedJob, invoicePayUrl } from "@/lib/invoice-pay";
 import { claimedCents, collectedCents, collectedHow } from "@/lib/payment-record";
+import { moneyTotals } from "@/lib/payment-math";
 import { getConnectStatus } from "@/lib/stripe-connect";
 import { personActor, recordAudit } from "@/lib/audit";
 import { DEFAULT_JOB_DURATION_MIN, shopWallInputToUtc } from "@/lib/availability";
@@ -60,7 +61,7 @@ export async function GET(_request: Request, { params }: Params) {
   const invoice = await prisma.invoice.findFirst({
     where: { businessId: business.id, jobId: job.id },
     orderBy: { createdAt: "desc" },
-    include: { payments: { select: { amountCents: true, status: true, method: true } } },
+    include: { payments: { select: { amountCents: true, status: true, method: true, refundedCents: true } } },
   });
 
   const confirmText = job.customerConfirmSid
@@ -100,6 +101,8 @@ export async function GET(_request: Request, { params }: Params) {
           collectedCents: collectedCents(invoice.payments),
           claimedCents: claimedCents(invoice.payments),
           collectedHow: collectedHow(invoice.payments),
+          refundedCents: moneyTotals(invoice.payments).refundedCents,
+          keptCents: moneyTotals(invoice.payments).netCents,
         }
       : null,
     finalAmountCents: job.finalAmountCents,

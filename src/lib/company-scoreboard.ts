@@ -139,7 +139,7 @@ async function week(start: Date, end: Date, now: Date): Promise<ScoreboardWeek> 
       prisma.job.count({ where: { business: realShop, createdAt: inWindow } }),
       prisma.payment.aggregate({
         where: { business: realShop, createdAt: inWindow, status: { in: COLLECTED_STATUSES } },
-        _sum: { amountCents: true },
+        _sum: { amountCents: true, refundedCents: true },
       }),
       prisma.job.count({ where: { business: realShop, createdAt: inWindow, ...fromOrvius } }),
       prisma.job.count({ where: { business: realShop, customerConfirmedAt: inWindow } }),
@@ -168,7 +168,7 @@ async function week(start: Date, end: Date, now: Date): Promise<ScoreboardWeek> 
     jobsFromOrvius,
     jobsCustomerConfirmed,
     jobsCompleted,
-    collectedCents: collected._sum.amountCents ?? 0,
+    collectedCents: (collected._sum.amountCents ?? 0) - (collected._sum.refundedCents ?? 0),
     platformFeeCents: (invoiceFees._sum.applicationFeeCents ?? 0) + (depositFees._sum.applicationFeeCents ?? 0),
   };
 }

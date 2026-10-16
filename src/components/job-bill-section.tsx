@@ -18,6 +18,8 @@ export type JobBill = {
     collectedCents?: number;
     claimedCents?: number;
     collectedHow?: string | null;
+    refundedCents?: number;
+    keptCents?: number;
   } | null;
   finalAmountCents: number | null;
   cardPayReady: boolean;
@@ -124,6 +126,11 @@ export function JobBillSection({
           {invoice.paidAt ? ` on ${formatDay(invoice.paidAt)}` : ""}
           {invoice.collectedHow ? ` · ${invoice.collectedHow}` : ""}.
         </p>
+        {(invoice.refundedCents ?? 0) > 0 ? (
+          <p className="job-money-lead">
+            {formatCentsExact(invoice.refundedCents!)} refunded in Stripe, {formatCentsExact(invoice.keptCents ?? 0)} kept. The bill stays paid; if the customer owes it again, decide in Command under Exceptions.
+          </p>
+        ) : null}
       </div>
     );
   }

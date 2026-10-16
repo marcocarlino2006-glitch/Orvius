@@ -39,8 +39,9 @@ const MAX_SHOPS = 200;
 
 const countBy = (rows: Array<{ businessId: string | null; _count: { _all: number } }>) =>
   new Map(rows.map((r) => [r.businessId ?? "", r._count._all]));
-const sumBy = (rows: Array<{ businessId: string | null; _sum: { amountCents: number | null } }>) =>
-  new Map(rows.map((r) => [r.businessId ?? "", r._sum.amountCents ?? 0]));
+/** Money kept per shop: receipts less any partial refunds recorded on them. */
+const sumBy = (rows: Array<{ businessId: string | null; _sum: { amountCents: number | null; refundedCents?: number | null } }>) =>
+  new Map(rows.map((r) => [r.businessId ?? "", (r._sum.amountCents ?? 0) - (r._sum.refundedCents ?? 0)]));
 
 /**
  * Every location one person can open, side by side, over the same window.
@@ -61,11 +62,11 @@ export async function getPortfolio(email: string, days: number, now = new Date()
         prisma.lead.groupBy({ by: ["businessId"], where: { ...inShops, status: { not: "spam" }, createdAt: { gte: since } }, _count: { _all: true } }),
         prisma.job.groupBy({ by: ["businessId"], where: { ...inShops, createdAt: { gte: since } }, _count: { _all: true } }),
         prisma.job.groupBy({ by: ["businessId"], where: { ...inShops, completedAt: { gte: since } }, _count: { _all: true } }),
-        prisma.deposit.groupBy({ by: ["businessId"], where: { ...inShops, status: "paid", paidAt: { gte: since } }, _sum: { amountCents: true } }),
+        prisma.deposit.groupBy({ by: ["businessId"], where: { ...inShops, status: "paid", paidAt: { gte: since } }, _sum: { amountCents: true, refundedCents: true } }),
         prisma.payment.groupBy({
           by: ["businessId"],
           where: { ...inShops, createdAt: { gte: since }, status: { in: COLLECTED_STATUSES } },
-          _sum: { amountCents: true },
+          _sum: { amountCents: true, refundedCents: true },
         }),
         prisma.lead.groupBy({ by: ["businessId"], where: { ...inShops, status: "new" }, _count: { _all: true } }),
         prisma.lead.groupBy({ by: ["businessId"], where: { ...inShops, status: "new", urgency: "emergency" }, _count: { _all: true } }),

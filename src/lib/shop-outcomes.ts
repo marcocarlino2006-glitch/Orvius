@@ -1,5 +1,5 @@
 import { isAfterHours } from "@/lib/business";
-import { COLLECTED_STATUSES } from "@/lib/payment-math";
+import { RECEIPT_STATUSES, addTotals, moneyTotals, type MoneyTotals } from "@/lib/payment-math";
 import { estimatedRevenueCents, formatCentsExact } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
 
@@ -61,8 +61,10 @@ export type ShopOutcomes = {
   jobsCompleted: number;
   /** Estimated value only: measured captured jobs × owner-entered avg ticket. */
   capturedDemandEstimatedValueCents: number | null;
-  /** CRM money ring — recorded payments / open estimates / open invoices. */
+  /** Money the shop kept from recorded payments and deposits: gross less refunds. Not revenue, not what anyone owes. */
   collectedCents: number;
+  /** Gross receipts, refunded and kept, from moneyTotals. */
+  money?: MoneyTotals;
   openEstimateCents: number;
   openInvoiceCents: number;
   economicsReady: boolean;
@@ -173,9 +175,9 @@ export async function getShopOutcomes(
       where: {
         businessId,
         createdAt: { gte: since },
-        status: { in: COLLECTED_STATUSES },
+        status: { in: RECEIPT_STATUSES },
       },
-      select: { amountCents: true },
+      select: { amountCents: true, status: true, refundedCents: true },
     }),
     prisma.estimate.findMany({
       where: {
@@ -202,9 +204,9 @@ export async function getShopOutcomes(
       select: { createdAt: true, job: { select: { id: true } } },
     }),
     // Invoices bill the balance net of any deposit, so deposits add to payments without counting twice.
-    prisma.deposit.aggregate({
-      where: { businessId, status: "paid", paidAt: { gte: since } },
-      _sum: { amountCents: true },
+    prisma.deposit.findMany({
+      where: { businessId, status: { in: ["paid", "refunded"] }, paidAt: { gte: since } },
+      select: { amountCents: true, status: true, refundedCents: true },
     }),
   ]);
 
@@ -238,8 +240,8 @@ export async function getShopOutcomes(
       ? Math.round((jobsPerWeek - baselineJobs) * 10) / 10
       : null;
 
-  const collectedCents =
-    payments.reduce((sum, p) => sum + p.amountCents, 0) + (depositsPaid._sum.amountCents ?? 0);
+  const money = addTotals(moneyTotals(payments), moneyTotals(depositsPaid));
+  const collectedCents = money.netCents;
   const openEstimateCents = openEstimates.reduce((sum, e) => sum + e.amountCents, 0);
   const openInvoiceCents = openInvoices.reduce((sum, i) => sum + i.amountCents, 0);
 
@@ -305,6 +307,7 @@ export async function getShopOutcomes(
       capturedDemandJobs,
     ),
     collectedCents,
+    money,
     openEstimateCents,
     openInvoiceCents,
     economicsReady,
@@ -333,7 +336,9 @@ export function formatWeeklyProof(outcomes: ShopOutcomes, shopName: string): str
     outcomes.jobsPerWeekVsBaseline != null
       ? `Jobs/week vs owner-reported before-Orvius baseline: ${outcomes.jobsPerWeekVsBaseline >= 0 ? "+" : ""}${outcomes.jobsPerWeekVsBaseline} (context, not attribution)`
       : null,
-    `Collected (recorded payments): ${formatCentsExact(outcomes.collectedCents)}`,
+    outcomes.money && outcomes.money.refundedCents > 0
+      ? `Collected (recorded payments): ${formatCentsExact(outcomes.money.grossCents)} · refunded ${formatCentsExact(outcomes.money.refundedCents)} · kept ${formatCentsExact(outcomes.money.netCents)}`
+      : `Collected (recorded payments): ${formatCentsExact(outcomes.collectedCents)}`,
     `Open estimates: ${formatCentsExact(outcomes.openEstimateCents)} · Open invoices: ${formatCentsExact(outcomes.openInvoiceCents)}`,
     "Label: booking counts and recorded payments are measured CRM events; dollar value uses owner avg ticket and is not audited GAAP revenue.",
   ];

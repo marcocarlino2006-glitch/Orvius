@@ -190,9 +190,12 @@ export default function ReportsPage() {
           <p className="rp-range font-sans">{range(data.start, data.end, data.timezone)}</p>
           <div className="rp-tiles">
             <div className="rp-tile">
-              <p className="rp-k">Collected</p>
+              <p className="rp-k">{r.money && r.money.refundedCents > 0 ? "Kept" : "Collected"}</p>
               <p className="rp-v">{money(r.collectedCents)}</p>
-              <p className="rp-note">{change(r.collectedCents, r.previousCollectedCents) ?? `${r.payments} payments.`}</p>
+              <p className="rp-note">
+                {r.money && r.money.refundedCents > 0 ? `${money(r.money.grossCents)} collected, ${money(r.money.refundedCents)} refunded. ` : ""}
+                {change(r.collectedCents, r.previousCollectedCents) ?? `${r.payments} payments.`}
+              </p>
             </div>
             <div className="rp-tile">
               <p className="rp-k">Average invoice</p>

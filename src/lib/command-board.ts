@@ -552,6 +552,24 @@ export function mismatchText(row: Pick<Mismatch, "kind" | "entityType" | "system
           detail: `${provider} accepted it (${String(observed.providerId ?? "id on file")}) but Orvius couldn't record it. The next try saves it without asking ${provider} again. If this stays open, check the ${row.entityType} and mark it resolved.`,
         };
   }
+  if (row.kind === "payment" && observed.reason === "deposit_refunded_after_billing") {
+    return {
+      title: "Deposit refunded after the bill went out",
+      detail: `Stripe refunded ${cents(observed.amountCents)} of the booking deposit. The customer's bill was priced with the deposit taken off and stays at ${cents(expected.invoiceCents)}; Orvius won't ask them for more on its own. If they should pay the refunded amount, change the bill with a reason. Otherwise mark this resolved.`,
+    };
+  }
+  if (row.kind === "payment" && observed.reason === "refund_on_settled_bill") {
+    return {
+      title: "Card payment refunded on a paid bill",
+      detail: `Stripe refunded ${cents(observed.amountCents)} on this bill. The bill still reads ${expected.status === "partial" ? "part paid" : "paid"} and the customer won't be asked again on its own; the money totals show it as refunded. If they owe it again, change the bill with a reason and send it. Otherwise mark this resolved.`,
+    };
+  }
+  if (row.kind === "payment" && observed.reason === "refund_record_unpaid") {
+    return {
+      title: `Stripe refund on a ${row.entityType} never recorded as paid`,
+      detail: `Stripe (the record for card money) refunded ${cents(observed.amountCents)} on a ${row.entityType} Orvius has as unpaid. Nothing changed here. Check the payment and refund in Stripe, then mark this resolved with what you found.`,
+    };
+  }
   if (row.kind === "payment" && (observed.reason === "refund_unmatched" || observed.reason === "refund_record_missing")) {
     const charge = typeof observed.chargeId === "string" ? observed.chargeId : "a charge";
     return observed.reason === "refund_unmatched"

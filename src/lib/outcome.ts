@@ -4,7 +4,7 @@ import { openWindows, windowLabel } from "@/lib/copilot-propose";
 import { classifyRequest } from "@/lib/trade-playbooks";
 import { formatCentsExact } from "@/lib/money";
 import { normalizePhone } from "@/lib/customer";
-import { collectedCents } from "@/lib/payment-math";
+import { collectedCents, moneyTotals } from "@/lib/payment-math";
 import { isSimulatedWorkspace } from "@/lib/sms-simulation";
 import { getConnectStatus } from "@/lib/stripe-connect";
 import { recommendTechnician } from "@/lib/technician-match";
@@ -71,7 +71,8 @@ export type Outcome = {
   /** The job's state and its money, kept apart: the agreed total, the bill, and what was actually collected. */
   job: { status: string; scheduledAt: string | null } | null;
   /** `totalCents` is the work before tax and deposit, which is what the invoice route bills from; `billedCents` is what the customer owes. */
-  money: { totalCents: number | null; billedCents: number | null; collectedCents: number };
+  /** `collectedCents` is what counts toward the bill; `refundedCents` went back out and `keptCents` is what the shop holds. */
+  money: { totalCents: number | null; billedCents: number | null; collectedCents: number; refundedCents: number; keptCents: number };
   /** Demo and test shops: nothing here reached a real customer or provider. */
   synthetic: boolean;
   updatedAt: string;
@@ -423,19 +424,21 @@ export async function buildOutcome(businessId: string, target: { jobId?: string 
     stages.push(stage("payment", { state: completed && job?.finalAmountCents === 0 ? "not_needed" : "not_yet", evidence: "", nextActor: null, nextAction: null, at: null, source: "Payment" }));
   } else {
     const collected = collectedCents(invoice.payments);
+    const totals = moneyTotals(invoice.payments);
+    const refundNote = totals.refundedCents > 0 ? `; ${formatCentsExact(totals.refundedCents)} refunded, ${formatCentsExact(totals.netCents)} kept` : "";
     const claimed = invoice.payments.some((p) => p.status === "claimed");
     const refunded = invoice.status === "refunded";
     const paid = invoice.status === "paid" || Boolean(invoice.paidAt);
     stages.push(
       stage("payment", paid
-        ? { state: "done", evidence: `${formatCentsExact(collected || invoice.amountCents)} collected`, nextActor: null, nextAction: null, at: (invoice.paidAt ?? invoice.updatedAt).toISOString(), source: "Payment", execution: "confirmed" }
+        ? { state: "done", evidence: `${formatCentsExact(collected || invoice.amountCents)} collected${refundNote}`, nextActor: null, nextAction: null, at: (invoice.paidAt ?? invoice.updatedAt).toISOString(), source: "Payment", execution: "confirmed" }
         : nothingOwed && !refunded
           ? { state: "not_needed", evidence: "Nothing owed after the deposit", nextActor: null, nextAction: null, at: invoice.updatedAt.toISOString(), source: "Invoice.amountCents" }
         : refunded
-          ? { state: "not_needed", evidence: "Refunded", nextActor: null, nextAction: null, at: invoice.updatedAt.toISOString(), source: "Invoice.status", execution: "confirmed" }
+          ? { state: "not_needed", evidence: totals.grossCents > 0 ? `${formatCentsExact(totals.grossCents)} collected, all refunded` : "Refunded", nextActor: null, nextAction: null, at: invoice.updatedAt.toISOString(), source: "Invoice.status", execution: "confirmed" }
           : claimed
             ? { state: "needs_you", evidence: `${who} says they paid; not confirmed`, nextActor: "you", nextAction: "Confirm the money arrived", at: invoice.updatedAt.toISOString(), source: "Payment (claimed)", execution: "unknown" }
-            : { state: "waiting", evidence: collected > 0 ? `${formatCentsExact(collected)} of ${formatCentsExact(invoice.amountCents)} collected` : "Nothing collected yet", nextActor: "customer", nextAction: `${who} pays`, at: invoice.updatedAt.toISOString(), source: "Payment" }),
+            : { state: "waiting", evidence: collected > 0 ? `${formatCentsExact(collected)} of ${formatCentsExact(invoice.amountCents)} collected${refundNote}` : "Nothing collected yet", nextActor: "customer", nextAction: `${who} pays`, at: invoice.updatedAt.toISOString(), source: "Payment" }),
     );
   }
 
@@ -466,6 +469,8 @@ export async function buildOutcome(businessId: string, target: { jobId?: string 
       totalCents: invoice?.subtotalCents ?? job?.finalAmountCents ?? (job?.estimate?.status === "accepted" ? job.estimate.amountCents : null),
       billedCents: invoice?.amountCents ?? null,
       collectedCents: invoice ? collectedCents(invoice.payments) : 0,
+      refundedCents: invoice ? moneyTotals(invoice.payments).refundedCents : 0,
+      keptCents: invoice ? moneyTotals(invoice.payments).netCents : 0,
     },
     synthetic: simulated || shop.environment !== "production",
     updatedAt: now.toISOString(),
@@ -476,5 +481,5 @@ const outcomeJobInclude = {
   technician: { select: { id: true, name: true, phone: true } },
   customer: { select: { name: true, phone: true } },
   estimate: { select: { amountCents: true, status: true } },
-  invoices: { orderBy: { createdAt: "desc" as const }, take: 1, include: { payments: { select: { amountCents: true, status: true, method: true } } } },
+  invoices: { orderBy: { createdAt: "desc" as const }, take: 1, include: { payments: { select: { amountCents: true, status: true, method: true, refundedCents: true } } } },
 } as const;

@@ -1354,3 +1354,7 @@ CREATE TABLE IF NOT EXISTS "SetupDraft" (
     "json" TEXT NOT NULL,
     "updatedAt" DATETIME NOT NULL
 );
+
+-- Refund ledger: Stripe's cumulative refund recorded on the payment or deposit it was for.
+ALTER TABLE "Payment" ADD COLUMN "refundedCents" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "Deposit" ADD COLUMN "refundedCents" INTEGER NOT NULL DEFAULT 0;

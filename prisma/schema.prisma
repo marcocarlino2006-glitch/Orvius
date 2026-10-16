@@ -1182,15 +1182,20 @@ model Invoice {
 }
 
 model Payment {
-  id          String   @id @default(cuid())
-  businessId  String
-  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  invoiceId   String
-  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  amountCents Int
-  status      String   @default("recorded")
-  method      String?
-  createdAt   DateTime @default(now())
+  id            String   @id @default(cuid())
+  businessId    String
+  business      Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  invoiceId     String
+  invoice       Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  amountCents   Int
+  status        String   @default("recorded")
+  method        String?
+  /**
+   * Stripe's cumulative refund on this payment's charge, capped at amountCents
+   * and only ever raised. amountCents stays the original receipt.
+   */
+  refundedCents Int      @default(0)
+  createdAt     DateTime @default(now())
 
   @@index([businessId, createdAt])
   @@index([invoiceId])
@@ -1232,6 +1237,11 @@ model Deposit {
    * What Orvius earned here, stamped at fulfilment and never recomputed.
    */
   applicationFeeCents   Int?
+  /**
+   * Stripe's cumulative refund on the deposit charge, capped at amountCents and
+   * only ever raised. amountCents stays the original receipt.
+   */
+  refundedCents         Int       @default(0)
   sentAt                DateTime?
   paidAt                DateTime?
   createdAt             DateTime  @default(now())

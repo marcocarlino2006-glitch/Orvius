@@ -234,7 +234,7 @@ export async function getInvoiceByToken(token: string) {
     where: { publicToken: token },
     include: {
       job: { select: { title: true, completedAt: true } },
-      payments: { select: { amountCents: true, status: true } },
+      payments: { select: { amountCents: true, status: true, refundedCents: true } },
       business: {
         select: {
           id: true,

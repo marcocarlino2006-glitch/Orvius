@@ -129,8 +129,10 @@ test("6. a payment that arrives after the bill is settled is held for a person, 
   assert.match(exception.observedJson, /late_session_payment/);
 });
 
-test("7. refunds touch only their payment: partial leaves status, full reopens the card share, cash stays collected", async () => {
+test("7. refunds touch only their payment and never reopen the bill: the refund is recorded beside the receipt and the owner decides", async () => {
   const { business, job } = await shopWithJob();
+  const account = `acct_${uid()}`;
+  await prisma.business.update({ where: { id: business.id }, data: { stripeConnectAccountId: account } });
   const { invoice } = await upsertJobInvoice({ businessId: business.id, jobId: job.id, totalCents: 30_000 });
   assert.equal((await recordShopPayment({ businessId: business.id, invoiceId: invoice.id, jobId: job.id, method: "cash", amountCents: 10_000, actor: "owner" })).paid, false);
   const card = paidSession(invoice, business.id, 20_000);
@@ -138,17 +140,21 @@ test("7. refunds touch only their payment: partial leaves status, full reopens t
   assert.equal((await prisma.invoice.findUnique({ where: { id: invoice.id } })).status, "paid");
 
   const meta = { kind: "invoice_pay", invoiceId: invoice.id, businessId: business.id };
-  const partial = await applyChargeRefund({ metadata: meta, amountRefundedCents: 5_000, fullyRefunded: false, chargeId: `ch_${uid()}`, sessionId: card.id });
-  assert.deepEqual(partial, { applied: "invoice", id: invoice.id, full: false });
+  const chargeId = `ch_${uid()}`;
+  const partial = await applyChargeRefund({ metadata: meta, amountRefundedCents: 5_000, fullyRefunded: false, chargeId, sessionId: card.id, account });
+  assert.equal(partial.applied, "invoice");
+  assert.equal(partial.full, false);
   assert.equal((await prisma.invoice.findUnique({ where: { id: invoice.id } })).status, "paid", "a partial refund is recorded, not a status change");
+  assert.equal((await prisma.payment.findFirst({ where: { invoiceId: invoice.id, method: `stripe:${card.id}` } })).refundedCents, 5_000);
 
-  const full = await applyChargeRefund({ metadata: meta, amountRefundedCents: 20_000, fullyRefunded: true, chargeId: `ch_${uid()}`, sessionId: card.id });
+  const full = await applyChargeRefund({ metadata: meta, amountRefundedCents: 20_000, fullyRefunded: true, chargeId, sessionId: card.id, account });
   assert.equal(full.full, true);
-  assert.equal((await prisma.invoice.findUnique({ where: { id: invoice.id } })).status, "partial", "the cash is still collected");
+  assert.equal((await prisma.invoice.findUnique({ where: { id: invoice.id } })).status, "paid", "a refund never makes the customer owe again on its own");
   const rows = await prisma.payment.findMany({ where: { invoiceId: invoice.id }, orderBy: { createdAt: "asc" } });
-  assert.deepEqual(rows.map((p) => [p.method, p.status]), [["cash", "recorded"], [`stripe:${card.id}`, "refunded"]]);
+  assert.deepEqual(rows.map((p) => [p.method, p.amountCents, p.refundedCents]), [["cash", 10_000, 0], [`stripe:${card.id}`, 20_000, 20_000]], "the original receipt stays");
+  assert.ok(await prisma.reconciliationException.findFirst({ where: { businessId: business.id, entityId: invoice.id, observedJson: { contains: "refund_on_settled_bill" } } }), "the owner decides whether it's owed again");
 
-  const stray = await applyChargeRefund({ metadata: meta, amountRefundedCents: 20_000, fullyRefunded: true, chargeId: `ch_${uid()}`, sessionId: "cs_never_recorded" });
+  const stray = await applyChargeRefund({ metadata: meta, amountRefundedCents: 20_000, fullyRefunded: true, chargeId: `ch_${uid()}`, sessionId: "cs_never_recorded", account });
   assert.deepEqual(stray, { applied: null, reason: "duplicate_charge" }, "refunding an unrecorded charge changes nothing");
 });
 

@@ -9,7 +9,8 @@ export const REPORT_PERIODS: Array<{ id: ReportPeriodId; label: string }> = [
 /** Below this many sent estimates a close rate is noise, so it isn't shown. */
 export const MIN_ESTIMATES_FOR_RATE = 3;
 
-export type MoneyRow = { amountCents: number; technicianId: string | null; source: string | null; kind: "invoice" | "deposit" };
+/** One receipt as it came in; `refundedCents` is how much of it went back out. */
+export type MoneyRow = { amountCents: number; refundedCents?: number; technicianId: string | null; source: string | null; kind: "invoice" | "deposit" };
 export type EstimateRow = { amountCents: number; won: boolean; technicianId: string | null };
 export type JobRow = { technicianId: string | null };
 export type CallLeadRow = { booked: boolean };
@@ -20,7 +21,10 @@ export type ReportRow = { key: string; label: string; collectedCents: number; pa
 export type OpenInvoiceRow = { id: string; label: string; jobId: string | null; amountCents: number; balanceCents: number; agedDays: number };
 
 export type OwnerReport = {
+  /** What the shop kept: receipts less refunds. Not revenue, and not what anyone owes. */
   collectedCents: number;
+  /** Receipts as they came in, what was refunded, and what was kept. */
+  money?: { grossCents: number; refundedCents: number; netCents: number };
   previousCollectedCents: number;
   payments: number;
   averageInvoiceCents: number | null;
