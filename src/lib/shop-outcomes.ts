@@ -1,5 +1,5 @@
 import { isAfterHours } from "@/lib/business";
-import { RECEIPT_STATUSES, addTotals, moneyTotals, type MoneyTotals } from "@/lib/payment-math";
+import { COLLECTED_STATUSES, addTotals, moneyTotals, type MoneyTotals } from "@/lib/payment-math";
 import { estimatedRevenueCents, formatCentsExact } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
 
@@ -175,7 +175,8 @@ export async function getShopOutcomes(
       where: {
         businessId,
         createdAt: { gte: since },
-        status: { in: RECEIPT_STATUSES },
+        // Refunded rows still came in once; their refunds come off below. Claims never count.
+        status: { in: [...COLLECTED_STATUSES, "refunded"] },
       },
       select: { amountCents: true, status: true, refundedCents: true },
     }),
