@@ -329,9 +329,14 @@ export async function PATCH(request: Request, { params }: Params) {
     outcome = await buildOutcome(business.id, { jobId: id }).catch(() => null);
     invoice = outcome?.stages.find((s) => s.stage === "invoice") ?? null;
     if (outcome) {
-      const who = { actor: personActor(authResult).actor as "owner" | "teammate", email: authResult.email };
-      await recordWorkflowDecision(outcome, "recorded_completion", who, id);
-      await recordWorkflowProgress(outcome, who);
+      /* The job is already done; reporting can't turn that into an error. */
+      try {
+        const who = { actor: personActor(authResult).actor as "owner" | "teammate", email: authResult.email };
+        await recordWorkflowDecision(outcome, "recorded_completion", who, id);
+        await recordWorkflowProgress(outcome, who);
+      } catch (error) {
+        logWarn("workflow.report_failed", { jobId: id, error: error instanceof Error ? error.message : "unknown" });
+      }
     }
   }
 

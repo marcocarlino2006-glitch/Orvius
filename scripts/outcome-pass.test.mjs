@@ -194,6 +194,25 @@ test("done with a total but no bill stays a visible item until a bill exists", a
   assert.equal(item.nextAction, "Create and send the bill");
 });
 
+test("a reporting failure after completion never turns the completed job into an error", async () => {
+  const shop = await demoShop();
+  const request = await lead(shop);
+  await book();
+  const job = await prisma.job.findFirstOrThrow({ where: { leadId: request.id } });
+  const original = prisma.auditEvent.findMany;
+  prisma.auditEvent.findMany = async () => {
+    throw new Error("injected reporting failure");
+  };
+  let done;
+  try {
+    done = await fieldDone(shop, job.id);
+  } finally {
+    prisma.auditEvent.findMany = original;
+  }
+  assert.equal(done.status, 200, "the owner isn't told to do it again");
+  assert.equal((await prisma.job.findUniqueOrThrow({ where: { id: job.id } })).status, "completed");
+});
+
 test("completion is refused to AI and system actors", async () => {
   const shop = await demoShop();
   const request = await lead(shop);

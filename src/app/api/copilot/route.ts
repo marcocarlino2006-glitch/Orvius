@@ -7,6 +7,7 @@ import { personActor, recordAudit } from "@/lib/audit";
 import { sharedRateLimit, tooManyRequests } from "@/lib/rate-limit";
 import { requireEntitledSession } from "@/lib/tenant";
 import { grantsForActor, mayResolve, mayWithdraw } from "@/lib/command-authority";
+import { logWarn } from "@/lib/logger";
 import { buildOutcome } from "@/lib/outcome";
 import { recordWorkflowDecision, recordWorkflowProgress, recordWorkflowStart } from "@/lib/workflow-events";
 import { z } from "zod";
@@ -183,12 +184,17 @@ export async function POST(request: Request) {
       const jobId = typeof outcome.result?.jobId === "string" ? outcome.result.jobId : null;
       const leadId = typeof outcome.result?.leadId === "string" ? outcome.result.leadId : null;
       const view = jobId || leadId ? await buildOutcome(business.id, { jobId, leadId }).catch(() => null) : null;
+      /* The plan already ran; reporting is best-effort, so it can never turn a success into an error the owner retries. */
       if (view) {
-        const who = { actor: personActor(authResult).actor as "owner" | "teammate", email: authResult.email };
-        const action = await prisma.copilotAction.findUnique({ where: { id: outcome.proposalId }, select: { action: true } });
-        if (action?.action === "book_window") await recordWorkflowStart(view, who, "Command");
-        await recordWorkflowDecision(view, action?.action === "assign_tech" ? "chose_assignment" : "approved_plan", who, outcome.proposalId);
-        await recordWorkflowProgress(view, who);
+        try {
+          const who = { actor: personActor(authResult).actor as "owner" | "teammate", email: authResult.email };
+          const action = await prisma.copilotAction.findUnique({ where: { id: outcome.proposalId }, select: { action: true } });
+          if (action?.action === "book_window") await recordWorkflowStart(view, who, "Command");
+          await recordWorkflowDecision(view, action?.action === "assign_tech" ? "chose_assignment" : "approved_plan", who, outcome.proposalId);
+          await recordWorkflowProgress(view, who);
+        } catch (error) {
+          logWarn("workflow.report_failed", { proposalId: outcome.proposalId, error: error instanceof Error ? error.message : "unknown" });
+        }
       }
       return NextResponse.json({ ...outcome, outcome: view });
     }
