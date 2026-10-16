@@ -1,5 +1,6 @@
 "use client";
 
+import { LAUNCH_SCOPE_LINE } from "@/lib/trades";
 import { useState } from "react";
 import { safeCallbackUrl } from "@/lib/safe-callback";
 import { signIn } from "next-auth/react";
@@ -114,6 +115,8 @@ export function SignInPanel({
       ) : mode === "signup" ? (
         <p className="ov-signin-sub">
           Set up your shop and hear a test call before you pay. First {MONEY_BACK_DAYS} days money back.
+          <br />
+          Open to {LAUNCH_SCOPE_LINE.toLowerCase()} shops. Another trade? <a href="/trades#interest">Join the interest list</a>.
         </p>
       ) : null}
 

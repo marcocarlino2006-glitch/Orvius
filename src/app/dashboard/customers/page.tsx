@@ -1,5 +1,6 @@
 "use client";
 
+import { LoadFailure, SESSION_EXPIRED } from "@/components/load-failure";
 import { CustomerPanel } from "@/components/customer-panel";
 import { CustomerRecordCard } from "@/components/customer-record-card";
 import { ProLead } from "@/components/pro-lead";
@@ -39,6 +40,7 @@ export default function CustomersPage() {
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [forgotten, setForgotten] = useState<"done" | "pending" | null>(null);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     const state = new URLSearchParams(window.location.search).get("forgotten");
@@ -58,13 +60,13 @@ export default function CustomersPage() {
       setError(null);
       fetch(url, { signal: controller.signal })
         .then(async (res) => {
-          if (!res.ok) throw new Error("Failed to load customers");
+          if (!res.ok) throw new Error(res.status === 401 ? SESSION_EXPIRED : "Customers didn't load. Nothing changed; try again.");
           return res.json();
         })
         .then((data) => setCustomers(data.customers ?? []))
         .catch((err) => {
           if (err instanceof DOMException && err.name === "AbortError") return;
-          setError(err instanceof Error ? err.message : "Failed to load customers");
+          setError(err instanceof Error ? err.message : "Customers didn't load. Nothing changed; try again.");
         })
         .finally(() => {
           if (!controller.signal.aborted) setLoading(false);
@@ -75,7 +77,7 @@ export default function CustomersPage() {
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [query]);
+  }, [query, attempt]);
 
   const tally = useMemo(() => {
     const returning = customers.filter((c) => c.returning).length;
@@ -107,10 +109,11 @@ export default function CustomersPage() {
           Their data is deleted from Orvius. Copies at our call providers are still being deleted; Orvius retries daily and records it in the activity log when each one is confirmed.
         </ShellAlert>
       ) : null}
-      {loading && !customers.length ? (
+      {loading && !customers.length && !error ? (
         <DashboardSkeleton />
       ) : (
         <>
+          {error && !customers.length ? null : (
           <ProLead
             loading={loading && !customers.length}
             figure={tally.repeatRate ?? String(customers.length)}
@@ -124,6 +127,7 @@ export default function CustomersPage() {
                 : [{ label: "Returning", value: tally.returning }]
             }
           />
+          )}
 
           <ProSearchBar
             value={query}
@@ -134,13 +138,13 @@ export default function CustomersPage() {
 
           {error ? (
             <div className="mb-4">
-              <ShellAlert tone="error">{error}</ShellAlert>
+              <LoadFailure title="Customers not loaded" error={error} onRetry={() => setAttempt((n) => n + 1)} />
             </div>
           ) : null}
 
           {loading ? (
             <DashboardSkeleton />
-          ) : !customers.length ? (
+          ) : error && !customers.length ? null : !customers.length ? (
             <ProEmptyState
               title="No customers yet"
               body="They appear automatically when someone calls or texts your shop line."

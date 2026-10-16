@@ -1,5 +1,6 @@
 "use client";
 
+import { LoadFailure, SESSION_EXPIRED } from "@/components/load-failure";
 import { RecordLink } from "@/components/record-drawer";
 import { ProLead } from "@/components/pro-lead";
 import { OsShell } from "@/components/os-shell";
@@ -235,7 +236,7 @@ export default function DispatchPage() {
     setError(null);
     fetch(picked ? `/api/dispatch?day=${picked}` : "/api/dispatch")
       .then(async (res) => {
-        if (!res.ok) throw new Error(res.status === 401 ? "Your session expired. Sign in again." : "The schedule didn't load. Nothing changed; try again.");
+        if (!res.ok) throw new Error(res.status === 401 ? SESSION_EXPIRED : "The schedule didn't load. Nothing changed; try again.");
         return res.json();
       })
       .then(setBoard)
@@ -382,15 +383,7 @@ export default function DispatchPage() {
           {loading && board && view === "day" ? <span className="dsp-refreshing">Refreshing…</span> : null}
         </div>
 
-        {error ? (
-          <div className="ox-state ox-state--failure ox-state--inline" role="alert">
-            <p className="ox-state-title">Schedule not updated</p>
-            <p className="ox-state-copy">{error}</p>
-            <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" onClick={load}>
-              Retry
-            </button>
-          </div>
-        ) : null}
+        {error ? <LoadFailure title="Schedule not updated" error={error} onRetry={load} /> : null}
 
         {loading && !board ? (
           <div className="dsp-grid" aria-hidden>

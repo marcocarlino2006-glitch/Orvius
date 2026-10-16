@@ -37,7 +37,7 @@ export function PricingPagePlans({ selfServeReady = true, terms }: { selfServeRe
         <PricingBillingToggle value={interval} onChange={setInterval} />
         <p className="pricing-page-controls-note font-sans">
           {interval === "year"
-            ? "Annual prices are shown per month and charged once a year."
+            ? `Annual prices are shown per month and charged once a year. Annual prepays the plan only: the included calls are still per month, and calls past them are ${OVERAGE_CENTS_PER_CALL}¢ each, invoiced monthly, the same as on monthly billing.`
             : "Monthly prices, charged each month. Cancel any time."}{" "}
           First {MONEY_BACK_DAYS} days money back, once per shop.{" "}
           Included calls reset on the 1st; each call past the allowance is {OVERAGE_CENTS_PER_CALL}¢, invoiced after the month ends.

@@ -1,5 +1,6 @@
 "use client";
 
+import { LoadFailure, SESSION_EXPIRED } from "@/components/load-failure";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { AddTechnician, CrewMember, FormerCrew, parseSkills, type CrewTech } from "@/components/crew-editor";
@@ -93,7 +94,7 @@ export default function TeamPage() {
     fetch("/api/team/crew", { cache: "no-store" })
       .then(async (res) => {
         if (res.status === 402 || res.status === 403) return null;
-        if (!res.ok) throw new Error(res.status === 401 ? "Your session expired. Sign in again." : "The crew didn't load. Nothing changed; try again.");
+        if (!res.ok) throw new Error(res.status === 401 ? SESSION_EXPIRED : "The crew didn't load. Nothing changed; try again.");
         return res.json();
       })
       .then((json) => json && setData(json))
@@ -126,15 +127,7 @@ export default function TeamPage() {
           Crew {data ? <span className="tm-count">{crew.length}</span> : null}
         </h2>
         <PlanUpgradeGate module="dispatch">
-          {error ? (
-            <div className="ox-state ox-state--failure ox-state--inline" role="alert">
-              <p className="ox-state-title">Crew not loaded</p>
-              <p className="ox-state-copy">{error}</p>
-              <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" onClick={load}>
-                Retry
-              </button>
-            </div>
-          ) : null}
+          {error ? <LoadFailure title="Crew not loaded" error={error} onRetry={load} /> : null}
           {loading && !data ? (
             <div className="tm-loading" aria-busy>
               <span className="skeleton" style={{ width: "50%", height: 14 }} />
