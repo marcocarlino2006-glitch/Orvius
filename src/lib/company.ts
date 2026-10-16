@@ -49,7 +49,7 @@ export const company = {
   searchTitle: "Orvius — AI Receptionist for HVAC, Plumbing & Electrical",
   /** The caption under it. Google cuts at about 155 characters. */
   searchDescription:
-    "Orvius answers your calls, books the work on your real schedule, keeps customers updated by text and shows you what happened. Crew dispatch and coordination ride on the Pro and Fleet plans.",
+    "Orvius answers your calls, books work on your real schedule, texts customers updates and shows what happened. Crew dispatch is on Pro and Fleet.",
   categoryClaim:
     "For heating & cooling, plumbing and electrical businesses: the receptionist answers and brings in the work; Command qualifies it, schedules it, assigns your people on Pro and Fleet plans, keeps the customer updated, records the finished job and follows up. Callers who want a person are transferred to the owner's phone when a transfer number is set; otherwise they land on the board for a callback.",
   proofLine: "Missed calls get answered — and booked when they qualify.",

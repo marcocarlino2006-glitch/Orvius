@@ -676,21 +676,21 @@ html[data-theme="day"] body .os-shell.os-shell-night {
   --ox-btn-hover: rgb(22 21 19 / 0.05);
   --ox-radius: 0.25rem;
   --ox-radius-sm: 0.1875rem;
-  background: #f4f1e8 !important;
-  color: #161513 !important;
+  background: var(--ox-bg) !important;
+  color: var(--ox-text) !important;
 }
 html[data-theme="day"] body .os-shell.os-shell-night :is(.os-main, .os-content, .os-main > .page-enter) {
-  background: #f4f1e8 !important;
+  background: var(--ox-bg) !important;
   background-image: none !important;
 }
 html[data-theme="day"] body .os-shell.os-shell-night .os-sidebar {
-  background: #f4f1e8 !important;
-  border-right: 1px solid #e4dfd4 !important;
+  background: var(--ox-bg) !important;
+  border-right: 1px solid var(--ox-line) !important;
   box-shadow: none !important;
 }
 html[data-theme="day"] body .os-shell.os-shell-night .os-topbar {
-  background: #f4f1e8 !important;
-  border-bottom: 1px solid #e4dfd4 !important;
+  background: var(--ox-bg) !important;
+  border-bottom: 1px solid var(--ox-line) !important;
   box-shadow: none !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
@@ -700,7 +700,7 @@ html[data-theme="day"] body .os-shell.os-shell-night .os-nav-link-active {
   background: transparent !important;
   box-shadow: none !important;
   font-weight: 650 !important;
-  color: #161513 !important;
+  color: var(--ox-text) !important;
 }
 html[data-theme="day"] body .os-shell.os-shell-night .os-nav-link:hover {
   background: rgb(22 21 19 / 0.04) !important;
@@ -709,7 +709,7 @@ html[data-theme="day"] body .os-shell.os-shell-night .mx-env {
   display: none;
 }
 html[data-theme="day"] body .os-shell.os-shell-night .jv-missing {
-  color: #6b675f !important;
+  color: var(--ox-mute) !important;
   font-weight: 450 !important;
 }
 
@@ -734,7 +734,7 @@ html[data-theme="day"] body .os-shell.os-shell-night .dsp-section:has(> .dsp-gri
 }
 html[data-theme="day"] body .os-shell.os-shell-night .pro-panel-head {
   padding: 0 0 0.5rem !important;
-  border-bottom: 1px solid #e4dfd4 !important;
+  border-bottom: 1px solid var(--ox-line) !important;
 }
 html[data-theme="day"] body .os-shell.os-shell-night .pro-panel-body,
 html[data-theme="day"] body .os-shell.os-shell-night .pro-panel--dense .pro-panel-body {
@@ -745,7 +745,7 @@ html[data-theme="day"] body .os-shell.os-shell-night .rec-title {
   font-size: 0.8125rem !important;
   font-weight: 600 !important;
   letter-spacing: 0.02em !important;
-  color: #6b675f !important;
+  color: var(--ox-mute) !important;
 }
 
 html[data-theme="day"] body .os-shell.os-shell-night .cmd-headline {
@@ -768,7 +768,7 @@ html[data-theme="day"] body .os-shell.os-shell-night .wc-list {
 html[data-theme="day"] body .os-shell.os-shell-night .wc-list .wc {
   padding: 1.125rem 0 !important;
   border: 0 !important;
-  border-bottom: 1px solid #e4dfd4 !important;
+  border-bottom: 1px solid var(--ox-line) !important;
   border-radius: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
@@ -815,7 +815,7 @@ html[data-theme="day"] body .os-shell.os-shell-night .cb-ask-chip {
 }
 html[data-theme="day"] body .os-shell.os-shell-night :is(.cb-ask-stack, .cb-ask-form) {
   border: 0 !important;
-  border-bottom: 1px solid #e4dfd4 !important;
+  border-bottom: 1px solid var(--ox-line) !important;
   border-radius: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
@@ -826,7 +826,7 @@ html[data-theme="day"] body .os-shell.os-shell-night .cmd-today {
 }
 html[data-theme="day"] body .os-shell.os-shell-night .cmd-today-lane {
   border: 0 !important;
-  border-bottom: 1px solid #e4dfd4 !important;
+  border-bottom: 1px solid var(--ox-line) !important;
   border-radius: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
@@ -852,7 +852,7 @@ html[data-theme="day"] body .os-shell.os-shell-night .cmd-issues {
 }
 html[data-theme="day"] body .os-shell.os-shell-night .cc-rail .cs-card {
   border: 0;
-  border-bottom: 1px solid #e4dfd4;
+  border-bottom: 1px solid var(--ox-line);
   border-radius: 0;
   background: transparent;
   box-shadow: none;
@@ -865,40 +865,40 @@ html[data-theme="day"] body .os-shell.os-shell-night .cc-rail .cs-value {
   font-variant-numeric: tabular-nums;
 }
 html[data-theme="day"] body .os-shell.os-shell-night :is(.ox-btn--primary, .btn-void) {
-  background: #161513 !important;
-  color: #f4f1e8 !important;
+  background: var(--ox-text) !important;
+  color: var(--ox-bg) !important;
   box-shadow: none !important;
-  border-color: #161513 !important;
+  border-color: var(--ox-text) !important;
   border-radius: 0.25rem !important;
 }
 html[data-theme="day"] body .os-shell.os-shell-night :is(.ox-btn--quiet, .btn-secondary, .wc-more > summary) {
   background: transparent !important;
   box-shadow: none !important;
   border-color: transparent !important;
-  color: #161513 !important;
+  color: var(--ox-text) !important;
   padding-left: 0.25rem !important;
   padding-right: 0.25rem !important;
 }
 html[data-theme="day"] body .os-shell.os-shell-night .os-topbar-search {
   background: transparent !important;
   box-shadow: none !important;
-  border-color: #d4cec2 !important;
+  border-color: var(--ox-line-strong) !important;
   border-radius: 0.25rem !important;
 }
 html[data-theme="day"] body .os-shell.os-shell-night :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea, .wc-select) {
   background-color: transparent !important;
-  border-color: #d4cec2 !important;
+  border-color: var(--ox-line-strong) !important;
   box-shadow: none !important;
   border-radius: 0 !important;
 }
 html[data-theme="day"] body .os-shell.os-shell-night :is(input, select, textarea, .wc-select):focus-visible {
-  border-color: #161513 !important;
+  border-color: var(--ox-text) !important;
   box-shadow: none !important;
 }
 html[data-theme="day"] body .os-shell.os-shell-night .rec-field {
   background: transparent !important;
   border: 0 !important;
-  border-bottom: 1px solid #d4cec2 !important;
+  border-bottom: 1px solid var(--ox-line-strong) !important;
   box-shadow: none !important;
 }
 html body .os-shell.os-shell-night .cmd-lockbar {

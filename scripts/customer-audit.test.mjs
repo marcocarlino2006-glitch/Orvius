@@ -116,7 +116,7 @@ test("test mode shows no plan and no charge, with the way to go live", () => {
 });
 
 test("signup says what happens before paying; sample activity is labelled as samples", () => {
-  assert.match(read("src/components/signin-panel.tsx"), /hear your line take its first call/);
+  assert.match(read("src/components/signin-panel.tsx"), /hear a test call before you pay/);
   assert.match(read("src/components/signin-board.tsx"), /not real customers/);
 });
 
