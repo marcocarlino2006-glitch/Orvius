@@ -246,4 +246,3 @@ CREATE INDEX IF NOT EXISTS "FinancialGrant_businessId_granteeEmail_idx" ON "Fina
 
 -- CreateIndex
 CREATE UNIQUE INDEX IF NOT EXISTS "MessagingSender_identity_key" ON "MessagingSender"("identity");
-

@@ -150,7 +150,7 @@ Migration first, then the push. Nothing below has been run against production.
 
 ### The migration
 
-`prisma/releases/2026-10-16-merge-all.sql`, sha256 `e45eaac768e3bb3259012a887bda6d33c9fd76465a6b9d90b447b5c217b15134`. It is the output of `prisma migrate diff` from the `schema.prisma` on main at `39b17d77ffaf595dbc71c070ca68fdb351344be4` to this branch, with every CREATE made IF NOT EXISTS. It has 36 statements: 9 nullable TEXT columns on `Call`, `CopilotAction` and `NetworkHandoff`, 11 new tables and 16 indexes. Nothing is dropped, rebuilt, backfilled or read. The full historical `turso-migrate.sql` is not run, and `receivables-v1.sql` is not part of this release (no app code uses it).
+`prisma/releases/2026-10-16-merge-all.sql`, sha256 `9da90192fbe9246ede1bd13a3d2c58eb0969fe691b30ce1a758295e6cb1a99e5`. It is the output of `prisma migrate diff` from the `schema.prisma` on main at `39b17d77ffaf595dbc71c070ca68fdb351344be4` to this branch, with every CREATE made IF NOT EXISTS. It has 36 statements: 9 nullable TEXT columns on `Call`, `CopilotAction` and `NetworkHandoff`, 11 new tables and 16 indexes. Nothing is dropped, rebuilt, backfilled or read. The full historical `turso-migrate.sql` is not run, and `receivables-v1.sql` is not part of this release (no app code uses it).
 
 ### Rehearsal (disposable SQLite files only)
 
@@ -180,7 +180,7 @@ Migration first, then the push. Nothing below has been run against production.
 2. Add the production host (no credentials) to `production` in `ops/migration-targets.json` and commit. That commit is the release commit `R`.
 3. Backup: create a Turso copy of the production database (`turso db create <name> --from-db <prod>`), confirm it exists, that `release-schema-check before` matches on it, and that its per-table row counts equal production's. Record the UTC time as the point-in-time fallback. The nightly encrypted backup (last run green) is the second copy.
 4. Pre-flight on production: `node scripts/release-schema-check.mjs before prisma/releases/2026-10-16-merge-all.sql`. Stop unless it matches.
-5. Apply: `MIGRATION_APPROVAL=<ref> MIGRATION_RELEASE_COMMIT=<R> MIGRATION_TARGET=production MIGRATION_PLAN_FILE=prisma/releases/2026-10-16-merge-all.sql MIGRATION_PLAN_SHA256=e45eaac768e3bb3259012a887bda6d33c9fd76465a6b9d90b447b5c217b15134 MIGRATION_BACKUP_REF=<copy name and time> npm run db:migrate:turso`. Stop on any error.
+5. Apply: `MIGRATION_APPROVAL=<ref> MIGRATION_RELEASE_COMMIT=<R> MIGRATION_TARGET=production MIGRATION_PLAN_FILE=prisma/releases/2026-10-16-merge-all.sql MIGRATION_PLAN_SHA256=9da90192fbe9246ede1bd13a3d2c58eb0969fe691b30ce1a758295e6cb1a99e5 MIGRATION_BACKUP_REF=<copy name and time> npm run db:migrate:turso`. Stop on any error.
 6. Verify: `node scripts/release-schema-check.mjs after` matches, and the ledger row for `R` is `applied`.
 7. `git push origin <R>:main`, a fast-forward with no force. Stop if it is rejected.
 8. Check the Vercel production deployment for `R` on GitHub, the automatic Production verify run, and `/api/health`.
