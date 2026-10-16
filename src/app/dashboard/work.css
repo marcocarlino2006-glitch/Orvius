@@ -1475,28 +1475,6 @@ a.cmd-feed-text:hover {
   color: var(--ox-mute);
 }
 
-.jf-photos {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
-  gap: 0.5rem;
-}
-
-.jf-thumb {
-  aspect-ratio: 1;
-  padding: 0;
-  overflow: hidden;
-  border: 1px solid var(--ox-line);
-  border-radius: var(--ox-radius-sm);
-  background: var(--ox-fill-light);
-  cursor: zoom-in;
-}
-
-.jf-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
 .jf-notes {
   display: grid;
   gap: 0.5rem;

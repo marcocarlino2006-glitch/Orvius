@@ -11,7 +11,7 @@
 }
 
 .os-shell.os-shell-night .font-sans,
-.os-shell.os-shell-night :is(h1, h2, h3, p, span, a, button, li, dt, dd, label, input, textarea, select) {
+.os-shell.os-shell-night :is(h1,  h2,  h3,  p,  span,  a,  button,  li,  dt,  dd,  label,  input,  textarea,  select) {
   font-family: var(--font-ui), system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
@@ -155,15 +155,6 @@
 }
 
 /* A critical recommendation is marked by its edge and label, not a red slab. */
-.os-shell.os-shell-night .wq-recommend.wq-sev--critical {
-  border-color: var(--ox-line-strong);
-  background: var(--ox-s2);
-  box-shadow: inset 3px 0 0 var(--ox-red);
-}
-
-.os-shell.os-shell-night .wq-recommend.wq-sev--high {
-  box-shadow: inset 3px 0 0 var(--ox-yellow);
-}
 
 @media (max-width: 640px) {
   .os-shell.os-shell-night .lead-rail-row:has(> .record-avatar) {
@@ -198,37 +189,12 @@
   flex-wrap: nowrap !important;
 }
 
-.os-shell.os-shell-night :is(.os-kv, .owner-alert-kv) dt {
-  font-size: 0.8125rem !important;
-  font-weight: 500 !important;
-  letter-spacing: 0 !important;
-  text-transform: none !important;
-  color: var(--ox-mute) !important;
-}
-
-.os-shell.os-shell-night :is(.os-kv, .owner-alert-kv) dd {
-  font-size: 0.875rem !important;
-  color: var(--ox-text) !important;
-}
-
-.os-shell.os-shell-night .os-kv-note {
-  font-size: 0.8125rem !important;
-  color: var(--ox-mute) !important;
-}
-
 .os-shell.os-shell-night .owner-alert {
   border-radius: 0.75rem !important;
   border-color: var(--ox-line) !important;
   background: var(--ox-s1) !important;
 }
 
-.os-shell.os-shell-night .owner-alert-title {
-  font-size: 1rem !important;
-  font-weight: 600 !important;
-  color: var(--ox-text) !important;
-}
-
-.os-shell.os-shell-night .owner-alert-kicker,
 .os-shell.os-shell-night .lead-status-actions-label {
   font-size: 0.75rem !important;
   font-weight: 500 !important;

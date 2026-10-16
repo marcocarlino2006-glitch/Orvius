@@ -29,7 +29,7 @@ html body .os-shell.os-shell-night .os-main {
   background-attachment: fixed !important;
 }
 
-html body .os-shell.os-shell-night :is(.os-content, .os-main > .page-enter) {
+html body .os-shell.os-shell-night :is(.os-content,  .os-main > .page-enter) {
   background: transparent !important;
 }
 
@@ -55,10 +55,9 @@ html body .os-shell.os-shell-night .os-topbar {
 /* ── Raised: every card lifts off the canvas ───────────────────────────── */
 
 html body .os-shell.os-shell-night :is(
-  .pro-panel, .wp, .wh, .transcript-cinema, .billing-summary, .op-panel,
-  .cb-ask-stack, .cmd-today-lane, .cmd-feed, .cs-grid, .dt, .ms-row,
-  .os-lead-rail, .cp-panel, .wb.pc, .ask-composer, .cb-demo, .pro-stat, .wq
-) {
+  .pro-panel,  .wp,  .wh,  .transcript-cinema,  .billing-summary,  .op-panel, 
+  .cb-ask-stack,  .cmd-today-lane,  .cmd-feed,  .cs-grid,  .dt,  .ms-row, 
+  .os-lead-rail,  .cp-panel,  .wb.pc,  .ask-composer,  .cb-demo,  .pro-stat) {
   border: 1px solid var(--dp-edge) !important;
   border-radius: 0.75rem !important;
   background: linear-gradient(180deg, var(--dp-card-top), transparent 7rem), var(--dp-card) !important;
@@ -84,53 +83,49 @@ html body .os-shell.os-shell-night .wc-list > .wc:not(.wc--page) {
 }
 
 /* A card inside a card does not lift twice. */
-html body .os-shell.os-shell-night :is(.pro-panel, .wp, .wh, .op-panel, .cp-panel) :is(.pro-panel, .wp, .wh, .op-panel) {
+html body .os-shell.os-shell-night :is(.pro-panel,  .wp,  .wh,  .op-panel,  .cp-panel) :is(.pro-panel,  .wp,  .wh,  .op-panel) {
   box-shadow: none !important;
   background: transparent !important;
 }
 
 /* ── Pressed: wells, tracks, fields ────────────────────────────────────── */
 
-html body .os-shell.os-shell-night :is(.dsp-track:not(.dsp-axis), .jf-note, .cp-prop, .cl-outcome, .wc--page, .cb-ask-form) {
+html body .os-shell.os-shell-night :is(.dsp-track:not(.dsp-axis),  .jf-note,  .cp-prop,  .cl-outcome,  .wc--page,  .cb-ask-form) {
   border-color: transparent !important;
   background: var(--dp-well) !important;
   box-shadow: var(--dp-press) !important;
 }
 
-html body .os-shell.os-shell-night :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea, .wc-select):not(.cb-ask-input, .ask-composer-input, .sc-nav-search > input) {
+html body .os-shell.os-shell-night :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),  select,  textarea,  .wc-select):not(.cb-ask-input,  .ask-composer-input,  .sc-nav-search > input) {
   border-color: var(--dp-edge) !important;
   background-color: var(--dp-well) !important;
   box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.4) !important;
 }
 
-html body .os-shell.os-shell-night :is(input, select, textarea, .wc-select):not(.cb-ask-input, .ask-composer-input, .sc-nav-search > input):focus-visible {
+html body .os-shell.os-shell-night :is(input,  select,  textarea,  .wc-select):not(.cb-ask-input,  .ask-composer-input,  .sc-nav-search > input):focus-visible {
   border-color: var(--dp-edge-hi) !important;
   box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.4), 0 0 0 3px rgb(255 255 255 / 0.06) !important;
 }
 
 /* ── Buttons: lit from above, like the homepage ones ───────────────────── */
 
-html body .os-shell.os-shell-night :is(.ox-btn--primary, .btn-void, .assign-tech-btn, .job-status-advance-btn, .attention-item-btn-primary),
-html body .os-shell .sc-btn--primary {
+html body .os-shell.os-shell-night :is(.ox-btn--primary,  .btn-void,  .assign-tech-btn,  .job-status-advance-btn), html body .os-shell .sc-btn--primary {
   background: linear-gradient(180deg, #ffffff, #e6e6e6) !important;
   border-color: rgb(255 255 255 / 0.9) !important;
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.9), 0 1px 2px rgb(0 0 0 / 0.5), 0 8px 20px -10px rgb(0 0 0 / 0.8) !important;
 }
 
-html body .os-shell.os-shell-night :is(.ox-btn--primary, .btn-void, .assign-tech-btn, .job-status-advance-btn, .attention-item-btn-primary):hover:not(:disabled),
-html body .os-shell .sc-btn--primary:hover:not(:disabled) {
+html body .os-shell.os-shell-night :is(.ox-btn--primary,  .btn-void,  .assign-tech-btn,  .job-status-advance-btn):hover:not(:disabled), html body .os-shell .sc-btn--primary:hover:not(:disabled) {
   background: linear-gradient(180deg, #ffffff, #f2f2f2) !important;
 }
 
-html body .os-shell.os-shell-night :is(.ox-btn--quiet, .btn-secondary, .os-topbar-search, .wc-more > summary),
-html body .os-shell .sc-btn:not(.sc-btn--primary) {
+html body .os-shell.os-shell-night :is(.ox-btn--quiet,  .btn-secondary,  .os-topbar-search,  .wc-more > summary), html body .os-shell .sc-btn:not(.sc-btn--primary) {
   border-color: var(--dp-edge-hi) !important;
   background: linear-gradient(180deg, rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.025)) !important;
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06), 0 1px 2px rgb(0 0 0 / 0.4) !important;
 }
 
-html body .os-shell.os-shell-night :is(.ox-btn--quiet, .btn-secondary, .os-topbar-search, .wc-more > summary):hover:not(:disabled),
-html body .os-shell .sc-btn:not(.sc-btn--primary):hover:not(:disabled) {
+html body .os-shell.os-shell-night :is(.ox-btn--quiet,  .btn-secondary,  .os-topbar-search,  .wc-more > summary):hover:not(:disabled), html body .os-shell .sc-btn:not(.sc-btn--primary):hover:not(:disabled) {
   background: linear-gradient(180deg, rgb(255 255 255 / 0.1), rgb(255 255 255 / 0.05)) !important;
 }
 
@@ -146,7 +141,7 @@ html body .os-shell.os-shell-night .wc-tag {
 
 /* ── Headline numbers carry weight ─────────────────────────────────────── */
 
-html body .os-shell.os-shell-night :is(.ms-cell dd, .pro-stat-value) {
+html body .os-shell.os-shell-night :is(.ms-cell dd) {
   font-weight: 600 !important;
   letter-spacing: -0.02em !important;
   font-variant-numeric: tabular-nums;
@@ -158,13 +153,13 @@ html body .os-shell.os-shell-night .os-topbar-title {
 
 /* ── Segmented filters: a pressed rail with the chosen tab lifted ──────── */
 
-html body .os-shell.os-shell-night :is(.jobs-pipeline, .pro-filter-bar) {
+html body .os-shell.os-shell-night :is(.jobs-pipeline,  .pro-filter-bar) {
   border: 0 !important;
   background: var(--dp-well) !important;
   box-shadow: var(--dp-press) !important;
 }
 
-html body .os-shell.os-shell-night :is(.jobs-pipeline-stage-active, .pro-filter-tab-active) {
+html body .os-shell.os-shell-night :is(.jobs-pipeline-stage-active,  .pro-filter-tab-active) {
   background: linear-gradient(180deg, rgb(255 255 255 / 0.1), rgb(255 255 255 / 0.05)) !important;
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 1px 2px rgb(0 0 0 / 0.5) !important;
   color: var(--ox-text) !important;
@@ -756,13 +751,13 @@ html[data-theme="day"] body .os-shell.os-shell-night .cc-rail .cs-value {
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
 }
-html[data-theme="day"] body .os-shell.os-shell-night :is(.ox-btn--primary, .btn-void) {
+html[data-theme="day"] body .os-shell.os-shell-night :is(.ox-btn--primary,  .btn-void) {
   background: #111316 !important;
   color: #fff !important;
   box-shadow: none !important;
   border-color: #111316 !important;
 }
-html[data-theme="day"] body .os-shell.os-shell-night :is(.ox-btn--quiet, .btn-secondary, .os-topbar-search, .wc-more > summary) {
+html[data-theme="day"] body .os-shell.os-shell-night :is(.ox-btn--quiet,  .btn-secondary,  .os-topbar-search,  .wc-more > summary) {
   background: #fff !important;
   box-shadow: none !important;
   border-color: var(--ox-line-strong) !important;

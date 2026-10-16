@@ -64,11 +64,6 @@
 }
 
 /* Command */
-.wc-owner-k {
-  margin-right: 0.25rem;
-  font-size: var(--cr-label);
-  color: var(--ox-mute);
-}
 
 .cmd-readiness {
   margin-bottom: 1rem;

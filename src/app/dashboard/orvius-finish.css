@@ -6,36 +6,31 @@
 
 /* Words: sentence case everywhere. Uppercase tracking reads as a form, not a product. */
 html .os-shell.os-shell-night :is(
-  .pro-panel-title,
-  .wp-owner-label,
-  .jf-label,
-  .transcript-cinema-speaker,
-  .transcript-cinema-kicker,
-  .transcript-cinema-foot,
-  .transcript-cinema-live,
-  .os-kv-stats-label,
-  .os-kv-notes-label,
-  .lead-status-actions-label,
-  .job-money-share-label,
-  .book-request-note,
-  .cb-plan-kicker,
-  .copilot-actions-kicker,
-  .today-priority-kicker,
-  .account-billing-pay-kicker,
-  .billing-lock-kicker,
-  .pay-prompt-kicker,
-  .plan-upgrade-gate-kicker,
-  .shop-operate-banner-kicker,
-  .os-palette-group-label,
-  .assign-tech-empty,
-  .os-ask-dock-kicker
-) {
+  .pro-panel-title, 
+  .wp-owner-label, 
+  .jf-label, 
+  .transcript-cinema-speaker, 
+  .transcript-cinema-kicker, 
+  .transcript-cinema-foot, 
+  .transcript-cinema-live, 
+  .lead-status-actions-label, 
+  .job-money-share-label, 
+  .book-request-note, 
+  .cb-plan-kicker, 
+  .copilot-actions-kicker, 
+  .today-priority-kicker, 
+  .account-billing-pay-kicker, 
+  .pay-prompt-kicker, 
+  .plan-upgrade-gate-kicker, 
+  .shop-operate-banner-kicker, 
+  .os-palette-group-label, 
+  .assign-tech-empty) {
   text-transform: none;
   letter-spacing: 0;
 }
 
 /* Panels: one surface with the title inside it, no header band. */
-html .os-shell.os-shell-night :is(.pro-panel, .wp, .wh, .transcript-cinema) {
+html .os-shell.os-shell-night :is(.pro-panel,  .wp,  .wh,  .transcript-cinema) {
   border: 1px solid var(--ox-line) !important;
   border-radius: var(--ox-radius) !important;
   background: var(--ox-s2) !important;
@@ -65,7 +60,7 @@ html .os-shell.os-shell-night .pro-panel--dense .pro-panel-body {
 }
 
 /* The two-column record pages: room between cards. */
-html .os-shell.os-shell-night :is(.os-detail-primary, .os-detail-side) {
+html .os-shell.os-shell-night :is(.os-detail-primary,  .os-detail-side) {
   gap: 1rem;
 }
 
@@ -152,7 +147,7 @@ html .os-shell.os-shell-night .pro-stat {
 }
 
 /* Tables and lists: hairline rows, no zebra. */
-html .os-shell.os-shell-night :is(.wh-event, .jf-lines td) {
+html .os-shell.os-shell-night :is(.wh-event,  .jf-lines td) {
   border-color: var(--ox-line);
 }
 

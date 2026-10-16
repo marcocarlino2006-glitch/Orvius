@@ -35,7 +35,7 @@ html .ov-signin .ov-signin-eyebrow {
 }
 
 /* The sign-in card is dark in every theme; the light theme's muted grey read at under 3:1 on it. */
-html .ov-signin :is(.ov-signin-eyebrow, .ov-signin-label, .ov-signin-board-title) {
+html .ov-signin :is(.ov-signin-eyebrow,  .ov-signin-label,  .ov-signin-board-title) {
   color: #aaa8a0 !important;
 }
 
@@ -112,7 +112,7 @@ html .ov-signin .ov-signin-row-tag--intake::before {
 }
 
 /* Buttons and table heads share the 14px control size used across the product. */
-.ov-public :is(.ov-btn, th) {
+.ov-public :is(.ov-btn,  th) {
   font-size: 0.875rem;
 }
 
@@ -274,17 +274,17 @@ html .ov-signin .ov-signin-row-tag--intake::before {
 }
 
 /* One press everywhere: marketing buttons answer the tap like app buttons do. */
-.ov-public :is(a, button) {
+.ov-public :is(a,  button) {
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
 
-.ov-public :is(.mkt-nav-cta, .inst-btn-primary, .mkt-nav-sheet-cta):active:not(:disabled) {
+.ov-public :is(.mkt-nav-cta,  .inst-btn-primary,  .mkt-nav-sheet-cta):active:not(:disabled) {
   transform: scale(0.97);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ov-public :is(.mkt-nav-cta, .inst-btn-primary, .mkt-nav-sheet-cta):active:not(:disabled) {
+  .ov-public :is(.mkt-nav-cta,  .inst-btn-primary,  .mkt-nav-sheet-cta):active:not(:disabled) {
     transform: none;
   }
 }

@@ -15,6 +15,7 @@ type Payload = {
   assignees: Array<{ email: string; role: string }>;
   technicians: Array<{ id: string; name: string }>;
   timezone: string | null;
+  approval?: { proposalId: string; preview: string } | null;
 };
 
 const TRACK = ["Request", "Booked", "Confirmed", "On the way", "On site", "Done"] as const;
@@ -167,7 +168,7 @@ export function WorkPanel({
         </div>
         {kind === "job" && !item.problems.length && !item.urgent ? null : (
           <ul className="wc-list">
-            <WorkCard item={item} technicians={data.technicians} onChange={changed} variant="page" />
+            <WorkCard item={item} approval={data.approval ?? null} technicians={data.technicians} onChange={changed} variant="page" />
           </ul>
         )}
       </section>

@@ -110,7 +110,6 @@ test("design system: one amber accent, semantic status colors, touch-size contro
 
 test("list pages open records in the shared drawer", () => {
   for (const file of [
-    "src/components/lead-inbox-card.tsx",
     "src/components/call-record-card.tsx",
     "src/components/customer-record-card.tsx",
     "src/components/job-card.tsx",

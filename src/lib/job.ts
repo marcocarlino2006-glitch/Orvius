@@ -283,6 +283,36 @@ export class SlotTakenError extends Error {
   }
 }
 
+/*
+ * One shop's bookings take the write lock one at a time. The database has a
+ * single writer, so concurrent booking transactions do not run faster — they
+ * collide, time out, and turn real bookings into errors. Queuing in the
+ * process turns a burst into latency instead of failures; the transaction's
+ * own slot re-check stays the guard across processes, where this lock cannot
+ * reach. A failed booking never jams the shop behind it.
+ */
+const bookingTurns = new Map<string, Promise<void>>();
+
+async function withBookingTurn<T>(businessId: string, fn: () => Promise<T>): Promise<T> {
+  const prev = bookingTurns.get(businessId) ?? Promise.resolve();
+  let release!: () => void;
+  const turn = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const chained = prev.then(
+    () => turn,
+    () => turn,
+  );
+  bookingTurns.set(businessId, chained);
+  await prev;
+  try {
+    return await fn();
+  } finally {
+    release();
+    if (bookingTurns.get(businessId) === chained) bookingTurns.delete(businessId);
+  }
+}
+
 /** A cold snap lands dozens of calls at once; each losing race re-picks. */
 const AUTO_PICK_ATTEMPTS = 12;
 
@@ -677,18 +707,20 @@ export async function createJobFromLead(params: {
         });
 
   let createdNow = true;
-  let job;
+  let job: Awaited<ReturnType<typeof bookInTransaction>>;
   try {
     for (let attempt = 0; ; attempt++) {
       try {
-        job = await bookInTransaction();
+        job = await withBookingTurn(lead.businessId!, bookInTransaction);
         break;
       } catch (error) {
         // A burst of callers books at once; a lock collision says nothing
         // about the slot, so the same time is tried again instead of failing
         // the caller. The transaction rolled back, so nothing half-exists.
-        if (isDatabaseBusy(error) && attempt < 2) {
-          await new Promise((resolve) => setTimeout(resolve, 200 + Math.random() * 400 * (attempt + 1)));
+        // Same-shop bookings already queue above, so this is for collisions
+        // with other shops' writes, which clear in milliseconds.
+        if (isDatabaseBusy(error) && attempt < 4) {
+          await new Promise((resolve) => setTimeout(resolve, 200 + Math.random() * 500 * (attempt + 1)));
           continue;
         }
         // A time Orvius picked is re-picked; a promised or owner-chosen time is reported, never moved.
@@ -783,10 +815,17 @@ export async function createJobFromLead(params: {
     });
   }
 
-  if (createdNow) {
+  /*
+    Committing the job and giving it a technician are one turn: the claim
+    that assigns the tech runs its own transactions, and under a burst those
+    collide the same way the booking itself does. A booking that commits and
+    then fails to assign reads as a lost booking, so the turn covers both.
+  */
+  const settleBooking = async () => {
     const actor = params.actor ?? "orvius";
     const link = {
-      businessId: lead.businessId,
+      // The guard above already threw when the lead has no business.
+      businessId: lead.businessId!,
       callId: lead.callId,
       leadId: lead.id,
       customerId,
@@ -838,7 +877,7 @@ export async function createJobFromLead(params: {
           break;
         }
         const next = await findOpenSlot({
-          businessId: lead.businessId,
+          businessId: lead.businessId!,
           urgency: lead.urgency,
           durationMin,
           skill: playbook.service.skill,
@@ -878,14 +917,19 @@ export async function createJobFromLead(params: {
       caller's webhook from waiting on Stripe and Twilio.
     */
     await audit.flush();
+    return job;
+  };
+  if (createdNow) {
+    job = await withBookingTurn(lead.businessId!, settleBooking);
     const bookedJobId = job.id;
-    const businessId = lead.businessId;
+    const businessId = lead.businessId!;
+    const confirmLink = { businessId, callId: lead.callId, leadId: lead.id, customerId, jobId: bookedJobId };
     await afterResponse(async () => {
       await closeBookingMoneyLoop({ businessId, leadId: lead.id, jobId: bookedJobId });
       try {
         const confirm = await sendCustomerConfirmSms(bookedJobId, { firstOnly: true });
         await recordAudit({
-          ...link,
+          ...confirmLink,
           entityType: "job",
           entityId: bookedJobId,
           action: confirm.sent ? "customer.confirmation_sent" : "customer.confirmation_skipped",

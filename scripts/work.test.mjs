@@ -372,6 +372,37 @@ test("/api/work/item returns the work, its history and who can take it — only 
   const other = await makeShop();
   signedInAs = other.ownerEmail;
   assert.equal((await get(`kind=request&id=${request.id}`)).status, 404);
+  signedInAs = null;
+});
+
+test("a plan waiting on approval shows on the work's own page, not just in the queues", async () => {
+  const route = await import("../src/app/api/work/item/route.ts");
+  const shop = await makeShop();
+  const request = await prisma.lead.create({ data: { businessId: shop.id, phone: phone(), status: "new", name: "Pam", serviceType: "Leak" } });
+  const proposal = await prisma.copilotAction.create({
+    data: {
+      businessId: shop.id,
+      action: "book_window",
+      paramsJson: JSON.stringify({ leadId: request.id, at: new Date(Date.now() + 86_400_000).toISOString() }),
+      preview: "Book Pam — Leak — Thu at 1:00 PM. Nothing changes until you approve.",
+      status: "proposed",
+    },
+  });
+  signedInAs = shop.ownerEmail;
+  try {
+    const res = await route.GET(new Request(`http://localhost/api/work/item?kind=request&id=${request.id}`));
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    assert.equal(body.item.approvalId, proposal.id);
+    assert.deepEqual(body.approval, { proposalId: proposal.id, preview: proposal.preview });
+
+    await prisma.copilotAction.update({ where: { id: proposal.id }, data: { status: "executed" } });
+    const after = await (await route.GET(new Request(`http://localhost/api/work/item?kind=request&id=${request.id}`))).json();
+    assert.equal(after.item.approvalId, null);
+    assert.equal(after.approval, null, "a decided plan leaves the page");
+  } finally {
+    signedInAs = null;
+  }
 });
 
 test("a time typed on a request or a job is read on the shop's clock, not the browser's", async () => {
