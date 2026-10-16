@@ -1233,4 +1233,3 @@ export async function updateJobStatus(jobId: string, status: JobStatus, options:
   }
   return prisma.job.findUniqueOrThrow({ where: { id: jobId } });
 }
-
