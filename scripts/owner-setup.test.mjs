@@ -58,7 +58,7 @@ test("onboarding state survives refresh and existing-shop conflicts", () => {
   assert.match(api, /provisioned: Boolean\(business\)/);
   assert.match(guard, /!json\.provisioned && !onOnboarding/);
   assert.match(guard, /json\.ready && onOnboarding/);
-  assert.match(wizard, /res\.status === 409 && \(await resumeExisting\(\)\)/);
+  assert.match(wizard, /res\.status === 409 && \(await resumeExisting\(\)\.catch\(\(\) => false\)\)/);
   assert.match(wizard, /OnboardingCallVerify/);
   assert.match(wizard, /setProvisionedLine/);
   assert.match(forwardGuide, /call your Orvius line once; then reply DONE/i);

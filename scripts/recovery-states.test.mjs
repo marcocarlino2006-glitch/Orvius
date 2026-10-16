@@ -53,3 +53,14 @@ test("annual pricing says the allowance and the overage rate stay monthly", asyn
   assert.equal(OVERAGE_CENTS_PER_CALL, 50, "the published rate is unchanged");
   assert.match(read("src/components/pricing-page-plans.tsx"), /Annual prepays the plan only: the included calls are still per month, and calls past them are \$\{OVERAGE_CENTS_PER_CALL\}¢ each, invoiced monthly/);
 });
+
+test("a failed check for an existing shop is unknown and retryable, never the new-shop payment form", () => {
+  const src = read("src/components/onboarding-wizard.tsx");
+  assert.match(src, /if \(!res\.ok\) throw new Error\(`resume check \$\{res\.status\}`\)/);
+  assert.match(src, /setCheckFailed\(true\)/);
+  assert.match(src, /if \(resuming \|\| checkFailed\) \{/, "the form stays hidden while the answer is unknown");
+  assert.match(src, /couldn&apos;t check whether your shop is already set up/);
+  assert.match(src, /Try again/);
+  assert.match(src, /res\.status === 401\) \{\n\s+window\.location\.href = `\/signin\?callbackUrl=/);
+  assert.match(src, /await resumeExisting\(\)\.catch\(\(\) => false\)/, "polling after checkout keeps looking through a transient error");
+});

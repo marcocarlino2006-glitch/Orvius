@@ -83,6 +83,9 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [acceptedSms, setAcceptedSms] = useState(false);
   const [resuming, setResuming] = useState(true);
+  /** The first look for an existing shop failed, so we can't tell new from already paid. */
+  const [checkFailed, setCheckFailed] = useState(false);
+  const [checkAttempt, setCheckAttempt] = useState(0);
   const [areaCode, setAreaCode] = useState("");
   const [areaCodeTouched, setAreaCodeTouched] = useState(false);
   const [numbers, setNumbers] = useState<string[] | null>(null);
@@ -177,7 +180,11 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
 
   const resumeExisting = useCallback(async () => {
     const res = await fetch("/api/onboarding?resume=1");
-    if (!res.ok) return false;
+    if (res.status === 401) {
+      window.location.href = `/signin?callbackUrl=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+      return true;
+    }
+    if (!res.ok) throw new Error(`resume check ${res.status}`);
     const json = (await res.json()) as ResumePayload;
     if (!json.provisioned || !json.business) {
       if (json.checkoutSessionId) {
@@ -234,7 +241,7 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
           }
           for (let look = 0; look < 12; look += 1) {
             await wait(2500);
-            if (await resumeExisting()) {
+            if (await resumeExisting().catch(() => false)) {
               window.localStorage.removeItem(SETUP_DRAFT_KEY);
               return;
             }
@@ -251,6 +258,7 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
   );
 
   useEffect(() => {
+    setCheckFailed(false);
     void resumeExisting()
       .then((resumed) => {
         if (resumed) return;
@@ -271,10 +279,11 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
         if (paidSession) void buildFromCheckout(paidSession);
       })
       .catch(() => {
-        /* New shops continue with the normal form. */
+        /* Unknown is not "new": showing the form here could take a second payment from a shop that already paid. */
+        setCheckFailed(true);
       })
       .finally(() => setResuming(false));
-  }, [resumeExisting, buildFromCheckout, urlSessionId]);
+  }, [resumeExisting, buildFromCheckout, urlSessionId, checkAttempt]);
 
   async function continueToPayment() {
     setSubmitting(true);
@@ -346,7 +355,7 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
 
       const json = (await res.json()) as { error?: string; line?: string | null };
       if (!res.ok) {
-        if (res.status === 409 && (await resumeExisting())) return;
+        if (res.status === 409 && (await resumeExisting().catch(() => false))) return;
         setError(json.error ?? "Setup failed. Try again.");
         return;
       }
@@ -372,7 +381,7 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
     acceptedSms &&
     !submitting;
 
-  if (resuming) {
+  if (resuming || checkFailed) {
     return (
       <main className="onboarding-shell onboarding-shell--craft onboarding-shell--night">
         <div className="onboarding-glow" aria-hidden />
@@ -383,9 +392,25 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
               {company.productName} setup
             </p>
           </header>
-          <div className="onboarding-panel" aria-busy="true">
-            <p className="onboarding-lead font-sans">Opening setup…</p>
-          </div>
+          {checkFailed && !resuming ? (
+            <div className="onboarding-panel" role="alert">
+              <p className="onboarding-lead font-sans">We couldn&apos;t check whether your shop is already set up, so nothing is shown yet and nothing was charged.</p>
+              <button
+                type="button"
+                className="ox-btn ox-btn--primary"
+                onClick={() => {
+                  setResuming(true);
+                  setCheckAttempt((n) => n + 1);
+                }}
+              >
+                Try again
+              </button>
+            </div>
+          ) : (
+            <div className="onboarding-panel" aria-busy="true">
+              <p className="onboarding-lead font-sans">Opening setup…</p>
+            </div>
+          )}
         </div>
       </main>
     );
