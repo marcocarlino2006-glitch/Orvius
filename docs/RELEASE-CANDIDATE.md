@@ -190,3 +190,15 @@ Migration first, then the push. Nothing below has been run against production.
 - Failure before step 7: production keeps serving main. A partial apply shows as a `started` ledger row; the statements are idempotent, so a fixed re-run finishes it, and main's code ignores the added tables and columns either way.
 - Bad deploy after step 7: promote the previous production deployment in Vercel, or push a revert commit. Main's code was tested on the migrated schema, so the schema stays.
 - Schema itself must go: restore the Turso copy or the point-in-time time from step 3. That loses every write after the backup, so it is for data loss only, never for a code rollback.
+
+## Refund ledger release (`cursor/operating-truth-10f0`, base `a6ab9de1`)
+
+Not applied anywhere. Prepared and rehearsed on disposable databases only.
+
+- File: `prisma/releases/2026-10-17-refund-ledger.sql`, sha256 `718732b85018cfa56fc01c9f6b65942d7e3367f3c431e6121d0eb3d0ba04de1f`. Two statements: `Payment.refundedCents` and `Deposit.refundedCents`, `INTEGER NOT NULL DEFAULT 0`. The same two lines are appended to `prisma/turso-migrate.sql` for fresh databases.
+- Compatibility: additive with a constant default, so SQLite adds the columns without rebuilding the tables, and existing rows read 0 (no refund recorded). Code from `a6ab9de1` ignores the columns and keeps working against a migrated database. The new code selects the columns, so it must not run against an unmigrated database.
+- Legacy data: rows already marked `refunded` count as fully refunded through `refundedOf`, so no backfill is needed. Partial refunds recorded before this release left no trace on the row (the old code only changed statuses), so totals for those stay as they were.
+- Rehearsal: `scripts/operating-truth.test.mjs` applies the file through `applyMigrationPlan` to a disposable database that has old-shape rows, checks they read 0, checks that inserts without the column still work, and checks that a second run changes nothing. Separately, a database built from the `a6ab9de1` `schema.prisma` and then given this file has an empty `prisma migrate diff` against the new schema, so these two columns are the whole gap.
+- Not registered: `MIGRATION_PLAN_FILES` in `scripts/turso-migrate.mjs` was left unchanged, because it is the reviewed-file allowlist for remote migration. Registering this file is a one-line change that belongs to the approval for this release. `ops/migration-targets.json` stays empty.
+- Order: back up, apply the file, verify the two columns exist, then deploy the new code.
+- Rollback: redeploy `a6ab9de1`. It reads the tables correctly with the columns present, so the columns can stay. Dropping them is not needed and would discard recorded refunds.
