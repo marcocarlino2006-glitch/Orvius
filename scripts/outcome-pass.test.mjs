@@ -184,6 +184,8 @@ test("workflow measurement rows stay out of the job's history", async () => {
   const history = await workHistory(shop.id, { kind: "job", id: job.id });
   const shown = JSON.stringify(history);
   for (const r of rows) assert.ok(!shown.includes(r.id), "no workflow row in the history");
+  const observed = await prisma.auditEvent.findMany({ where: { businessId: shop.id, action: "workflow.stage_done" }, select: { actor: true, actorEmail: true } });
+  assert.ok(observed.length && observed.every((r) => r.actor === "system" && r.actorEmail === null), "a stage is the records' observation, not the owner's act");
 });
 
 test("a bill that was sent and later reported undelivered stays on the board", async () => {
@@ -194,10 +196,31 @@ test("a bill that was sent and later reported undelivered stays on the board", a
   await fieldDone(shop, job.id);
   const bill = await prisma.invoice.findFirstOrThrow({ where: { jobId: job.id } });
   await prisma.invoice.update({ where: { id: bill.id }, data: { sentAt: new Date() } });
-  await prisma.smsIntent.updateMany({ where: { businessId: shop.id, eventType: "invoice.pay_link", eventId: bill.id }, data: { status: "undelivered" } });
+  const sid = `SMoutcome${uid().replace(/\W/g, "")}`;
+  await prisma.smsIntent.updateMany({ where: { businessId: shop.id, eventType: "invoice.pay_link", eventId: bill.id }, data: { status: "undelivered", providerSid: sid } });
   assert.ok(await prisma.smsIntent.count({ where: { businessId: shop.id, eventType: "invoice.pay_link", eventId: bill.id } }), "the bill text has an intent");
+  const message = await prisma.message.create({ data: { businessId: shop.id, phoneNormalized: "+13125550147", direction: "out", author: "orvius", body: "Your bill", sid, deliveryStatus: "undelivered" } });
   const board = await buildCommandBoard(shop.id);
   assert.ok(board.lanes.exceptions.some((i) => i.id === `invoice-undelivered:${bill.id}`), "an undelivered receipt after the send is still a bill delivery problem");
+  assert.ok(!board.lanes.exceptions.some((i) => i.id === `text-failed:${message.id}`), "the same failed text is one item, not two");
+
+  /* The owner fixes the number and resends: version 1 to the new number, delivered. */
+  await prisma.smsIntent.create({ data: { businessId: shop.id, eventType: "invoice.pay_link", eventId: bill.id, recipientNormalized: "+13125550148", audience: "customer", status: "delivered", createdAt: new Date(Date.now() + 1000) } });
+  assert.ok(!(await buildCommandBoard(shop.id)).lanes.exceptions.some((i) => i.id === `invoice-undelivered:${bill.id}`), "a delivered resend to a corrected number clears it");
+  assert.notEqual(stageOf(await buildOutcome(shop.id, { jobId: job.id }), "invoice").state, "failed");
+});
+
+test("a bill the deposit covered is not offered for sending", async () => {
+  const shop = await demoShop();
+  const request = await lead(shop);
+  await book();
+  const job = await prisma.job.findFirstOrThrow({ where: { leadId: request.id } });
+  await fieldDone(shop, job.id);
+  await prisma.invoice.updateMany({ where: { jobId: job.id }, data: { amountCents: 0, sentAt: null } });
+  await prisma.smsIntent.deleteMany({ where: { businessId: shop.id, eventType: "invoice.pay_link" } });
+  const view = await buildOutcome(shop.id, { jobId: job.id });
+  assert.equal(stageOf(view, "invoice").state, "not_needed");
+  assert.equal(stageOf(view, "payment").state, "not_needed");
 });
 
 test("a job text that never went out to the assigned technician is the owner's next step, not the technician's", async () => {
@@ -210,6 +233,8 @@ test("a job text that never went out to the assigned technician is the owner's n
   assert.equal(assignment.nextActor, "you");
   assert.match(assignment.evidence, /didn't go out/);
   assert.match(assignment.nextAction, new RegExp(job.technician.name));
+  await prisma.job.update({ where: { id: job.id }, data: { status: "en_route", dispatchedAt: new Date() } });
+  assert.equal(stageOf(await buildOutcome(shop.id, { jobId: job.id }), "assignment").nextActor, "technician", "once they're on the way, there's nobody to call about the job text");
 });
 
 test("resending a refused bill from the outcome keeps its price: tax is not added twice", async () => {
