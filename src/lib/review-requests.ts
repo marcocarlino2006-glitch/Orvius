@@ -155,7 +155,7 @@ export async function sendReviewRequest(params: {
     }),
   });
   if (!result.sent) {
-    if (result.reason === "sms_not_configured") {
+    if (result.reason === "sms_not_configured" || result.reason === "sender_not_verified") {
       await prisma.job.updateMany({ where: { id: job.id, reviewRequestedAt: now }, data: { reviewRequestedAt: null } });
     }
     logWarn("review_request.not_sent", { jobId: job.id, reason: result.reason });

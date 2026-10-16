@@ -63,6 +63,7 @@ model Business {
    */
   /**
    * /**
+   * /**
    * /** Last time the owner loaded Command on any device — anchors "since you looked".
    */
   ownerLastSeenAt               DateTime?
@@ -2132,4 +2133,20 @@ model FinancialGrant {
   revokedByEmail String?
 
   @@index([businessId, granteeEmail])
+}
+
+/// What a shared sender (an Orvius number or messaging service) is verified to send. Customer and technician texts on the shared sender need a "verified" row for the sender in use; nothing else counts.
+model MessagingSender {
+  id         String   @id @default(cuid())
+  /// "number:+18885550100" or "service:MG..."; changing the configured sender changes the identity.
+  identity   String   @unique
+  /// toll_free | ten_dlc | messaging_service
+  kind       String
+  /// verified | pending | rejected | unknown
+  status     String   @default("unknown")
+  /// What the provider reported, verbatim, and where it was read.
+  evidence   String?
+  checkedAt  DateTime
+  recordedBy String
+  updatedAt  DateTime @updatedAt
 }

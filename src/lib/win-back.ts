@@ -119,7 +119,7 @@ export async function sendWinBack(params: {
       sent += 1;
     } else {
       skipped += 1;
-      if (result.reason === "sms_not_configured") {
+      if (result.reason === "sms_not_configured" || result.reason === "sender_not_verified") {
         await prisma.customer.updateMany({ where: { id: customer.id, winBackSentAt: now }, data: { winBackSentAt: null } });
       }
     }

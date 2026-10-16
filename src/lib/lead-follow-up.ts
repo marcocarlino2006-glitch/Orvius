@@ -261,6 +261,7 @@ export async function sendLeadFollowUp(params: {
       invalid_customer_phone: REASONS.no_phone,
       unsupported_destination: "Orvius only texts US and Canadian numbers.",
       sms_not_configured: "Texting is not switched on for this shop yet.",
+      sender_not_verified: "Texting isn't verified with the carriers yet, so the text is held, not sent.",
       human_takeover: "Someone took this conversation over, so Orvius stayed quiet.",
     }[result.reason];
     return { sent: false, reason: why };

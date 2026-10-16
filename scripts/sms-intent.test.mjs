@@ -36,6 +36,12 @@ const { sendSms } = await import("../src/lib/twilio-sms.ts");
 const { classifySendError, applyIntentReceipt, nextIntentVersion, claimIntent } = await import("../src/lib/sms-intent.ts");
 
 const prisma = new PrismaClient();
+/* These cases exercise the shared sender, so it is on record as verified (sms-eligibility.test covers the held case). */
+await prisma.messagingSender.upsert({
+  where: { identity: "service:MG_shared_test" },
+  create: { identity: "service:MG_shared_test", kind: "messaging_service", status: "verified", checkedAt: new Date(), recordedBy: "test" },
+  update: { status: "verified" },
+});
 const stamp = () => `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
 const phone = () => `+1312${7_000_000 + Math.floor(Math.random() * 2_000_000)}`;
 const fail = (status, code, message = "twilio said no") => Object.assign(new Error(message), { status, code });

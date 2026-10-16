@@ -77,7 +77,12 @@ export async function checkTextDelivery(): Promise<TextDelivery> {
 function textDeliveryItem(delivery: TextDelivery): GateItem {
   const item = (ready: boolean, fix: string[]): GateItem => ({ key: "textDelivery", label: "Texts reach phones", ready, blocksSignup: false, fix });
   if (!delivery.number) return item(false, ["Set TWILIO_PHONE_NUMBER to the number alerts are sent from."]);
-  if (!delivery.tollFree) return item(true, []);
+  if (!delivery.tollFree) {
+    return item(false, [
+      `${delivery.number} is a local number. Carriers filter application texts from a local number until its brand and campaign are approved (10DLC), and Orvius has no automatic check for that, so shops' customer and technician texts on the shared sender stay held.`,
+      "Use a verified toll-free number as TWILIO_PHONE_NUMBER, or rely on each shop's own approved registration.",
+    ]);
+  }
   if (delivery.status === "TWILIO_APPROVED") return item(true, []);
   if (!delivery.checked) {
     return item(false, ["Could not read the verification status from Twilio. Check Twilio Console → Messaging → Regulatory Compliance → Toll-Free Verifications."]);

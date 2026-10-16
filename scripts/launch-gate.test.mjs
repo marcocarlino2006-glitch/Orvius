@@ -120,7 +120,9 @@ test("a check that fails is reported as unknown, never as verified or unsubmitte
   process.env.TWILIO_PHONE_NUMBER = "+15125550100";
   const local = await checkTextDelivery();
   assert.equal(local.tollFree, false);
-  assert.equal((await getLaunchGate({ textDelivery: local })).items.find((i) => i.key === "textDelivery").ready, true);
+  const localItem = (await getLaunchGate({ textDelivery: local })).items.find((i) => i.key === "textDelivery");
+  assert.equal(localItem.ready, false, "an unchecked local number is not proof that texts are allowed");
+  assert.match(localItem.fix[0], /10DLC/);
 });
 
 test("the card is founder-only and the SMS terms cover every text the number sends", () => {

@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { shopTextSender } from "@/lib/shop-texting";
 import { isSimulatedWorkspace, simulateSend } from "@/lib/sms-simulation";
 import { isTextableNumber } from "@/lib/sms-destination";
+import { isSharedSenderVerified, textingEligibility, type TextingEligibility } from "@/lib/sms-eligibility";
 import {
   MAX_PRE_SUBMIT_ATTEMPTS,
   claimIntent,
@@ -19,9 +20,17 @@ import {
 
 export type SmsAudience = "customer" | "owner" | "tech";
 
+/** Null when a customer or tech text may go out now (or the shop is simulated); otherwise why it is held. */
+export async function textingHeld(businessId: string): Promise<Extract<TextingEligibility, { ok: false }> | null> {
+  if (await isSimulatedWorkspace(businessId)) return null;
+  const eligibility = await textingEligibility(businessId);
+  return eligibility.ok ? null : eligibility;
+}
+
 /*
   The shared Orvius sender: owner alerts always, and a shop's customer and tech
-  texts until its own number is registered (lib/shop-texting.ts). With TWILIO_MESSAGING_SERVICE_SID set,
+  texts while its own number is not registered, only once the shared sender is
+  verified (lib/sms-eligibility.ts). With TWILIO_MESSAGING_SERVICE_SID set,
   Twilio spreads sends across the service's number pool (and queues past the
   per-number rate), so volume grows by adding numbers to the pool in Twilio
   rather than by changing code. Without it, the single TWILIO_PHONE_NUMBER sends.
@@ -154,6 +163,11 @@ export async function sendSms(params: {
      owner alerts are Orvius talking, so they stay on the Orvius sender. */
   const ownSender =
     !simulated && params.businessId && params.audience !== "owner" ? await shopTextSender(params.businessId) : null;
+  const sharedAllowed = params.audience === "owner" || (await isSharedSenderVerified());
+  if (!simulated && params.audience !== "owner" && !ownSender && !sharedAllowed) {
+    logWarn("sms.held_sender_unverified", { businessId: params.businessId, audience: params.audience });
+    return null;
+  }
   const sender = ownSender ?? smsSender();
   if (!simulated && (!isSmsReady() || !sender)) return null;
 
@@ -231,7 +245,7 @@ export async function sendSms(params: {
       }
       if (kind === "rejected") {
         const shared = smsSender();
-        if (!usedShared && shared) {
+        if (!usedShared && shared && sharedAllowed) {
           logWarn("sms.own_sender_failed", { businessId: params.businessId, error: error instanceof Error ? error.message : "unknown" });
           current = shared;
           usedShared = true;

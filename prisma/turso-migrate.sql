@@ -1334,3 +1334,16 @@ CREATE TABLE IF NOT EXISTS "FinancialGrant" (
     CONSTRAINT "FinancialGrant_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 CREATE INDEX IF NOT EXISTS "FinancialGrant_businessId_granteeEmail_idx" ON "FinancialGrant"("businessId", "granteeEmail");
+
+-- Shared-sender eligibility: customer and technician texts on a shared sender need a verified row for that sender
+CREATE TABLE IF NOT EXISTS "MessagingSender" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "identity" TEXT NOT NULL,
+    "kind" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'unknown',
+    "evidence" TEXT,
+    "checkedAt" DATETIME NOT NULL,
+    "recordedBy" TEXT NOT NULL,
+    "updatedAt" DATETIME NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "MessagingSender_identity_key" ON "MessagingSender"("identity");

@@ -508,7 +508,9 @@ export async function handleOwnerText(params: {
         if (!sent.sent) {
           return sent.reason === "customer_opted_out"
             ? `${who} has opted out of texts. Call them instead: ${lead.phone}.`
-            : `That didn't send. Call ${who} at ${lead.phone}.`;
+            : sent.reason === "sender_not_verified"
+              ? `Not sent: texting isn't verified with the carriers yet. Call ${who} at ${lead.phone}.`
+              : `That didn't send. Call ${who} at ${lead.phone}.`;
         }
         if (!lead.firstContactedAt) {
           await prisma.lead.update({

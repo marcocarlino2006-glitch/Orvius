@@ -116,7 +116,9 @@ async function runProposal(
         return {
           error: optedOut
             ? "This customer opted out of texts."
-            : "Texting is not connected for this workspace yet.",
+            : sms.reason === "sender_not_verified"
+              ? `${sms.detail ?? "Texting isn't verified with the carriers yet."} Nothing was sent.`
+              : "Texting is not connected for this workspace yet.",
           reason: sms.reason,
           status: optedOut ? 409 : 503,
         };
