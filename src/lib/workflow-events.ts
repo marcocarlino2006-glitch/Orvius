@@ -29,9 +29,11 @@ export async function recordWorkflowProgress(outcome: Outcome, by: { actor: "own
     entityId: id,
     jobId: outcome.jobId,
     leadId: outcome.leadId,
-    actor: by.actor,
-    actorEmail: by.email ?? null,
+    /* What the records show is an observation; the person whose action prompted the look did not do the stage. */
+    actor: "system" as const,
+    actorEmail: null,
   };
+  const prompted = { promptedBy: by.actor, promptedByEmail: by.email ?? null };
   const earlier = await prisma.auditEvent.findMany({
     where: { businessId: outcome.businessId, action: "workflow.exception", entityId: id },
     select: { detailJson: true },
@@ -46,7 +48,7 @@ export async function recordWorkflowProgress(outcome: Outcome, by: { actor: "own
     }),
   );
   for (const s of outcome.stages) {
-    const detail = { stage: s.stage, state: s.state, at: s.at, source: s.source, execution: s.execution, synthetic: outcome.synthetic };
+    const detail = { stage: s.stage, state: s.state, at: s.at, source: s.source, execution: s.execution, synthetic: outcome.synthetic, ...prompted };
     if (s.state === "done") {
       await recordAudit({ ...base, action: "workflow.stage_done", summary: `${s.label}: ${s.evidence}`, detail, idempotencyKey: `workflow:${id}:${s.stage}:done` });
       if (raised.has(s.stage)) {
