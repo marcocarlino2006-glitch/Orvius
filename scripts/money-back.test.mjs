@@ -2,22 +2,31 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { commercialTerms } from "../src/lib/commercial-terms.ts";
-import { MONEY_BACK_DAYS, MONEY_BACK_MARK, claimMoneyBack, moneyBackState, readMoneyBack } from "../src/lib/money-back.ts";
+import { MONEY_BACK_DAYS, MONEY_BACK_MARK, moneyBackState } from "../src/lib/money-back.ts";
+import { claimMoneyBack, readMoneyBack } from "../src/lib/money-back-claim.ts";
 import { pricingFaq } from "../src/lib/pricing-faq.ts";
+import { prisma } from "../src/lib/prisma.ts";
+import { UncertainEffectError } from "../src/lib/provider-effect.ts";
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 const DAY = 86400;
 const NOW = new Date("2026-10-09T12:00:00Z");
 const sec = (d) => Math.floor(d.getTime() / 1000);
-const account = { businessId: "biz_1", customerId: "cus_1", subscriptionId: "sub_1" };
+let account = { businessId: "biz_money_back_test", customerId: "cus_1", subscriptionId: "sub_1" };
+test.beforeEach(() => {
+  account = { ...account, subscriptionId: `sub_${Math.random().toString(16).slice(2, 10)}` };
+});
 
 function fakeStripe({ startedDaysAgo = 5, metadata = {}, charges, status = "active", failCancelOnce = false, history = [] } = {}) {
   const start = sec(NOW) - startedDaysAgo * DAY;
   const state = {
     metadata: { ...metadata },
     sub: { id: "sub_1", status, start_date: start, created: start },
-    charges: charges ?? [{ id: "ch_1", amount: 14900, amount_refunded: 0, paid: true, status: "succeeded", created: start }],
+    charges: charges ?? [ch("ch_default", { created: start })],
     refundCalls: [],
+    refunds: [],
+    byKey: new Map(),
+    loseRefundReply: false,
     cancelCalls: 0,
     failCancel: failCancelOnce,
   };
@@ -46,16 +55,37 @@ function fakeStripe({ startedDaysAgo = 5, metadata = {}, charges, status = "acti
     },
     charges: { list: async () => ({ data: state.charges.map((c) => ({ ...c })) }) },
     refunds: {
-      create: async ({ charge, amount }, { idempotencyKey }) => {
+      create: async ({ charge, amount, metadata }, { idempotencyKey }) => {
         state.refundCalls.push({ charge, amount, idempotencyKey });
+        const seen = state.byKey.get(idempotencyKey);
+        if (seen) return { ...seen };
         const c = state.charges.find((x) => x.id === charge);
         c.amount_refunded += amount;
-        return { amount };
+        const refund = { id: `re_${state.refunds.length + 1}_${charge}`, charge, amount, metadata };
+        state.refunds.push(refund);
+        state.byKey.set(idempotencyKey, refund);
+        if (state.loseRefundReply) {
+          state.loseRefundReply = false;
+          throw Object.assign(new Error("socket hang up"), { type: "StripeConnectionError" });
+        }
+        return { ...refund };
       },
+      retrieve: async (id) => ({ ...state.refunds.find((r) => r.id === id) }),
+      list: async ({ charge }) => ({ data: state.refunds.filter((r) => r.charge === charge) }),
     },
   };
   return { stripe, state };
 }
+
+const uid = () => Math.random().toString(16).slice(2, 10);
+const ch = (id, extra = {}) => ({ id: `${id}_${uid()}`, amount: 14900, amount_refunded: 0, paid: true, status: "succeeded", created: 1, ...extra });
+test.after(async () => {
+  await prisma.providerEffect.deleteMany({ where: { businessId: { in: [account.businessId, ...shops] } } });
+  await prisma.reconciliationException.deleteMany({ where: { businessId: { in: shops } } });
+  await prisma.business.deleteMany({ where: { id: { in: shops } } });
+  await prisma.$disconnect();
+});
+const shops = [];
 
 test("the window is the first 30 days of the first plan", () => {
   const base = { subscriptionStatus: "active", claimedAt: null, refundableCents: 100 };
@@ -75,11 +105,7 @@ test("an earlier canceled plan closes the window for a second one", async () => 
 });
 
 test("claiming refunds every payment, cancels the plan, and marks the customer once", async () => {
-  const charges = [
-    { id: "ch_1", amount: 14900, amount_refunded: 0, paid: true, status: "succeeded", created: 1 },
-    { id: "ch_2", amount: 900, amount_refunded: 400, paid: true, status: "succeeded", created: 2 },
-    { id: "ch_3", amount: 500, amount_refunded: 0, paid: false, status: "failed", created: 3 },
-  ];
+  const charges = [ch("ch_1"), ch("ch_2", { amount: 900, amount_refunded: 400, created: 2 }), ch("ch_3", { amount: 500, paid: false, status: "failed", created: 3 })];
   const { stripe, state } = fakeStripe({ charges });
   const offer = await readMoneyBack(stripe, account, NOW);
   assert.equal(offer.eligible, true);
@@ -91,8 +117,8 @@ test("claiming refunds every payment, cancels the plan, and marks the customer o
   assert.deepEqual(
     state.refundCalls.map((r) => [r.charge, r.amount, r.idempotencyKey]),
     [
-      ["ch_1", 14900, "money-back:ch_1"],
-      ["ch_2", 500, "money-back:ch_2"],
+      [charges[0].id, 14900, `money-back:${charges[0].id}`],
+      [charges[1].id, 500, `money-back:${charges[1].id}`],
     ],
   );
   assert.equal(state.sub.status, "canceled");
@@ -116,6 +142,36 @@ test("a claim that dies after refunding is finished by the retry, never paid twi
   assert.equal(state.refundCalls.length, 1);
   assert.equal(state.sub.status, "canceled");
   assert.ok(state.metadata[MONEY_BACK_MARK]);
+});
+
+test("a refund whose reply is lost is recorded, flagged, and checked at Stripe before anything is sent again", async () => {
+  const shop = await prisma.business.create({ data: { name: "Refund Heating", slug: `mb-${uid()}`, ownerEmail: `mb-${uid()}@example.test` } });
+  shops.push(shop.id);
+  account = { ...account, businessId: shop.id };
+  const { stripe, state } = fakeStripe();
+  state.loseRefundReply = true;
+  const charge = state.charges[0].id;
+
+  await assert.rejects(claimMoneyBack(stripe, account, NOW), UncertainEffectError);
+  const effect = await prisma.providerEffect.findUniqueOrThrow({
+    where: { provider_correlationKey: { provider: "stripe", correlationKey: `money-back:${charge}` } },
+  });
+  assert.equal(effect.status, "uncertain");
+  assert.equal(effect.operation, "money_back.refund");
+  assert.ok(effect.exceptionId, "a person can see it");
+  assert.equal((await prisma.reconciliationException.findUniqueOrThrow({ where: { id: effect.exceptionId } })).status, "open");
+  assert.equal(state.sub.status, "active", "the plan isn't canceled while the refund is unknown");
+
+  /* Past Stripe's replay window the retry looks the refund up instead of sending a new one. */
+  await prisma.providerEffect.update({ where: { id: effect.id }, data: { createdAt: new Date(Date.now() - 2 * 86400_000) } });
+  const retry = await claimMoneyBack(stripe, account, NOW);
+  assert.equal(retry.ok, true);
+  assert.equal(retry.refundedCents, 14900);
+  assert.equal(state.refundCalls.length, 1, "no second refund request");
+  assert.equal(state.charges[0].amount_refunded, 14900, "paid back once");
+  const landed = await prisma.providerEffect.findUniqueOrThrow({ where: { id: effect.id } });
+  assert.equal(landed.status, "finalized");
+  assert.equal((await prisma.reconciliationException.findUniqueOrThrow({ where: { id: effect.exceptionId } })).status, "resolved");
 });
 
 test("refused claims change nothing", async () => {
