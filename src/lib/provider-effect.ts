@@ -202,6 +202,21 @@ export async function revertEffect(provider: EffectProvider, correlationKey: str
   await prisma.providerEffect.updateMany({ where: { provider, correlationKey, status: { in: ["accepted", "finalized"] } }, data: { status: "reverted" } });
 }
 
+/**
+ * The provider's own record shows this effect happened, found by a caller's
+ * own check rather than through performOnce: land any open record of it and
+ * close its exception, so the stuck list doesn't keep something that is done.
+ */
+export async function settleEffect(provider: EffectProvider, correlationKey: string, providerId: string | null) {
+  const row = await prisma.providerEffect.findUnique({ where: { provider_correlationKey: { provider, correlationKey } } });
+  if (!row || row.status === "finalized" || row.status === "failed" || row.status === "reverted") return;
+  await prisma.providerEffect.update({
+    where: { id: row.id },
+    data: { status: "finalized", providerId: providerId ?? row.providerId, finalizedAt: new Date(), lastError: null },
+  });
+  await closeException(row.id, row.exceptionId);
+}
+
 /** Effects that need a person: no reply, or accepted by the provider but not landed here. */
 export async function stuckEffects(options: { businessId?: string; olderThanMs?: number; take?: number } = {}) {
   const before = new Date(Date.now() - (options.olderThanMs ?? 0));

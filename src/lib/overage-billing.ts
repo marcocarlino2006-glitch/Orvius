@@ -4,6 +4,7 @@ import { countBillableCalls } from "@/lib/billable-calls";
 import { summarizeCallUsage } from "@/lib/call-usage";
 import { logWarn } from "@/lib/logger";
 import { OVERAGE_CENTS_PER_CALL } from "@/lib/pricing-plans";
+import { performOnce, settleEffect, STRIPE_REPLAY_WINDOW_MS } from "@/lib/provider-effect";
 import { prisma } from "@/lib/prisma";
 import { getStripe, isAutomaticTaxEnabled } from "@/lib/stripe";
 
@@ -142,44 +143,76 @@ export async function billPreviousMonthOverage(now = new Date(), { budgetMs = 40
       );
       if (already) {
         await prisma.business.update({ where: { id: shop.id }, data: { overageBilledPeriod: period.key } });
+        await settleEffect("stripe", `${key}:item`, null);
+        await settleEffect("stripe", `${key}:invoice`, already.id ?? null);
         continue;
       }
       const pendingItem = (await stripe.invoiceItems.list({ customer: shop.stripeCustomerId!, pending: true, limit: 24 })).data.find((i) =>
         isThisMonth(i.metadata),
       );
       if (!pendingItem) {
-        await stripe.invoiceItems.create(
-          {
-            customer: shop.stripeCustomerId!,
-            currency: "usd",
-            amount: decision.amountCents,
-            description: `${decision.overCalls} answered calls past the ${decision.included} included in ${period.key} × ${OVERAGE_CENTS_PER_CALL}¢`,
-            metadata: { orvius: "call_overage", businessId: shop.id, period: period.key },
-          },
-          { idempotencyKey: `${key}:item` },
-        );
+        await performOnce<Stripe.InvoiceItem>({
+          provider: "stripe",
+          operation: "overage.invoice_item",
+          correlationKey: `${key}:item`,
+          businessId: shop.id,
+          entity: { type: "overage", id: `${shop.id}:${period.key}` },
+          kind: "payment",
+          replayWindowMs: STRIPE_REPLAY_WINDOW_MS,
+          perform: (idempotencyKey) =>
+            stripe.invoiceItems.create(
+              {
+                customer: shop.stripeCustomerId!,
+                currency: "usd",
+                amount: decision.amountCents,
+                description: `${decision.overCalls} answered calls past the ${decision.included} included in ${period.key} × ${OVERAGE_CENTS_PER_CALL}¢`,
+                metadata: { orvius: "call_overage", businessId: shop.id, period: period.key },
+              },
+              { idempotencyKey },
+            ),
+          idOf: (item) => item.id,
+          retrieve: (id) => stripe.invoiceItems.retrieve(id),
+          find: async () =>
+            (await stripe.invoiceItems.list({ customer: shop.stripeCustomerId!, limit: 24 })).data.find((i) => isThisMonth(i.metadata)) ?? null,
+          finalize: async () => undefined,
+        });
       }
-      const invoice = await stripe.invoices.create(
-        {
-          customer: shop.stripeCustomerId!,
-          collection_method: "charge_automatically",
-          pending_invoice_items_behavior: "include",
-          auto_advance: true,
-          ...(isAutomaticTaxEnabled() ? { automatic_tax: { enabled: true } } : {}),
-          description: `Orvius call overage — ${period.key}`,
-          metadata: { orvius: "call_overage", businessId: shop.id, period: period.key },
-        },
-        { idempotencyKey: `${key}:invoice` },
-      );
-      await prisma.business.update({ where: { id: shop.id }, data: { overageBilledPeriod: period.key } });
-      await recordAudit({
+      await performOnce<Stripe.Invoice>({
+        provider: "stripe",
+        operation: "overage.invoice",
+        correlationKey: `${key}:invoice`,
         businessId: shop.id,
-        entityType: "shop",
-        entityId: shop.id,
-        action: "billing.overage_invoiced",
-        summary: `Invoiced ${decision.overCalls} calls past the allowance for ${period.key}`,
-        detail: { invoiceId: invoice.id, amountCents: decision.amountCents, used: decision.used },
-        idempotencyKey: key,
+        entity: { type: "overage", id: `${shop.id}:${period.key}` },
+        kind: "payment",
+        replayWindowMs: STRIPE_REPLAY_WINDOW_MS,
+        perform: (idempotencyKey) =>
+          stripe.invoices.create(
+            {
+              customer: shop.stripeCustomerId!,
+              collection_method: "charge_automatically",
+              pending_invoice_items_behavior: "include",
+              auto_advance: true,
+              ...(isAutomaticTaxEnabled() ? { automatic_tax: { enabled: true } } : {}),
+              description: `Orvius call overage — ${period.key}`,
+              metadata: { orvius: "call_overage", businessId: shop.id, period: period.key },
+            },
+            { idempotencyKey },
+          ),
+        idOf: (inv) => inv.id!,
+        retrieve: (id) => stripe.invoices.retrieve(id),
+        find: async () => (await stripe.invoices.list({ customer: shop.stripeCustomerId!, limit: 24 })).data.find((i) => isThisMonth(i.metadata)) ?? null,
+        finalize: async (inv) => {
+          await prisma.business.update({ where: { id: shop.id }, data: { overageBilledPeriod: period.key } });
+          await recordAudit({
+            businessId: shop.id,
+            entityType: "shop",
+            entityId: shop.id,
+            action: "billing.overage_invoiced",
+            summary: `Invoiced ${decision.overCalls} calls past the allowance for ${period.key}`,
+            detail: { invoiceId: inv.id, amountCents: decision.amountCents, used: decision.used },
+            idempotencyKey: key,
+          });
+        },
       });
       billed += 1;
       billedCents += decision.amountCents;

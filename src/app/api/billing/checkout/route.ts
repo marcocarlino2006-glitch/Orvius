@@ -34,6 +34,7 @@ import { HIPAA_TRADE_REFUSAL, isHipaaTrade } from "@/lib/trades";
 import { consentSchema, shopDraftMetadata, shopDraftSchema } from "@/lib/checkout-shop";
 import { checkActivationClaim, draftActivationBusiness, recordActivationAck } from "@/lib/activation-ack";
 import { resolveShopAccess } from "@/lib/workspace-access";
+import { withLease } from "@/lib/provision-attempt";
 import { isSetupSandbox, missingForStep, parseSetup } from "@/lib/setup-flow";
 import { ACQUISITION_COOKIE, parseAcquisition } from "@/lib/acquisition";
 import { acquisitionMetadata, findReferrer } from "@/lib/referrals";
@@ -57,7 +58,7 @@ const checkoutSchema = z.object({
     .optional(),
 });
 
-async function expireOpenPlanCheckouts(stripe: ReturnType<typeof getStripe>, email: string, customerId: string | null) {
+async function expireOpenPlanCheckouts(stripe: ReturnType<typeof getStripe>, email: string, customerId: string | null): Promise<boolean> {
   try {
     const lists = await Promise.all([
       stripe.checkout.sessions.list({ status: "open", customer_details: { email }, limit: 10 }),
@@ -66,10 +67,12 @@ async function expireOpenPlanCheckouts(stripe: ReturnType<typeof getStripe>, ema
     const open = new Map(lists.flatMap((list) => list?.data ?? []).map((s) => [s.id, s]));
     for (const session of open.values()) {
       if (session.mode !== "subscription" || !session.metadata?.planId) continue;
-      await stripe.checkout.sessions.expire(session.id).catch(() => null);
+      await stripe.checkout.sessions.expire(session.id);
     }
+    return true;
   } catch (error) {
     console.warn("[billing.checkout] could not expire earlier sessions", error instanceof Error ? error.message : error);
+    return false;
   }
 }
 
@@ -213,54 +216,65 @@ export async function POST(request: NextRequest) {
 
     /*
       Until the webhook lands, nothing here knows a checkout was paid, and an
-      open session stays payable for a day. An owner who retries in a second
-      tab would otherwise be able to pay both and run two subscriptions. Only
-      the newest session can be paid.
+      open session stays payable for a day. Only the newest session can be
+      paid: earlier ones are closed first, one request per email at a time, and
+      if they can't be closed no new one is opened.
     */
-    await expireOpenPlanCheckouts(stripe, sessionEmail, business?.stripeCustomerId ?? null);
-
-    const checkoutSession = await stripe.checkout.sessions.create({
-      mode: "subscription",
-      ...(business?.stripeCustomerId
-        ? { customer: business.stripeCustomerId }
-        : { customer_email: sessionEmail }),
-      line_items: [
-        {
-          price: requireStripePriceIdForPlan(body.planId, body.interval),
-          quantity: 1,
-        },
-      ],
-      success_url: business && !turningOn
-        ? `${baseUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`
-        : `${baseUrl}/dashboard/onboarding?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: turningOn
-        ? `${baseUrl}/dashboard/onboarding?step=live&canceled=1`
-        : business
-          ? `${baseUrl}/pricing?canceled=1`
-          : `${baseUrl}${setupPath}&canceled=1`,
-      // Stripe takes either a fixed discount or a promo-code box, not both.
-      ...(referred ? { discounts: [{ coupon: referralCoupon }] } : { allow_promotion_codes: true }),
-      ...checkoutTaxParams(Boolean(business?.stripeCustomerId)),
-      subscription_data: {
-        metadata: {
-          product: plan.stripeProductKey ?? `orvius-${body.planId}`,
-          planId: body.planId,
-          interval: body.interval,
-          businessId: business?.id ?? "",
-        },
+    const checkoutSession = await withLease(
+      `plan-checkout:${sessionEmail}`,
+      async () => {
+        if (!(await expireOpenPlanCheckouts(stripe, sessionEmail, business?.stripeCustomerId ?? null))) return null;
+        return stripe.checkout.sessions.create({
+          mode: "subscription",
+          ...(business?.stripeCustomerId
+            ? { customer: business.stripeCustomerId }
+            : { customer_email: sessionEmail }),
+          line_items: [
+            {
+              price: requireStripePriceIdForPlan(body.planId, body.interval),
+              quantity: 1,
+            },
+          ],
+          success_url: business && !turningOn
+            ? `${baseUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`
+            : `${baseUrl}/dashboard/onboarding?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: turningOn
+            ? `${baseUrl}/dashboard/onboarding?step=live&canceled=1`
+            : business
+              ? `${baseUrl}/pricing?canceled=1`
+              : `${baseUrl}${setupPath}&canceled=1`,
+          // Stripe takes either a fixed discount or a promo-code box, not both.
+          ...(referred ? { discounts: [{ coupon: referralCoupon }] } : { allow_promotion_codes: true }),
+          ...checkoutTaxParams(Boolean(business?.stripeCustomerId)),
+          subscription_data: {
+            metadata: {
+              product: plan.stripeProductKey ?? `orvius-${body.planId}`,
+              planId: body.planId,
+              interval: body.interval,
+              businessId: business?.id ?? "",
+            },
+          },
+          metadata: {
+            product: plan.stripeProductKey ?? `orvius-${body.planId}`,
+            planId: body.planId,
+            interval: body.interval,
+            businessId: business?.id ?? "",
+            legalEntity: company.legalName,
+            ...shopMetadata,
+            ...(activationAckId ? { activation_ack: activationAckId } : {}),
+            ...activationClaim,
+            ...acquisitionMetadata(acquisition),
+          },
+        });
       },
-      metadata: {
-        product: plan.stripeProductKey ?? `orvius-${body.planId}`,
-        planId: body.planId,
-        interval: body.interval,
-        businessId: business?.id ?? "",
-        legalEntity: company.legalName,
-        ...shopMetadata,
-        ...(activationAckId ? { activation_ack: activationAckId } : {}),
-        ...activationClaim,
-        ...acquisitionMetadata(acquisition),
-      },
-    });
+      { leaseMs: 30_000, waitMs: 20_000, forget: true },
+    );
+    if (!checkoutSession) {
+      return NextResponse.json(
+        { error: "An earlier checkout is still open and couldn't be closed, so a second one wasn't opened. Try again in a minute.", code: "checkout_busy" },
+        { status: 503 },
+      );
+    }
 
     return NextResponse.json({
       ok: true,
