@@ -41,8 +41,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true, skipped: "missing MessageSid" });
   }
 
+  // Receipts arrive out of order; a stale "failed" never overwrites a "delivered".
   const updated = await prisma.ownerNotification.updateMany({
-    where: { deliveryId: messageSid, channel: "sms" },
+    where: { deliveryId: messageSid, channel: "sms", OR: [{ deliveryStatus: null }, { deliveryStatus: { not: "delivered" } }] },
     data: {
       deliveryStatus: messageStatus || "unknown",
       ...(errorCode ? { error: `Twilio error ${errorCode}` } : {}),

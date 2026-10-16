@@ -211,8 +211,8 @@ export function SettingsCenter({
     try {
       const res = await fetch("/api/account/test-alert", { method: "POST" });
       const data = (await res.json()) as { error?: string; ok?: boolean; partial?: boolean; message?: string };
-      if (!res.ok || !data.ok) throw new Error(data.error ?? "Nothing was delivered. Check your mobile number.");
-      if (data.partial) setError(data.message ?? "Only part of the test alert was delivered.");
+      if (!res.ok || !data.ok) throw new Error(data.error ?? "Nothing went out. Check your mobile number.");
+      if (data.partial) setError(data.message ?? "Only part of the test alert went out.");
       else setNotice(data.message ?? "Test alert sent.");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Test failed");

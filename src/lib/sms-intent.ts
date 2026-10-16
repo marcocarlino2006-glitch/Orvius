@@ -200,9 +200,25 @@ export async function applyIntentReceipt(params: { messageSid: string; messageSt
         ? "undelivered"
         : null;
   const status = intent.status === "delivered" ? "delivered" : (settled ?? intent.status);
-  const updated = await prisma.smsIntent.update({ where: { id: intent.id }, data: { receiptsJson: JSON.stringify(next), status } });
-  const exception = status === "undelivered" ? await raiseIntentException(updated) : false;
+  // Conditional on the status read, so a "delivered" landing between the read and this write is never undone.
+  const written = await prisma.smsIntent.updateMany({
+    where: { id: intent.id, status: intent.status },
+    data: { receiptsJson: JSON.stringify(next), status },
+  });
+  if (!written.count) return applyIntentReceipt(params);
+  const exception = status === "undelivered" ? await raiseIntentException({ ...intent, status }) : false;
   return { matched: true, exception };
+}
+
+/** The carrier already confirmed this message reached the phone; a later failure receipt for it is stale. */
+export async function smsAlreadyDelivered(messageSid: string): Promise<boolean> {
+  if (!messageSid) return false;
+  const [intent, thread, owner] = await Promise.all([
+    prisma.smsIntent.findFirst({ where: { providerSid: messageSid, status: "delivered" }, select: { id: true } }),
+    prisma.message.findFirst({ where: { sid: messageSid, deliveryStatus: "delivered" }, select: { id: true } }),
+    prisma.ownerNotification.findFirst({ where: { deliveryId: messageSid, deliveryStatus: "delivered" }, select: { id: true } }),
+  ]);
+  return Boolean(intent || thread || owner);
 }
 
 /** The version after the latest one for this event and recipient, linked to it. */

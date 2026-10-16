@@ -17,7 +17,7 @@ export function TestAlertButton({ onDone, primary = false }: { onDone?: () => vo
       const data = (await res.json().catch(() => null)) as { error?: string; ok?: boolean } | null;
       if (!res.ok) throw new Error(data?.error ?? "Could not send a test alert");
       if (!data?.ok) throw new Error(data?.error ?? "The alert was queued but not delivered. Check Settings → Notifications.");
-      toast({ title: "Test alert sent. Check your phone." });
+      toast({ title: "Test alert sent. Check that it reached your phone." });
       onDone?.();
     } catch (error) {
       setErr(error instanceof Error ? error.message : "Could not send");

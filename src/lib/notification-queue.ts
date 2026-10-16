@@ -107,7 +107,7 @@ async function resolveOpenUrl(leadId: string | null): Promise<string | null> {
   return getOwnerAlertOpenUrl({ leadId, jobId: lead.job?.id });
 }
 
-/** Stamp Call.ownerNotifiedAt only after real delivery — never on enqueue. */
+/** Stamp Call.ownerNotifiedAt on a carrier delivery receipt (text) or the mail service accepting it (email) — never on enqueue. */
 async function markCallOwnerNotifiedFromLead(leadId: string | null) {
   if (!leadId) return;
   const lead = await prisma.lead.findUnique({
@@ -402,7 +402,8 @@ async function deliverQueuedRow(row: {
       data: {
         status: "sent",
         deliveryId: id,
-        deliveryStatus: "sent",
+        // The mail service took it; no inbox receipt exists, so this is never recorded as delivered.
+        deliveryStatus: "accepted",
         processedAt: new Date(),
         error: null,
       },
@@ -593,10 +594,12 @@ export async function applySmsDeliveryReceipt(params: {
       deliveryId: params.messageSid,
       channel: "sms",
       status: "sent",
+      ...(delivered ? {} : { OR: [{ deliveryStatus: null }, { deliveryStatus: { not: "delivered" } }] }),
     },
   });
 
   if (delivered) {
+    await prisma.ownerNotification.updateMany({ where: { id: { in: rows.map((r) => r.id) } }, data: { deliveryStatus: "delivered" } });
     for (const row of rows) {
       await markCallOwnerNotifiedFromLead(row.leadId);
     }
