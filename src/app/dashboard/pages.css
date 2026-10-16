@@ -337,6 +337,8 @@
   html .cb-oc .cb-slots > .ox-btn {
     display: grid !important;
     justify-items: start !important;
+    justify-content: start !important;
+    grid-template-columns: minmax(0, 1fr);
     min-width: 0;
     height: auto !important;
     padding: 0.4rem 0.75rem !important;
