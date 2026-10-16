@@ -1958,3 +1958,25 @@ html .os-shell .sc-dialog .sc-plan {
 .sc-key-field .sc-input {
   margin-top: 4px;
 }
+
+.sc-capability-facts {
+  display: grid;
+  gap: 0.125rem;
+  margin: 0.375rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8125rem;
+  color: var(--ox-text-2);
+}
+
+.sc-capability-facts li[data-ok="false"] {
+  color: var(--ox-red);
+}
+
+.sc-grant-form {
+  flex-wrap: wrap;
+}
+
+.sc-grant-form .sc-input {
+  min-height: 2.75rem;
+}
