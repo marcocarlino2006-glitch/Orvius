@@ -34,6 +34,7 @@ const { recordWorkflowProgress, workflowReport } = await import("../src/lib/work
 const { raiseIntentException } = await import("../src/lib/sms-intent.ts");
 const { issueTechAppLink } = await import("../src/lib/tech-app.ts");
 const { buildCommandBoard } = await import("../src/lib/command-board.ts");
+const { recordAudit } = await import("../src/lib/audit.ts");
 const { workHistory } = await import("../src/lib/work-history.ts");
 const askRoute = await import("../src/app/api/command/ask/route.ts");
 const copilotRoute = await import("../src/app/api/copilot/route.ts");
@@ -211,6 +212,9 @@ test("a bill that was sent and later reported undelivered stays on the board", a
   const board = await buildCommandBoard(shop.id);
   assert.ok(board.lanes.exceptions.some((i) => i.id === `invoice-undelivered:${bill.id}`), "an undelivered receipt after the send is still a bill delivery problem");
   assert.ok(!board.lanes.exceptions.some((i) => i.id === `text-failed:${message.id}`), "the same failed text is one item, not two");
+  const reply = await recordAudit({ businessId: shop.id, entityType: "notification", entityId: "+13125550147", action: "sms.failed", actor: "system", summary: "Text to +13125550147 did not send — owner reply refused" });
+  assert.ok(reply, "the unrelated failure was recorded");
+  assert.ok((await buildCommandBoard(shop.id)).lanes.exceptions.some((i) => i.id === `sms-failed:${reply}`), "a different text that failed to the same number stays on the board");
 
   /* The owner fixes the number and resends: version 1 to the new number, delivered. */
   await prisma.smsIntent.create({ data: { businessId: shop.id, eventType: "invoice.pay_link", eventId: bill.id, recipientNormalized: "+13125550148", audience: "customer", status: "delivered", createdAt: new Date(Date.now() + 1000) } });
