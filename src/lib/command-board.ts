@@ -619,17 +619,17 @@ async function billingItems(businessId: string, now: Date): Promise<BoardItem[]>
     }),
     prisma.smsIntent.findMany({
       where: { businessId, eventType: "invoice.pay_link", updatedAt: { gte: month } },
-      orderBy: { messageVersion: "desc" },
-      take: 80,
-      select: { eventId: true, status: true, updatedAt: true },
+      orderBy: { updatedAt: "desc" },
+      take: 300,
+      select: { eventId: true, status: true, updatedAt: true, messageVersion: true },
     }),
   ]);
-  const latest = new Map<string, { status: string; updatedAt: Date }>();
-  for (const i of intents) if (!latest.has(i.eventId)) latest.set(i.eventId, i);
+  const latest = new Map<string, { status: string; updatedAt: Date; messageVersion: number }>();
+  for (const i of intents) if ((latest.get(i.eventId)?.messageVersion ?? -1) < i.messageVersion) latest.set(i.eventId, i);
   const failedIds = [...latest].filter(([, i]) => BILL_TEXT_FAILED.includes(i.status)).map(([id]) => id);
   const bills = failedIds.length
     ? await prisma.invoice.findMany({
-        where: { businessId, id: { in: failedIds }, paidAt: null, sentAt: null, status: { notIn: ["paid", "void", "refunded"] } },
+        where: { businessId, id: { in: failedIds }, paidAt: null, status: { notIn: ["paid", "void", "refunded"] } },
         select: { id: true, amountCents: true, jobId: true, job: { select: { leadId: true, title: true, customer: { select: { name: true, phone: true } }, lead: { select: { name: true, phone: true } } } } },
       })
     : [];
