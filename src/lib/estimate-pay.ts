@@ -122,6 +122,8 @@ export async function createEstimateCheckoutSession(params: {
     scope: `invoice:${params.invoiceId}`,
     stripeAccount: accountId,
     amountCents: balanceCents,
+    businessId: params.businessId,
+    entity: { type: "invoice", id: params.invoiceId },
     currentSessionId: async () =>
       (await prisma.invoice.findUnique({ where: { id: params.invoiceId }, select: { openCheckoutSessionId: true } }))?.openCheckoutSessionId,
     remember: (session) => prisma.invoice.update({ where: { id: params.invoiceId }, data: { openCheckoutSessionId: session.id } }),

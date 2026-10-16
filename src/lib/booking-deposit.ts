@@ -363,6 +363,8 @@ export async function createDepositCheckoutSession(params: {
     scope: `deposit:${params.deposit.id}`,
     stripeAccount: accountId,
     amountCents: params.deposit.amountCents,
+    businessId: params.business.id,
+    entity: { type: "deposit", id: params.deposit.id },
     currentSessionId: async () =>
       (await prisma.deposit.findUnique({ where: { id: params.deposit.id }, select: { stripeSessionId: true } }))?.stripeSessionId,
     remember: (session) =>

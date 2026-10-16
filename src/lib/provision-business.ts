@@ -10,7 +10,7 @@ import {
   slugify,
   type ServiceOffering,
 } from "@/lib/business";
-import { ActivationRequiredError, defaultGreeting, recordSettledActivation, settleActivation, type ShopActivation } from "@/lib/activation-ack";
+import { ActivationRequiredError, defaultGreeting, draftActivationBusiness, recordSettledActivation, settleActivation, type ShopActivation } from "@/lib/activation-ack";
 import { NOT_OWNER_DEMO } from "@/lib/demo-fence";
 import { getWebhookUrl, isConfigured } from "@/lib/env";
 import { logError } from "@/lib/logger";
@@ -33,7 +33,9 @@ import {
   buildVapiAssistantConfig,
   createAssistant,
   deleteAssistant,
+  vapiRequest,
 } from "@/lib/vapi";
+import { performOnce, revertEffect } from "@/lib/provider-effect";
 import type { Business, ProvisionAttempt } from "@prisma/client";
 import {
   claimProvisionAttempt,
@@ -280,7 +282,13 @@ async function provisionDedicatedLine(params: {
 }
 
 /** Undo a failed run. Whatever could not be undone is returned so the retry reuses it instead of buying again. */
+/** One receptionist per provisioning attempt; the tag outlives a crashed or retried run. */
+function assistantEffectKey(attempt: Pick<ProvisionAttempt, "tag">) {
+  return `assistant:${attempt.tag}`;
+}
+
 async function rollbackProvision(params: {
+  assistantEffect?: string;
   vapiAssistantId: string | null;
   shopLine: string | null;
   releaseLine: boolean;
@@ -302,6 +310,7 @@ async function rollbackProvision(params: {
     try {
       await deleteAssistant(params.vapiAssistantId);
       kept.vapiAssistantId = null;
+      if (params.assistantEffect) await revertEffect("vapi", params.assistantEffect);
     } catch (error) {
       logError("provision.rollback.assistant_failed", {
         vapiAssistantId: params.vapiAssistantId,
@@ -548,7 +557,7 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
     promoting?.greeting?.trim() ||
     defaultGreeting(name);
   const settled = await settleActivation(
-    promoting ? { ...promoting, name, greeting } : { id: "", name, greeting, bookingMode: "book", autopilot: true, followUpMode: "ask", transferPhone: null, setupJson: null },
+    promoting ? { ...promoting, name, greeting } : draftActivationBusiness(name, greeting),
     input.activation,
     { existingBusinessId: promoting?.id ?? null },
   );
@@ -577,17 +586,33 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
 
   try {
     if (!vapiAssistantId) {
-      const assistant = await createAssistant(
-        buildVapiAssistantConfig({
-          businessName: name,
-          systemPrompt,
-          greeting,
-          webhookUrl: getWebhookUrl("/api/webhooks/vapi"),
-          webhookSecret: process.env.VAPI_WEBHOOK_SECRET,
-        }),
-      );
+      /* Vapi has no idempotency keys, so the assistant carries this attempt's tag: a create whose reply was lost is found by it instead of made twice. */
+      const correlationKey = assistantEffectKey(attempt);
+      const config = buildVapiAssistantConfig({
+        businessName: name,
+        systemPrompt,
+        greeting,
+        webhookUrl: getWebhookUrl("/api/webhooks/vapi"),
+        webhookSecret: process.env.VAPI_WEBHOOK_SECRET,
+      });
+      const assistant = await performOnce<{ id: string }>({
+        provider: "vapi",
+        operation: "receptionist create",
+        correlationKey,
+        businessId: promoting?.id ?? null,
+        kind: "create",
+        replayWindowMs: 0,
+        perform: () => createAssistant({ ...config, metadata: { orviusConfig: config.metadata?.orviusConfig ?? "", orviusEffect: correlationKey } }),
+        idOf: (created) => created.id,
+        retrieve: async (id) => ({ id }),
+        find: async () => {
+          const rows = await vapiRequest<Array<{ id: string; metadata?: { orviusEffect?: string } }>>("/assistant?limit=1000");
+          if (rows.length >= 1000) throw new Error("too many assistants to rule it out");
+          return rows.find((row) => row.metadata?.orviusEffect === correlationKey) ?? null;
+        },
+        finalize: (created) => recordProvisionStep(key, { vapiAssistantId: created.id }),
+      });
       vapiAssistantId = assistant.id;
-      await recordProvisionStep(key, { vapiAssistantId });
     }
 
     try {
@@ -669,6 +694,7 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
   } catch (error) {
     const recorded = await prisma.provisionAttempt.findUnique({ where: { key } });
     const kept = await rollbackProvision({
+      assistantEffect: assistantEffectKey(attempt),
       vapiAssistantId,
       shopLine: shopLine ?? recorded?.phoneNumber ?? null,
       releaseLine: Boolean(shopLine ?? recorded?.phoneNumber),

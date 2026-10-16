@@ -497,7 +497,7 @@ function parsed(raw: string): Record<string, unknown> {
 }
 
 const cents = (v: unknown) => (typeof v === "number" ? formatCentsExact(v) : "an amount");
-const SYSTEM_NAMES: Record<string, string> = { stripe: "Stripe", orvius: "Orvius", jobber: "Jobber", housecall: "Housecall Pro", servicetitan: "ServiceTitan", quickbooks: "QuickBooks" };
+const SYSTEM_NAMES: Record<string, string> = { stripe: "Stripe", vapi: "the voice provider", orvius: "Orvius", jobber: "Jobber", housecall: "Housecall Pro", servicetitan: "ServiceTitan", quickbooks: "QuickBooks" };
 
 /** What a person reads for one open reconciliation exception, and what to do about it. */
 export function mismatchText(row: Pick<Mismatch, "kind" | "entityType" | "system" | "expectedJson" | "observedJson">): { title: string; detail: string } {
@@ -508,6 +508,19 @@ export function mismatchText(row: Pick<Mismatch, "kind" | "entityType" | "system
       title: `Extra payment on a settled ${row.entityType}`,
       detail: `A customer paid ${cents(observed.amountCents)} after the ${row.entityType} was already settled. Nothing was refunded. Refund it in Stripe or tell them it's credited, then mark it resolved.`,
     };
+  }
+  if (observed.reason === "response_lost" || observed.reason === "local_finalize_failed") {
+    const provider = SYSTEM_NAMES[row.system] ?? row.system;
+    const what = typeof expected.effect === "string" ? expected.effect : "change";
+    return observed.reason === "response_lost"
+      ? {
+          title: `No reply from ${provider} on a ${what}`,
+          detail: `Orvius asked ${provider} for a ${what} and the answer never came back, so it may or may not exist. It won't be repeated blindly: the next try checks ${provider} first. Check ${provider}, then mark it resolved with what you found.`,
+        }
+      : {
+          title: `${provider} did a ${what} Orvius didn't save`,
+          detail: `${provider} accepted it (${String(observed.providerId ?? "id on file")}) but Orvius couldn't record it. The next try saves it without asking ${provider} again. If this stays open, check the ${row.entityType} and mark it resolved.`,
+        };
   }
   if (row.kind === "change" && row.entityType === "invoice") {
     const basis = expected.basis === "signed_estimate" ? "signed" : expected.basis === "paid_toward" ? "already paid toward" : "sent";

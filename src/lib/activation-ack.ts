@@ -51,7 +51,7 @@ export type ActivationRefusal = { code: "activation_missing" | "activation_stale
 
 /** The settings a shop not yet built will run with: the database defaults and the starting greeting. */
 export function draftActivationBusiness(name: string, greeting?: string | null): ActivationBusiness {
-  return { id: "", name, greeting: greeting?.trim() || defaultGreeting(name), bookingMode: "book", autopilot: true, followUpMode: "ask", transferPhone: null, setupJson: null };
+  return { id: "", name, greeting: greeting?.trim() || defaultGreeting(name), bookingMode: "book", autopilot: true, followUpMode: "ask", transferPhone: null, setupJson: "{}" };
 }
 
 export function checkActivationClaim(business: ActivationBusiness, claim: Partial<ActivationClaim> | null | undefined): ActivationRefusal | null {

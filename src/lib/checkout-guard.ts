@@ -10,6 +10,7 @@ import { enqueueOwnerAlert } from "@/lib/notification-queue";
 import { prisma } from "@/lib/prisma";
 import { getStripe } from "@/lib/stripe";
 import { raiseReconciliation } from "@/lib/system-of-record";
+import { performOnce, STRIPE_REPLAY_WINDOW_MS } from "@/lib/provider-effect";
 
 /*
   Shared rules for a customer paying a shop by card through Checkout: one open
@@ -67,6 +68,8 @@ export async function reserveCheckout(params: {
   scope: string;
   stripeAccount: string;
   amountCents: number;
+  businessId?: string;
+  entity?: { type: string; id: string };
   currentSessionId: () => Promise<string | null | undefined>;
   create: (idempotencyKey: string) => Promise<Stripe.Checkout.Session>;
   remember: (session: Stripe.Checkout.Session) => Promise<unknown>;
@@ -77,9 +80,20 @@ export async function reserveCheckout(params: {
       const prior = (await params.currentSessionId()) ?? null;
       const reused = await reuseOpenCheckoutSession({ sessionId: prior, stripeAccount: params.stripeAccount, amountCents: params.amountCents });
       if (reused) return reused;
-      const session = await params.create(`checkout:${params.scope}:${params.amountCents}:${prior ?? "first"}`);
-      await params.remember(session);
-      return session;
+      /* The session is recorded before Stripe is called, so a lost reply or a failed remember() is recovered from Stripe's record, never by opening a second one blindly. */
+      return performOnce({
+        provider: "stripe",
+        operation: "checkout session",
+        correlationKey: `checkout:${params.scope}:${params.amountCents}:${prior ?? "first"}`,
+        businessId: params.businessId ?? null,
+        entity: params.entity ?? null,
+        kind: "payment",
+        replayWindowMs: STRIPE_REPLAY_WINDOW_MS,
+        perform: params.create,
+        idOf: (session) => session.id,
+        retrieve: (id) => getStripe().checkout.sessions.retrieve(id, { stripeAccount: params.stripeAccount }),
+        finalize: params.remember,
+      });
     },
     { leaseMs: 45_000, waitMs: 30_000, forget: true },
   );
