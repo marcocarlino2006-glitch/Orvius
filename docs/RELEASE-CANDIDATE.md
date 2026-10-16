@@ -143,3 +143,50 @@ These are isolated results. They do not show production delivery, provider behav
 ## Rollback
 
 Rolling code back to an earlier release changes which code serves requests. It does not undo schema changes, and it never deletes or rewrites payments, receipts, refunds, deposits, audit events or message history. Every migration in this repo is additive so an older release can still read the database. A data correction is a separate, reviewed and authorized operation with its own backup reference, never a side effect of redeploying older code.
+
+## Production release of `cursor/merge-all-10f0`
+
+Migration first, then the push. Nothing below has been run against production.
+
+### The migration
+
+`prisma/releases/2026-10-16-merge-all.sql`, sha256 `e45eaac768e3bb3259012a887bda6d33c9fd76465a6b9d90b447b5c217b15134`. It is the output of `prisma migrate diff` from the `schema.prisma` on main at `39b17d77ffaf595dbc71c070ca68fdb351344be4` to this branch, with every CREATE made IF NOT EXISTS. It has 36 statements: 9 nullable TEXT columns on `Call`, `CopilotAction` and `NetworkHandoff`, 11 new tables and 16 indexes. Nothing is dropped, rebuilt, backfilled or read. The full historical `turso-migrate.sql` is not run, and `receivables-v1.sql` is not part of this release (no app code uses it).
+
+### Rehearsal (disposable SQLite files only)
+
+| Check | Result |
+|---|---|
+| Main's suite on main's schema (baseline, and the synthetic data) | 1332/1332 |
+| Pre-migration backup and restore drill with `db-backup.mjs` | 57 tables, 1063 rows, every count matches |
+| First apply through `applyMigrationPlan` | applied, ledger row 1 |
+| Every pre-existing row and value after the apply | all 1063 identical; new columns NULL |
+| Second apply | no error; schema and data unchanged apart from ledger row 2 |
+| `prisma migrate diff` migrated file to the branch schema | only the runner's ledger table, which is not a Prisma model |
+| `release-schema-check before` on the restored backup, `after` on the migrated file | MATCH, MATCH |
+| Main's suite on the migrated database | 1332/1332 |
+| Branch suite on the migrated database, no `db push` | 1616/1616 |
+| Main's suite again, over rows the new code wrote (12 SmsIntent, 145 ProviderEffect, ...) | 1332/1332 |
+| Main's Prisma client reading and updating rows with all 9 new columns filled | reads all rows, update keeps the new value |
+
+### Not tested
+
+- Production's schema was not read. Last night's backup reported 58 tables; main's schema has 57 models. `release-schema-check before` stops the release if the difference is anything except the migration ledger.
+- The rehearsal used Prisma's SQLite engine on files. Production goes through the libsql adapter to Turso.
+- The Turso copy and point-in-time steps below have not been run from this environment.
+
+### Sequence
+
+1. `git fetch origin main`. Stop if main is not `39b17d77ffaf595dbc71c070ca68fdb351344be4`.
+2. Add the production host (no credentials) to `production` in `ops/migration-targets.json` and commit. That commit is the release commit `R`.
+3. Backup: create a Turso copy of the production database (`turso db create <name> --from-db <prod>`), confirm it exists, that `release-schema-check before` matches on it, and that its per-table row counts equal production's. Record the UTC time as the point-in-time fallback. The nightly encrypted backup (last run green) is the second copy.
+4. Pre-flight on production: `node scripts/release-schema-check.mjs before prisma/releases/2026-10-16-merge-all.sql`. Stop unless it matches.
+5. Apply: `MIGRATION_APPROVAL=<ref> MIGRATION_RELEASE_COMMIT=<R> MIGRATION_TARGET=production MIGRATION_PLAN_FILE=prisma/releases/2026-10-16-merge-all.sql MIGRATION_PLAN_SHA256=e45eaac768e3bb3259012a887bda6d33c9fd76465a6b9d90b447b5c217b15134 MIGRATION_BACKUP_REF=<copy name and time> npm run db:migrate:turso`. Stop on any error.
+6. Verify: `node scripts/release-schema-check.mjs after` matches, and the ledger row for `R` is `applied`.
+7. `git push origin <R>:main`, a fast-forward with no force. Stop if it is rejected.
+8. Check the Vercel production deployment for `R` on GitHub, the automatic Production verify run, and `/api/health`.
+
+### Recovery
+
+- Failure before step 7: production keeps serving main. A partial apply shows as a `started` ledger row; the statements are idempotent, so a fixed re-run finishes it, and main's code ignores the added tables and columns either way.
+- Bad deploy after step 7: promote the previous production deployment in Vercel, or push a revert commit. Main's code was tested on the migrated schema, so the schema stays.
+- Schema itself must go: restore the Turso copy or the point-in-time time from step 3. That loses every write after the backup, so it is for data loss only, never for a code rollback.
