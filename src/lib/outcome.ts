@@ -240,7 +240,7 @@ export async function buildOutcome(businessId: string, target: { jobId?: string 
         })
       : null,
     invoice
-      ? prisma.smsIntent.findFirst({ where: { businessId, eventType: "invoice.pay_link", eventId: invoice.id }, orderBy: { messageVersion: "desc" } })
+      ? prisma.smsIntent.findFirst({ where: { businessId, eventType: "invoice.pay_link", eventId: invoice.id }, orderBy: [{ createdAt: "desc" }, { messageVersion: "desc" }] })
       : null,
     prisma.reconciliationException.findMany({
       where: {

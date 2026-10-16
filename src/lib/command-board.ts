@@ -189,7 +189,7 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
       where: { businessId, direction: "out", deliveryStatus: { in: ["failed", "undelivered"] }, createdAt: { gte: recent } },
       orderBy: { createdAt: "desc" },
       take: 10,
-      select: { id: true, phoneNormalized: true, body: true, createdAt: true },
+      select: { id: true, sid: true, phoneNormalized: true, body: true, createdAt: true },
     }),
     prisma.auditEvent.findMany({
       where: { businessId, action: "sms.failed", createdAt: { gte: recent } },
@@ -456,7 +456,14 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
   }
 
   exceptions.push(...(await mismatchItems(businessId, mismatches)));
-  exceptions.push(...(await billingItems(businessId, now)));
+  const billing = await billingItems(businessId, now);
+  /* A bill text that failed is one problem: the bill item says which bill, so the generic text item for it goes. */
+  for (const m of failedTexts) {
+    if (!m.sid || !billing.sids.has(m.sid)) continue;
+    const at = exceptions.findIndex((x) => x.id === `text-failed:${m.id}`);
+    if (at >= 0) exceptions.splice(at, 1);
+  }
+  exceptions.push(...billing.items);
 
   const order: Record<ExceptionKind, number> = {
     emergency: 0,
@@ -608,7 +615,7 @@ const BILL_TEXT_FAILED = ["undelivered", "rejected", "retry_exhausted", "unknown
  * may not have gone out. Both are read from the job, the invoice and the text
  * ledger, so they stay on the board through a reload until the record changes.
  */
-async function billingItems(businessId: string, now: Date): Promise<BoardItem[]> {
+async function billingItems(businessId: string, now: Date): Promise<{ items: BoardItem[]; sids: Set<string> }> {
   const month = new Date(now.getTime() - 30 * DAY);
   const [unbilled, intents] = await Promise.all([
     prisma.job.findMany({
@@ -621,11 +628,12 @@ async function billingItems(businessId: string, now: Date): Promise<BoardItem[]>
       where: { businessId, eventType: "invoice.pay_link", updatedAt: { gte: month } },
       orderBy: { updatedAt: "desc" },
       take: 300,
-      select: { eventId: true, status: true, updatedAt: true, messageVersion: true },
+      select: { eventId: true, status: true, updatedAt: true, createdAt: true, providerSid: true },
     }),
   ]);
-  const latest = new Map<string, { status: string; updatedAt: Date; messageVersion: number }>();
-  for (const i of intents) if ((latest.get(i.eventId)?.messageVersion ?? -1) < i.messageVersion) latest.set(i.eventId, i);
+  /* Versions count per recipient, so a bill's latest attempt is the newest one, whichever number it went to. */
+  const latest = new Map<string, { status: string; updatedAt: Date; createdAt: Date; providerSid: string | null }>();
+  for (const i of intents) if ((latest.get(i.eventId)?.createdAt.getTime() ?? -1) < i.createdAt.getTime()) latest.set(i.eventId, i);
   const failedIds = [...latest].filter(([, i]) => BILL_TEXT_FAILED.includes(i.status)).map(([id]) => id);
   const bills = failedIds.length
     ? await prisma.invoice.findMany({
@@ -633,7 +641,8 @@ async function billingItems(businessId: string, now: Date): Promise<BoardItem[]>
         select: { id: true, amountCents: true, jobId: true, job: { select: { leadId: true, title: true, customer: { select: { name: true, phone: true } }, lead: { select: { name: true, phone: true } } } } },
       })
     : [];
-  return [
+  const sids = new Set(bills.map((b) => latest.get(b.id)!.providerSid).filter((sid): sid is string => Boolean(sid)));
+  const items = [
     ...unbilled.map((job) => ({
       id: `billing-gap:${job.id}`,
       lane: "exceptions" as const,
@@ -664,4 +673,5 @@ async function billingItems(businessId: string, now: Date): Promise<BoardItem[]>
       };
     }),
   ];
+  return { items, sids };
 }
