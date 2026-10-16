@@ -111,6 +111,30 @@ test("the bounded instruction books the first real opening, assigns a qualified 
   assert.equal(await prisma.auditEvent.count({ where: { businessId: shop.id, action: "workflow.stage_done" } }), done, "re-reading the outcome records nothing twice");
 });
 
+test("a named technician in the instruction is a question, even a short name made of generic words", async () => {
+  const shop = await demoShop();
+  await lead(shop);
+  for (const name of ["Anita", "Ana", "Isa"]) {
+    const ask = await call(() => askRoute.POST(req("POST", "/api/command/ask", { text: `Book Rosa Diaz in the next suitable window and assign ${name}` })));
+    assert.equal(ask.body?.kind, "clarify", `${name}: ${JSON.stringify(ask.body)}`);
+  }
+  assert.equal(await prisma.copilotAction.count({ where: { businessId: shop.id } }), 0, "no plan was made around the name");
+});
+
+test("a sent bill waiting on its receipt leaves the next step to the carrier, not a resend", async () => {
+  const shop = await demoShop();
+  const request = await lead(shop);
+  await book();
+  const job = await prisma.job.findFirstOrThrow({ where: { leadId: request.id } });
+  await fieldDone(shop, job.id);
+  const bill = await prisma.invoice.findFirstOrThrow({ where: { jobId: job.id } });
+  await prisma.invoice.update({ where: { id: bill.id }, data: { sentAt: new Date() } });
+  await prisma.smsIntent.updateMany({ where: { businessId: shop.id, eventType: "invoice.pay_link", eventId: bill.id }, data: { status: "submitted", providerAccount: "AC_test_account" } });
+  const invoice = stageOf(await buildOutcome(shop.id, { jobId: job.id }), "invoice");
+  assert.equal(invoice.state, "unknown");
+  assert.equal(invoice.nextActor, "provider", "the card offers a resend only when the next step is the owner's");
+});
+
 test("no qualified technician: the booking stands, assignment is the next decision with real options", async () => {
   const shop = await demoShop();
   await prisma.technician.updateMany({ where: { businessId: shop.id }, data: { skillsJson: JSON.stringify(["plumbing"]) } });
