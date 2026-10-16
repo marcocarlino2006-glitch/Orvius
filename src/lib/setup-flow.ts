@@ -43,6 +43,11 @@ export function isSetupGoal(value: unknown): value is SetupGoal {
   return SETUP_GOALS.some((goal) => goal.id === value);
 }
 
+export type SetupFailure = { step: SetupStep; at: string; reason: string; attempt: number };
+
+/** What the owner typed on the go-live screen, kept so a closed tab or another device doesn't lose it. */
+export type LiveDraft = { ownerPhone?: string; areaCode?: string };
+
 export type SetupState = {
   sandbox?: boolean;
   step?: SetupStep;
@@ -51,7 +56,82 @@ export type SetupState = {
   permissions?: "alert" | "offer" | "confirm";
   testedAt?: string;
   liveAt?: string;
+  /** When each step was saved on the server. A step counts as done only from here (or the older fields it implies). */
+  done?: Partial<Record<SetupStep, string>>;
+  /** The last few failures, newest last, so a retry can say what went wrong. */
+  failures?: SetupFailure[];
+  liveDraft?: LiveDraft;
 };
+
+/** What each step needs saved first. Going back is always allowed; going forward needs these. */
+export const SETUP_PREREQS: Record<SetupStep, readonly SetupStep[]> = {
+  business: [],
+  goal: ["business"],
+  day: ["business"],
+  permissions: ["business", "day"],
+  test: ["business", "day", "permissions"],
+  live: ["business", "day", "permissions"],
+};
+
+const MAX_FAILURES = 10;
+
+/**
+ * Steps saved on the server. Shops that began setup before steps were recorded
+ * are read from the fields those steps wrote: a chosen goal, a chosen
+ * permission level (which could only be saved after the day), a test time.
+ */
+export function stepsDone(state: SetupState): Partial<Record<SetupStep, string>> {
+  const done: Partial<Record<SetupStep, string>> = { ...(state.done ?? {}) };
+  const legacy = "recorded before steps were tracked";
+  if (state.sandbox && !done.business) done.business = legacy;
+  if (state.goal && !done.goal) done.goal = legacy;
+  if (state.permissions && !done.permissions) done.permissions = legacy;
+  if (state.permissions && !done.day) done.day = legacy;
+  if (state.testedAt && !done.test) done.test = state.testedAt;
+  return done;
+}
+
+export function missingForStep(step: SetupStep, state: SetupState): SetupStep[] {
+  const done = stepsDone(state);
+  return SETUP_PREREQS[step].filter((need) => !done[need]);
+}
+
+export function allowedSteps(state: SetupState): SetupStep[] {
+  return SETUP_STEPS.filter((step) => missingForStep(step, state).length === 0);
+}
+
+export function withFailure(state: SetupState, step: SetupStep, reason: string, at = new Date()): SetupFailure[] {
+  const prior = (state.failures ?? []).filter((f) => f.step === step).length;
+  return [...(state.failures ?? []), { step, at: at.toISOString(), reason: reason.slice(0, 300), attempt: prior + 1 }].slice(-MAX_FAILURES);
+}
+
+function parseDone(raw: unknown): Partial<Record<SetupStep, string>> | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const out: Partial<Record<SetupStep, string>> = {};
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (isSetupStep(key) && typeof value === "string") out[key] = value;
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+
+function parseFailures(raw: unknown): SetupFailure[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  const out = raw.filter(
+    (f): f is SetupFailure =>
+      Boolean(f) && isSetupStep(f.step) && typeof f.at === "string" && typeof f.reason === "string" && typeof f.attempt === "number",
+  );
+  return out.length ? out.slice(-MAX_FAILURES) : undefined;
+}
+
+function parseLiveDraft(raw: unknown): LiveDraft | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const r = raw as Record<string, unknown>;
+  const draft: LiveDraft = {
+    ...(typeof r.ownerPhone === "string" ? { ownerPhone: r.ownerPhone.slice(0, 32) } : {}),
+    ...(typeof r.areaCode === "string" && /^\d{0,3}$/.test(r.areaCode) ? { areaCode: r.areaCode } : {}),
+  };
+  return Object.keys(draft).length ? draft : undefined;
+}
 
 export function parseSetup(json: string | null | undefined): SetupState {
   try {
@@ -67,6 +147,9 @@ export function parseSetup(json: string | null | undefined): SetupState {
         : {}),
       ...(typeof raw.testedAt === "string" ? { testedAt: raw.testedAt } : {}),
       ...(typeof raw.liveAt === "string" ? { liveAt: raw.liveAt } : {}),
+      ...(parseDone(raw.done) ? { done: parseDone(raw.done) } : {}),
+      ...(parseFailures(raw.failures) ? { failures: parseFailures(raw.failures) } : {}),
+      ...(parseLiveDraft(raw.liveDraft) ? { liveDraft: parseLiveDraft(raw.liveDraft) } : {}),
     };
   } catch {
     return {};

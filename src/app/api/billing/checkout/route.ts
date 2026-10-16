@@ -34,7 +34,7 @@ import { HIPAA_TRADE_REFUSAL, isHipaaTrade } from "@/lib/trades";
 import { consentSchema, shopDraftMetadata, shopDraftSchema } from "@/lib/checkout-shop";
 import { checkActivationClaim, draftActivationBusiness, recordActivationAck } from "@/lib/activation-ack";
 import { resolveShopAccess } from "@/lib/workspace-access";
-import { isSetupSandbox } from "@/lib/setup-flow";
+import { isSetupSandbox, missingForStep, parseSetup } from "@/lib/setup-flow";
 import { ACQUISITION_COOKIE, parseAcquisition } from "@/lib/acquisition";
 import { acquisitionMetadata, findReferrer } from "@/lib/referrals";
 
@@ -188,6 +188,13 @@ export async function POST(request: NextRequest) {
       };
     }
     if (turningOn && business) {
+      const missing = missingForStep("live", parseSetup(business.setupJson));
+      if (missing.length) {
+        return NextResponse.json(
+          { error: "Finish your hours and what Orvius may do before going live. Your setup is saved.", code: "setup_incomplete", missing, setupUrl: `/dashboard/onboarding?step=${missing[0]}` },
+          { status: 409 },
+        );
+      }
       const refusal = checkActivationClaim(business, body.activation);
       if (refusal) return NextResponse.json(refusal, { status: 409 });
       const ack = await recordActivationAck({

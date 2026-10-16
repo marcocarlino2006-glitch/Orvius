@@ -49,6 +49,34 @@ function readSetupDraft(): SetupDraft | null {
   }
 }
 
+async function readServerDraft(): Promise<SetupDraft | null> {
+  try {
+    const res = await fetch("/api/setup/draft", { cache: "no-store" });
+    if (!res.ok) return null;
+    const json = (await res.json()) as { draft?: Partial<SetupDraft> | null };
+    const d = json.draft;
+    if (!d || typeof d.name !== "string") return null;
+    return {
+      name: d.name,
+      trade: isTrade(d.trade) ? d.trade : "HVAC",
+      ownerPhone: d.ownerPhone ?? "",
+      areaCode: d.areaCode ?? "",
+      found: d.found ?? null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function clearDrafts() {
+  try {
+    window.localStorage.removeItem(SETUP_DRAFT_KEY);
+  } catch {
+    /* Private mode keeps nothing to clear. */
+  }
+  void fetch("/api/setup/draft", { method: "DELETE" }).catch(() => undefined);
+}
+
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
@@ -272,7 +300,7 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
             return;
           }
           if (res.ok) {
-            window.localStorage.removeItem(SETUP_DRAFT_KEY);
+            clearDrafts();
             if (json.line) setProvisionedLine(json.line);
             else router.replace("/dashboard");
             return;
@@ -285,7 +313,7 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
           for (let look = 0; look < 12; look += 1) {
             await wait(2500);
             if (await resumeExisting().catch(() => false)) {
-              window.localStorage.removeItem(SETUP_DRAFT_KEY);
+              clearDrafts();
               return;
             }
           }
@@ -303,9 +331,9 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
   useEffect(() => {
     setCheckFailed(false);
     void resumeExisting()
-      .then((resumed) => {
+      .then(async (resumed) => {
         if (resumed) return;
-        const saved = readSetupDraft();
+        const saved = readSetupDraft() ?? (await readServerDraft());
         const draft = readPreviewDraft();
         const shopName = saved?.name || draft?.shopName;
         const phone = saved?.ownerPhone || draft?.ownerPhone;
@@ -342,14 +370,17 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
       acceptedTerms,
       acceptedSms,
     };
+    const draftBody = JSON.stringify({ name: shop.name, trade, ownerPhone: shop.ownerPhone, areaCode, found });
     try {
-      window.localStorage.setItem(
-        SETUP_DRAFT_KEY,
-        JSON.stringify({ name: shop.name, trade, ownerPhone: shop.ownerPhone, areaCode, found }),
-      );
+      window.localStorage.setItem(SETUP_DRAFT_KEY, draftBody);
     } catch {
-      /* Private mode: a canceled checkout just starts the form blank. */
+      /* Private mode: the server copy below still restores the form. */
     }
+    await fetch("/api/setup/draft", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: draftBody,
+    }).catch(() => undefined);
     try {
       const res = await fetch("/api/billing/checkout", {
         method: "POST",

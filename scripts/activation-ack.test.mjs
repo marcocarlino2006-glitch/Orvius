@@ -64,7 +64,7 @@ async function sandbox() {
       trade: "HVAC",
       ownerEmail,
       environment: "test",
-      setupJson: JSON.stringify({ sandbox: true, permissions: true }),
+      setupJson: JSON.stringify({ sandbox: true, permissions: "offer" }),
       greeting: "Thanks for calling Sandbox Heating.",
       bookingMode: "offer",
     },

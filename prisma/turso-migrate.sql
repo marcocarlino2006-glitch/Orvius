@@ -1347,3 +1347,10 @@ CREATE TABLE IF NOT EXISTS "MessagingSender" (
     "updatedAt" DATETIME NOT NULL
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "MessagingSender_identity_key" ON "MessagingSender"("identity");
+
+-- Sign-up drafts kept on the server per signed-in email
+CREATE TABLE IF NOT EXISTS "SetupDraft" (
+    "email" TEXT NOT NULL PRIMARY KEY,
+    "json" TEXT NOT NULL,
+    "updatedAt" DATETIME NOT NULL
+);

@@ -19,6 +19,7 @@ import {
   type SetupScenarioId,
   type SetupStep,
 } from "@/lib/setup-flow";
+import type { Capability } from "@/lib/capabilities";
 import type { SetupTestResult } from "@/lib/setup-sandbox";
 import type { Trade } from "@/lib/trades";
 
@@ -45,6 +46,12 @@ type Sandbox = {
   activation: { noticeVersion: string; setupVersion: string };
   checklist: GoLiveItem[];
   timezone: string;
+  progress: { done: Partial<Record<SetupStep, string>>; allowed: SetupStep[]; missing: Record<SetupStep, SetupStep[]> };
+  failures: Array<{ step: SetupStep; at: string; reason: string; attempt: number }>;
+  liveDraft: { ownerPhone?: string; areaCode?: string };
+  facts: Array<{ label: string; value: string | null; source: "confirmed" | "imported" | "starting_default" | "unknown"; note: string }>;
+  capabilities: Capability[] | null;
+  providerEffects: Array<{ provider: string; operation: string; status: string; lastError: string | null; updatedAt: string }>;
 };
 
 type SetupResponse = { live?: boolean; sandbox: Sandbox | null; error?: string };
@@ -110,7 +117,7 @@ export function TurnOnOrvius({
         return;
       }
       setSandbox(json.sandbox);
-      const wanted = SETUP_STEPS.find((s) => s === initialStep);
+      const wanted = SETUP_STEPS.find((s) => s === initialStep && (!json.sandbox || json.sandbox.progress.allowed.includes(s)));
       setStep(json.sandbox ? (wanted ?? json.sandbox.step) : "business");
       setLoaded(true);
     })();
@@ -141,8 +148,18 @@ export function TurnOnOrvius({
 
   const go = (next: SetupStep) => {
     setError("");
+    if (sandbox && !sandbox.progress.allowed.includes(next)) {
+      const missing = sandbox.progress.missing[next] ?? [];
+      setError(`Finish ${missing.map((m) => STEP_TITLES[m].toLowerCase()).join(" and ")} first.`);
+      return;
+    }
+    const previous = step;
     setStep(next);
-    if (sandbox) void post({ action: "step", step: next }).catch(() => undefined);
+    if (sandbox)
+      void post({ action: "step", step: next }).catch((err) => {
+        setStep(previous);
+        setError(err instanceof Error ? err.message : "That didn't save. Try again.");
+      });
     window.scrollTo({ top: 0 });
   };
 
@@ -159,7 +176,7 @@ export function TurnOnOrvius({
 
   return (
     <main className="ton">
-      <TopBar index={index} onBack={back ? () => go(back) : undefined} testMode={Boolean(sandbox)} />
+      <TopBar index={index} done={sandbox?.progress.done ?? {}} onBack={back ? () => go(back) : undefined} testMode={Boolean(sandbox)} />
       <section className="ton-stage" key={step}>
         {step === "business" ? (
           <BusinessStep sandbox={sandbox} busy={busy} onSave={(name, trade) => run({ action: "start", name, trade, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }, "goal")} />
@@ -198,7 +215,17 @@ export function TurnOnOrvius({
   );
 }
 
-function TopBar({ index, onBack, testMode }: { index: number; onBack?: () => void; testMode?: boolean }) {
+function TopBar({
+  index,
+  done = {},
+  onBack,
+  testMode,
+}: {
+  index: number;
+  done?: Partial<Record<SetupStep, string>>;
+  onBack?: () => void;
+  testMode?: boolean;
+}) {
   return (
     <header className="ton-top">
       <div className="ton-top-row">
@@ -219,8 +246,11 @@ function TopBar({ index, onBack, testMode }: { index: number; onBack?: () => voi
       </div>
       <ol className="ton-progress" aria-label="Setup progress">
         {SETUP_STEPS.map((s, i) => (
-          <li key={s} className={i <= index ? "is-done" : ""} aria-current={i === index ? "step" : undefined}>
-            <span className="sr-only">{STEP_TITLES[s]}</span>
+          <li key={s} className={done[s] || i === index ? "is-done" : ""} aria-current={i === index ? "step" : undefined}>
+            <span className="sr-only">
+              {STEP_TITLES[s]}
+              {done[s] ? ", saved" : ", not saved yet"}
+            </span>
           </li>
         ))}
       </ol>
@@ -672,9 +702,17 @@ function TestStep({
   const [pick, setPick] = useState<SetupScenarioId>(ran === "routine" ? "exception" : "routine");
   const scenario = sandbox.scenarios.find((s) => s.id === (ran ?? pick));
   const result = sandbox.test;
+  const lastFailure = sandbox.failures.filter((f) => f.step === "test").at(-1);
+  const failedSinceRun = lastFailure && (!sandbox.testedAt || lastFailure.at > sandbox.testedAt);
 
   return (
     <>
+      {failedSinceRun ? (
+        <p className="ton-error" role="status">
+          The last test call didn&apos;t finish (attempt {lastFailure.attempt}, {new Date(lastFailure.at).toLocaleString()}). Nothing reached a real person.
+          Run it again{lastFailure.attempt >= 2 ? ", or email support@orvius.im with the time above" : ""}.
+        </p>
+      ) : null}
       <Heading
         title="See your business run."
         lead="A scripted test call goes through the same steps a real one would, with your settings. No one is called or texted."
@@ -799,6 +837,58 @@ const URGENCY_LABEL: Record<string, string> = {
   flexible: "Whenever works",
 };
 
+const FACT_SOURCE: Record<Sandbox["facts"][number]["source"], string> = {
+  confirmed: "You confirmed",
+  imported: "Read from your device",
+  starting_default: "Starting default, not confirmed",
+  unknown: "Not set",
+};
+
+const CAP_STATE: Record<Capability["state"], string> = { ready: "On", pending: "Waiting", off: "Off" };
+
+/** What Orvius knows and where each fact came from, then what will run on day one and what waits. */
+function SetupFacts({ sandbox }: { sandbox: Sandbox }) {
+  return (
+    <>
+      <details className="ton-group">
+        <summary className="ton-group-title">What Orvius knows about {sandbox.name}</summary>
+        <ul className="ton-checklist">
+          {sandbox.facts.map((fact) => (
+            <li key={fact.label} className={fact.source === "confirmed" ? "is-live" : "is-not_connected"}>
+              <span className="ton-check-state">{FACT_SOURCE[fact.source]}</span>
+              <span className="ton-check-label">{fact.label}</span>
+              <span className="ton-check-detail">{fact.note}</span>
+            </li>
+          ))}
+        </ul>
+      </details>
+      {sandbox.capabilities ? (
+        <div className="ton-group">
+          <p className="ton-group-title">What runs once you&apos;re live</p>
+          <ul className="ton-checklist">
+            {sandbox.capabilities
+              .filter((c) => c.id !== "voice")
+              .map((cap) => (
+                <li key={cap.id} className={cap.state === "pending" ? "is-needs_approval" : cap.state === "off" ? "is-not_connected" : "is-live"}>
+                  <span className="ton-check-state">{cap.id === "sms" && cap.state === "ready" ? "Simulated now" : CAP_STATE[cap.state]}</span>
+                  <span className="ton-check-label">{cap.label}</span>
+                  <span className="ton-check-detail">{cap.state === "ready" ? cap.detail : (cap.meanwhile ?? cap.detail)}</span>
+                </li>
+              ))}
+          </ul>
+          <p className="ton-fine">Texting to customers needs carrier approval after you go live. Until then customer texts are held, not sent.</p>
+        </div>
+      ) : null}
+      {sandbox.providerEffects.length ? (
+        <p className="ton-error" role="status">
+          A setup step with {sandbox.providerEffects[0].provider === "stripe" ? "Stripe" : "the phone provider"} didn&apos;t confirm (
+          {sandbox.providerEffects[0].status}). It won&apos;t be repeated blindly; email support@orvius.im if it doesn&apos;t clear in a few minutes.
+        </p>
+      ) : null}
+    </>
+  );
+}
+
 const STATE_LABEL: Record<GoLiveItem["state"], string> = {
   live: "Live",
   not_connected: "Not connected",
@@ -806,8 +896,13 @@ const STATE_LABEL: Record<GoLiveItem["state"], string> = {
 };
 
 function LiveStep({ sandbox, checkoutOpen, canceled }: { sandbox: Sandbox; checkoutOpen: boolean; canceled: boolean }) {
-  const [ownerPhone, setOwnerPhone] = useState("");
-  const [areaCode, setAreaCode] = useState("");
+  const [ownerPhone, setOwnerPhone] = useState(sandbox.liveDraft.ownerPhone ?? "");
+  const [areaCode, setAreaCode] = useState(sandbox.liveDraft.areaCode ?? "");
+  const [draftNote, setDraftNote] = useState("");
+  const saveDraft = () =>
+    void post({ action: "draft", ownerPhone: ownerPhone.trim(), areaCode })
+      .then(() => setDraftNote(""))
+      .catch(() => setDraftNote("Couldn't save this on our side yet. It's still here on this screen."));
   const [recording, setRecording] = useState(false);
   const [approve, setApprove] = useState(false);
   const [terms, setTerms] = useState(false);
@@ -871,6 +966,11 @@ function LiveStep({ sandbox, checkoutOpen, canceled }: { sandbox: Sandbox; check
         }),
       });
       const json = await res.json().catch(() => ({}));
+      if (json.code === "setup_incomplete" && json.setupUrl) {
+        setError(json.error);
+        setBusy(false);
+        return;
+      }
       if (!res.ok || !json.url) throw new Error(json.error || "Checkout didn't open. Try again.");
       window.location.assign(json.url);
     } catch (err) {
@@ -886,6 +986,8 @@ function LiveStep({ sandbox, checkoutOpen, canceled }: { sandbox: Sandbox; check
         lead="This is the only step that reaches real people. Nothing changes until you approve it and choose a plan."
       />
       {canceled ? <p className="ton-note" role="status">Checkout closed before payment. Nothing was charged and your setup is saved.</p> : null}
+
+      <SetupFacts sandbox={sandbox} />
 
       <ul className="ton-checklist">
         {checklist.map((item) => (
@@ -930,6 +1032,7 @@ function LiveStep({ sandbox, checkoutOpen, canceled }: { sandbox: Sandbox; check
                 className="ton-input"
                 value={ownerPhone}
                 onChange={(e) => setOwnerPhone(e.target.value)}
+                onBlur={saveDraft}
                 placeholder="Your mobile"
                 inputMode="tel"
                 aria-label="Your mobile"
@@ -938,11 +1041,13 @@ function LiveStep({ sandbox, checkoutOpen, canceled }: { sandbox: Sandbox; check
                 className="ton-input ton-input--short"
                 value={areaCode}
                 onChange={(e) => setAreaCode(e.target.value.replace(/\D/g, "").slice(0, 3))}
+                onBlur={saveDraft}
                 placeholder="Area code"
                 inputMode="numeric"
                 aria-label="Area code for your Orvius number"
               />
             </div>
+            {draftNote ? <p className="ton-note" role="status">{draftNote}</p> : null}
             <p className="ton-note">
               Alerts and safety calls go to this mobile. You get a local Orvius number in this area code. Right after, we
               walk you through connecting your business number: you keep it, and you choose which calls Orvius takes.

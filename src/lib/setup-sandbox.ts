@@ -10,7 +10,10 @@ import { clearTestRecords } from "@/lib/setup-test-records";
 import {
   HOURS_PRESETS,
   isSetupSandbox,
+  missingForStep,
   parseSetup,
+  withFailure,
+  type LiveDraft,
   permissionSettings,
   setupScenarios,
   type HoursPresetId,
@@ -44,8 +47,32 @@ async function ownsLiveShop(email: string): Promise<boolean> {
   return Boolean(live);
 }
 
-function mergeSetup(business: Pick<Business, "setupJson">, patch: Partial<SetupState>): string {
-  return JSON.stringify({ ...parseSetup(business.setupJson), ...patch, sandbox: true });
+function mergeSetup(business: Pick<Business, "setupJson">, patch: Partial<SetupState>, finished?: SetupStep): string {
+  const current = parseSetup(business.setupJson);
+  const done = finished ? { ...(current.done ?? {}), [finished]: new Date().toISOString() } : current.done;
+  return JSON.stringify({ ...current, ...patch, ...(done ? { done } : {}), sandbox: true });
+}
+
+const STEP_NAMES: Record<SetupStep, string> = {
+  business: "your business",
+  goal: "what you want Orvius for",
+  day: "your hours and work",
+  permissions: "what Orvius may do",
+  test: "the test call",
+  live: "going live",
+};
+
+/** Saving or opening a step whose prerequisites aren't saved is refused with what to finish first. */
+function requireBefore(business: Pick<Business, "setupJson">, step: SetupStep) {
+  const missing = missingForStep(step, parseSetup(business.setupJson));
+  if (missing.length) throw new SetupError(`Finish ${missing.map((m) => STEP_NAMES[m]).join(" and ")} first.`);
+}
+
+async function recordStepFailure(business: Pick<Business, "id" | "setupJson">, step: SetupStep, reason: string) {
+  const state = parseSetup(business.setupJson);
+  await prisma.business
+    .update({ where: { id: business.id }, data: { setupJson: JSON.stringify({ ...state, failures: withFailure(state, step, reason), sandbox: true }) } })
+    .catch(() => undefined);
 }
 
 /** Step 1: the test-mode shop, created the moment the owner names their business type. */
@@ -69,7 +96,7 @@ export async function startSetup(
         greeting,
         ...(tradeChanged ? { servicesJson: servicesForTrade(input.trade) } : {}),
         ...(input.timezone ? { timezone: input.timezone } : {}),
-        setupJson: mergeSetup(existing, { step: "goal" }),
+        setupJson: mergeSetup(existing, { step: "goal" }, "business"),
       },
     });
     if (tradeChanged) await clearTestRecords(existing.id);
@@ -91,7 +118,7 @@ export async function startSetup(
       pilotEndsAt: new Date(Date.now() + TEST_WINDOW_DAYS * 24 * 60 * 60_000),
       bookingMode: "alert",
       autopilot: false,
-      setupJson: JSON.stringify({ sandbox: true, step: "goal" } satisfies SetupState),
+      setupJson: JSON.stringify({ sandbox: true, step: "goal", done: { business: new Date().toISOString() } } satisfies SetupState),
       operatingPolicy: { create: { travelMode: "not_configured" } },
     },
   });
@@ -117,7 +144,7 @@ export async function saveSetupGoal(email: string, goal: SetupGoal): Promise<Bus
   const business = await requireSandbox(email);
   return prisma.business.update({
     where: { id: business.id },
-    data: { setupJson: mergeSetup(business, { goal, step: "day" }) },
+    data: { setupJson: mergeSetup(business, { goal, step: "day" }, "goal") },
   });
 }
 
@@ -133,6 +160,7 @@ export async function saveSetupDay(
   },
 ): Promise<Business> {
   const business = await requireSandbox(email);
+  requireBefore(business, "day");
   const preset = HOURS_PRESETS.find((item) => item.id === input.hours);
   if (!preset) throw new SetupError("Pick the hours that fit your week.");
   const servicesJson = input.services && business.trade ? chosenServicesJson(business.trade as Trade, input.services) : undefined;
@@ -170,13 +198,14 @@ export async function saveSetupDay(
       hoursJson: preset.hoursJson,
       ...(servicesJson ? { servicesJson } : {}),
       ...(input.zips ? { serviceZipsJson: JSON.stringify(input.zips) } : {}),
-      setupJson: mergeSetup(business, { step: "permissions", ...(input.team ? { team: input.team } : {}) }),
+      setupJson: mergeSetup(business, { step: "permissions", ...(input.team ? { team: input.team } : {}) }, "day"),
     },
   });
 }
 
 export async function saveSetupPermissions(email: string, level: PermissionLevel, followUps: boolean): Promise<Business> {
   const business = await requireSandbox(email);
+  requireBefore(business, "permissions");
   const settings = permissionSettings(level);
   const updated = await prisma.business.update({
     where: { id: business.id },
@@ -184,7 +213,7 @@ export async function saveSetupPermissions(email: string, level: PermissionLevel
       bookingMode: settings.bookingMode,
       autopilot: settings.autopilot,
       followUpMode: followUps ? "auto" : "ask",
-      setupJson: mergeSetup(business, { step: "test", permissions: level }),
+      setupJson: mergeSetup(business, { step: "test", permissions: level }, "permissions"),
     },
   });
   await recordAudit({
@@ -207,7 +236,19 @@ export async function saveSetupPermissions(email: string, level: PermissionLevel
 
 export async function setSetupStep(email: string, step: SetupStep): Promise<Business> {
   const business = await requireSandbox(email);
+  requireBefore(business, step);
   return prisma.business.update({ where: { id: business.id }, data: { setupJson: mergeSetup(business, { step }) } });
+}
+
+/** The go-live screen's typing, kept on the server so it survives a closed tab or a switch of device. */
+export async function saveSetupLiveDraft(email: string, draft: LiveDraft): Promise<Business> {
+  const business = await requireSandbox(email);
+  const current = parseSetup(business.setupJson);
+  const typed = Object.fromEntries(Object.entries(draft).filter(([, value]) => value !== undefined));
+  return prisma.business.update({
+    where: { id: business.id },
+    data: { setupJson: JSON.stringify({ ...current, liveDraft: { ...(current.liveDraft ?? {}), ...typed }, sandbox: true }) },
+  });
 }
 
 function serviceZips(business: Pick<Business, "serviceZipsJson">): string[] {
@@ -227,8 +268,19 @@ export function scenariosFor(business: Pick<Business, "trade" | "serviceZipsJson
 /** Step 5: one scripted call through the real pipeline. Earlier test records are cleared first. */
 export async function runSetupTest(email: string, scenarioId: SetupScenarioId) {
   const business = await requireSandbox(email);
+  requireBefore(business, "test");
   const scenario = scenariosFor(business).find((item) => item.id === scenarioId);
   if (!scenario) throw new SetupError("Pick a test call.");
+  try {
+    return await runScenario(business, scenario);
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    await recordStepFailure(business, "test", reason);
+    throw new SetupError("The test call didn't finish. Nothing reached a real person. Run it again; if it fails twice, email support@orvius.im.");
+  }
+}
+
+async function runScenario(business: Business, scenario: ReturnType<typeof scenariosFor>[number]) {
   await clearTestRecords(business.id);
   const vapiCallId = `setup_${business.id}_${scenario.id}_${randomUUID().slice(0, 8)}`;
   const opening = `Thanks for calling ${business.name}. This call may be recorded and is answered by an automated receptionist.`;
@@ -256,7 +308,7 @@ export async function runSetupTest(email: string, scenarioId: SetupScenarioId) {
   const testedAt = new Date().toISOString();
   await prisma.business.update({
     where: { id: business.id },
-    data: { setupJson: mergeSetup(business, { testedAt, step: "test" }) },
+    data: { setupJson: mergeSetup(business, { testedAt, step: "test" }, "test") },
   });
   return { scenario, ...result };
 }

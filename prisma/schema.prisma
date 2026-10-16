@@ -64,6 +64,7 @@ model Business {
   /**
    * /**
    * /**
+   * /**
    * /** Last time the owner loaded Command on any device — anchors "since you looked".
    */
   ownerLastSeenAt               DateTime?
@@ -2149,4 +2150,11 @@ model MessagingSender {
   checkedAt  DateTime
   recordedBy String
   updatedAt  DateTime @updatedAt
+}
+
+/// The sign-up form typed before a shop exists, kept per signed-in email so a closed tab, an expired session or another device resumes it.
+model SetupDraft {
+  email     String   @id
+  json      String
+  updatedAt DateTime @updatedAt
 }
