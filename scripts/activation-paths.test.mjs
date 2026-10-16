@@ -43,6 +43,8 @@ mock.module("twilio", {
 });
 
 const vapiNumbers = [];
+const vapiAssistants = [];
+let loseAssistantReply = false;
 const realFetch = globalThis.fetch;
 globalThis.fetch = async (input, init = {}) => {
   const url = new URL(String(input));
@@ -53,8 +55,15 @@ globalThis.fetch = async (input, init = {}) => {
   const [, kind, id] = url.pathname.split("/");
   if (kind === "assistant" && method === "POST") {
     bought.assistants += 1;
-    return json({ id: `asst_paths_${bought.assistants}`, ...body });
+    const made = { id: `asst_paths_${bought.assistants}`, ...body };
+    vapiAssistants.push(made);
+    if (loseAssistantReply) {
+      loseAssistantReply = false;
+      throw new TypeError("fetch failed");
+    }
+    return json(made);
   }
+  if (kind === "assistant" && method === "GET" && !id) return json(vapiAssistants);
   if (kind === "phone-number" && method === "GET" && !id) return json(vapiNumbers);
   if (kind === "phone-number" && method === "POST") {
     const n = { id: `pn_paths_${vapiNumbers.length + 1}`, createdAt: new Date().toISOString(), ...body };
@@ -301,4 +310,27 @@ test("Orvius staff creating a shop record whose approval it is, how it was given
   assert.equal(ack.actorEmail, "operator:sam");
   assert.deepEqual(JSON.parse(ack.attestationJson), { ownerEmail: "owner@concierge.test", method: "written", reference: "signed form 2026-10-15" });
   assert.equal(ack.noticeVersion, terms.noticeVersion);
+});
+
+test("staff creation whose receptionist reply was lost finds that receptionist on retry instead of buying a second", async () => {
+  const slug = `paths-admin-${stamp()}`;
+  const terms = activationVersions(draftActivationBusiness("Concierge Heating"));
+  const body = { slug, acknowledgement: { ownerEmail: "owner@concierge.test", method: "written", reference: "signed form 2026-10-16", operator: "Sam", ...terms } };
+  const before = bought.assistants;
+  loseAssistantReply = true;
+  const lost = await admin(body);
+  assert.equal(lost.status, 400);
+  assert.match((await lost.json()).error, /won't be repeated blindly/);
+  assert.equal(bought.assistants, before + 1, "Vapi did make one");
+  const effect = await prisma.providerEffect.findUniqueOrThrow({ where: { provider_correlationKey: { provider: "vapi", correlationKey: `staff-receptionist:${slug}` } } });
+  assert.equal(effect.status, "uncertain");
+  assert.equal(await prisma.business.count({ where: { slug } }), 0);
+
+  const retry = await admin(body);
+  assert.equal(retry.status, 201, JSON.stringify(await retry.clone().json()));
+  assert.equal(bought.assistants, before + 1, "no second receptionist");
+  const shop = await retry.json();
+  assert.equal(shop.vapiAssistantId, vapiAssistants.at(-1).id);
+  assert.equal((await prisma.providerEffect.findUniqueOrThrow({ where: { id: effect.id } })).status, "finalized");
+  await prisma.providerEffect.deleteMany({ where: { id: effect.id } });
 });

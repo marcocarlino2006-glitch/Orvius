@@ -12,7 +12,9 @@ import {
   buildVapiAssistantConfig,
   createAssistant,
   updateAssistant,
+  vapiRequest,
 } from "@/lib/vapi";
+import { performOnce, revertEffect } from "@/lib/provider-effect";
 import { z } from "zod";
 import { ActivationRequiredError, defaultGreeting, draftActivationBusiness, recordSettledActivation, settleActivation } from "@/lib/activation-ack";
 
@@ -42,6 +44,8 @@ const createBusinessSchema = z.object({
     })
     .optional(),
 });
+
+const staffReceptionistKey = (slug: string) => `staff-receptionist:${slug}`;
 
 export async function GET(request: NextRequest) {
   if (!verifyAdminRequest(request)) {
@@ -105,15 +109,31 @@ export async function POST(request: NextRequest) {
       servicesJson,
     });
 
-    const assistant = await createAssistant(
-      buildVapiAssistantConfig({
-        businessName: body.name,
-        systemPrompt,
-        greeting,
-        webhookUrl: getWebhookUrl("/api/webhooks/vapi"),
-        webhookSecret: process.env.VAPI_WEBHOOK_SECRET,
-      }),
-    );
+    const config = buildVapiAssistantConfig({
+      businessName: body.name,
+      systemPrompt,
+      greeting,
+      webhookUrl: getWebhookUrl("/api/webhooks/vapi"),
+      webhookSecret: process.env.VAPI_WEBHOOK_SECRET,
+    });
+    /* Vapi has no idempotency keys, so the assistant carries the shop's tag: a retry after a lost reply or a failed save finds it instead of making a second one. */
+    const correlationKey = staffReceptionistKey(slug);
+    const assistant = await performOnce<{ id: string }>({
+      provider: "vapi",
+      operation: "receptionist create (staff)",
+      correlationKey,
+      kind: "create",
+      replayWindowMs: 0,
+      perform: () => createAssistant({ ...config, metadata: { orviusConfig: config.metadata?.orviusConfig ?? "", orviusEffect: correlationKey } }),
+      idOf: (created) => created.id,
+      retrieve: async (id) => ({ id }),
+      find: async () => {
+        const rows = await vapiRequest<Array<{ id: string; metadata?: { orviusEffect?: string } }>>("/assistant?limit=1000");
+        if (rows.length >= 1000) throw new Error("too many assistants to rule it out");
+        return rows.find((row) => row.metadata?.orviusEffect === correlationKey) ?? null;
+      },
+      finalize: async () => undefined,
+    });
 
     const business = await prisma.$transaction(async (tx) => {
       const created = await tx.business.create({
@@ -171,6 +191,7 @@ export async function DELETE(request: NextRequest) {
   const line = await releaseShopLine(business);
 
   await prisma.business.delete({ where: { id } });
+  await revertEffect("vapi", staffReceptionistKey(business.slug));
   return NextResponse.json({ ok: true, line });
 }
 
