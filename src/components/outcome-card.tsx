@@ -89,7 +89,8 @@ export function OutcomeCard({ outcome, onChange }: { outcome: Outcome; onChange:
     }
   }
 
-  const billable = (invoice.state === "failed" || invoice.state === "needs_you" || invoice.state === "unknown") && Boolean(outcome.money.totalCents);
+  /* A bill still waiting on the carrier's receipt is not offered again; only a send nobody can confirm, after the owner checks. */
+  const billable = (invoice.state === "failed" || invoice.state === "needs_you" || (invoice.state === "unknown" && invoice.nextActor === "you")) && Boolean(outcome.money.totalCents);
   const canComplete = Boolean(jobId) && completion.state !== "done" && completion.state !== "not_needed" && outcome.job?.status !== "cancelled";
 
   return (
