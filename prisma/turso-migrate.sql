@@ -1288,7 +1288,49 @@ CREATE TABLE IF NOT EXISTS "ActivationAcknowledgement" (
     "acceptedTerms" BOOLEAN NOT NULL,
     "acceptedSms" BOOLEAN NOT NULL,
     "checkoutSessionId" TEXT,
+    "actorKind" TEXT NOT NULL DEFAULT 'owner',
+    "attestationJson" TEXT,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "ActivationAcknowledgement_checkoutSessionId_key" ON "ActivationAcknowledgement"("checkoutSessionId");
 CREATE INDEX IF NOT EXISTS "ActivationAcknowledgement_businessId_createdAt_idx" ON "ActivationAcknowledgement"("businessId", "createdAt");
+
+
+-- Replicas the owner allows beside each record of truth; provider effects written before a Stripe or Vapi call; scoped money authority
+ALTER TABLE "ShopRecordContract" ADD COLUMN "replicasJson" TEXT NOT NULL DEFAULT '{}';
+CREATE TABLE IF NOT EXISTS "ProviderEffect" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT,
+    "provider" TEXT NOT NULL,
+    "operation" TEXT NOT NULL,
+    "correlationKey" TEXT NOT NULL,
+    "idempotencyKey" TEXT NOT NULL,
+    "entityType" TEXT,
+    "entityId" TEXT,
+    "status" TEXT NOT NULL DEFAULT 'pending',
+    "providerId" TEXT,
+    "attempts" INTEGER NOT NULL DEFAULT 0,
+    "lastError" TEXT,
+    "exceptionId" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    "finalizedAt" DATETIME
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "ProviderEffect_provider_correlationKey_key" ON "ProviderEffect"("provider", "correlationKey");
+CREATE INDEX IF NOT EXISTS "ProviderEffect_businessId_status_idx" ON "ProviderEffect"("businessId", "status");
+CREATE INDEX IF NOT EXISTS "ProviderEffect_status_updatedAt_idx" ON "ProviderEffect"("status", "updatedAt");
+CREATE TABLE IF NOT EXISTS "FinancialGrant" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "granteeEmail" TEXT NOT NULL,
+    "scope" TEXT NOT NULL,
+    "maxCents" INTEGER,
+    "expiresAt" DATETIME NOT NULL,
+    "policyVersion" TEXT NOT NULL,
+    "grantedByEmail" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "revokedAt" DATETIME,
+    "revokedByEmail" TEXT,
+    CONSTRAINT "FinancialGrant_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE INDEX IF NOT EXISTS "FinancialGrant_businessId_granteeEmail_idx" ON "FinancialGrant"("businessId", "granteeEmail");
