@@ -326,6 +326,20 @@
     grid-column: 1 / -1;
     grid-row: auto;
   }
+
+  /* A long option note would otherwise set the card's width past the screen. */
+  .cb-oc .cb-slots {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cb-oc .cb-slots > * {
+    min-width: 0;
+    height: auto;
+    white-space: normal;
+    text-align: left;
+    justify-content: flex-start;
+  }
 }
 
 .cb-records {

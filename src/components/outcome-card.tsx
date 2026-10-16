@@ -97,7 +97,7 @@ export function OutcomeCard({ outcome, onChange }: { outcome: Outcome; onChange:
         <p className="cb-oc-sub">
           {outcome.customer ? `${outcome.customer} · ` : ""}
           {outcome.title}
-          {outcome.synthetic ? <em className="cb-sim"> simulated</em> : null}
+          {outcome.synthetic ? " · Demo: nothing here reached a real customer" : null}
         </p>
       </header>
       <ol className="cb-oc-stages">
