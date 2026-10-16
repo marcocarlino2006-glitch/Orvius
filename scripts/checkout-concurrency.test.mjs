@@ -113,11 +113,15 @@ test("a Stripe call that succeeded but timed out is retried into the same sessio
   const shop = await makeShop();
   const deposit = await prisma.deposit.create({ data: { businessId: shop.id, amountCents: 7_500, status: "pending", publicToken: `dtok-${uid()}` } });
   failNextAfterCreate = true;
-  await assert.rejects(createDepositCheckoutSession({ deposit, business: shop }), /socket hang up/);
+  // The lost reply is shown as uncertain (provider-effect.ts), not passed through as a raw socket error.
+  await assert.rejects(createDepositCheckoutSession({ deposit, business: shop }), /didn't hear back from Stripe/);
+  const effect = await prisma.providerEffect.findFirst({ where: { businessId: shop.id, entityId: deposit.id } });
+  assert.equal(effect.status, "uncertain");
   const before = created.length;
   const retry = await createDepositCheckoutSession({ deposit, business: shop });
   assert.equal(created.length, before, "the idempotency key returned the session Stripe already made");
   assert.equal((await prisma.deposit.findUnique({ where: { id: deposit.id } })).stripeSessionId, retry.id);
+  assert.equal((await prisma.providerEffect.findUnique({ where: { id: effect.id } })).status, "finalized");
 });
 
 test("webhook and return replay record once; a session naming another shop's invoice records nothing", async () => {
