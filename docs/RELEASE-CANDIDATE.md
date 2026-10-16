@@ -32,7 +32,8 @@ Local, isolated work only. Nothing here was pushed, deployed, migrated on a shar
 | Bills | One financial source of truth | Decided: Invoice, Payment and Deposit stay authoritative. `receivable-ledger.ts` and `prisma/prepared/receivables-v1.sql` are marked non-authoritative; a test fails if anything in `src` imports them or the schema gains their tables. The live paths are shown to hold the ledger's invariants through their real callers: concurrent issuance makes one bill, a sent bill is held without a reason, a paid bill is never rewritten, a deposit is subtracted and never edited, concurrent deposits make one, late and duplicate payments are held, refunds touch only their payment, manual and unlinked bills follow the same balance rules | Fixed and integrated (option B) | e66cb1e (`scripts/money-invariants.test.mjs`) |
 | Authority | Command plans: claimed before any effect; a failure after an effect is held for a person and never re-run; withdraw against execute is atomic | Already in place; verified | `copilot-execute.ts` |
 | Authority | A plan more than 12 hours old, or a follow-up text to a lead already booked or lost, is refused before any effect and says nothing changed | Fixed and integrated | c8f6508 |
-| Authority | Money power is a scoped owner grant, not a role: only the owner holds `money.adjust`; anyone else needs a `FinancialGrant` for one scope (`confirm_payment`, `revise_bill`, `price_book`, `resolve_payment`), still a teammate, unexpired (90 days at most), unrevoked, under the current policy version and within its amount cap. Checked when the action runs; use is logged with the grant id. Owner-only `/api/money-grants` issues, lists and revokes | Fixed and integrated (API only; no settings screen yet) | 7bfef23 (`money-authority.ts`; `scripts/money-authority.test.mjs`) |
+| Authority | Money power is a scoped owner grant, not a role: only the owner holds `money.adjust`; anyone else needs a `FinancialGrant` for one scope (`confirm_payment`, `revise_bill`, `price_book`, `resolve_payment`), still a teammate, unexpired (90 days at most), unrevoked, under the current policy version and within its amount cap. Checked when the action runs; use is logged with the grant id. Owner-only `/api/money-grants` issues, lists and revokes; Settings → Team → Money rights is the owner's screen for it (hidden from anyone the API refuses; a failed issue keeps the form) | Fixed and integrated | 7bfef23, 22e1754 (`money-authority.ts`, `money-grants-group.tsx`; `scripts/money-authority.test.mjs`) |
+| Authority | An owner running a high-impact plan they asked for themselves is recorded and shown as "owner confirmed their own request", never as an independent approval; anyone else can't approve their own high-impact plan | Already in place; verified through the execute path | `command-authority.ts`, `copilot-execute.ts`; `scripts/command-authority.test.mjs` |
 | Authority | Command plans inside the 12-hour window are rechecked at execution: lead booked or lost, technician inactive or busy, approver's grant revoked, proposer removed from the team, job closed, window gone | Fixed and integrated | bc10a2e (`scripts/command-stale.test.mjs`) |
 | Authority | Integration and team-admin routes already need `settings.edit` or `team.manage` | Already in place; verified | route audit |
 | Delivery | A carrier "failed" after "delivered" no longer reopens or resends the owner alert, flips the intent ledger, or reports a failed customer confirmation | Fixed and integrated | faa0e35 |
@@ -40,7 +41,10 @@ Local, isolated work only. Nothing here was pushed, deployed, migrated on a shar
 | Delivery | Open reconciliation exceptions are visible on Command, linked to the job, and resolving one records what was done | Fixed and integrated | 03385a6 |
 | Delivery | Severe SMS lost replies are unknown, never retried blind, one exception each | Already in place; verified | `sms-intent.ts` |
 | Delivery | Uncertain Stripe and Vapi effects: each is recorded (provider, operation, correlation key, idempotency key, entity) before the call. A lost reply leaves it `uncertain` with a Command exception; a retry inside Stripe's idempotency window replays the same key, after it the effect is found by its tag or refused, never re-created blind. A local save failure after the provider accepted leaves it `accepted` and the retry finishes from the provider's record. Covered: invoice, estimate and deposit checkouts, Connect account creation, receptionist creation during provisioning. Admin stuck-effects list at `/api/admin/provider-effects` | Fixed and integrated for those callers | 3b8c537 (`provider-effect.ts`; `scripts/provider-effects.test.mjs`) |
-| Delivery | Other Stripe writes (plan checkout, overage invoice, money-back refund, subscription updates) and the staff-created shop's receptionist | Not on the effect record. The money ones already use deterministic idempotency keys and look up the provider before creating, so they don't duplicate blindly, but a lost reply isn't shown as an exception | — |
+| Delivery | Money-back refunds and plan cancel, overage invoice item and invoice, plan pause and resume, and the staff-created shop's receptionist are on the effect record. A lost reply is `uncertain` with an exception; the retry looks the effect up at the provider first (a refund by its charge and tag, an overage invoice by its month, a resume by the subscription's pause state, a staff receptionist by its slug tag) and lands it, closing the exception. A resume inside a pause can't start two paid months. The plan checkout serializes per email and opens no session while an earlier one can't be closed | Fixed and integrated | efea5e1, 1354c5c, 4fa8eee (`money-back-claim.ts`, `overage-billing.ts`, `plan-pause.ts`, `businesses/route.ts`, `billing/checkout`; `scripts/money-back.test.mjs`, `scripts/stripe-effects.test.mjs`, `scripts/keep-customers.test.mjs`, `scripts/activation-paths.test.mjs`) |
+| Delivery | Subscription metadata writes (`linkPaidCheckoutToBusiness`, checkout return, webhook) | Not on the effect record by choice: each sets the same values on every run, so repeating one after a lost reply changes nothing | `billing-sync.ts`, `billing/webhook` |
+| Texting | Customer and technician texts need the shop's approved campaign or a verified shared sender. The shared sender counts as verified only when the founder launch check reads a toll-free verification of TWILIO_APPROVED for the exact number in use; a Messaging Service sender can't be verified that way and stays held. Held texts write an audit row and a "held, not sent" reason and are never re-routed to email; an own-campaign refusal doesn't fall back to an unverified sender. Follow-up, review and plan-reminder sweeps skip held shops. A local (10DLC) number is not launch-ready | Fixed and integrated; sender approval needs external verification | 38a17f2, 93a1267 (`sms-eligibility.ts`, `twilio-sms.ts`, `customer-sms.ts`; `scripts/sms-eligibility.test.mjs`) |
+| Activation | Voice, texting, booking, follow-ups and payments are each reported as on, waiting or off from their own prerequisites (go-live approval on record and not a test shop; verified sender; open hours, a travel policy and a readable schedule; auto follow-ups with texting on; a Connect account with charges enabled), next to what the owner asked for, with a fix link. Tests show the report agrees with the call tools, the booking page, the follow-up sweep and the deposit gate | Fixed and integrated | 93a1267, 22e1754 (`capabilities.ts`, `/api/capabilities`, Settings → Receptionist; `scripts/capabilities.test.mjs`) |
 | Delivery | Record authority in the real callers: Jobber and Housecall Pro job sends, QuickBooks receipts and field-software schedule reads read the contract at send time; owner-listed copies (`replicas`) are kept; a shop with no contract keeps what it connected; a refusal is a visible skipped row with the reason; lost replies raise a Command exception; successful sends are correlated | Fixed and integrated | 9c1e565 (`record-authority.ts`; `scripts/record-authority.test.mjs`) |
 | Delivery | Proof loop and economics reporting | Fixed and integrated: owner Reports panel and `/api/reports/proof` (observed loops, team-entered work, modelled costs, missing data, no causal claim); internal `/api/admin/economics` (costs with sources; revenue and margin reported missing because Stripe invoices aren't mirrored). Read-only; prices and allowances unchanged | 4fbf749 (`proof-report.ts`; `scripts/proof-report.test.mjs`) |
 | Delivery | Scheduler | No new scheduler; `alert-drain.yml` and `sweep-heartbeat.yml` are unchanged | — |
@@ -55,7 +59,11 @@ Local, isolated work only. Nothing here was pushed, deployed, migrated on a shar
 ## Behavior changes an owner should review
 
 - Dispatchers can no longer accept or reject a customer's "I paid", change a bill the customer already has, or edit the price book. They can still bill a job and log cash in hand. This is a code-level role rule; no stored grant was migrated.
-- Managers lose those same money actions unless the owner issues a scoped money grant. There is no settings screen for grants yet (API only), so on release a manager who did these today would be refused until the owner grants it. No real tenant's grants were created or migrated.
+- Managers lose those same money actions unless the owner issues a scoped money grant from Settings → Team → Money rights. On release a manager who did these today is refused until the owner grants it. No real tenant's grants were created or migrated.
+- **Customer and technician texts stop** for every shop until its own campaign is approved or the shared sender is verified by the founder launch check (toll-free, TWILIO_APPROVED, for the number in use). Held texts are recorded, not sent, and not switched to email. Owner alerts still go out on the shared sender: whether they should also wait is an owner decision.
+- A local (10DLC) shared number no longer passes the launch check.
+- A test shop can't open its go-live checkout until hours and permissions are saved.
+- A money-back claim or plan resume whose Stripe reply was lost now stops with "may have happened, flagged" instead of a generic retry message, and the retry checks Stripe first.
 - Payment-mismatch exceptions on Command can be resolved only by the owner or a `resolve_payment` grant holder; other exceptions stay owner or manager.
 - Jobber, Housecall Pro and QuickBooks stop receiving a part of the record once the owner saves a contract that names another system as its record of truth and doesn't list them as a copy. Shops without a contract are unchanged.
 - With two field-software tools connected, schedule reads follow the contract's availability owner instead of the fixed ServiceTitan, Housecall Pro, Jobber order.
@@ -72,13 +80,15 @@ Local, isolated work only. Nothing here was pushed, deployed, migrated on a shar
 
 ## Self-service setup journey: what is integrated and what isn't
 
-Integrated: the test-mode workspace (`/dashboard/onboarding`, `turn-on-orvius.tsx`, `/api/setup`) stores its step, goal, team, permissions and test result in `Business.setupJson` on the server, so a reload or another device resumes at the saved step. Payment recovery is server-side (`/api/onboarding?resume=1` rebuilds from a paid checkout), and going live goes through the activation approval above.
+Integrated (ea342de; `setup-flow.ts`, `setup-sandbox.ts`, `/api/setup`, `/api/setup/draft`, `turn-on-orvius.tsx`, `onboarding-wizard.tsx`, `billing/checkout`; `scripts/setup-progress.test.mjs`):
+- **Progress.** Each step is stamped in `setupJson.done` when saved. Saving or opening a step whose prerequisites aren't saved is refused with what to finish first (permissions need hours; the test and going live need hours and permissions). Going back is allowed. Shops from before this keep the progress their saved fields imply.
+- **Resume.** The resume point is the saved step, clamped to what is allowed. The go-live screen's owner phone and area code are kept on the server. The production sign-up form is kept per signed-in email (`SetupDraft`), restored on another device, and deleted once the shop is built.
+- **Facts.** The setup view lists each business fact as confirmed, imported (keeps its source), a starting value or unknown. Permissions are never chosen for the owner.
+- **Failures.** A failed test call is kept with its attempt count and an actionable message (no internal error text). Uncertain or failed provider effects for the shop are shown on the setup screen.
+- **Going live.** The checkout that turns a test shop on returns 409 `setup_incomplete` before any approval record or Stripe session when hours or permissions aren't saved.
+- **Capabilities.** The setup screen shows what will actually run once live, from the same report as Settings.
 
-Remaining gaps:
-- **Progress.** `setupJson.step` is a single "where they are", not a record of which steps finished. `/api/setup` `step` accepts any step, so a client can jump to `test` or `live` without the earlier steps saved.
-- **Resumability.** The production (non-test-mode) wizard keeps its form in the browser; only the paid-checkout rebuild resumes on the server. An abandoned checkout leaves the test workspace, but anything typed into the checkout form must be re-entered.
-- **Capabilities by prerequisite.** Booking, follow-ups and deposits are switched by the permission level chosen, not by checking what they need (hours and services for booking, a verified owner phone for alerts, a ready Stripe account for deposits). The go-live checklist lists these but doesn't gate them.
-- **Failed-step recovery.** A failed test call or a line purchase that fails after payment is retried by the owner pressing the button again; there is no per-step failure state, retry count or "what went wrong" kept on the server. Provider effects (above) prevent a duplicate receptionist or Connect account, but the setup UI doesn't show an uncertain effect.
+Not done: a line purchase that fails after payment is still retried by the owner pressing the button again (the provider effect prevents a duplicate receptionist or number). The questions asked were not re-audited for whether each changes behavior.
 
 ## Schema and migrations
 
@@ -86,25 +96,27 @@ All additive. Applied only to disposable local SQLite databases in this pass.
 
 | File | sha256 |
 |---|---|
-| `prisma/schema.prisma` | `68b8e3677c7395b6e4fcdf9770e48bcbeefe939a97e0af335226e7b48e1cc583` |
-| `prisma/turso-migrate.sql` (full file) | `913b311454f272268d44b1470c9254a29436c3559a4464506c312d12a49418b4` |
-| `prisma/turso-migrate.sql` lines added since `dd5c23f` (64 lines, none removed: `Call` offer and consent columns, `NetworkHandoff.sharesJson`, `ActivationAcknowledgement` with actor kind and attestation, `ShopRecordContract.replicasJson`, `ProviderEffect`, `FinancialGrant`), extracted with `git diff dd5c23f -- prisma/turso-migrate.sql \| grep -E "^\+[^+]" \| sed 's/^+//'` | `91222c8ce0cd99dd0485e4b91ce13a68d084c187428859f220a81c6d356930ec` |
+| `prisma/schema.prisma` | `65ccd2b10123d93a67ae7d20723bc7efe7675e0b17c4220ae1fb22b0c378954c` |
+| `prisma/turso-migrate.sql` (full file) | `d21dbab126ffd7efd15433d3316f5568a7af09c7f6e4848905ff7e4ce9e5910b` |
+| `prisma/turso-migrate.sql` lines added since `dd5c23f` (82 lines, none removed: `Call` offer and consent columns, `NetworkHandoff.sharesJson`, `ActivationAcknowledgement` with actor kind and attestation, `ShopRecordContract.replicasJson`, `ProviderEffect`, `FinancialGrant`, `MessagingSender`, `SetupDraft`), extracted with `git diff dd5c23f -- prisma/turso-migrate.sql \| grep -E "^\+[^+]" \| sed 's/^+//'` | `87c7217602ebd159d6f29448e7cc234df1a4467198aeb069c2353cc30434e45a` |
 | `prisma/prepared/receivables-v1.sql` (prepared, not executed, header comment only changed) | `26979e36ee67697b5b4bf49ed6be1548c7347d2fbe263b5e53b9633327d8dd86` |
 
 The base `turso-migrate.sql` at `dd5c23f` hashed `20f8abf8adb7a69972413c0905dcd434ace14ca1303961b7443b9144004202b7`.
 
 ## Validation
 
-Clean checkout of commit `45f6689fc0044d880899dd2312e7b520dda0e85a` in a detached worktree. The only env file present was the tracked `.env.example`, the database was a disposable local SQLite file, and no provider credentials were loaded.
+Clean copy of commit `8ed1794bbe4c740d13d2b667c8309b82e4f03b9d` (tracked sources only, no `.env` present, asserted before each step), a disposable local SQLite database, no provider credentials, providers mocked.
 
 - `prisma db push` to the disposable database: ok
 - `tsc --noEmit`: exit 0
-- `npm run test:trust`: 1572 tests, 1572 pass, 0 fail (new in this pass: `activation-paths`, `provider-effects`, `record-authority`, `money-authority`, `command-stale`, `money-invariants`, `proof-report`; extended: `tool-call-speed`, `authority-boundaries`, `checkout-concurrency`, `signup-scale`)
+- `npm run test:trust`: 1601 tests, 1601 pass, 0 fail (new since the last record: `sms-eligibility`, `capabilities`, `setup-progress`, `stripe-effects`; extended: `money-back`, `keep-customers`, `activation-paths`, `sms-intent`, `launch-gate`, `activation-ack`)
 - `npm run build`: exit 0
-- `git diff --check 39b17d7..HEAD`: clean (one trailing blank line inherited from `4e0fc23` in `src/lib/job.ts` was removed in `45f6689`)
-- `eslint --quiet src`: no errors. One warning in `jobs/page.tsx` that was already present at the base commit.
+- `eslint --quiet src`: no errors (the `jobs/page.tsx` warning predates this pass)
+- `git diff --check 39b17d7..HEAD`: clean
 
-The commit after `45f6689` changes only this file.
+The commit after `8ed1794` changes only this file.
+
+Disclosure: early in this pass one `prisma db push` ran from the main checkout after a failed copy step, so the Prisma CLI may have read that checkout's `.env` into its own process. Its target was the disposable `file:/tmp/clean.db`, nothing was printed, and no provider was called. Every later step ran in the clean copy.
 
 These are isolated results. They do not show production delivery, provider behaviour or launch readiness.
 
@@ -121,7 +133,12 @@ These are isolated results. They do not show production delivery, provider behav
 9. Legal review of the copy drafts before anything is published.
 10. Stripe test mode with the network cut after the request is sent: confirm the effect shows as uncertain on Command and the retry replays rather than creating a second session or Connect account.
 11. A Jobber and Housecall Pro sandbox connected to one staging shop, with a saved contract: confirm only the record of truth and listed copies receive the job.
-12. A manager account on a staging shop with and without a money grant, once a settings screen for grants exists.
+12. A manager account on a staging shop with and without a money grant, issued and revoked from Settings → Team → Money rights.
+13. Apply the `MessagingSender` and `SetupDraft` tables (part of the 82 added lines) with the same staging procedure as item 1.
+14. Run the founder launch check against the real toll-free sender in Twilio's console view (read-only) to confirm a TWILIO_APPROVED verification is recorded for the exact number in use; until then customer texts stay held. Decide whether a Messaging Service sender needs its own verification path. No registration submission is part of this.
+15. Stripe test mode: a money-back claim, an overage invoice and a resume inside a pause with the network cut after the request; confirm each shows as uncertain, the retry checks Stripe and nothing is refunded, invoiced or started twice.
+16. A staff-created shop on staging with the Vapi reply dropped; confirm the retry reuses the tagged receptionist.
+17. Open setup on one device, close the tab, continue on another signed in as the same email; confirm the step, the go-live typing and the sign-up form come back, and the go-live checkout refuses until hours and permissions are saved.
 
 ## Rollback
 
