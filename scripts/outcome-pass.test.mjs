@@ -119,6 +119,9 @@ test("a named technician in the instruction is a question, even a short name mad
     assert.equal(ask.body?.kind, "clarify", `${name}: ${JSON.stringify(ask.body)}`);
   }
   assert.equal(await prisma.copilotAction.count({ where: { businessId: shop.id } }), 0, "no plan was made around the name");
+  const started = Date.now();
+  await call(() => askRoute.POST(req("POST", "/api/command/ask", { text: `Book Rosa Diaz asap and assign${" ".repeat(200)}x` })));
+  assert.ok(Date.now() - started < 2000, "a run of spaces doesn't stall the server");
 });
 
 test("a sent bill waiting on its receipt leaves the next step to the carrier, not a resend", async () => {
