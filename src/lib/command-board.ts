@@ -1,4 +1,5 @@
 import { formatShopTime } from "@/lib/availability";
+import { formatCentsExact } from "@/lib/money";
 import { needsCheck, STALE_EXECUTING_MS } from "@/lib/copilot-execute";
 import { prisma } from "@/lib/prisma";
 import { findDuplicateJobs } from "@/lib/workspace-hygiene";
@@ -19,7 +20,8 @@ export type ExceptionKind =
   | "takeover"
   | "unconfirmed_soon"
   | "tech_declined"
-  | "tech_unanswered";
+  | "tech_unanswered"
+  | "record_mismatch";
 
 export type BoardItem = {
   id: string;
@@ -40,6 +42,8 @@ export type BoardItem = {
   preview?: string;
   /** An approval that ran but whose outcome Orvius can't vouch for; a person says whether it happened. */
   needsCheck?: "unknown" | "done_unrecorded";
+  /** An open reconciliation exception a person resolves, with what they did. */
+  reconcileId?: string;
 };
 
 export type CommandBoard = {
@@ -106,7 +110,7 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
   const recent = new Date(now.getTime() - 2 * DAY);
   const week = new Date(now.getTime() + 7 * DAY);
 
-  const [shop, leads, jobs, proposals, failedAlerts, failedTexts, smsFailures, takeovers, escalations] = await Promise.all([
+  const [shop, leads, jobs, proposals, failedAlerts, failedTexts, smsFailures, takeovers, escalations, mismatches] = await Promise.all([
     prisma.business.findUniqueOrThrow({ where: { id: businessId }, select: { timezone: true, environment: true } }),
     prisma.lead.findMany({
       where: {
@@ -189,6 +193,12 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
       orderBy: { createdAt: "desc" },
       take: 10,
       select: { id: true, summary: true, leadId: true, createdAt: true },
+    }),
+    prisma.reconciliationException.findMany({
+      where: { businessId, status: "open" },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      select: { id: true, kind: true, entityType: true, entityId: true, system: true, expectedJson: true, observedJson: true, createdAt: true },
     }),
   ]);
 
@@ -435,7 +445,9 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
     });
   }
 
-  const order: Record<ExceptionKind, number> = { emergency: 0, alert_setup: 1, tech_declined: 2, failed_message: 3, tech_unanswered: 4, unconfirmed_soon: 5, stale: 6, duplicate: 7, takeover: 8 };
+  exceptions.push(...(await mismatchItems(businessId, mismatches)));
+
+  const order: Record<ExceptionKind, number> = { emergency: 0, alert_setup: 1, tech_declined: 2, record_mismatch: 3, failed_message: 4, tech_unanswered: 5, unconfirmed_soon: 6, stale: 7, duplicate: 8, takeover: 9 };
   exceptions.sort((a, b) => order[a.exception!] - order[b.exception!] || b.at.localeCompare(a.at));
   requests.sort((a, b) => Number(Boolean(b.urgent)) - Number(Boolean(a.urgent)) || b.at.localeCompare(a.at));
 
@@ -471,4 +483,68 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
     environment: shop.environment,
     lanes: { requests, proposed, confirmed, exceptions, approvals },
   };
+}
+
+type Mismatch = { id: string; kind: string; entityType: string; entityId: string; system: string; expectedJson: string; observedJson: string; createdAt: Date };
+
+function parsed(raw: string): Record<string, unknown> {
+  try {
+    const v = JSON.parse(raw);
+    return v && typeof v === "object" ? (v as Record<string, unknown>) : {};
+  } catch {
+    return {};
+  }
+}
+
+const cents = (v: unknown) => (typeof v === "number" ? formatCentsExact(v) : "an amount");
+const SYSTEM_NAMES: Record<string, string> = { stripe: "Stripe", orvius: "Orvius", jobber: "Jobber", housecall: "Housecall Pro", servicetitan: "ServiceTitan", quickbooks: "QuickBooks" };
+
+/** What a person reads for one open reconciliation exception, and what to do about it. */
+export function mismatchText(row: Pick<Mismatch, "kind" | "entityType" | "system" | "expectedJson" | "observedJson">): { title: string; detail: string } {
+  const expected = parsed(row.expectedJson);
+  const observed = parsed(row.observedJson);
+  if (row.kind === "payment" && observed.reason === "late_session_payment") {
+    return {
+      title: `Extra payment on a settled ${row.entityType}`,
+      detail: `A customer paid ${cents(observed.amountCents)} after the ${row.entityType} was already settled. Nothing was refunded. Refund it in Stripe or tell them it's credited, then mark it resolved.`,
+    };
+  }
+  if (row.kind === "change" && row.entityType === "invoice") {
+    const basis = expected.basis === "signed_estimate" ? "signed" : expected.basis === "paid_toward" ? "already paid toward" : "sent";
+    return {
+      title: "Bill total changed after the customer had it",
+      detail: `The customer's ${basis} bill stays at ${cents(expected.amountCents)}. A new total of ${cents(observed.amountCents)} came in. Change the bill with a reason, or mark this resolved to keep it.`,
+    };
+  }
+  const system = SYSTEM_NAMES[row.system] ?? row.system;
+  return {
+    title: `${system} and Orvius disagree on a ${row.entityType}`,
+    detail: `Orvius couldn't confirm a ${row.kind} on this ${row.entityType} in ${system}. Check it there, then mark it resolved with what you found.`,
+  };
+}
+
+async function mismatchItems(businessId: string, rows: Mismatch[]): Promise<BoardItem[]> {
+  if (!rows.length) return [];
+  const ids = (type: string) => rows.filter((r) => r.entityType === type).map((r) => r.entityId);
+  const [invoices, deposits, jobs] = await Promise.all([
+    prisma.invoice.findMany({ where: { businessId, id: { in: ids("invoice") } }, select: { id: true, jobId: true } }),
+    prisma.deposit.findMany({ where: { businessId, id: { in: ids("deposit") } }, select: { id: true, jobId: true, leadId: true } }),
+    prisma.job.findMany({ where: { businessId, id: { in: ids("job") } }, select: { id: true } }),
+  ]);
+  const jobFor = new Map<string, string | null>([
+    ...invoices.map((i) => [`invoice:${i.id}`, i.jobId] as const),
+    ...deposits.map((d) => [`deposit:${d.id}`, d.jobId] as const),
+    ...jobs.map((j) => [`job:${j.id}`, j.id] as const),
+  ]);
+  const leadFor = new Map(deposits.map((d) => [`deposit:${d.id}`, d.leadId]));
+  return rows.map((row) => ({
+    id: `reconcile:${row.id}`,
+    lane: "exceptions" as const,
+    exception: "record_mismatch" as const,
+    ...mismatchText(row),
+    at: row.createdAt.toISOString(),
+    jobId: jobFor.get(`${row.entityType}:${row.entityId}`) ?? null,
+    leadId: leadFor.get(`${row.entityType}:${row.entityId}`) ?? null,
+    reconcileId: row.id,
+  }));
 }

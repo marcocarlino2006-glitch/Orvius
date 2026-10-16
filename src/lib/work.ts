@@ -340,6 +340,8 @@ export type ShopIssue = {
   action: string;
   href: string | null;
   severity: WorkSeverity;
+  /** Set for an open reconciliation exception: resolving it asks what was done. */
+  resolveId?: string;
 };
 
 const phoneKey = (p: string | null | undefined) => (p ? p.replace(/[^\d]/g, "").slice(-10) : "");
@@ -368,6 +370,19 @@ export function problemsFrom(board: { exceptions: BoardItem[]; approvals: BoardI
   const out: Problems = { byJob: new Map(), byLead: new Map(), byPhone: new Map(), approvals: board.approvals, shop: [] };
 
   for (const e of board.exceptions) {
+    if (e.exception === "record_mismatch") {
+      out.shop.push({
+        id: e.id,
+        kind: e.exception,
+        title: e.title,
+        detail: e.detail,
+        action: e.jobId ? "Open the job" : "Open billing",
+        href: e.jobId ? `/dashboard/jobs/${e.jobId}` : "/dashboard/billing",
+        severity: "med",
+        ...(e.reconcileId ? { resolveId: e.reconcileId } : {}),
+      });
+      continue;
+    }
     const rule = e.exception ? EXCEPTION_PROBLEM[e.exception] : undefined;
     if (!rule) {
       out.shop.push({ id: e.id, kind: e.exception ?? "alert_setup", title: e.title, detail: e.detail, action: "Fix alerts", href: "/dashboard?settings=notifications", severity: "critical" });

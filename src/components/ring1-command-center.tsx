@@ -167,7 +167,9 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
   const shown = showAll ? items : items.slice(0, NEEDS_YOU_SHOWN);
   const brief = data?.personalBrief ?? null;
   const needsYou = work?.needsYou ?? 0;
-  const shopIssues = (work?.shopIssues ?? []).filter((issue) => issue.kind !== "billing_action");
+  const allIssues = (work?.shopIssues ?? []).filter((issue) => issue.kind !== "billing_action");
+  const toReconcile = allIssues.filter((issue) => issue.resolveId);
+  const shopIssues = allIssues.filter((issue) => !issue.resolveId);
   /* The banner is for what is disconnected or failing; smaller setup gaps wait in the rail. */
   const blocking = shopIssues.filter((issue) => issue.severity === "critical" || issue.severity === "high");
   const minor = shopIssues.filter((issue) => issue.severity !== "critical" && issue.severity !== "high");
@@ -184,6 +186,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
           <p className="cmd-issue-detail">{issue.detail}</p>
           <div className="cmd-issue-actions">
             {ALERT_KINDS.has(issue.kind) ? <TestAlertButton onDone={() => void refresh()} /> : null}
+            {issue.resolveId ? <ResolveIssue id={issue.resolveId} onDone={() => void refresh()} /> : null}
             {issue.href ? (
               <Link href={issue.href} className="cmd-issue-action">
                 {issue.action} →
@@ -204,6 +207,15 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
             {blocking.length === 1 ? "Something needs fixing before Orvius can run normally" : `${blocking.length} things need fixing before Orvius can run normally`}
           </h3>
           {issueList(blocking)}
+        </section>
+      ) : null}
+
+      {toReconcile.length ? (
+        <section className="cmd-issues" aria-labelledby="cmd-reconcile">
+          <h3 id="cmd-reconcile" className="cmd-issues-title">
+            Money and records to check
+          </h3>
+          {issueList(toReconcile)}
         </section>
       ) : null}
 
@@ -413,5 +425,66 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
         </aside>
       </section>
     </div>
+  );
+}
+
+/** Close one reconciliation exception with what was done, so the record says how it ended. */
+function ResolveIssue({ id, onDone }: { id: string; onDone: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function save() {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/record-contract", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, resolution: text.trim() }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) throw new Error(data.error ?? "That didn't save. Try again.");
+      setOpen(false);
+      onDone();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "That didn't save. Try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (!open) {
+    return (
+      <button type="button" className="cmd-issue-action" onClick={() => setOpen(true)}>
+        Mark resolved
+      </button>
+    );
+  }
+  return (
+    <form
+      className="cmd-issue-resolve"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (text.trim()) void save();
+      }}
+    >
+      <label className="sr-only" htmlFor={`resolve-${id}`}>
+        What did you do?
+      </label>
+      <input id={`resolve-${id}`} className="input" value={text} maxLength={300} onChange={(e) => setText(e.target.value)} placeholder="What did you do? e.g. Refunded in Stripe" autoFocus disabled={busy} />
+      <button type="submit" className="ox-btn ox-btn--primary ox-btn--sm" disabled={busy || !text.trim()}>
+        {busy ? "Saving…" : "Save"}
+      </button>
+      <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" onClick={() => setOpen(false)} disabled={busy}>
+        Cancel
+      </button>
+      {error ? (
+        <span className="cb-error" role="alert">
+          {error}
+        </span>
+      ) : null}
+    </form>
   );
 }

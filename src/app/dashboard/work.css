@@ -595,6 +595,19 @@ a.cmd-feed-text:hover {
   gap: 0.5rem 0.75rem;
 }
 
+.cmd-issue-resolve {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.cmd-issue-resolve .input {
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+
 /* ── One work page: where it stands, then everything that happened ─────── */
 
 .wp-stack {

@@ -24,6 +24,10 @@ const { upsertJobInvoice } = await import("../src/lib/invoice-pay.ts");
 const { createDepositForLead } = await import("../src/lib/booking-deposit.ts");
 const invoiceRoute = await import("../src/app/api/jobs/[id]/invoice/route.ts");
 const publicInvoiceRoute = await import("../src/app/api/public/invoice/[token]/route.ts");
+const recordRoute = await import("../src/app/api/record-contract/route.ts");
+const { buildCommandBoard } = await import("../src/lib/command-board.ts");
+const { problemsFrom } = await import("../src/lib/work.ts");
+const { fulfillInvoiceCheckoutSession } = await import("../src/lib/invoice-pay.ts");
 const { prisma } = await import("../src/lib/prisma.ts");
 
 const uid = () => `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
@@ -158,4 +162,40 @@ test("after a card refund the customer's bill keeps the receipt trail and says w
     ["Invoice total: $500.00", "Paid so far: −$200.00", "Refunded to you: $300.00"],
   );
   assert.equal(await prisma.payment.count({ where: { invoiceId: invoice.id } }), 2, "the refunded payment stays on the record");
+});
+
+test("held money exceptions are on Command, linked to the job, and leave once someone says what they did", async () => {
+  const business = await shop();
+  const { job, invoice } = await billed(business, { sentAt: new Date() });
+  await upsertJobInvoice({ businessId: business.id, jobId: job.id, totalCents: 27_500 });
+  const paid = { mode: "payment", status: "complete", payment_status: "paid", amount_total: 18_500, metadata: { kind: "invoice_pay", invoiceId: invoice.id, businessId: business.id } };
+  await fulfillInvoiceCheckoutSession({ ...paid, id: `cs_${uid()}`, payment_intent: `pi_${uid()}` });
+  await fulfillInvoiceCheckoutSession({ ...paid, id: `cs_${uid()}`, payment_intent: `pi_${uid()}` });
+
+  const board = await buildCommandBoard(business.id);
+  const items = board.lanes.exceptions.filter((e) => e.exception === "record_mismatch");
+  assert.equal(items.length, 2);
+  for (const item of items) assert.equal(item.jobId, job.id);
+  const reprice = items.find((i) => /Bill total changed/.test(i.title));
+  assert.match(reprice.detail, /sent bill stays at \$185\.00\. A new total of \$275\.00/);
+  const late = items.find((i) => /Extra payment/.test(i.title));
+  assert.match(late.detail, /paid \$185\.00 after the invoice was already settled\. Nothing was refunded/);
+
+  const issues = problemsFrom(board.lanes, []).shop.filter((i) => i.resolveId);
+  assert.equal(issues.length, 2);
+  assert.equal(issues[0].href, `/dashboard/jobs/${job.id}`);
+
+  signedInAs = business.ownerEmail;
+  try {
+    const resolve = (body) => recordRoute.POST(new Request("http://x/api/record-contract", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }));
+    assert.equal((await resolve({ id: late.reconcileId, resolution: "  " })).status, 422, "it takes what was done, not a bare click");
+    assert.equal((await resolve({ id: late.reconcileId, resolution: "Refunded the extra in Stripe" })).status, 200);
+  } finally {
+    signedInAs = null;
+  }
+  const after = await buildCommandBoard(business.id);
+  assert.deepEqual(after.lanes.exceptions.filter((e) => e.exception === "record_mismatch").map((e) => e.reconcileId), [reprice.reconcileId]);
+  const row = await prisma.reconciliationException.findUnique({ where: { id: late.reconcileId } });
+  assert.equal(row.resolvedBy, business.ownerEmail);
+  assert.equal(row.resolution, "Refunded the extra in Stripe");
 });
