@@ -92,6 +92,7 @@ export async function applyReceptionistSettings(business: Business, by: { actor:
   const fingerprint = config.metadata?.orviusConfig ?? null;
   let echoed: string | null = null;
   let error: string | null = null;
+  let providerError: string | null = null;
   try {
     const reply = await vapiRequest<{ id?: string; metadata?: { orviusConfig?: string } }>(`/assistant/${business.vapiAssistantId}`, {
       method: "PATCH",
@@ -100,7 +101,9 @@ export async function applyReceptionistSettings(business: Business, by: { actor:
     echoed = reply?.metadata?.orviusConfig ?? null;
     if (!fingerprint || echoed !== fingerprint) error = "The voice provider answered but didn't confirm these settings.";
   } catch (err) {
-    error = err instanceof Error ? err.message : "The voice provider didn't answer.";
+    providerError = err instanceof Error ? err.message.slice(0, 300) : "unknown";
+    const status = /\((\d{3})\)/.exec(providerError)?.[1];
+    error = status ? `The voice provider refused the change (error ${status}).` : "The voice provider didn't answer.";
   }
 
   try {
@@ -112,7 +115,7 @@ export async function applyReceptionistSettings(business: Business, by: { actor:
       actor: by.actor,
       actorEmail: by.email ?? null,
       summary: error ? `Receptionist didn't take the saved settings: ${error}` : "Receptionist took the saved settings.",
-      detail: { fingerprint, echoed, error },
+      detail: { fingerprint, echoed, error, providerError },
     });
   } catch (writeError) {
     logWarn("assistant.apply_unrecorded", { businessId: business.id, error: writeError instanceof Error ? writeError.message : "unknown" });

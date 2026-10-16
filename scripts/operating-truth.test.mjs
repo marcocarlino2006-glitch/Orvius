@@ -346,6 +346,7 @@ test("applied only when the provider echoes these exact settings; a refusal, an 
       assert.equal(result.state, expected, reply);
       assert.equal((await receptionistApplyStatus(s)).state, expected, `${reply}, read back`);
       if (expected !== "applied") assert.ok(result.next && result.canApply, "there is a next step");
+      if (reply === "fail") assert.equal(result.error, "The voice provider refused the change (error 502).", "the owner sees a sentence, not the provider's raw reply");
     } finally {
       vapi.restore();
     }
