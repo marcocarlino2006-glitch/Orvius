@@ -6,6 +6,7 @@ import { OutcomeCard } from "@/components/outcome-card";
 import { toast } from "@/components/toaster";
 import type { Outcome } from "@/lib/outcome";
 import type { RequestTrace } from "@/lib/request-trace";
+import { isUncertain, sendWrite } from "@/lib/client-write";
 import { formatWhen } from "@/lib/when";
 
 type Scenario = { id: string; label: string; expect: string };
@@ -18,12 +19,7 @@ type AskResult =
 
 export type PlanOutcome = { ok: boolean; text: string; outcome?: Outcome | null };
 
-async function post(url: string, body: unknown) {
-  const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error ?? "That didn't go through — nothing changed.");
-  return data;
-}
+const post = <T = Record<string, any>>(url: string, body: unknown) => sendWrite<T>(url, "POST", body);
 
 export function PlanCard({
   proposal,
@@ -37,6 +33,8 @@ export function PlanCard({
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /* After an approval nobody can confirm, Approve stays away; the plan never runs twice, and the person refreshes to see. */
+  const [unsure, setUnsure] = useState(false);
   async function act(mode: "execute" | "cancel") {
     setBusy(true);
     setError(null);
@@ -47,7 +45,8 @@ export function PlanCard({
       else toast({ title: text });
       onDone();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "That didn't go through — nothing changed.");
+      setError(err instanceof Error ? err.message : "That wasn't accepted.");
+      if (mode === "execute" && isUncertain(err)) setUnsure(true);
       if (err instanceof Error && /flagged in Command/.test(err.message)) onDone();
     } finally {
       setBusy(false);
@@ -59,12 +58,20 @@ export function PlanCard({
       <p className="cb-plan-text">{proposal.preview}</p>
       {error ? <p className="cb-error" role="alert">{error}</p> : null}
       <div className="cb-actions">
-        <button type="button" className="ox-btn ox-btn--primary ox-btn--sm" disabled={busy} onClick={() => void act("execute")}>
-          {busy ? "Working…" : "Approve"}
-        </button>
-        <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => void act("cancel")}>
-          Dismiss
-        </button>
+        {unsure ? (
+          <button type="button" className="ox-btn ox-btn--primary ox-btn--sm" onClick={onDone}>
+            Refresh to see what happened
+          </button>
+        ) : (
+          <>
+            <button type="button" className="ox-btn ox-btn--primary ox-btn--sm" disabled={busy} onClick={() => void act("execute")}>
+              {busy ? "Working…" : "Approve"}
+            </button>
+            <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => void act("cancel")}>
+              Dismiss
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
@@ -189,7 +196,7 @@ export function AskBar({ onChange, below }: { onChange: () => void; below?: Reac
     setBusy(true);
     setOutcome(null);
     try {
-      setResult(await post("/api/command/ask", { text }));
+      setResult(await post<AskResult>("/api/command/ask", { text }));
     } catch (err) {
       setResult({ kind: "refused", message: err instanceof Error ? err.message : "That didn't go through — nothing changed" });
     } finally {

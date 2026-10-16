@@ -5,6 +5,7 @@ import { useState } from "react";
 import { PlanCard, type Proposal } from "@/components/command-board";
 import { JOB_OUTCOMES } from "@/lib/job-outcome";
 import type { Outcome, OutcomeOption, OutcomeStage } from "@/lib/outcome";
+import { isUncertain, sendWrite } from "@/lib/client-write";
 import { formatWhen } from "@/lib/when";
 
 const STATE_WORD: Record<OutcomeStage["state"], string> = {
@@ -29,12 +30,9 @@ const ACTOR_WORD: Record<NonNullable<OutcomeStage["nextActor"]>, string> = {
 
 const EXECUTION_WORD = { confirmed: "confirmed", failed: "failed", unknown: "unconfirmed" } as const;
 
-async function send(url: string, method: "POST" | "PATCH", body: unknown) {
-  const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error ?? "That didn't go through — nothing changed.");
-  return data;
-}
+const send = (url: string, method: "POST" | "PATCH", body: unknown) => sendWrite<Record<string, any>>(url, method, body);
+
+const STALE_VIEW = "This view didn't refresh, so it may be behind. Reload the page before doing anything else here.";
 
 /**
  * One request's outcome, stage by stage, with the decision it waits on. The
@@ -47,16 +45,28 @@ export function OutcomeCard({ outcome, onChange }: { outcome: Outcome; onChange:
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
+  /* After a send nobody can confirm, or a refresh that failed, the send button stays away until a fresh view says otherwise. */
+  const [holdBill, setHoldBill] = useState(false);
   const byStage = new Map(outcome.stages.map((s) => [s.stage, s]));
   const invoice = byStage.get("invoice")!;
   const completion = byStage.get("completion")!;
   const jobId = outcome.jobId;
 
-  async function reload() {
-    if (!jobId) return;
-    const res = await fetch(`/api/work/outcome?kind=job&id=${encodeURIComponent(jobId)}`);
-    const data = await res.json().catch(() => ({}));
-    onChange(res.ok ? data.outcome : outcome);
+  /** True when a fresh view arrived; otherwise the card says it may be behind instead of inviting a repeat. */
+  async function reload(): Promise<boolean> {
+    if (!jobId) return false;
+    try {
+      const res = await fetch(`/api/work/outcome?kind=job&id=${encodeURIComponent(jobId)}`);
+      const data = await res.json().catch(() => null);
+      if (res.ok && data?.outcome) {
+        setHoldBill(false);
+        onChange(data.outcome);
+        return true;
+      }
+    } catch {
+      /* fall through */
+    }
+    return false;
   }
 
   async function choose(option: OutcomeOption) {
@@ -69,7 +79,7 @@ export function OutcomeCard({ outcome, onChange }: { outcome: Outcome; onChange:
       const data = await send("/api/copilot", "POST", body);
       setPlan({ proposalId: data.proposalId, preview: data.preview });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "That didn't go through — nothing changed.");
+      setError(err instanceof Error ? err.message : "That wasn't accepted.");
     } finally {
       setBusy(false);
     }
@@ -79,18 +89,24 @@ export function OutcomeCard({ outcome, onChange }: { outcome: Outcome; onChange:
     if (!jobId || !outcome.money.totalCents) return;
     setBusy(true);
     setError(null);
+    setNote(null);
+    let sent = false;
     try {
       await send(`/api/jobs/${jobId}/invoice`, "POST", { totalCents: outcome.money.totalCents, send: true });
-      await reload();
+      sent = true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "The bill didn't go out.");
-    } finally {
-      setBusy(false);
+      if (isUncertain(err)) setHoldBill(true);
+      setError(err instanceof Error ? err.message : "The bill wasn't accepted.");
     }
+    if (sent && !(await reload())) {
+      setHoldBill(true);
+      setNote(`The bill was handed to the carrier. ${STALE_VIEW} Don't send it again from here.`);
+    }
+    setBusy(false);
   }
 
   /* A bill still waiting on the carrier's receipt is not offered again; only a send nobody can confirm, after the owner checks. */
-  const billable = (invoice.state === "failed" || invoice.state === "needs_you" || (invoice.state === "unknown" && invoice.nextActor === "you")) && Boolean(outcome.money.totalCents);
+  const billable = !holdBill && (invoice.state === "failed" || invoice.state === "needs_you" || (invoice.state === "unknown" && invoice.nextActor === "you")) && Boolean(outcome.money.totalCents);
   const canComplete = Boolean(jobId) && completion.state !== "done" && completion.state !== "not_needed" && outcome.job?.status !== "cancelled";
 
   return (
@@ -160,11 +176,26 @@ export function OutcomeCard({ outcome, onChange }: { outcome: Outcome; onChange:
           onResult={(result) => setNote(result.text)}
           onDone={() => {
             setPlan(null);
-            void reload();
+            void reload().then((fresh) => {
+              if (!fresh) setNote((prev) => `${prev ? `${prev} ` : ""}${STALE_VIEW}`);
+            });
           }}
         />
       ) : null}
-      {canComplete ? <CompleteForm jobId={jobId!} onSitePath={outcome.job?.status === "on_site"} onDone={(next) => onChange(next ?? outcome)} /> : null}
+      {canComplete && !holdBill ? (
+        <CompleteForm
+          jobId={jobId!}
+          onSitePath={outcome.job?.status === "on_site"}
+          onDone={(next) => {
+            if (next) return onChange(next);
+            /* Recorded, but the reply carried no fresh view: don't leave "Record it done" up to be pressed twice. */
+            setHoldBill(true);
+            void reload().then((fresh) => {
+              if (!fresh) setNote(`Recorded as done. ${STALE_VIEW}`);
+            });
+          }}
+        />
+      ) : null}
       {billable ? (
         <div className="cb-actions">
           <button type="button" className="ox-btn ox-btn--primary ox-btn--sm" disabled={busy} onClick={() => void sendBill()}>
@@ -230,7 +261,7 @@ function CompleteForm({ jobId, onSitePath, onDone }: { jobId: string; onSitePath
       });
       onDone(data.outcome ?? null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "That didn't save.");
+      setError(err instanceof Error ? err.message : "That wasn't saved.");
     } finally {
       setBusy(false);
     }

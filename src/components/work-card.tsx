@@ -11,14 +11,10 @@ import { toast } from "@/components/toaster";
 import type { BoardItem } from "@/lib/command-board";
 import { jobPastDue } from "@/lib/job-status";
 import type { WorkItem, WorkSeverity } from "@/lib/work";
+import { sendWrite } from "@/lib/client-write";
 import { formatWhen } from "@/lib/when";
 
-async function send(url: string, method: "POST" | "PATCH", body: unknown) {
-  const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error((data as { error?: string }).error ?? "That didn't go through — nothing changed");
-  return data as Record<string, unknown>;
-}
+const send = (url: string, method: "POST" | "PATCH", body: unknown) => sendWrite<Record<string, unknown>>(url, method, body);
 
 const SEVERITY_CLASS: Record<WorkSeverity, string> = { critical: "wc-tag--critical", high: "wc-tag--high", med: "wc-tag--med" };
 
@@ -74,7 +70,7 @@ export function WorkCard({
     try {
       await fn();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "That didn't go through — nothing changed");
+      setError(err instanceof Error ? err.message : "That wasn't accepted.");
     } finally {
       setBusy(false);
     }
@@ -85,7 +81,7 @@ export function WorkCard({
       const q = item.kind === "job" ? `jobId=${item.id}` : `leadId=${item.id}`;
       const res = await fetch(`/api/command/slots?${q}`);
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Couldn't read the schedule — nothing changed");
+      if (!res.ok) throw new Error(data.error ?? "Couldn't read the schedule.");
       setSlots(data);
       setOpen("slots");
     });

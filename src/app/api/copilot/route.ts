@@ -177,7 +177,15 @@ export async function POST(request: Request) {
 
     if (mode === "execute") {
       const body = executeSchema.parse(await request.json());
-      const outcome = await executeProposal({ business, proposalId: body.proposalId, by: authResult });
+      const outcome = await executeProposal({ business, proposalId: body.proposalId, by: authResult }).catch((error: unknown) => {
+        logWarn("copilot.execute_unknown", { proposalId: body.proposalId, error: error instanceof Error ? error.message : "unknown" });
+        return {
+          ok: false as const,
+          error: "Orvius couldn't tell whether this ran. It won't run again on its own; refresh Command to see, and check it before approving again.",
+          status: 500,
+          reason: "unknown",
+        };
+      });
       if (!outcome.ok) {
         return NextResponse.json({ error: outcome.error, reason: outcome.reason }, { status: outcome.status });
       }
