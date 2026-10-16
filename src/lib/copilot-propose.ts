@@ -177,7 +177,7 @@ export async function proposeAction(shop: Shop, input: ProposeInput, proposer?: 
       "1. Re-check that the new time is still open.",
       job.technician
         ? `2. Keep ${job.technician.name} on it only if they are free then; otherwise stop and ask.`
-        : `2. Assign a free technician who does ${slotParams(shop, target).playbook.service.skill} work at the new time, if one is free.`,
+        : "2. No technician assigned yet.",
       "3. Clear the earlier confirmation — the new time needs its own.",
       phone ? `4. Text ${who} the new window with a confirm link.` : "4. No phone on file — call to confirm.",
       job.technician ? `5. Text ${job.technician.name} the new time.` : "5. Log every step in the request's trace.",
