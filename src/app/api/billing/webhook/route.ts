@@ -266,6 +266,7 @@ export async function POST(request: Request) {
           chargeId: charge.id,
           paymentIntentId: intentId,
           sessionId: sessions.data[0]?.id ?? null,
+          account: event.account ?? null,
         });
         break;
       }
