@@ -17,7 +17,8 @@ import { withSmsOptOutFooter } from "@/lib/sms-keywords";
 import { getConnectStatus } from "@/lib/stripe-connect";
 import { ensureTechAppToken, techAppUrl } from "@/lib/tech-app-link";
 import { acceptJob, declineJob } from "@/lib/tech-response";
-import { sendSms } from "@/lib/twilio-sms";
+import { classifySendError } from "@/lib/sms-intent";
+import { sendSms, textingHeld } from "@/lib/twilio-sms";
 
 /**
  * A fresh link for a technician, texted to their phone. The old link stops
@@ -31,21 +32,35 @@ export async function issueTechAppLink(params: { businessId: string; technicianI
   if (!tech) throw new FieldError("Technician not found", 404);
   if (!tech.isActive) throw new FieldError("This technician is inactive.", 409);
   const appToken = mintPublicToken();
-  await prisma.technician.update({ where: { id: tech.id }, data: { appToken, appTokenAt: new Date() } });
+  const issuedAt = new Date();
+  await prisma.technician.update({ where: { id: tech.id }, data: { appToken, appTokenAt: issuedAt } });
   const url = techAppUrl(appToken);
   let sent = false;
-  let reason: string | null = null;
+  let reason: TechLinkReason | null = null;
+  let detail: string | null = null;
   if (params.send) {
     if (!tech.phone) reason = "no_phone";
     else {
-      const result = await sendSms({
-        to: tech.phone,
-        businessId: params.businessId,
-        audience: "tech",
-        body: withSmsOptOutFooter(`${tech.business.name}: here's your Orvius app. Your jobs, directions, photos and payments are all in it. Save this link: ${url}`),
-      });
-      sent = Boolean(result);
-      if (!result) reason = "sms_unavailable";
+      try {
+        /* One text per issued link: a retried request for the same link can't text it twice. */
+        const result = await sendSms({
+          to: tech.phone,
+          businessId: params.businessId,
+          audience: "tech",
+          body: withSmsOptOutFooter(`${tech.business.name}: here's your Orvius app. Your jobs, directions, photos and payments are all in it. Save this link: ${url}`),
+          intent: { eventType: "tech.app_link", eventId: `${tech.id}@${issuedAt.toISOString()}` },
+        });
+        sent = Boolean(result);
+        if (!result) {
+          const held = await textingHeld(params.businessId);
+          reason = held ? "texting_held" : "sms_unavailable";
+          detail = held?.detail ?? null;
+        }
+      } catch (error) {
+        /* A send that may have left is not resent; the owner hands the link over another way. */
+        reason = classifySendError(error) === "unknown_submission" ? "send_unknown" : "send_failed";
+        detail = error instanceof Error ? error.message.slice(0, 200) : null;
+      }
     }
   }
   await recordAudit({
@@ -55,10 +70,19 @@ export async function issueTechAppLink(params: { businessId: string; technicianI
     action: "technician.app_link",
     actor: params.actor,
     actorEmail: params.actorEmail,
-    summary: sent ? `Texted ${tech.name} a new app link` : `Made ${tech.name} a new app link`,
+    summary: sent
+      ? `Texted ${tech.name} a new app link`
+      : reason === "send_unknown"
+        ? `Made ${tech.name} a new app link; the text may or may not have gone out`
+        : reason
+          ? `Made ${tech.name} a new app link; it wasn't texted (${reason.replace(/_/g, " ")})`
+          : `Made ${tech.name} a new app link`,
+    detail: { sent, reason },
   });
-  return { url, sent, reason };
+  return { url, sent, reason, detail };
 }
+
+export type TechLinkReason = "no_phone" | "texting_held" | "sms_unavailable" | "send_failed" | "send_unknown";
 
 export async function revokeTechAppLink(params: { businessId: string; technicianId: string; actorEmail: string; actor: "owner" | "teammate" }) {
   const gone = await prisma.technician.updateMany({ where: { id: params.technicianId, businessId: params.businessId }, data: { appToken: null, appTokenAt: null } });
