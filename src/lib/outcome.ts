@@ -128,7 +128,9 @@ export function outcomeHeadline(stages: OutcomeStage[]): string {
     by.get("payment")!.state === "done"
       ? "Paid"
       : by.get("invoice")!.state === "done"
-        ? "Bill delivered"
+        ? /\bdelivered\b/.test(by.get("invoice")!.evidence)
+          ? "Bill delivered"
+          : "Bill sent"
         : reached("completion")
           ? "Completed"
           : reached("confirmation")

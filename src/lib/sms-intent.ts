@@ -178,7 +178,10 @@ export async function raiseIntentException(intent: Pick<IntentRow, "id" | "busin
       idempotencyKey: `sms-intent:${intent.id}:exception`,
     });
   } catch (error) {
+    // Unclaim so the next receipt or sweep raises it again; a stamp without the audit would hide it for good.
+    await prisma.smsIntent.updateMany({ where: { id: intent.id }, data: { exceptionRaisedAt: null } }).catch(() => undefined);
     logWarn("sms.intent_exception_record_failed", { intentId: intent.id, error: error instanceof Error ? error.message : "unknown" });
+    return false;
   }
   return true;
 }

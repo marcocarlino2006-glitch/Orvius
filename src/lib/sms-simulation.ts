@@ -17,7 +17,10 @@ export const SIMULATED_SID_PREFIX = "SIM_";
 /** The demo number the simulated carrier refuses, so a failed text can be shown end to end. */
 export const SIMULATED_UNDELIVERABLE_PHONE = "+13125550100";
 
+/** Shaped like Twilio's answer for a landline (400, code 21614), so it reads as refused before submission, not as an unknown send. */
 export class SimulatedCarrierRejection extends Error {
+  readonly code = 21614;
+  readonly status = 400;
   constructor(to: string) {
     super(`Simulated carrier rejected the text to ${to} (number cannot receive SMS)`);
     this.name = "SimulatedCarrierRejection";
