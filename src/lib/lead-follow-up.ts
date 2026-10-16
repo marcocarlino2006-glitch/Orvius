@@ -1,5 +1,6 @@
 import { recordAudit } from "@/lib/audit";
 import { displayPhone, normalizePhone } from "@/lib/customer";
+import { textingHeld } from "@/lib/twilio-sms";
 import { sendCustomerSms } from "@/lib/customer-sms";
 import { afterResponse } from "@/lib/after-response";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
@@ -289,7 +290,7 @@ export async function sendLeadFollowUp(params: {
 export async function runAutoFollowUps(options: { now?: Date; perShop?: number; budgetMs?: number; send?: typeof sendCustomerSms } = {}) {
   const now = options.now ?? new Date();
   const stopAt = Date.now() + (options.budgetMs ?? 20_000);
-  const tally = { shops: 0, sent: 0, skipped: 0 };
+  const tally = { shops: 0, sent: 0, skipped: 0, held: 0 };
   let cursor: string | undefined;
   for (;;) {
     const shops = await prisma.business.findMany({
@@ -304,6 +305,11 @@ export async function runAutoFollowUps(options: { now?: Date; perShop?: number; 
       if (Date.now() > stopAt) return tally;
       if (!isShopDaytime(now, shop.timezone)) continue;
       tally.shops += 1;
+      /* Paused, not attempted: an unverified sender would hold every text and log a hold per lead per run. */
+      if (!options.send && (await textingHeld(shop.id))) {
+        tally.held += 1;
+        continue;
+      }
       const due = await prisma.lead.findMany({
         where: {
           businessId: shop.id,

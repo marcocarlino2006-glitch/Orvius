@@ -4,6 +4,7 @@ import { sendCustomerSms } from "@/lib/customer-sms";
 import { isShopDaytime } from "@/lib/lead-follow-up";
 import { logInfo, logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
+import { textingHeld } from "@/lib/twilio-sms";
 
 /**
  * After a finished visit the customer gets one text with the shop's review
@@ -181,7 +182,7 @@ export async function runReviewRequests(
 ) {
   const now = options.now ?? new Date();
   const stopAt = Date.now() + (options.budgetMs ?? 20_000);
-  const tally = { shops: 0, sent: 0, skipped: 0 };
+  const tally = { shops: 0, sent: 0, skipped: 0, held: 0 };
   let cursor: string | undefined;
   for (;;) {
     const shops = await prisma.business.findMany({
@@ -202,6 +203,10 @@ export async function runReviewRequests(
       if (Date.now() > stopAt) return tally;
       if (!isShopDaytime(now, shop.timezone)) continue;
       tally.shops += 1;
+      if (!options.send && (await textingHeld(shop.id))) {
+        tally.held += 1;
+        continue;
+      }
       const due = await prisma.job.findMany({
         where: {
           businessId: shop.id,
