@@ -297,6 +297,8 @@ const EXCEPTION_PROBLEM: Partial<Record<ExceptionKind, { label: string; severity
   stale: { label: "Window passed", severity: "high" },
   duplicate: { label: "Possible duplicate", severity: "med" },
   takeover: { label: "You have the conversation", severity: "med" },
+  billing_gap: { label: "Done, not billed", severity: "high" },
+  invoice_undelivered: { label: "Bill delivery problem", severity: "high" },
 };
 
 /** Attention rows that are a problem with one piece of work. The rest restate its stage, or are about the shop. */
@@ -342,6 +344,8 @@ export type ShopIssue = {
   severity: WorkSeverity;
   /** Set for an open reconciliation exception: resolving it asks what was done. */
   resolveId?: string;
+  systemOfRecord?: string;
+  providerHref?: string | null;
 };
 
 const phoneKey = (p: string | null | undefined) => (p ? p.replace(/[^\d]/g, "").slice(-10) : "");
@@ -380,6 +384,7 @@ export function problemsFrom(board: { exceptions: BoardItem[]; approvals: BoardI
         href: e.jobId ? `/dashboard/jobs/${e.jobId}` : "/dashboard/billing",
         severity: "med",
         ...(e.reconcileId ? { resolveId: e.reconcileId } : {}),
+        ...(e.systemOfRecord ? { systemOfRecord: e.systemOfRecord, providerHref: e.providerHref ?? null } : {}),
       });
       continue;
     }
@@ -433,6 +438,8 @@ function attach(item: WorkItem, problems: WorkProblem[], approvalId: string | nu
 
 /** The worst problem's own fix, when it is not the step the stage would suggest. */
 function problemAction(kind: WorkProblem["kind"], item: WorkItem): [string, WaitingOn] | null {
+  if (kind === "billing_gap") return ["Create and send the bill", "you"];
+  if (kind === "invoice_undelivered") return [`Call ${item.customer ?? "the customer"} or resend the bill`, "you"];
   if (kind === "tech_unanswered" && item.technician) {
     return item.technician.phone ? [`Call ${item.technician.name}`, "you"] : [`Add ${item.technician.name}'s mobile number in Team`, "you"];
   }

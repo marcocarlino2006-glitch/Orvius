@@ -21,7 +21,9 @@ export type ExceptionKind =
   | "unconfirmed_soon"
   | "tech_declined"
   | "tech_unanswered"
-  | "record_mismatch";
+  | "record_mismatch"
+  | "billing_gap"
+  | "invoice_undelivered";
 
 export type BoardItem = {
   id: string;
@@ -44,6 +46,9 @@ export type BoardItem = {
   needsCheck?: "unknown" | "done_unrecorded";
   /** An open reconciliation exception a person resolves, with what they did. */
   reconcileId?: string;
+  /** For a disagreement with another system: which one holds the record, and where the shop opens it. */
+  systemOfRecord?: string;
+  providerHref?: string | null;
 };
 
 export type CommandBoard = {
@@ -451,8 +456,22 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
   }
 
   exceptions.push(...(await mismatchItems(businessId, mismatches)));
+  exceptions.push(...(await billingItems(businessId, now)));
 
-  const order: Record<ExceptionKind, number> = { emergency: 0, alert_setup: 1, tech_declined: 2, record_mismatch: 3, failed_message: 4, tech_unanswered: 5, unconfirmed_soon: 6, stale: 7, duplicate: 8, takeover: 9 };
+  const order: Record<ExceptionKind, number> = {
+    emergency: 0,
+    alert_setup: 1,
+    tech_declined: 2,
+    record_mismatch: 3,
+    failed_message: 4,
+    invoice_undelivered: 5,
+    billing_gap: 6,
+    tech_unanswered: 7,
+    unconfirmed_soon: 8,
+    stale: 9,
+    duplicate: 10,
+    takeover: 11,
+  };
   exceptions.sort((a, b) => order[a.exception!] - order[b.exception!] || b.at.localeCompare(a.at));
   requests.sort((a, b) => Number(Boolean(b.urgent)) - Number(Boolean(a.urgent)) || b.at.localeCompare(a.at));
 
@@ -527,6 +546,18 @@ export function mismatchText(row: Pick<Mismatch, "kind" | "entityType" | "system
           detail: `${provider} accepted it (${String(observed.providerId ?? "id on file")}) but Orvius couldn't record it. The next try saves it without asking ${provider} again. If this stays open, check the ${row.entityType} and mark it resolved.`,
         };
   }
+  if (row.kind === "payment" && (observed.reason === "refund_unmatched" || observed.reason === "refund_record_missing")) {
+    const charge = typeof observed.chargeId === "string" ? observed.chargeId : "a charge";
+    return observed.reason === "refund_unmatched"
+      ? {
+          title: `Stripe refund not matched to a payment`,
+          detail: `Stripe (the record for card money) refunded ${cents(observed.amountCents)} on ${charge}. This bill has more than one card payment and Orvius can't tell which was refunded, so its payments still read as collected. Find the charge in Stripe, mark that payment refunded on the job, then mark this resolved.`,
+        }
+      : {
+          title: `Stripe refund for a missing ${row.entityType}`,
+          detail: `Stripe (the record for card money) refunded ${cents(observed.amountCents)} on ${charge}, but the ${row.entityType} it was for isn't in Orvius any more. Nothing changed here. Check the refund in Stripe, then mark this resolved with what you found.`,
+        };
+  }
   if (row.kind === "change" && row.entityType === "invoice") {
     const basis = expected.basis === "signed_estimate" ? "signed" : expected.basis === "paid_toward" ? "already paid toward" : "sent";
     return {
@@ -564,5 +595,73 @@ async function mismatchItems(businessId: string, rows: Mismatch[]): Promise<Boar
     jobId: jobFor.get(`${row.entityType}:${row.entityId}`) ?? null,
     leadId: leadFor.get(`${row.entityType}:${row.entityId}`) ?? null,
     reconcileId: row.id,
+    systemOfRecord: SYSTEM_NAMES[row.system] ?? row.system,
+    providerHref: row.system === "orvius" ? null : "/dashboard/settings?settings=integrations",
   }));
+}
+
+const BILL_TEXT_FAILED = ["undelivered", "rejected", "retry_exhausted", "unknown_submission"];
+
+/**
+ * Money the shop earned that hasn't reached the customer: work marked done
+ * with a total and no bill, and bills whose latest pay-link text failed or
+ * may not have gone out. Both are read from the job, the invoice and the text
+ * ledger, so they stay on the board through a reload until the record changes.
+ */
+async function billingItems(businessId: string, now: Date): Promise<BoardItem[]> {
+  const month = new Date(now.getTime() - 30 * DAY);
+  const [unbilled, intents] = await Promise.all([
+    prisma.job.findMany({
+      where: { businessId, status: "completed", completedAt: { gte: month }, finalAmountCents: { gt: 0 }, invoices: { none: {} } },
+      orderBy: { completedAt: "desc" },
+      take: 20,
+      select: { id: true, leadId: true, title: true, finalAmountCents: true, completedAt: true, customer: { select: { name: true, phone: true } }, lead: { select: { name: true, phone: true } } },
+    }),
+    prisma.smsIntent.findMany({
+      where: { businessId, eventType: "invoice.pay_link", updatedAt: { gte: month } },
+      orderBy: { messageVersion: "desc" },
+      take: 80,
+      select: { eventId: true, status: true, updatedAt: true },
+    }),
+  ]);
+  const latest = new Map<string, { status: string; updatedAt: Date }>();
+  for (const i of intents) if (!latest.has(i.eventId)) latest.set(i.eventId, i);
+  const failedIds = [...latest].filter(([, i]) => BILL_TEXT_FAILED.includes(i.status)).map(([id]) => id);
+  const bills = failedIds.length
+    ? await prisma.invoice.findMany({
+        where: { businessId, id: { in: failedIds }, paidAt: null, sentAt: null, status: { notIn: ["paid", "void", "refunded"] } },
+        select: { id: true, amountCents: true, jobId: true, job: { select: { leadId: true, title: true, customer: { select: { name: true, phone: true } }, lead: { select: { name: true, phone: true } } } } },
+      })
+    : [];
+  return [
+    ...unbilled.map((job) => ({
+      id: `billing-gap:${job.id}`,
+      lane: "exceptions" as const,
+      exception: "billing_gap" as const,
+      title: `${who(job.customer?.name ?? job.lead?.name, job.customer?.phone ?? job.lead?.phone)} · done, not billed`,
+      detail: `Marked done with a ${formatCentsExact(job.finalAmountCents!)} total, but no bill was created. Create and send it from the job.`,
+      at: (job.completedAt ?? now).toISOString(),
+      jobId: job.id,
+      leadId: job.leadId,
+      phone: job.customer?.phone ?? job.lead?.phone ?? null,
+    })),
+    ...bills.map((bill) => {
+      const intent = latest.get(bill.id)!;
+      const unknown = intent.status === "unknown_submission";
+      const person = who(bill.job?.customer?.name ?? bill.job?.lead?.name, bill.job?.customer?.phone ?? bill.job?.lead?.phone);
+      return {
+        id: `invoice-undelivered:${bill.id}`,
+        lane: "exceptions" as const,
+        exception: "invoice_undelivered" as const,
+        title: unknown ? `${person} · bill text may not have gone out` : `${person} · bill text didn't reach them`,
+        detail: unknown
+          ? `The ${formatCentsExact(bill.amountCents)} pay link may or may not have been sent, so Orvius won't resend it on its own. Ask ${person} before resending.`
+          : `The ${formatCentsExact(bill.amountCents)} pay link didn't go through. Call ${person}, or fix the number and resend it.`,
+        at: intent.updatedAt.toISOString(),
+        jobId: bill.jobId,
+        leadId: bill.job?.leadId ?? null,
+        phone: bill.job?.customer?.phone ?? bill.job?.lead?.phone ?? null,
+      };
+    }),
+  ];
 }
