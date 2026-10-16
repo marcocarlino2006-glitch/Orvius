@@ -260,7 +260,7 @@ function CompleteForm({ jobId, onSitePath, onDone }: { jobId: string; onSitePath
             </select>
           </label>
           <label>
-            Why it wasn't marked on site
+            Why it wasn&apos;t marked on site
             <input value={reason} onChange={(e) => setReason(e.target.value)} required maxLength={300} />
           </label>
         </>
