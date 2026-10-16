@@ -88,6 +88,7 @@ export async function workHistory(
           ...(lead?.callId ? [{ callId: lead.callId }] : []),
           ...(phone ? [{ entityId: phone, createdAt: { gte: from } }] : []),
         ],
+        NOT: { action: { startsWith: "workflow." } },
       },
       orderBy: { createdAt: "asc" },
       take: 300,

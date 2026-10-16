@@ -56,6 +56,7 @@ export async function buildRequestTrace(businessId: string, leadId: string): Pro
           ...(lead.callId ? [{ callId: lead.callId }] : []),
           ...(phone ? [{ entityId: phone, createdAt: { gte: from } }] : []),
         ],
+        NOT: { action: { startsWith: "workflow." } },
       },
       orderBy: { createdAt: "asc" },
       take: 200,

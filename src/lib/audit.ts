@@ -132,7 +132,7 @@ export async function listAuditFor(params: {
   ].filter((x): x is NonNullable<typeof x> => x !== null);
   if (!or.length) return [];
   const rows = await prisma.auditEvent.findMany({
-    where: { businessId: params.businessId, OR: or },
+    where: { businessId: params.businessId, OR: or, NOT: { action: { startsWith: "workflow." } } },
     orderBy: { createdAt: "desc" },
     take: params.take ?? 60,
   });
