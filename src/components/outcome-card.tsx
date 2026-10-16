@@ -112,7 +112,7 @@ export function OutcomeCard({ outcome, onChange }: { outcome: Outcome; onChange:
                 {s.setupHref ? (
                   <>
                     {" "}
-                    <Link href={s.setupHref}>Fix in settings →</Link>
+                    <Link href={s.setupHref}>{s.setupHref.startsWith("/dashboard/team") ? "Fix in Team →" : "Fix in settings →"}</Link>
                   </>
                 ) : null}
               </span>
