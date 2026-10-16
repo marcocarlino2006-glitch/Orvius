@@ -78,7 +78,7 @@ export function OutcomeCard({ outcome, onChange }: { outcome: Outcome; onChange:
     setBusy(true);
     setError(null);
     try {
-      await send(`/api/jobs/${jobId}/invoice`, "POST", { totalCents: outcome.money.billedCents ?? outcome.money.totalCents, send: true });
+      await send(`/api/jobs/${jobId}/invoice`, "POST", { totalCents: outcome.money.totalCents, send: true });
       await reload();
     } catch (err) {
       setError(err instanceof Error ? err.message : "The bill didn't go out.");

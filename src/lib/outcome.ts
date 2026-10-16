@@ -70,6 +70,7 @@ export type Outcome = {
   next: { stage: OutcomeStageId; actor: NextActor | null; action: string | null; options: OutcomeOption[] } | null;
   /** The job's state and its money, kept apart: the agreed total, the bill, and what was actually collected. */
   job: { status: string; scheduledAt: string | null } | null;
+  /** `totalCents` is the work before tax and deposit, which is what the invoice route bills from; `billedCents` is what the customer owes. */
   money: { totalCents: number | null; billedCents: number | null; collectedCents: number };
   /** Demo and test shops: nothing here reached a real customer or provider. */
   synthetic: boolean;
@@ -452,7 +453,7 @@ export async function buildOutcome(businessId: string, target: { jobId?: string 
     next: first ? { stage: first.stage, actor: first.nextActor, action: first.nextAction, options: first.stage === "assignment" ? options : [] } : null,
     job: job ? { status: job.status, scheduledAt: job.scheduledAt?.toISOString() ?? null } : null,
     money: {
-      totalCents: job?.finalAmountCents ?? (job?.estimate?.status === "accepted" ? job.estimate.amountCents : null),
+      totalCents: invoice?.subtotalCents ?? job?.finalAmountCents ?? (job?.estimate?.status === "accepted" ? job.estimate.amountCents : null),
       billedCents: invoice?.amountCents ?? null,
       collectedCents: invoice ? collectedCents(invoice.payments) : 0,
     },
