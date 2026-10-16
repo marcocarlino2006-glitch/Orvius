@@ -1,6 +1,12 @@
 /*
   Canonical job receivables (prepared, not wired into any live path).
 
+  NOT AUTHORITATIVE. The financial source of truth is Invoice, Payment and
+  Deposit (invoice-pay.ts, payment-record.ts, booking-deposit.ts,
+  payment-refund.ts); scripts/money-invariants.test.mjs proves they hold the
+  invariants below and that nothing in src imports this module. Adopting it
+  would mean migrating those paths onto it, not running it beside them.
+
   One canonical receivable per shop and job, with immutable issued revisions
   and append-only money facts. Deposits stay deposits: applying one to a job
   is a dated fact pointing at the deposit, never a rewrite of it. Plan charges
