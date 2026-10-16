@@ -122,7 +122,7 @@ export function MoneyGrantsGroup() {
         </p>
       ) : state === "signed_out" ? (
         <p className="sc-banner sc-banner--error" role="alert">
-          You're signed out. <a href={`/login?callbackUrl=${encodeURIComponent("/dashboard?settings=team")}`}>Sign in</a> to manage money rights.
+          You&apos;re signed out. <a href={`/login?callbackUrl=${encodeURIComponent("/dashboard?settings=team")}`}>Sign in</a> to manage money rights.
         </p>
       ) : state === "error" ? (
         <p className="sc-banner sc-banner--error" role="alert">
