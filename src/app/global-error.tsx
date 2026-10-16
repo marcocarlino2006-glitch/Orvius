@@ -63,8 +63,8 @@ export default function GlobalError({
             Something broke on our side
           </h1>
           <p style={{ margin: "0.75rem 0 0", fontSize: "0.875rem", lineHeight: 1.6, color: "#c9c8c6" }}>
-            Your shop line is unaffected — calls are still being answered and
-            your alerts are still being sent. This is the web app only.
+            This is the web app only — a broken page can&apos;t stop your line.
+            Calls are answered by a separate system.
           </p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "1.25rem" }}>
             <button

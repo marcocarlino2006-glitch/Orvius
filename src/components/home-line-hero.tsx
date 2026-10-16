@@ -59,7 +59,7 @@ export function HomeLineHero({ signupOpen = false }: { signupOpen?: boolean }) {
             Run your day in Orvius.
           </h1>
           <p className="ov-hero-lead" data-i18n="hero.lead">
-            The receptionist answers your calls and brings in the work. Command schedules it, coordinates your people, follows up with customers and shows you what actually happened.
+            The receptionist answers your calls and brings in the work. Command schedules it, coordinates your crew on Pro and Fleet, follows up with customers and shows you what actually happened.
           </p>
 
           <div className="ov-hero-actions">

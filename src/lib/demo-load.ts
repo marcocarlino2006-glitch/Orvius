@@ -28,7 +28,7 @@ export function demoDailyCeiling(env: NodeJS.ProcessEnv = process.env) {
 }
 
 export const DEMO_OVERFLOW_SAY =
-  "Thanks for trying Orvius. A lot of people are calling the demo right now and every line is busy. Please try again in a few minutes, or watch a real call at orvius dot I M slash watch. Goodbye.";
+  "Thanks for trying Orvius. A lot of people are calling the demo right now and every line is busy. Please try again in a few minutes, or watch how a call flows at orvius dot I M slash watch. Goodbye.";
 
 export type DemoLoad = { live: number; today: number };
 export type DemoVerdict = { busy: false } | { busy: true; reason: "demo_live_cap" | "demo_daily_ceiling" };

@@ -149,7 +149,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
       <section className="cc" aria-label="Command">
         <div className="ox-state ox-state--failure" role="alert">
           <p className="ox-state-title">Command could not load</p>
-          <p className="ox-state-copy">{loadError} Your line keeps answering calls while this screen reconnects.</p>
+          <p className="ox-state-copy">{loadError} This screen failing doesn&apos;t stop your line — calls are answered separately.</p>
           <button type="button" className="ox-btn ox-btn--primary" disabled={refreshing} onClick={() => void retry()}>
             {refreshing ? "Retrying…" : "Retry"}
           </button>

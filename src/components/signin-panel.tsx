@@ -53,7 +53,7 @@ export function SignInPanel({
     setStatus({ kind: "idle" });
   }
 
-  async function signInWithPassword() {
+  async function signInWithPassword(failureMessage = "Wrong email or password.") {
     const result = await signIn("password", { email, password, ...(needsCode ? { code } : {}), redirect: false });
     if (result?.code === "two_step_required") {
       setNeedsCode(true);
@@ -65,7 +65,7 @@ export function SignInPanel({
       return;
     }
     if (result?.error || !result?.ok) {
-      setStatus({ kind: "error", message: "Wrong email or password." });
+      setStatus({ kind: "error", message: failureMessage });
       return;
     }
     window.location.href = safeCallbackUrl(callbackUrl);
@@ -87,7 +87,7 @@ export function SignInPanel({
           setStatus({ kind: "error", message: body.message ?? "Couldn't create the account." });
           return;
         }
-        await signInWithPassword();
+        await signInWithPassword("Account created — sign in just below with your new password.");
       } else if (mode === "signin") {
         await signInWithPassword();
       } else {
@@ -110,7 +110,10 @@ export function SignInPanel({
       <h1 className="ov-signin-title">{copy.title}</h1>
       {!selfServeEnabled && mode !== "forgot" ? (
         <p className="ov-signin-sub">
-          Use the account connected to your shop. <a href="/pilot">Book a call audit</a>.
+          {initialMode === "signup"
+            ? "New accounts open through a call audit right now — book one and we'll set your shop up. Already have a shop here? Sign in."
+            : "Use the account connected to your shop."}{" "}
+          <a href="/pilot">Book a call audit</a>.
         </p>
       ) : mode === "signup" ? (
         <p className="ov-signin-sub">

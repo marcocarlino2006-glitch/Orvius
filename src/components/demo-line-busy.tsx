@@ -21,7 +21,7 @@ export function DemoLineBusy({ className }: { className?: string }) {
   if (!busy) return null;
   return (
     <p className={["demo-line-busy font-sans", className].filter(Boolean).join(" ")} role="status">
-      The demo line is full right now. <Link href="/watch">Watch a real call instead</Link>, or try again in a few minutes.
+      The demo line is full right now. <Link href="/watch">Watch how a call flows instead</Link>, or try again in a few minutes.
     </p>
   );
 }
