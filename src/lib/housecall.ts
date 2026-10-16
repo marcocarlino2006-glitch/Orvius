@@ -3,6 +3,8 @@ import { displayPhone, normalizePhone } from "@/lib/customer";
 import { logError, logInfo, logWarn } from "@/lib/logger";
 import { assertLiveActionAllowed, isOwnerDemoWorkspaceId } from "@/lib/demo-fence";
 import { prisma } from "@/lib/prisma";
+import { mayWrite } from "@/lib/record-authority";
+import { correlate, raiseReconciliation } from "@/lib/system-of-record";
 import { openSecret, sealSecret, secretBoxConfigured } from "@/lib/secret-box";
 
 /**
@@ -182,6 +184,16 @@ async function processSync(syncId: string) {
       where: { id: sync.id },
       data: { status: "check", claimedAt: null, lastError: "Sent to Housecall Pro but the reply was lost. Check Housecall Pro before sending again." },
     });
+    await raiseReconciliation({
+      businessId: sync.businessId,
+      kind: "create",
+      entityType: "lead",
+      entityId: sync.leadId,
+      system: "housecall",
+      externalId: sync.housecallCustomerId,
+      expected: { lead: "created once in Housecall Pro" },
+      observed: { reason: "response_lost", syncId: sync.id, sentAt: sync.requestSentAt.toISOString() },
+    }).catch(() => null);
     return "check" as const;
   }
   const lead = await prisma.lead.findUnique({
@@ -200,6 +212,11 @@ async function processSync(syncId: string) {
   });
   if (!lead) {
     await prisma.housecallSync.update({ where: { id: sync.id }, data: { status: "skipped", claimedAt: null, lastError: "Lead no longer exists" } });
+    return "skipped" as const;
+  }
+  const authority = await mayWrite(sync.businessId, "housecall", "job_state");
+  if (!authority.allowed) {
+    await prisma.housecallSync.update({ where: { id: sync.id }, data: { status: "skipped", claimedAt: null, lastError: authority.reason } });
     return "skipped" as const;
   }
   const conn = await housecallKey(sync.businessId);
@@ -229,7 +246,23 @@ async function processSync(syncId: string) {
       where: { id: sync.id },
       data: { status: "done", claimedAt: null, housecallLeadId: created.id != null ? String(created.id) : "unknown", lastError: null },
     });
-    logInfo("housecall.lead_created", { businessId: sync.businessId, leadId: sync.leadId });
+    if (created.id != null) {
+      await correlate({ businessId: sync.businessId, entityType: "lead", entityId: sync.leadId, system: "housecall", externalId: String(created.id) }).catch((error: unknown) => logWarn("housecall.correlation_failed", { syncId: sync.id, error: error instanceof Error ? error.message : String(error) }));
+    } else {
+      // Created, but with no id to tie it to: a person matches it by hand.
+      await raiseReconciliation({
+        businessId: sync.businessId,
+        kind: "correlation",
+        entityType: "lead",
+        entityId: sync.leadId,
+        system: "housecall",
+        externalId: customerId,
+        expected: { leadId: "returned by Housecall Pro" },
+        observed: { reason: "no_id_returned", syncId: sync.id },
+      }).catch(() => null);
+    }
+    if (lead.customer) await correlate({ businessId: sync.businessId, entityType: "customer", entityId: lead.customer.id, system: "housecall", externalId: customerId }).catch((error: unknown) => logWarn("housecall.correlation_failed", { syncId: sync.id, error: error instanceof Error ? error.message : String(error) }));
+    logInfo("housecall.lead_created", { businessId: sync.businessId, leadId: sync.leadId, basis: authority.basis });
     return "done" as const;
   } catch (error) {
     if (error instanceof HousecallAuthError) {

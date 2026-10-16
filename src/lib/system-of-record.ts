@@ -19,7 +19,9 @@ export const RECORD_DOMAINS = ["customer", "availability", "job_state", "price_i
 export type RecordDomain = (typeof RECORD_DOMAINS)[number];
 export const RECORD_SYSTEMS = ["orvius", "jobber", "housecall", "servicetitan", "quickbooks", "stripe", "google_calendar", "twilio"] as const;
 export type RecordSystem = (typeof RECORD_SYSTEMS)[number];
-export type RecordContract = { version: number; domains: Record<RecordDomain, RecordSystem>; implicit: boolean };
+/** Systems the owner allows Orvius to copy a part of the record into, besides its record of truth. */
+export type RecordReplicas = Partial<Record<RecordDomain, RecordSystem[]>>;
+export type RecordContract = { version: number; domains: Record<RecordDomain, RecordSystem>; replicas: RecordReplicas; implicit: boolean };
 
 const DEFAULT_DOMAINS: Record<RecordDomain, RecordSystem> = {
   customer: "orvius",
@@ -50,20 +52,39 @@ export function parseContractDomains(body: unknown): Record<RecordDomain, Record
   return out;
 }
 
+export function parseContractReplicas(body: unknown, domains: Record<RecordDomain, RecordSystem>): RecordReplicas {
+  const input = (body ?? {}) as Record<string, unknown>;
+  const out: RecordReplicas = {};
+  for (const key of Object.keys(input)) {
+    if (!(RECORD_DOMAINS as readonly string[]).includes(key)) throw new RecordContractError(`Unknown part of the record: ${key}`);
+    const list = input[key];
+    if (!Array.isArray(list) || list.some((v) => typeof v !== "string" || !(RECORD_SYSTEMS as readonly string[]).includes(v))) {
+      throw new RecordContractError(`Unknown copy target for ${key}`);
+    }
+    const systems = [...new Set(list as RecordSystem[])].filter((v) => v !== domains[key as RecordDomain]);
+    if (systems.length) out[key as RecordDomain] = systems;
+  }
+  return out;
+}
+
 /** The latest contract; a shop that never set one runs on Orvius's defaults as version 0. */
 export async function getRecordContract(businessId: string): Promise<RecordContract> {
   const row = await prisma.shopRecordContract.findFirst({ where: { businessId }, orderBy: { version: "desc" } });
-  if (!row) return { version: 0, domains: { ...DEFAULT_DOMAINS }, implicit: true };
-  return { version: row.version, domains: { ...DEFAULT_DOMAINS, ...(JSON.parse(row.domainsJson) as Partial<Record<RecordDomain, RecordSystem>>) }, implicit: false };
+  if (!row) return { version: 0, domains: { ...DEFAULT_DOMAINS }, replicas: {}, implicit: true };
+  const domains = { ...DEFAULT_DOMAINS, ...(JSON.parse(row.domainsJson) as Partial<Record<RecordDomain, RecordSystem>>) };
+  return { version: row.version, domains, replicas: JSON.parse(row.replicasJson || "{}") as RecordReplicas, implicit: false };
 }
 
 /** A change is a new version; the old one stays as the record of what was in force. */
-export async function setRecordContract(params: { businessId: string; domains: unknown; actorEmail: string }) {
+export async function setRecordContract(params: { businessId: string; domains: unknown; replicas?: unknown; actorEmail: string }) {
   const domains = parseContractDomains(params.domains);
+  const replicas = parseContractReplicas(params.replicas, domains);
   const before = await getRecordContract(params.businessId);
   const version = before.version + 1;
   try {
-    await prisma.shopRecordContract.create({ data: { businessId: params.businessId, version, domainsJson: JSON.stringify(domains), createdByEmail: params.actorEmail } });
+    await prisma.shopRecordContract.create({
+      data: { businessId: params.businessId, version, domainsJson: JSON.stringify(domains), replicasJson: JSON.stringify(replicas), createdByEmail: params.actorEmail },
+    });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") throw new RecordContractError("Someone else changed this at the same time. Reload and try again.", 409);
     throw error;
@@ -76,10 +97,10 @@ export async function setRecordContract(params: { businessId: string; domains: u
     actor: "owner",
     actorEmail: params.actorEmail,
     summary: `System-of-record contract is now version ${version}`,
-    detail: { before: before.domains, after: domains, version, policy: RECORD_CONTRACT_VERSION },
+    detail: { before: before.domains, after: domains, replicasBefore: before.replicas, replicas, version, policy: RECORD_CONTRACT_VERSION },
     idempotencyKey: `record-contract:${params.businessId}:${version}`,
   });
-  return { version, domains };
+  return { version, domains, replicas };
 }
 
 export type CorrelationInput = { businessId: string; entityType: string; entityId: string; system: RecordSystem; externalId: string };

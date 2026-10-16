@@ -30,9 +30,9 @@ export async function PUT(request: Request) {
   const auth = await requirePermission("settings.edit");
   if ("error" in auth) return auth.error;
   if (auth.role !== "owner") return NextResponse.json({ error: "Only the owner decides which system is the record of truth." }, { status: 403 });
-  const body = (await request.json().catch(() => null)) as { domains?: unknown } | null;
+  const body = (await request.json().catch(() => null)) as { domains?: unknown; replicas?: unknown } | null;
   try {
-    const saved = await setRecordContract({ businessId: auth.business.id, domains: body?.domains, actorEmail: auth.email });
+    const saved = await setRecordContract({ businessId: auth.business.id, domains: body?.domains, replicas: body?.replicas, actorEmail: auth.email });
     return NextResponse.json({ rulesVersion: RECORD_CONTRACT_VERSION, contract: saved });
   } catch (error) {
     if (error instanceof RecordContractError) return NextResponse.json({ error: error.message }, { status: error.status });

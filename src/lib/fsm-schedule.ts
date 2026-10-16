@@ -8,6 +8,8 @@ import { jobberScheduledVisits } from "@/lib/jobber";
 import { logWarn } from "@/lib/logger";
 import { enqueueOwnerAlert } from "@/lib/notification-queue";
 import { prisma } from "@/lib/prisma";
+import { pickReadSource } from "@/lib/record-authority";
+import { getRecordContract } from "@/lib/system-of-record";
 import { serviceTitanScheduledVisits } from "@/lib/servicetitan";
 
 /**
@@ -33,10 +35,13 @@ async function connectedSource(businessId: string): Promise<FsmSource | null> {
     prisma.housecallConnection.findUnique({ where: { businessId }, select: { status: true } }),
     prisma.serviceTitanConnection.findUnique({ where: { businessId }, select: { status: true } }),
   ]);
-  if (servicetitan?.status === "active") return "servicetitan";
-  if (housecall?.status === "active") return "housecall";
-  if (jobber?.status === "active") return "jobber";
-  return null;
+  const connected: FsmSource[] = [];
+  if (servicetitan?.status === "active") connected.push("servicetitan");
+  if (housecall?.status === "active") connected.push("housecall");
+  if (jobber?.status === "active") connected.push("jobber");
+  if (connected.length < 2) return connected[0] ?? null;
+  // More than one tool connected: the record contract says whose schedule counts.
+  return pickReadSource(await getRecordContract(businessId), "availability", connected, ["servicetitan", "housecall", "jobber"]);
 }
 
 async function readVisits(source: FsmSource, businessId: string, from: Date, to: Date): Promise<Visit[] | null> {

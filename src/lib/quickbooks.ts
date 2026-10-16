@@ -3,6 +3,8 @@ import { getAppUrl } from "@/lib/env";
 import { logError, logInfo, logWarn } from "@/lib/logger";
 import { assertLiveActionAllowed, isOwnerDemoWorkspaceId } from "@/lib/demo-fence";
 import { prisma } from "@/lib/prisma";
+import { mayWrite } from "@/lib/record-authority";
+import { correlate } from "@/lib/system-of-record";
 import { openSecret, sealSecret, secretBoxConfigured } from "@/lib/secret-box";
 
 /**
@@ -447,6 +449,11 @@ async function processSync(syncId: string, now: Date) {
     await prisma.quickBooksSync.update({ where: { id: sync.id }, data: { status: "skipped", claimedAt: null, lastError: "No longer a paid payment in Orvius" } });
     return "skipped" as const;
   }
+  const authority = await mayWrite(sync.businessId, "quickbooks", "payment_receipt");
+  if (!authority.allowed) {
+    await prisma.quickBooksSync.update({ where: { id: sync.id }, data: { status: "skipped", claimedAt: null, lastError: authority.reason } });
+    return "skipped" as const;
+  }
   const access = await quickbooksAccess(sync.businessId, now);
   if (!access) {
     await prisma.quickBooksSync.update({ where: { id: sync.id }, data: { status: "skipped", claimedAt: null, lastError: "QuickBooks is not connected" } });
@@ -465,7 +472,8 @@ async function processSync(syncId: string, now: Date) {
     where: { id: sync.id },
     data: { status: "done", claimedAt: null, qbReceiptId: created.SalesReceipt.Id, lastError: null },
   });
-  logInfo("quickbooks.receipt_created", { businessId: sync.businessId, sourceType: sync.sourceType });
+  await correlate({ businessId: sync.businessId, entityType: sync.sourceType, entityId: sync.sourceId, system: "quickbooks", externalId: created.SalesReceipt.Id }).catch((error: unknown) => logWarn("quickbooks.correlation_failed", { syncId: sync.id, error: error instanceof Error ? error.message : String(error) }));
+  logInfo("quickbooks.receipt_created", { businessId: sync.businessId, sourceType: sync.sourceType, basis: authority.basis });
   return "done" as const;
 }
 

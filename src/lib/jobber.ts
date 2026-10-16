@@ -5,6 +5,8 @@ import { getAppUrl } from "@/lib/env";
 import { logError, logInfo, logWarn } from "@/lib/logger";
 import { assertLiveActionAllowed, isOwnerDemoWorkspaceId } from "@/lib/demo-fence";
 import { prisma } from "@/lib/prisma";
+import { mayWrite } from "@/lib/record-authority";
+import { correlate, raiseReconciliation } from "@/lib/system-of-record";
 import { openSecret, sealSecret, secretBoxConfigured } from "@/lib/secret-box";
 
 /**
@@ -333,6 +335,16 @@ async function processSync(syncId: string, now: Date) {
       where: { id: sync.id },
       data: { status: "check", claimedAt: null, lastError: "Sent to Jobber but the reply was lost. Check Jobber before sending again." },
     });
+    await raiseReconciliation({
+      businessId: sync.businessId,
+      kind: "create",
+      entityType: "lead",
+      entityId: sync.leadId,
+      system: "jobber",
+      externalId: sync.jobberClientId,
+      expected: { request: "created once in Jobber" },
+      observed: { reason: "response_lost", syncId: sync.id, sentAt: sync.requestSentAt.toISOString() },
+    }).catch(() => null);
     return "check" as const;
   }
   const lead = await prisma.lead.findUnique({
@@ -351,6 +363,11 @@ async function processSync(syncId: string, now: Date) {
   });
   if (!lead) {
     await prisma.jobberSync.update({ where: { id: sync.id }, data: { status: "skipped", claimedAt: null, lastError: "Lead no longer exists" } });
+    return "skipped" as const;
+  }
+  const authority = await mayWrite(sync.businessId, "jobber", "job_state");
+  if (!authority.allowed) {
+    await prisma.jobberSync.update({ where: { id: sync.id }, data: { status: "skipped", claimedAt: null, lastError: authority.reason } });
     return "skipped" as const;
   }
   const token = await jobberAccessToken(sync.businessId, now);
@@ -373,7 +390,9 @@ async function processSync(syncId: string, now: Date) {
     where: { id: sync.id },
     data: { status: "done", claimedAt: null, jobberRequestId: created.requestCreate.request.id, lastError: null },
   });
-  logInfo("jobber.request_created", { businessId: sync.businessId, leadId: sync.leadId });
+  await correlate({ businessId: sync.businessId, entityType: "lead", entityId: sync.leadId, system: "jobber", externalId: created.requestCreate.request.id }).catch((error: unknown) => logWarn("jobber.correlation_failed", { syncId: sync.id, error: error instanceof Error ? error.message : String(error) }));
+  if (lead.customer) await correlate({ businessId: sync.businessId, entityType: "customer", entityId: lead.customer.id, system: "jobber", externalId: clientId }).catch((error: unknown) => logWarn("jobber.correlation_failed", { syncId: sync.id, error: error instanceof Error ? error.message : String(error) }));
+  logInfo("jobber.request_created", { businessId: sync.businessId, leadId: sync.leadId, basis: authority.basis });
   return "done" as const;
 }
 
