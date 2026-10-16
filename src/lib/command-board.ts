@@ -64,7 +64,7 @@ const ANSWER_LEAD_MS = 4 * 60 * 60_000;
 
 type CrewFacts = {
   scheduledAt: Date | null;
-  technician: { name: string } | null;
+  technician: { name: string; phone?: string | null } | null;
   techAssignedAt: Date | null;
   techNotifiedAt: Date | null;
   techAcceptedAt: Date | null;
@@ -92,13 +92,18 @@ export function techIssue(job: CrewFacts, now = new Date()): { kind: "tech_decli
   }
   if (job.techAcceptedAt || !job.techAssignedAt) return null;
   const name = job.technician.name;
+  const hasNumber = Boolean(job.technician.phone?.trim());
   if (!job.techNotifiedAt && now.getTime() - job.techAssignedAt.getTime() > NOTIFY_GRACE_MS) {
-    return { kind: "tech_unanswered", title: `${name} wasn't told`, detail: `the job text to ${name} didn't go out, call them`, at: job.techAssignedAt };
+    return hasNumber
+      ? { kind: "tech_unanswered", title: `${name} wasn't told`, detail: `the job text to ${name} didn't go out, call them`, at: job.techAssignedAt }
+      : { kind: "tech_unanswered", title: `${name} has no number`, detail: `the job text can't go out — add ${name}'s mobile number in Team`, at: job.techAssignedAt };
   }
   const waited = now.getTime() - job.techAssignedAt.getTime() > ANSWER_WAIT_MS;
   const close = job.scheduledAt != null && job.scheduledAt.getTime() - now.getTime() < ANSWER_LEAD_MS;
   if (!waited && !close) return null;
-  return { kind: "tech_unanswered", title: `${name} hasn't accepted`, detail: `call ${name} to make sure they're going`, at: job.techAssignedAt };
+  return hasNumber
+    ? { kind: "tech_unanswered", title: `${name} hasn't accepted`, detail: `call ${name} to make sure they're going`, at: job.techAssignedAt }
+    : { kind: "tech_unanswered", title: `${name} has no number`, detail: `${name} can't answer without the job text — add their mobile number in Team`, at: job.techAssignedAt };
 }
 
 function who(name: string | null | undefined, phone: string | null | undefined) {
