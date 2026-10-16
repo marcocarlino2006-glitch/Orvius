@@ -40,6 +40,7 @@ import type { Business, ProvisionAttempt } from "@prisma/client";
 import {
   claimProvisionAttempt,
   finishProvisionAttempt,
+  LINE_STEP_FAILED,
   lineFriendlyName,
   onboardingAttemptKey,
   ProvisionBusyError,
@@ -628,9 +629,7 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
         shopName: name,
         error: error instanceof Error ? error.message : "unknown",
       });
-      throw new Error(
-        "Could not assign your dedicated shop line. Try again in a moment or contact support@orvius.im",
-      );
+      throw new Error(LINE_STEP_FAILED);
     }
 
     const postProvisionCheck = validateOwnerPhoneForAlerts({

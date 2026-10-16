@@ -24,7 +24,22 @@ const draftSchema = z.object({
     })
     .nullable()
     .optional(),
+  /** The form's edit count. A save carrying a count at or below the kept one is late, so it can't overwrite newer typing. */
+  rev: z.number().int().min(0).max(1_000_000).optional(),
 });
+
+type Draft = z.infer<typeof draftSchema>;
+
+function readRow(json: string): Draft | null {
+  try {
+    const parsed = draftSchema.safeParse(JSON.parse(json));
+    return parsed.success ? parsed.data : null;
+  } catch {
+    return null;
+  }
+}
+
+const sameContent = (a: Draft, b: Draft) => JSON.stringify({ ...a, rev: 0 }) === JSON.stringify({ ...b, rev: 0 });
 
 async function email() {
   const session = await auth();
@@ -35,9 +50,9 @@ export async function GET() {
   const who = await email();
   if (!who) return NextResponse.json({ error: "Sign in first" }, { status: 401 });
   const row = await prisma.setupDraft.findUnique({ where: { email: who } });
-  if (!row) return NextResponse.json({ draft: null });
-  const parsed = draftSchema.safeParse(JSON.parse(row.json));
-  return NextResponse.json({ draft: parsed.success ? parsed.data : null, savedAt: row.updatedAt.toISOString() });
+  if (!row) return NextResponse.json({ draft: null, rev: 0 });
+  const draft = readRow(row.json);
+  return NextResponse.json({ draft, rev: draft?.rev ?? 0, savedAt: row.updatedAt.toISOString() });
 }
 
 export async function PUT(request: Request) {
@@ -47,9 +62,37 @@ export async function PUT(request: Request) {
   if (!limited.ok) return tooManyRequests(limited.retryAfterSec);
   const parsed = draftSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "That draft couldn't be saved." }, { status: 400 });
-  const json = JSON.stringify(parsed.data);
-  const row = await prisma.setupDraft.upsert({ where: { email: who }, create: { email: who, json }, update: { json } });
-  return NextResponse.json({ ok: true, savedAt: row.updatedAt.toISOString() });
+  const incoming = parsed.data;
+  /* Compare-and-set on the stored form, so two saves racing can't both pass the revision check. */
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const existing = await prisma.setupDraft.findUnique({ where: { email: who } });
+    const kept = existing ? readRow(existing.json) : null;
+    const keptRev = kept?.rev ?? 0;
+    if (existing && kept && incoming.rev != null && incoming.rev <= keptRev) {
+      if (sameContent(kept, incoming)) return NextResponse.json({ ok: true, rev: keptRev, savedAt: existing.updatedAt.toISOString() });
+      return NextResponse.json(
+        { error: "A newer version of this form is already saved.", code: "stale_draft", draft: kept, rev: keptRev, savedAt: existing.updatedAt.toISOString() },
+        { status: 409 },
+      );
+    }
+    /* A save without a count comes from a page loaded before counts existed; it lands, one past what's kept. */
+    const rev = incoming.rev ?? keptRev + 1;
+    const json = JSON.stringify({ ...incoming, rev });
+    if (!existing) {
+      try {
+        const row = await prisma.setupDraft.create({ data: { email: who, json } });
+        return NextResponse.json({ ok: true, rev, savedAt: row.updatedAt.toISOString() });
+      } catch {
+        continue;
+      }
+    }
+    const moved = await prisma.setupDraft.updateMany({ where: { email: who, json: existing.json }, data: { json } });
+    if (moved.count) {
+      const row = await prisma.setupDraft.findUniqueOrThrow({ where: { email: who } });
+      return NextResponse.json({ ok: true, rev, savedAt: row.updatedAt.toISOString() });
+    }
+  }
+  return NextResponse.json({ error: "Another save landed at the same moment. Try again.", code: "draft_busy" }, { status: 409 });
 }
 
 export async function DELETE() {

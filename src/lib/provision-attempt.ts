@@ -119,6 +119,58 @@ export async function withLease<T>(
   }
 }
 
+/** The failure a run records when the number step broke; the purchase may have landed without its reply. */
+export const LINE_STEP_FAILED = "Could not assign your dedicated shop line. Try again in a moment or contact support@orvius.im";
+
+export type ProvisioningState = "running" | "failed_before_submission" | "failed_kept" | "outcome_unknown" | "succeeded";
+
+export type ProvisioningStatus = {
+  state: ProvisioningState;
+  /** Running it again is safe: it takes the same attempt, so anything already bought is reused, never bought twice. */
+  resume: boolean;
+  reusesNumber: boolean;
+  reusesReceptionist: boolean;
+  attempts: number;
+  error: string | null;
+  updatedAt: string;
+};
+
+/**
+ * Where a person's paid setup stands, read from its attempt row. A run whose
+ * lease lapsed while "running" stopped without saying how far it got: it may
+ * have bought a number, so that's unknown, not failed. A failure is "before
+ * submission" only when nothing was bought and no provider call is in doubt.
+ */
+export async function provisioningStatus(email: string, now = new Date()): Promise<ProvisioningStatus | null> {
+  const row = await prisma.provisionAttempt.findUnique({ where: { key: onboardingAttemptKey(email) } });
+  if (!row) return null;
+  const doubt = await prisma.providerEffect.findFirst({
+    where: { correlationKey: `assistant:${row.tag}`, status: "uncertain" },
+    select: { id: true },
+  });
+  const kept = Boolean(row.phoneNumber || row.vapiAssistantId);
+  const lineInDoubt = row.status === "failed" && !row.phoneNumber && row.error === LINE_STEP_FAILED;
+  const state: ProvisioningState =
+    row.status === "succeeded"
+      ? "succeeded"
+      : row.status === "running" && row.leaseUntil > now
+        ? "running"
+        : row.status === "running" || doubt || lineInDoubt
+          ? "outcome_unknown"
+          : kept
+            ? "failed_kept"
+            : "failed_before_submission";
+  return {
+    state,
+    resume: state !== "running" && state !== "succeeded",
+    reusesNumber: Boolean(row.phoneNumber),
+    reusesReceptionist: Boolean(row.vapiAssistantId),
+    attempts: row.attempts,
+    error: state === "failed_before_submission" || state === "failed_kept" ? row.error : null,
+    updatedAt: row.updatedAt.toISOString(),
+  };
+}
+
 /** A line run can be repeated later (a shop may need a replacement number), so it resets after success. */
 export async function reopenProvisionAttempt(key: string) {
   await prisma.provisionAttempt.deleteMany({ where: { key, status: "succeeded" } });

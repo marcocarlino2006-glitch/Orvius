@@ -7,6 +7,7 @@ import { CheckoutNotPaidError, provisionFromCheckout, shopDraftSchema } from "@/
 import { logWarn } from "@/lib/logger";
 import { isStripeCheckoutConfigured } from "@/lib/stripe";
 import { isOnboardingComplete } from "@/lib/provision-business";
+import { provisioningStatus } from "@/lib/provision-attempt";
 import { getPublicLaunchReadiness } from "@/lib/public-launch-readiness";
 import { clientIp, sharedRateLimit } from "@/lib/rate-limit";
 import { prisma } from "@/lib/prisma";
@@ -52,9 +53,13 @@ export async function GET(request: NextRequest) {
     });
   }
 
+  /* Only a person without a live shop has a paid setup in flight. */
+  const provisioning = !business || sandbox || demoActive ? await provisioningStatus(email) : null;
+
   return NextResponse.json({
     provisioned: Boolean(business) && !sandbox,
     demoActive,
+    provisioning: provisioning && provisioning.state !== "succeeded" ? provisioning : null,
     complete: ready,
     ready,
     setup,
@@ -191,7 +196,7 @@ export async function POST(request: NextRequest) {
     }
     if (result.status === "busy") {
       return NextResponse.json(
-        { error: "Your line is being set up. This takes a few seconds.", code: "provision_in_progress" },
+        { error: "Your line is being set up. This takes a few seconds.", code: "provision_in_progress", provisioning: await provisioningStatus(email).catch(() => null) },
         { status: 409 },
       );
     }
@@ -230,6 +235,6 @@ export async function POST(request: NextRequest) {
         : error instanceof Error
           ? error.message
           : "Failed to create shop";
-    return NextResponse.json({ error: message }, { status: 400 });
+    return NextResponse.json({ error: message, provisioning: await provisioningStatus(email).catch(() => null) }, { status: 400 });
   }
 }

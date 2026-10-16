@@ -964,6 +964,20 @@
   color: var(--ash-soft);
 }
 
+.onboarding-save-note[data-save="local"] {
+  color: var(--ox-amber, var(--ash-soft));
+}
+
+.onboarding-link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 .onboarding-area-row {
   display: flex;
   gap: 0.5rem;

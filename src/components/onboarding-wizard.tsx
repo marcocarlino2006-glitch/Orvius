@@ -10,8 +10,17 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+type Provisioning = {
+  state: "running" | "failed_before_submission" | "failed_kept" | "outcome_unknown" | "succeeded";
+  resume: boolean;
+  reusesNumber: boolean;
+  reusesReceptionist: boolean;
+  error: string | null;
+};
+
 type ResumePayload = {
   provisioned?: boolean;
+  provisioning?: Provisioning | null;
   checkoutSessionId?: string | null;
   ready?: boolean;
   setup?: { line?: string | null; nextStep?: string };
@@ -40,33 +49,58 @@ type FoundShop = {
   source: "website" | "google";
 };
 
-function readSetupDraft(): SetupDraft | null {
+/** A form copy and its edit count; the higher count is the newer form wherever it was typed. */
+type RevDraft = SetupDraft & { rev: number };
+
+/** Where the typed form is kept right now. Payment never waits on it. */
+type SaveState =
+  | { kind: "idle" }
+  | { kind: "saving" }
+  | { kind: "saved" }
+  | { kind: "local"; reason: string }
+  | { kind: "replaced" };
+
+function toDraft(d: Partial<RevDraft> | null | undefined): RevDraft | null {
+  if (!d || typeof d.name !== "string") return null;
+  return {
+    name: d.name,
+    trade: isTrade(d.trade) ? d.trade : "HVAC",
+    ownerPhone: d.ownerPhone ?? "",
+    areaCode: d.areaCode ?? "",
+    found: d.found ?? null,
+    rev: typeof d.rev === "number" && d.rev >= 0 ? d.rev : 0,
+  };
+}
+
+function readSetupDraft(): RevDraft | null {
   try {
-    const parsed = JSON.parse(window.localStorage.getItem(SETUP_DRAFT_KEY) ?? "null") as SetupDraft | null;
-    return parsed && typeof parsed.name === "string" ? { ...parsed, trade: isTrade(parsed.trade) ? parsed.trade : "HVAC" } : null;
+    return toDraft(JSON.parse(window.localStorage.getItem(SETUP_DRAFT_KEY) ?? "null") as Partial<RevDraft> | null);
   } catch {
     return null;
   }
 }
 
-async function readServerDraft(): Promise<SetupDraft | null> {
+function writeSetupDraft(draft: RevDraft) {
+  try {
+    window.localStorage.setItem(SETUP_DRAFT_KEY, JSON.stringify(draft));
+  } catch {
+    /* Private mode keeps nothing on the device; the account copy still restores the form. */
+  }
+}
+
+async function readServerDraft(): Promise<RevDraft | null> {
   try {
     const res = await fetch("/api/setup/draft", { cache: "no-store" });
     if (!res.ok) return null;
-    const json = (await res.json()) as { draft?: Partial<SetupDraft> | null };
-    const d = json.draft;
-    if (!d || typeof d.name !== "string") return null;
-    return {
-      name: d.name,
-      trade: isTrade(d.trade) ? d.trade : "HVAC",
-      ownerPhone: d.ownerPhone ?? "",
-      areaCode: d.areaCode ?? "",
-      found: d.found ?? null,
-    };
+    const json = (await res.json()) as { draft?: Partial<RevDraft> | null; rev?: number };
+    const d = toDraft(json.draft);
+    return d ? { ...d, rev: typeof json.rev === "number" ? json.rev : d.rev } : null;
   } catch {
     return null;
   }
 }
+
+const draftKey = (d: SetupDraft) => JSON.stringify({ name: d.name, trade: d.trade, ownerPhone: d.ownerPhone, areaCode: d.areaCode, found: d.found ?? null });
 
 function clearDrafts() {
   try {
@@ -123,6 +157,88 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
   const [numbersSearchable, setNumbersSearchable] = useState(true);
   const [searching, setSearching] = useState(false);
   const [pickedNumber, setPickedNumber] = useState<string | null>(null);
+  const [saveState, setSaveState] = useState<SaveState>({ kind: "idle" });
+  const [provisioning, setProvisioning] = useState<Provisioning | null>(null);
+  const revRef = useRef(0);
+  const savedKeyRef = useRef<string | null>(null);
+  const restoredRef = useRef(false);
+
+  const applyDraft = useCallback((d: SetupDraft) => {
+    setName(d.name);
+    setTrade(d.trade);
+    setOwnerPhone(d.ownerPhone);
+    if (d.areaCode) {
+      setAreaCode(d.areaCode);
+      setAreaCodeTouched(true);
+    }
+    setFound(d.found ?? null);
+  }, []);
+
+  const pushDraft = useCallback(
+    async (draft: RevDraft) => {
+      setSaveState({ kind: "saving" });
+      try {
+        const res = await fetch("/api/setup/draft", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(draft),
+        });
+        const json = (await res.json().catch(() => ({}))) as { code?: string; draft?: Partial<RevDraft>; rev?: number };
+        /* A later edit has its own save on the way; this answer is about an older form. */
+        if (draft.rev !== revRef.current) return;
+        if (res.ok) {
+          savedKeyRef.current = draftKey(draft);
+          setSaveState({ kind: "saved" });
+          return;
+        }
+        const newer = res.status === 409 && json.code === "stale_draft" ? toDraft(json.draft) : null;
+        if (newer) {
+          revRef.current = Math.max(newer.rev, json.rev ?? 0);
+          savedKeyRef.current = draftKey(newer);
+          writeSetupDraft({ ...newer, rev: revRef.current });
+          applyDraft(newer);
+          setSaveState({ kind: "replaced" });
+          return;
+        }
+        setSaveState({
+          kind: "local",
+          reason:
+            res.status === 401
+              ? "sign in again to save it to your account"
+              : res.status === 429
+                ? "saving paused for a minute"
+                : "your account didn't take the save",
+        });
+      } catch {
+        if (draft.rev === revRef.current) setSaveState({ kind: "local", reason: "no connection" });
+      }
+    },
+    [applyDraft],
+  );
+
+  const currentDraft = useCallback(
+    (): RevDraft => ({ name, trade, ownerPhone, areaCode, found: found ?? null, rev: revRef.current }),
+    [name, trade, ownerPhone, areaCode, found],
+  );
+
+  /* Every edit counts once, lands on the device at once and on the account shortly after. */
+  useEffect(() => {
+    if (!restoredRef.current || provisionedLine) return;
+    const draft = { name, trade, ownerPhone, areaCode, found: found ?? null };
+    if (draftKey(draft) === savedKeyRef.current) return;
+    revRef.current += 1;
+    const next: RevDraft = { ...draft, rev: revRef.current };
+    writeSetupDraft(next);
+    const timer = window.setTimeout(() => void pushDraft(next), 700);
+    return () => window.clearTimeout(timer);
+  }, [name, trade, ownerPhone, areaCode, found, provisionedLine, pushDraft]);
+
+  useEffect(() => {
+    if (saveState.kind !== "local") return;
+    const retry = () => void pushDraft(currentDraft());
+    window.addEventListener("online", retry);
+    return () => window.removeEventListener("online", retry);
+  }, [saveState, pushDraft, currentDraft]);
 
   useEffect(() => {
     if (areaCodeTouched) return;
@@ -246,6 +362,7 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
     }
     if (!res.ok) throw new Error(`resume check ${res.status}`);
     const json = (await res.json()) as ResumePayload;
+    setProvisioning(json.provisioning ?? null);
     if (!json.provisioned || !json.business) {
       if (json.checkoutSessionId) {
         recoveredRef.current = json.checkoutSessionId;
@@ -292,7 +409,9 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
             code?: string;
             line?: string | null;
             activation?: { notice: string; noticeVersion: string; setupVersion: string };
+            provisioning?: Provisioning | null;
           };
+          setProvisioning(res.ok ? null : (json.provisioning ?? null));
           if (json.code === "activation_needed" && json.activation) {
             setNotice(json.activation);
             setApprovedNotice(false);
@@ -333,7 +452,12 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
     void resumeExisting()
       .then(async (resumed) => {
         if (resumed) return;
-        const saved = readSetupDraft() ?? (await readServerDraft());
+        /* The account copy wins unless this device holds later typing it never got to save. */
+        const local = readSetupDraft();
+        const server = await readServerDraft();
+        const saved = server && (!local || server.rev >= local.rev) ? server : local;
+        revRef.current = Math.max(local?.rev ?? 0, server?.rev ?? 0);
+        if (server && saved === server) savedKeyRef.current = draftKey(server);
         const draft = readPreviewDraft();
         const shopName = saved?.name || draft?.shopName;
         const phone = saved?.ownerPhone || draft?.ownerPhone;
@@ -346,6 +470,8 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
           setAreaCode(saved.areaCode);
           setAreaCodeTouched(true);
         }
+        if (server && saved === server) setSaveState({ kind: "saved" });
+        restoredRef.current = true;
         const paidSession = urlSessionId || recoveredRef.current;
         if (paidSession) void buildFromCheckout(paidSession);
       })
@@ -370,17 +496,10 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
       acceptedTerms,
       acceptedSms,
     };
-    const draftBody = JSON.stringify({ name: shop.name, trade, ownerPhone: shop.ownerPhone, areaCode, found });
-    try {
-      window.localStorage.setItem(SETUP_DRAFT_KEY, draftBody);
-    } catch {
-      /* Private mode: the server copy below still restores the form. */
-    }
-    await fetch("/api/setup/draft", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: draftBody,
-    }).catch(() => undefined);
+    /* Kept for coming back from checkout; the card step never waits on the account copy. */
+    const latest = currentDraft();
+    writeSetupDraft(latest);
+    if (draftKey(latest) !== savedKeyRef.current) void pushDraft(latest);
     try {
       const res = await fetch("/api/billing/checkout", {
         method: "POST",
@@ -433,7 +552,9 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
         code?: string;
         line?: string | null;
         activation?: { notice: string; noticeVersion: string; setupVersion: string };
+        provisioning?: Provisioning | null;
       };
+      setProvisioning(res.ok ? null : (json.provisioning ?? null));
       if (json.code === "activation_needed" && json.activation) {
         setNotice(json.activation);
         setApprovedNotice(false);
@@ -575,6 +696,14 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
                   ? "Your shop name and mobile, then your card. Your number and receptionist are ready when you're back."
                   : "Payment received. Enter your shop name and mobile to get your number."}
               </p>
+              {provisioning?.resume ? (
+                <ProvisioningNote
+                  status={provisioning}
+                  canResume={Boolean(checkoutSessionId)}
+                  busy={building}
+                  onResume={() => void buildFromCheckout(checkoutSessionId)}
+                />
+              ) : null}
               {canceled && paying ? (
                 <p className="onboarding-hint font-sans" role="status">
                   Checkout closed before payment. Nothing was charged; your details are still here.
@@ -639,6 +768,7 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
                     placeholder="Your business name"
                     className="onboarding-input"
                     autoComplete="organization"
+                    maxLength={80}
                   />
                 </label>
 
@@ -732,6 +862,8 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
                 </div>
               </div>
 
+              <DraftSaveNote state={saveState} onRetry={() => void pushDraft(currentDraft())} />
+
               <p className="onboarding-footnote font-sans">
                 {paying ? (
                   <>
@@ -816,6 +948,53 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
         </div>
       </div>
     </main>
+  );
+}
+
+function ProvisioningNote({ status, canResume, busy, onResume }: { status: Provisioning; canResume: boolean; busy: boolean; onResume: () => void }) {
+  const kept = [status.reusesNumber ? "your number" : null, status.reusesReceptionist ? "your receptionist" : null].filter(Boolean).join(" and ");
+  const it = kept.includes(" and ") ? "them" : "it";
+  const what =
+    status.state === "outcome_unknown"
+      ? `Setup stopped before it could say how far it got. ${kept ? `It already has ${kept}; resuming reuses ${it}.` : "If a number was bought, resuming finds that one first instead of buying another."}`
+      : status.state === "failed_kept"
+        ? `Setup didn't finish${status.error ? ` (${status.error})` : ""}. It kept ${kept}, and resuming reuses ${it}.`
+        : `Setup didn't finish, and nothing was bought${status.error ? ` (${status.error})` : ""}. Resuming starts it again.`;
+  return (
+    <div className="onboarding-hint onboarding-provisioning font-sans" role="status" data-state={status.state}>
+      <p>{what}</p>
+      {canResume ? (
+        <button type="button" className="btn btn-void font-sans" disabled={busy} onClick={onResume}>
+          {busy ? "Resuming…" : "Resume setup"}
+        </button>
+      ) : (
+        <p>
+          We couldn&apos;t find your paid checkout from here. Email <a href={`mailto:${company.supportEmail}`}>{company.supportEmail}</a> and we&apos;ll finish it with you.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function DraftSaveNote({ state, onRetry }: { state: SaveState; onRetry: () => void }) {
+  if (state.kind === "idle") return null;
+  return (
+    <p className="onboarding-hint onboarding-save-note font-sans" role="status" aria-live="polite" data-save={state.kind}>
+      {state.kind === "saving"
+        ? "Saving…"
+        : state.kind === "saved"
+          ? "Saved to your account. You can finish on another device."
+          : state.kind === "replaced"
+            ? "Showing the newer version you saved on another device."
+            : (
+                <>
+                  Kept on this device only — {state.reason}. Payment doesn&apos;t wait on this.{" "}
+                  <button type="button" className="onboarding-link-button" onClick={onRetry}>
+                    Save again
+                  </button>
+                </>
+              )}
+    </p>
   );
 }
 
