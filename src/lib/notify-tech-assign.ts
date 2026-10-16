@@ -73,7 +73,7 @@ async function deliverAssignSms(jobId: string): Promise<{ sent: boolean; reason?
       jobId: job.id,
       intent: {
         eventType: "job.tech_assigned",
-        eventId: `${job.id}:${nextTechnicianId}@${job.scheduledAt?.toISOString() ?? "unscheduled"}`,
+        eventId: `${job.id}:${job.technicianId}@${job.scheduledAt?.toISOString() ?? "unscheduled"}`,
         severity: "severe",
       },
     });
