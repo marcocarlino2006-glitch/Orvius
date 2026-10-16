@@ -47,7 +47,7 @@ const FILLER = /\b(for|at|on|to|the|job|appointment|visit|please|in|around|them|
 const NEXT_OPENING = /^(?:(?:the\s+)?(?:next|soonest|earliest|first)(?:\s+(?:suitable|available|open|free|good))?(?:\s+(?:window|slot|time|opening|appointment))?|asap|as soon as possible)$/i;
 /** "and assign an available qualified technician": what booking already does. Anything more specific is a second instruction. */
 const ASSIGN_CLAUSE = /\s*,?\s+and\s+(?:assign|send|give it to|dispatch)\b(.*)$/i;
-const GENERIC_ASSIGNEE = /^(?:\s|an?|any|the|available|qualified|free|technician|tech|someone|somebody|who(?:ever)?|is|it|them|to|one|right|best)*$/i;
+const GENERIC_ASSIGNEE = /^(?:\s+|\b(?:an?|any|the|available|qualified|free|technician|tech|someone|somebody|who(?:ever)?|is|it|them|to|one|right|best)\b)*$/i;
 
 export type AskActResult =
   | { kind: "proposal"; proposal: Extract<ProposeOutcome, { ok: true }>; message: string }
