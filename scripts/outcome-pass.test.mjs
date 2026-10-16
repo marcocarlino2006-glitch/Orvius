@@ -33,9 +33,12 @@ const { buildOutcome, outcomeHeadline } = await import("../src/lib/outcome.ts");
 const { recordWorkflowProgress, workflowReport } = await import("../src/lib/workflow-events.ts");
 const { raiseIntentException } = await import("../src/lib/sms-intent.ts");
 const { issueTechAppLink } = await import("../src/lib/tech-app.ts");
+const { buildCommandBoard } = await import("../src/lib/command-board.ts");
+const { workHistory } = await import("../src/lib/work-history.ts");
 const askRoute = await import("../src/app/api/command/ask/route.ts");
 const copilotRoute = await import("../src/app/api/copilot/route.ts");
 const jobRoute = await import("../src/app/api/jobs/[id]/route.ts");
+const invoiceRoute = await import("../src/app/api/jobs/[id]/invoice/route.ts");
 const workRoute = await import("../src/app/api/work/route.ts");
 const outcomeRoute = await import("../src/app/api/work/outcome/route.ts");
 const draftRoute = await import("../src/app/api/setup/draft/route.ts");
@@ -168,6 +171,65 @@ test("a bill the carrier refused reads as failed, not as waiting on the customer
   const item = work.items.find((i) => i.id === job.id);
   assert.ok(item?.problems?.some((p) => p.kind === "invoice_undelivered" || /Bill delivery/.test(p.label)), "Work keeps it visible");
   assert.doesNotMatch(item.nextAction ?? "", /waiting on .* to pay/i);
+});
+
+test("workflow measurement rows stay out of the job's history", async () => {
+  const shop = await demoShop();
+  const request = await lead(shop);
+  await book();
+  const job = await prisma.job.findFirstOrThrow({ where: { leadId: request.id } });
+  await fieldDone(shop, job.id);
+  const rows = await prisma.auditEvent.findMany({ where: { businessId: shop.id, action: { startsWith: "workflow." } }, select: { id: true } });
+  assert.ok(rows.length > 0, "the report has its rows");
+  const history = await workHistory(shop.id, { kind: "job", id: job.id });
+  const shown = JSON.stringify(history);
+  for (const r of rows) assert.ok(!shown.includes(r.id), "no workflow row in the history");
+});
+
+test("a bill that was sent and later reported undelivered stays on the board", async () => {
+  const shop = await demoShop();
+  const request = await lead(shop);
+  await book();
+  const job = await prisma.job.findFirstOrThrow({ where: { leadId: request.id } });
+  await fieldDone(shop, job.id);
+  const bill = await prisma.invoice.findFirstOrThrow({ where: { jobId: job.id } });
+  await prisma.invoice.update({ where: { id: bill.id }, data: { sentAt: new Date() } });
+  await prisma.smsIntent.updateMany({ where: { businessId: shop.id, eventType: "invoice.pay_link", eventId: bill.id }, data: { status: "undelivered" } });
+  assert.ok(await prisma.smsIntent.count({ where: { businessId: shop.id, eventType: "invoice.pay_link", eventId: bill.id } }), "the bill text has an intent");
+  const board = await buildCommandBoard(shop.id);
+  assert.ok(board.lanes.exceptions.some((i) => i.id === `invoice-undelivered:${bill.id}`), "an undelivered receipt after the send is still a bill delivery problem");
+});
+
+test("a job text that never went out to the assigned technician is the owner's next step, not the technician's", async () => {
+  const shop = await demoShop();
+  const request = await lead(shop);
+  await book();
+  const job = await prisma.job.findFirstOrThrow({ where: { leadId: request.id }, include: { technician: true } });
+  await prisma.job.update({ where: { id: job.id }, data: { techNotifiedAt: null, techAcceptedAt: null, techAssignedAt: new Date(Date.now() - 10 * 60_000) } });
+  const assignment = stageOf(await buildOutcome(shop.id, { jobId: job.id }), "assignment");
+  assert.equal(assignment.nextActor, "you");
+  assert.match(assignment.evidence, /didn't go out/);
+  assert.match(assignment.nextAction, new RegExp(job.technician.name));
+});
+
+test("resending a refused bill from the outcome keeps its price: tax is not added twice", async () => {
+  const shop = await demoShop();
+  await prisma.business.update({ where: { id: shop.id }, data: { salesTaxBps: 1000 } });
+  const request = await lead(shop, SIMULATED_UNDELIVERABLE_PHONE);
+  await book();
+  const job = await prisma.job.findFirstOrThrow({ where: { leadId: request.id } });
+  await fieldDone(shop, job.id);
+  const before = await prisma.invoice.findFirstOrThrow({ where: { jobId: job.id } });
+  assert.equal(before.amountCents, 46_200);
+  const view = (await call(() => outcomeRoute.GET(req("GET", `/api/work/outcome?kind=job&id=${job.id}`)))).body.outcome;
+  assert.equal(view.money.totalCents, 42_000, "the card bills from the work total, not the taxed balance");
+  await prisma.lead.update({ where: { id: request.id }, data: { phone: "+13125550147" } });
+  if (job.customerId) await prisma.customer.update({ where: { id: job.customerId }, data: { phone: "+13125550147" } });
+  const resent = await call(() => invoiceRoute.POST(req("POST", `/api/jobs/${job.id}/invoice`, { totalCents: view.money.totalCents, send: true }), { params: Promise.resolve({ id: job.id }) }));
+  assert.equal(resent.status, 200, JSON.stringify(resent.body));
+  assert.equal((await prisma.invoice.findUniqueOrThrow({ where: { id: before.id } })).amountCents, 46_200);
+  assert.equal((await prisma.job.findUniqueOrThrow({ where: { id: job.id } })).finalAmountCents, 42_000);
+  assert.equal(resent.body.sms?.sent, true, "the corrected number gets the bill");
 });
 
 test("done with a total but no bill stays a visible item until a bill exists", async () => {
