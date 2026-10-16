@@ -379,6 +379,7 @@ export async function buildOutcome(businessId: string, target: { jobId?: string 
   /* Invoice: created, sent and delivered are three different facts. */
   const completed = job?.status === "completed";
   const connect = getConnectStatus(shop);
+  const nothingOwed = invoice != null && invoice.amountCents <= 0;
   if (!job || !completed) {
     stages.push(stage("invoice", { state: cancelled ? "not_needed" : "not_yet", evidence: "", nextActor: null, nextAction: null, at: null, source: "Invoice" }));
   } else if (!invoice) {
@@ -398,6 +399,8 @@ export async function buildOutcome(businessId: string, target: { jobId?: string 
     stages.push(
       stage("invoice", paid
         ? { state: "done", evidence: `${created}; paid`, nextActor: null, nextAction: null, at: (invoice.paidAt ?? invoice.updatedAt).toISOString(), source: "Invoice", execution: "confirmed" }
+        : nothingOwed
+          ? { state: "not_needed", evidence: "The deposit covered the bill; nothing is owed", nextActor: null, nextAction: null, at: invoice.updatedAt.toISOString(), source: "Invoice.amountCents" }
         : text.execution === "failed"
           ? { state: "failed", evidence: `${created}; the pay-link text ${text.words}`, nextActor: "you", nextAction: `Call ${who}, or fix the number and resend the bill`, at: (invoiceIntent?.updatedAt ?? invoice.updatedAt).toISOString(), source: "SmsIntent invoice.pay_link", execution: "failed" }
           : invoice.sentAt
@@ -425,6 +428,8 @@ export async function buildOutcome(businessId: string, target: { jobId?: string 
     stages.push(
       stage("payment", paid
         ? { state: "done", evidence: `${formatCentsExact(collected || invoice.amountCents)} collected`, nextActor: null, nextAction: null, at: (invoice.paidAt ?? invoice.updatedAt).toISOString(), source: "Payment", execution: "confirmed" }
+        : nothingOwed && !refunded
+          ? { state: "not_needed", evidence: "Nothing owed after the deposit", nextActor: null, nextAction: null, at: invoice.updatedAt.toISOString(), source: "Invoice.amountCents" }
         : refunded
           ? { state: "not_needed", evidence: "Refunded", nextActor: null, nextAction: null, at: invoice.updatedAt.toISOString(), source: "Invoice.status", execution: "confirmed" }
           : claimed
