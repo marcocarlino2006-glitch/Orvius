@@ -702,6 +702,10 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
                   canResume={Boolean(checkoutSessionId)}
                   busy={building}
                   onResume={() => void buildFromCheckout(checkoutSessionId)}
+                  onRecheck={() => {
+                    setResuming(true);
+                    setCheckAttempt((n) => n + 1);
+                  }}
                 />
               ) : null}
               {canceled && paying ? (
@@ -951,7 +955,19 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
   );
 }
 
-function ProvisioningNote({ status, canResume, busy, onResume }: { status: Provisioning; canResume: boolean; busy: boolean; onResume: () => void }) {
+function ProvisioningNote({
+  status,
+  canResume,
+  busy,
+  onResume,
+  onRecheck,
+}: {
+  status: Provisioning;
+  canResume: boolean;
+  busy: boolean;
+  onResume: () => void;
+  onRecheck: () => void;
+}) {
   const kept = [status.reusesNumber ? "your number" : null, status.reusesReceptionist ? "your receptionist" : null].filter(Boolean).join(" and ");
   const it = kept.includes(" and ") ? "them" : "it";
   const what =
@@ -968,9 +984,15 @@ function ProvisioningNote({ status, canResume, busy, onResume }: { status: Provi
           {busy ? "Resuming…" : "Resume setup"}
         </button>
       ) : (
-        <p>
-          We couldn&apos;t find your paid checkout from here. Email <a href={`mailto:${company.supportEmail}`}>{company.supportEmail}</a> and we&apos;ll finish it with you.
-        </p>
+        <>
+          <p>
+            We couldn&apos;t find your paid checkout yet. Payments can take a minute to show up. If checking again doesn&apos;t find it, email{" "}
+            <a href={`mailto:${company.supportEmail}`}>{company.supportEmail}</a> and we&apos;ll finish it with you.
+          </p>
+          <button type="button" className="btn btn-ghost font-sans" onClick={onRecheck}>
+            Check again
+          </button>
+        </>
       )}
     </div>
   );
