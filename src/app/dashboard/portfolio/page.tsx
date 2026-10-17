@@ -1,7 +1,7 @@
 "use client";
 
 import { OsShell } from "@/components/os-shell";
-import { ProFilterBar } from "@/components/pro-page-chrome";
+import { ProEmptyState, ProFilterBar } from "@/components/pro-page-chrome";
 import { ProLead } from "@/components/pro-lead";
 import { ShellAlert } from "@/components/shell-primitives";
 import { DashboardSkeleton } from "@/components/shell-skeleton";
@@ -38,17 +38,22 @@ export default function PortfolioPage() {
   const [sort, setSort] = useState<SortKey>("waiting");
   const [query, setQuery] = useState("");
 
+  const [attempt, setAttempt] = useState(0);
+
   useEffect(() => {
     let live = true;
     setError(null);
     fetch(`/api/portfolio?days=${days}`, { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : Promise.reject(new Error("Could not load locations."))))
-      .then((next: Portfolio) => live && setData(next))
+      .then((next: Portfolio) => {
+        if (!next || !Array.isArray(next.shops)) throw new Error("Could not load locations.");
+        if (live) setData(next);
+      })
       .catch((err: Error) => live && setError(err.message));
     return () => {
       live = false;
     };
-  }, [days]);
+  }, [days, attempt]);
 
   async function open(id: string) {
     setOpening(id);
@@ -82,7 +87,7 @@ export default function PortfolioPage() {
   return (
     <OsShell title="Locations">
       <ProLead
-        loading={!data}
+        loading={!data && !error}
         figure={t ? String(t.locations) : "—"}
         caption={t?.locations === 1 ? "Location" : "Locations"}
         detail={
@@ -110,7 +115,17 @@ export default function PortfolioPage() {
         </div>
       ) : null}
 
-      {!data ? (
+      {!data && error ? (
+        <ProEmptyState
+          title="Locations didn't load"
+          body="Each location keeps running; only this overview is missing."
+          action={
+            <button type="button" className="btn btn-secondary text-sm" onClick={() => setAttempt((n) => n + 1)}>
+              Try again
+            </button>
+          }
+        />
+      ) : !data ? (
         <DashboardSkeleton />
       ) : (
         <>
