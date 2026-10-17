@@ -81,6 +81,8 @@ export type CompanyScoreboard = {
   /** Paying shops getting less than they pay for, or no calls at all, last 30 days. */
   valueAtRisk: ValueVerdict[];
   reliance?: RelianceVerdict[];
+  /** Replies to the shared sender that two shops could own and the customer never pointed at one. */
+  heldTexts?: { count: number; oldestAt: string | null };
 };
 
 
@@ -223,7 +225,8 @@ export async function getCompanyScoreboard(now = new Date()): Promise<CompanySco
   ]);
   const signedUp30d = { ...realShop, createdAt: { gte: new Date(now.getTime() - 30 * DAY_MS) } };
   const orvJob = { lead: { is: ORVIUS_CAPTURED_LEAD } };
-  const [plans, calls30d, value, reliance, leaving, payers, signedUp, lineAnswered, numberProven, withFirstJob, firstJobs] = await Promise.all([
+  const heldWhere = { source: "twilio-sms", eventType: "inbound-held", status: "held" };
+  const [plans, calls30d, value, reliance, leaving, payers, signedUp, lineAnswered, numberProven, withFirstJob, firstJobs, heldCount, oldestHeld] = await Promise.all([
     prisma.business.groupBy({
       by: ["billingPlan", "billingInterval"],
       where: { ...realShop, isActive: true, billingStatus: { in: ["active", "past_due"] } },
@@ -252,6 +255,8 @@ export async function getCompanyScoreboard(now = new Date()): Promise<CompanySco
       orderBy: { createdAt: "desc" },
       take: 1000,
     }),
+    prisma.webhookEvent.count({ where: heldWhere }),
+    prisma.webhookEvent.findFirst({ where: heldWhere, orderBy: { createdAt: "asc" }, select: { createdAt: true } }),
   ]);
   const revenue = revenueFrom({
     byPlan: plans.map((p) => ({ planId: p.billingPlan, interval: p.billingInterval, shops: p._count._all })),
@@ -289,6 +294,7 @@ export async function getCompanyScoreboard(now = new Date()): Promise<CompanySco
     cancelReasons30d: cancelReasonCounts(leaving.map((shop) => ({ reason: shop.cancelReason }))),
     valueAtRisk: value.filter((v) => v.verdict === "short" || v.verdict === "idle"),
     reliance,
+    heldTexts: { count: heldCount, oldestAt: oldestHeld?.createdAt.toISOString() ?? null },
   };
 }
 
@@ -325,7 +331,13 @@ export function scoreboardLines(board: CompanyScoreboard): string[] {
     ...revenueLines(board.revenue),
     ...valueLines(board.valueAtRisk ?? []),
     ...relianceLines(board.reliance ?? []),
+    heldTextsText(board.heldTexts),
   ];
+}
+
+export function heldTextsText(held: CompanyScoreboard["heldTexts"]) {
+  if (!held?.count) return "Texts held because two shops could own them: none";
+  return `Texts held because two shops could own them: ${held.count}, oldest ${held.oldestAt?.slice(0, 10) ?? "unknown"}. Route them by hand (WebhookEvent inbound-held)`;
 }
 
 

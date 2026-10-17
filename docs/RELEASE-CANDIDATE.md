@@ -231,7 +231,7 @@ This needs one additive field for a written-off amount and reason, its migration
 
 ### Recovery and routing guards (same branch, no schema change)
 
-- Routing: when two active shops claim the same line or voice assistant, one live customer shop wins over demo and test shops, and the demo line stays with the demo shop. If two live customer shops collide, nobody gets the call: the voice webhook records it as failed so it can be reclaimed, line watch counts it as unmatched, and `tenant.ambiguous_owner` is logged for the founder to fix. Before, the oldest shop got it silently. A text reply that two shops could own still goes to the shop that texted most recently, and that case is now logged.
+- Routing: when two active shops claim the same line or voice assistant, one live customer shop wins over demo and test shops, and the demo line stays with the demo shop. If two live customer shops collide, nobody gets the call: the voice webhook records it as failed so it can be reclaimed, line watch counts it as unmatched, and `tenant.ambiguous_owner` is logged for the founder to fix. Before, the oldest shop got it silently. A text reply that two shops could own is covered under "Shared-sender replies" below.
 - Technician job texts: a sweep (per-request drain and daily cron) picks up assignments from the last 24 hours with no recorded text. If the carrier took the text and only the reply was lost, the job is stamped and nothing is sent. A send that died mid-lease is closed as unknown, with one owner exception, and is never resent. A text the carrier refused is left to the owner. Each text is keyed to its assignment time, so a technician put back on a job gets a new text and link instead of a stamp from the old one.
 - Command: asking for the same plan again hands back the waiting plan instead of creating a second one. A copy that is running or flagged for a check blocks new copies and blocks approval of older ones. Once one copy runs, the other waiting copies become `superseded` and read back as done from another card.
 - Setup: every progress write is a compare-and-swap on the saved setup state that retries against the latest version. Two devices saving at once, or a test call finishing while the owner types, no longer overwrite each other.
@@ -239,3 +239,22 @@ This needs one additive field for a written-off amount and reason, its migration
 Compatibility: no columns or tables are added. `superseded` is a new `CopilotAction.status` value. Code from `a6ab9de1` lists only `proposed`, `executing`, `reconcile`, `executed` and `cancelled`, so it ignores superseded rows, and they stay unapprovable. Job-text keys gain a `#<assigned-at ms>` suffix. Rows written under the old key are still found by the sweep, which looks up by job, technician and assignment time rather than by the exact key, so a pre-release text is never sent again.
 
 Recovery: rolling back to `a6ab9de1` needs no data change. Superseded plans stay retired, and the old code does not read the new key suffix. A shop whose calls stop because of a live collision shows in the logs as `tenant.ambiguous_owner`. The fix is to correct the duplicate line or assistant on the wrong shop. Failed webhook events from that window are reclaimed by the existing sweep once routing resolves.
+
+### Shared-sender replies, Command card and public craft (same branch, no schema change)
+
+- Shared-sender replies: a text to the shared sender from a phone that two or more shops texted in the last 30 days is no longer handed to the most recent sender. It belongs to one shop only if it comes from that shop's owner or names that shop ("Cool Air", with or without "LLC"; the longer name wins when one contains the other). Otherwise the webhook stores it as a `twilio-sms` / `inbound-held` row with status `held` and the candidate shop ids. Each candidate owner gets one alert with the phone number but not the words, since the text may be for another business. The customer is asked which business they meant. When their reply names one, the held words are released to that shop as an ordinary inbound text (lead, inbox and alert), exactly once, even if the reply is redelivered. STOP and START apply to every candidate shop. HELP gets the program help text. A held row nobody claims within 7 days stays `held`; that row is the founder's repair signal.
+- Command: a request flagged "not a job" clears with one tap on its card (marked spam, kept in history).
+- CSS audit: classes named in the literal head of a template string count as rendered. The one truly dead selector (`.wq`) is gone.
+- Public pages:
+  - The translation runtime used to swap each label's whole content, which deleted the caret on the Product and Resources menus for every visitor, English included. It now changes only the text node.
+  - The browser-call button is 44px, like the fields beside it (it was 40.59px).
+  - The closing CTA pairs on pricing and product use the same 44px pill pair as the page intro (they were 40.59px, 4px corners, weight 500).
+  - Pricing option and result cards use the 4px item radius shared with plan cards and Watch scenarios (they were 8px).
+  - The home proof stage starts 36px higher at 1440px wide (20px on phones). The two closing bridges drop from 96px to 48–64px of padding.
+  - Watch's empty state no longer says "on the left", which is wrong on a phone, and still starts nothing until a call is picked.
+  - Sign-in secondary actions get a 24px target on desktop and 44px on phones (they were 19.5px). Help cards get a quiet arrow cue.
+  - Rendered before/after shots and computed metrics at 1440, 768, 390 and 320 are in the pass's artifacts. `scripts/public-craft.test.mjs` holds the rules.
+
+Compatibility: no columns or tables are added. `inbound-held` and `released` are new `WebhookEvent.eventType` and `status` values. Code from `a6ab9de1` never reads them; it only reads `twilio-sms` rows by exact key.
+
+Recovery: rolling back to `a6ab9de1` routes ambiguous replies to the most recent sender again. Any rows still `held` at rollback are not replayed by the old code, so before rolling back, export `WebhookEvent` rows where `eventType = 'inbound-held' AND status = 'held'` and route them by hand. After the release, list the same rows weekly. A non-empty list means customers who never answered the "which business?" question.

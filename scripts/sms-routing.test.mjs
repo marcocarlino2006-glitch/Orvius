@@ -181,6 +181,12 @@ test("the webhook holds an ambiguous reply, warns both owners without the text, 
     assert.deepEqual([...new Set(alerts.map((n) => n.businessId))].sort(), [a.id, b.id].sort(), "each candidate owner hears once per channel");
     assert.ok(alerts.every((n) => n.message.includes(phone) && !/basement/i.test(n.message)), "neither owner sees a text that may be for the other");
 
+    const { heldTextsText } = await import("../src/lib/company-scoreboard.ts");
+    const heldNow = await prisma.webhookEvent.count({ where: { source: "twilio-sms", eventType: "inbound-held", status: "held" } });
+    assert.ok(heldNow >= 1);
+    assert.match(heldTextsText({ count: heldNow, oldestAt: heldRows[0].createdAt.toISOString() }), /Texts held because two shops could own them: \d+, oldest \d{4}-\d{2}-\d{2}/, "the founder's weekly board names the backlog");
+    assert.equal(heldTextsText({ count: 0, oldestAt: null }), "Texts held because two shops could own them: none");
+
     const pick = sid(2);
     await text("Release Proof Heating", pick);
     await text("Release Proof Heating", pick);
