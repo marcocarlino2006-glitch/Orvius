@@ -15,6 +15,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { CompanyScoreboard, ScoreboardWeek } from "@/lib/company-scoreboard";
 import type { LaunchFunnel } from "@/lib/launch-funnel";
+import type { ProofKit } from "@/lib/proof-kit";
+import type { Density } from "@/lib/density";
 import { activationText, retentionText } from "@/lib/scoreboard-text";
 import { revenueLines, valueLines } from "@/lib/revenue-lines";
 import { signupChannelText } from "@/lib/acquisition";
@@ -111,6 +113,9 @@ export default function AdminPage() {
   const [gate, setGate] = useState<LaunchGate | null>(null);
   const [board, setBoard] = useState<CompanyScoreboard | null>(null);
   const [funnel, setFunnel] = useState<LaunchFunnel | null>(null);
+  const [density, setDensity] = useState<Density | null>(null);
+  const [kit, setKit] = useState<ProofKit | null>(null);
+  const [kitShopId, setKitShopId] = useState("");
   const [ownerEdits, setOwnerEdits] = useState<Record<string, string>>({});
   const [prospects, setProspects] = useState<Prospect[]>([]);
   const [prospectCounts, setProspectCounts] = useState<Record<string, number>>({});
@@ -185,7 +190,21 @@ export default function AdminPage() {
       .then((res) => (res.ok ? res.json() : null))
       .then(setFunnel)
       .catch(() => null);
+    fetch("/api/admin/density")
+      .then((res) => (res.ok ? res.json() : null))
+      .then(setDensity)
+      .catch(() => null);
   }, []);
+
+  async function loadProofKit(businessId: string) {
+    setKitShopId(businessId);
+    if (!businessId) {
+      setKit(null);
+      return;
+    }
+    const res = await fetch(`/api/admin/proof-kit?businessId=${encodeURIComponent(businessId)}`).catch(() => null);
+    setKit(res && res.ok ? await res.json() : null);
+  }
 
   async function updateProspect(
     id: string,
@@ -365,6 +384,13 @@ export default function AdminPage() {
 
       {board ? <ScoreboardCard board={board} /> : null}
       {funnel ? <LaunchFunnelCard funnel={funnel} /> : null}
+      {density ? <DensityCard density={density} /> : null}
+      <ProofKitCard
+        businesses={businesses}
+        kit={kit}
+        shopId={kitShopId}
+        onPick={(id) => void loadProofKit(id)}
+      />
       {gate ? <LaunchGateCard gate={gate} /> : null}
 
       <section className="card mb-8 p-6">
@@ -873,6 +899,115 @@ function LaunchFunnelCard({ funnel }: { funnel: LaunchFunnel }) {
           No monthly shop capacity set (ORVIUS_MONTHLY_SHOP_CAPACITY), so no cohort count is shown.
         </p>
       )}
+    </section>
+  );
+}
+
+function DensityCard({ density }: { density: Density }) {
+  return (
+    <section className="card mb-8 p-6" aria-label="Shop density">
+      <p className="home-os-kicker">Density</p>
+      <h2 className="mt-2 font-serif text-xl tracking-[-0.03em] text-void">
+        Production shops by trade and metro
+      </h2>
+      <p className="mt-2 font-sans text-sm text-void">
+        {density.total} production shops across {density.metros} readable metros
+        {density.densest
+          ? ` · densest cell: ${density.densest.trade} in ${density.densest.metro} (${density.densest.shops})`
+          : ""}
+        .
+      </p>
+      <table className="mt-4 w-full font-sans text-sm">
+        <tbody>
+          {density.rows.map((row) => (
+            <tr key={`${row.trade}-${row.metro}`} className="border-t border-black/5">
+              <td className="py-1.5 text-void">{row.trade}</td>
+              <td className="py-1.5 text-void">{row.metro}</td>
+              <td className="py-1.5 text-right tabular-nums text-void">{row.shops}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="mt-3 font-sans text-xs text-ash">
+        Metro is read from the city in the shop address; addresses without a readable city are counted as
+        Metro not set, never guessed. Density is won metro by metro: one trade owning one metro beats thin
+        coverage everywhere.
+      </p>
+    </section>
+  );
+}
+
+function ProofKitCard({
+  businesses,
+  kit,
+  shopId,
+  onPick,
+}: {
+  businesses: Business[];
+  kit: ProofKit | null;
+  shopId: string;
+  onPick: (id: string) => void;
+}) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <section className="card mb-8 p-6" aria-label="Proof kit">
+      <p className="home-os-kicker">Proof kit</p>
+      <h2 className="mt-2 font-serif text-xl tracking-[-0.03em] text-void">
+        One shop&apos;s proof, ready to show the next shop
+      </h2>
+      <label className="mt-4 block font-sans text-sm text-void">
+        Shop
+        <select
+          className="mt-1 block w-full max-w-md rounded-lg border border-black/10 bg-white px-3 py-2"
+          value={shopId}
+          onChange={(event) => onPick(event.target.value)}
+        >
+          <option value="">Pick a shop…</option>
+          {businesses.map((business) => (
+            <option key={business.id} value={business.id}>
+              {business.name}
+            </option>
+          ))}
+        </select>
+      </label>
+      {kit ? (
+        <div className="mt-4 font-sans text-sm text-void">
+          <p>
+            Last {kit.outcomes.windowDays} days: {kit.outcomes.calls} calls · {kit.outcomes.leads} leads ·{" "}
+            {kit.outcomes.jobsBooked} jobs booked
+            {kit.outcomes.bookingRate != null ? ` · ${kit.outcomes.bookingRate}% booking rate` : ""} · $
+            {(kit.outcomes.collectedCents / 100).toLocaleString()} collected.
+          </p>
+          {kit.replays.length ? (
+            <ul className="mt-3 space-y-1">
+              {kit.replays.map((replay) => (
+                <li key={replay.id}>
+                  <a className="underline" href={replay.href} target="_blank" rel="noreferrer">
+                    Hear a real {replay.trade} call
+                  </a>{" "}
+                  <span className="text-ash">({replay.views} views)</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-ash">
+              No listed gallery calls yet — a call only appears here after the owner shares it and it is
+              listed.
+            </p>
+          )}
+          <pre className="mt-4 whitespace-pre-wrap rounded-lg bg-black/[0.03] p-4 text-xs">{kit.proofText}</pre>
+          <button
+            type="button"
+            className="btn btn-void mt-3 text-sm"
+            onClick={() => {
+              void navigator.clipboard?.writeText(kit.proofText).catch(() => null);
+              setCopied(true);
+            }}
+          >
+            {copied ? "Proof copied" : "Copy the proof"}
+          </button>
+        </div>
+      ) : null}
     </section>
   );
 }
