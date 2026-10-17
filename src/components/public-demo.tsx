@@ -13,6 +13,14 @@ type Trace = {
 };
 type Run = { duplicate?: boolean; autoBooked?: boolean; skipReason?: string | null; trace: Trace | null };
 
+/* What every run does, in order; describes the pipeline, never reports an outcome. */
+const PREVIEW_STEPS = [
+  "Checks the shop's schedule for the first real opening",
+  "Books the job, or holds it for a person when it can't book safely",
+  "Texts the customer a confirm link",
+  "Writes each step to the audit trail you can read",
+];
+
 const TONE_LABEL: Record<TraceEvent["tone"], string> = { ok: "Done", failed: "Failed", held: "Held for you", info: "Logged" };
 
 function isHighlight(e: TraceEvent) {
@@ -77,13 +85,17 @@ export function PublicDemo({ scenarios }: { scenarios: Scenario[] }) {
   const job = run?.trace?.job;
   const events = run?.trace?.events ?? [];
   const shown = full ? events : events.filter(isHighlight);
+  const sample = scenarios[0];
 
   return (
     <div className="pd-grid">
       <ol className="pd-scenarios" aria-label="Pick a call">
-        {scenarios.map((s) => (
+        {scenarios.map((s, i) => (
           <li key={s.id}>
             <button type="button" className="pd-scenario" aria-pressed={active?.id === s.id} disabled={busy} onClick={() => play(s)}>
+              <span className="pd-scenario-num" aria-hidden>
+                {String(i + 1).padStart(2, "0")}
+              </span>
               <span className="pd-scenario-title">{s.label}</span>
               <span className="pd-scenario-sub">{s.expect}</span>
             </button>
@@ -93,9 +105,35 @@ export function PublicDemo({ scenarios }: { scenarios: Scenario[] }) {
 
       <section ref={stage} className="pd-stage" aria-live="polite">
         {!active ? (
-          <div className="pd-empty">
-            <p className="pd-kicker">Summit Heating &amp; Air · demo shop</p>
-            <p>Pick a call to start; nothing runs until you do. Orvius takes it the way it would for your shop: it checks the shop&apos;s schedule, books or holds the job, texts the customer and logs every step. The caller is simulated; everything after the hello is the real pipeline.</p>
+          <div className="pd-empty pd-preview">
+            <p className="pd-preview-prompt">
+              Pick a call to run it.
+              <span>Nothing runs until you do. Summit Heating &amp; Air is the demo shop; the caller is scripted and everything after the hello is the real pipeline.</span>
+            </p>
+            {sample ? (
+              <figure className="pd-preview-sample" aria-label="Illustration of a call, not a live run">
+                <figcaption className="ov-specimen-label">Illustration · not a live run</figcaption>
+                <div className="pd-transcript">
+                  {sample.transcript.slice(0, 2).map((line, i) => {
+                    const ai = line.startsWith("AI:");
+                    return (
+                      <p key={i} className={ai ? "pd-line pd-line--ai" : "pd-line"}>
+                        <span>{ai ? "Orvius" : sample.caller.split(" ")[0]}</span>
+                        {line.replace(/^(AI|User):\s*/, "")}
+                      </p>
+                    );
+                  })}
+                </div>
+                <ol className="pd-preview-steps" aria-label="What a run does">
+                  {PREVIEW_STEPS.map((step, i) => (
+                    <li key={step}>
+                      <span aria-hidden>{i + 1}</span>
+                      {step}
+                    </li>
+                  ))}
+                </ol>
+              </figure>
+            ) : null}
           </div>
         ) : (
           <>

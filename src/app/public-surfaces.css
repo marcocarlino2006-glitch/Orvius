@@ -1,0 +1,331 @@
+/*
+ * PUBLIC SURFACES AND CHAPTERS
+ *
+ * Public pages used to sit on one pale field, so after the first message every
+ * section carried the same weight. Three warm roles and one anchor fix that
+ * without shadows or new colours:
+ *
+ *   paper   the page itself (--ov-paper)
+ *   canvas  the warmer alternate paper a new chapter starts on
+ *   stone   an inset inside a chapter (--ov-paper-raised)
+ *   anchor  ink, used once or twice a page for the moment that matters
+ *
+ * The anchor re-scopes the --ov-* palette instead of restyling its children,
+ * so headings, muted copy, rules and buttons inside it invert on their own.
+ *
+ * Spacing has two steps: a module gap (24-32px) between things in one chapter,
+ * and a chapter gap (48-72px) or a surface change between chapters. The
+ * selected/locator state takes the one status accent (green); copper stays the
+ * brand signal and is not used for selection.
+ */
+
+.ov-public {
+  --ov-canvas: color-mix(in srgb, var(--ov-paper) 55%, var(--ov-paper-raised));
+  --ov-stone: var(--ov-paper-raised);
+  --ov-select: var(--ov-emerald-text);
+  --ov-gap-module: clamp(1.5rem, 1.3rem + 0.5vw, 2rem);
+  --ov-gap-chapter: clamp(3rem, 2.2rem + 2.6vw, 4.5rem);
+  --ov-measure: 47.5rem;
+  --ov-rail: 2rem;
+}
+
+html[data-theme="day"] .ov-public {
+  --ov-canvas: var(--ui-bg);
+}
+
+/* ── Surfaces ── */
+
+.ov-public .ov-surface-canvas {
+  background: var(--ov-canvas) !important;
+}
+
+.ov-public .ov-surface-stone {
+  background: var(--ov-stone) !important;
+}
+
+.ov-public .ov-surface-anchor {
+  --ov-paper: #242427;
+  --ov-paper-raised: #2c2c30;
+  --ov-stone: #2c2c30;
+  background: var(--ov-paper) !important;
+  border-block: 1px solid var(--ov-hairline) !important;
+  color: var(--ov-ink) !important;
+}
+
+html[data-theme="day"] .ov-public .ov-surface-anchor {
+  --ov-paper: #26251e;
+  --ov-paper-raised: #33322a;
+  --ov-stone: #33322a;
+  --ov-ink: #edecec;
+  --ov-headline: #f7f7f4;
+  --ov-muted: #bdbab0;
+  --ov-line: #3b3a33;
+  --ov-line-strong: #4a4840;
+  --ov-hairline: rgb(255 255 255 / 0.14);
+  --ov-hairline-strong: rgb(255 255 255 / 0.26);
+  --ov-hairline-hover: rgb(255 255 255 / 0.45);
+  --ov-accent-text: #ff8a4c;
+  --ov-emerald-text: #6ee7a8;
+  --ov-select: #6ee7a8;
+  border-block-color: transparent !important;
+}
+
+/* ── Chapters ── */
+
+.ov-public .ov-chapter {
+  padding-block: var(--ov-gap-chapter) !important;
+}
+
+.ov-public .ov-chapter + .ov-chapter:not([class*="ov-surface-"]) {
+  border-top: 1px solid var(--ov-line) !important;
+}
+
+.ov-public .ov-chapter-head {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: var(--ov-gap-module);
+}
+
+.ov-public .ov-chapter-index {
+  color: var(--ov-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ov-public .ov-measure {
+  max-width: var(--ov-measure);
+}
+
+/* ── Indexed ruled rows: a number rail and one line of rhythm ── */
+
+.ov-public .ov-rows {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--ov-line);
+}
+
+.ov-public .ov-row {
+  display: grid;
+  grid-template-columns: var(--ov-rail) minmax(0, 1fr);
+  column-gap: 1rem;
+  padding-block: 1.125rem 1.375rem;
+  border-bottom: 1px solid var(--ov-line);
+}
+
+.ov-public .ov-row-index {
+  padding-top: 0.2rem;
+  color: var(--ov-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ov-public .ov-row-title {
+  margin: 0;
+  color: var(--ov-headline);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.ov-public .ov-row-body {
+  margin: 0.375rem 0 0;
+  color: var(--ov-muted);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+/* ── Labelled illustration: a specimen, never a live result ── */
+
+.ov-public .ov-specimen-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.875rem;
+  color: var(--ov-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.ov-public .ov-specimen-label::before {
+  content: "";
+  width: 0.5rem;
+  height: 0.5rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+}
+
+/* ── Header call button: one ink control in both header states ── */
+
+html[data-theme="day"] .ov-public .mkt-nav .mkt-nav-cta,
+html[data-theme="day"] .ov-public .mkt-nav.mkt-nav--elevated .mkt-nav-cta {
+  border: 1px solid var(--ov-charcoal) !important;
+  background: var(--ov-charcoal) !important;
+  color: var(--ov-paper) !important;
+}
+
+.ov-public .mkt-nav .mkt-nav-cta {
+  gap: 0.5rem;
+  min-height: 36px !important;
+  padding-inline: 0.875rem !important;
+  font-weight: 600 !important;
+}
+
+.ov-public .mkt-nav .mkt-nav-cta::before {
+  content: "";
+  flex: none;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 999px;
+  background: var(--ov-green);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ov-green) 22%, transparent);
+}
+
+html[data-theme="day"] .ov-public .mkt-nav .mkt-nav-cta::before {
+  --ov-live-dot: #6ee7a8;
+  background: var(--ov-live-dot);
+}
+
+.ov-public .mkt-nav .mkt-nav-cta:hover {
+  filter: brightness(1.12);
+}
+
+/* ── Watch: a lighter scenario list, a decisive selection, a labelled preview ── */
+
+.ov-public .pd-scenarios {
+  gap: 0;
+  border-top: 1px solid var(--ov-line);
+}
+
+.ov-public .pd-scenario {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr);
+  column-gap: 0.5rem;
+  row-gap: 0.25rem;
+  position: relative;
+  padding: 0.875rem 0.875rem 0.875rem 1.125rem;
+  border: 0;
+  border-bottom: 1px solid var(--ov-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+.ov-public .pd-scenario::before {
+  content: "";
+  position: absolute;
+  inset: 0.625rem auto 0.625rem 0;
+  width: 3px;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.ov-public .pd-scenario:hover:not(:disabled) {
+  background: var(--ov-stone);
+}
+
+.ov-public .pd-scenario[aria-pressed="true"] {
+  background: var(--ov-stone);
+}
+
+.ov-public .pd-scenario[aria-pressed="true"]::before {
+  background: var(--ov-select);
+}
+
+.ov-public .pd-scenario:focus-visible {
+  outline: 2px solid var(--ov-select);
+  outline-offset: -2px;
+}
+
+.ov-public .pd-scenario-title,
+.ov-public .pd-scenario-sub {
+  grid-column: 2;
+}
+
+.ov-public .pd-scenario-num {
+  grid-row: span 2;
+  padding-top: 0.15rem;
+  color: var(--ov-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ov-public .pd-stage {
+  background: var(--ov-paper);
+}
+
+.ov-public .pd-grid:has(.pd-preview) {
+  align-items: start;
+}
+
+.ov-public .pd-stage:has(.pd-preview) {
+  min-height: 0;
+  background: var(--ov-stone);
+}
+
+.ov-public .pd-preview {
+  display: grid;
+  gap: var(--ov-gap-module);
+}
+
+.ov-public .pd-preview-prompt {
+  margin: 0;
+  color: var(--ov-headline);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.ov-public .pd-preview-prompt span {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--ov-muted);
+  font-size: 0.9375rem;
+  font-weight: 400;
+}
+
+.ov-public .pd-preview-sample {
+  padding: 1rem 1.125rem;
+  border: 1px dashed var(--ov-line-strong);
+  border-radius: 0.5rem;
+  background: var(--ov-paper);
+}
+
+.ov-public .pd-preview-sample .pd-transcript {
+  margin-bottom: 1rem;
+}
+
+.ov-public .pd-preview-steps {
+  display: grid;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0.875rem 0 0;
+  border-top: 1px solid var(--ov-line);
+  list-style: none;
+  color: var(--ov-muted);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.ov-public .pd-preview-steps li {
+  display: grid;
+  grid-template-columns: 1.5rem minmax(0, 1fr);
+}
+
+.ov-public .pd-preview-steps li span {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 720px) {
+  .ov-public .pd-preview-sample {
+    display: none;
+  }
+
+  .ov-public .pd-stage:has(.pd-preview) {
+    padding: 1rem;
+  }
+}

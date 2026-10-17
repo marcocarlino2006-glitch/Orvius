@@ -105,6 +105,7 @@ test("hardcoded colors never grow (migrate to tokens, don't add hex)", () => {
     "src/app/p/[id]/replay.css": 0,
     "src/app/public-field.css": 0,
     "src/app/public-polish.css": 6,
+    "src/app/public-surfaces.css": 0,
     "src/app/public-v2.css": 111,
     "src/app/tech/tech-app.css": 0,
     "src/app/theme-tokens.css": 0,
