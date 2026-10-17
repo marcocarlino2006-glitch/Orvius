@@ -55,7 +55,7 @@ export default function ProductPage() {
         </div>
       </section>
 
-      <section className="tier1-story">
+      <section className="tier1-story ov-product-sequence">
         <div className="editorial-wrap">
           <ol className="mkt-laws mkt-laws--ruled font-sans">
             {steps.map((c) => (
@@ -73,7 +73,7 @@ export default function ProductPage() {
         </div>
       </section>
 
-      <section className="tier1-story tier1-story-muted tier1-bridge">
+      <section className="tier1-story tier1-story-muted tier1-bridge ov-surface-anchor">
         <div className="editorial-wrap tier1-story-grid">
           <div>
             <h2 className="tier1-section-title type-headline">

@@ -934,3 +934,53 @@ html .ov-public .pricing-chapter-compare .pricing-matrix-scroll {
     transition: none;
   }
 }
+
+/*
+ * ── Product: the sequence hangs on a number rail ──
+ * Each step's number sits in a 30px chip in the console's copper, rows breathe
+ * more below than above so each reads as a step, not a cell, and the close is
+ * the ink anchor. On small phones the hero gives back 24px so the console
+ * starts sooner; gutters and 44px actions are untouched.
+ */
+
+.ov-public .ov-product-sequence .mkt-law--ruled {
+  grid-template-columns: 1.875rem minmax(0, 1fr);
+  column-gap: 1.125rem;
+  padding: 1.25rem 0 2rem;
+}
+
+.ov-public .ov-product-sequence .mkt-law-index {
+  display: inline-grid;
+  place-items: center;
+  width: 1.875rem;
+  height: 1.875rem;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--ov-accent-text) 45%, transparent);
+  border-radius: 999px;
+  color: var(--ov-accent-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  opacity: 1;
+}
+
+.ov-public .ov-product-sequence .mkt-law-title {
+  margin-top: 0.25rem;
+}
+
+@media (min-width: 900px) {
+  .ov-public .ov-product-sequence .mkt-law--ruled:nth-child(even) {
+    padding-top: 2rem;
+    padding-bottom: 1.25rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .ov-public .ov-product-hero-grid {
+    gap: 1rem;
+  }
+
+  .ov-public .ov-product-stage {
+    padding-top: 0.5rem;
+  }
+}
