@@ -56,6 +56,8 @@ async function readBack(businessId: string, proposalId: string, now: Date) {
       ? "done"
       : item.status === "cancelled"
         ? "withdrawn"
+        : item.status === "superseded"
+          ? "superseded"
         : item.status === "proposed"
           ? result?.failedBeforeEffect === true
             ? "failed_before_effect"

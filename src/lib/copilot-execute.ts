@@ -2,7 +2,7 @@ import { COMMAND_POLICY_VERSION, decideApproval, grantsForActor } from "@/lib/co
 import type { Business } from "@prisma/client";
 import { personActor, recordAudit, type AuditInput } from "@/lib/audit";
 import { DEFAULT_JOB_DURATION_MIN } from "@/lib/availability";
-import { isWindowOpen, openWindows, windowLabel } from "@/lib/copilot-propose";
+import { isWindowOpen, openTwin, openWindows, PROPOSAL_FRESH_MS, refuseTwin, windowLabel } from "@/lib/copilot-propose";
 import { sendCustomerConfirmSms } from "@/lib/customer-confirm";
 import { sendCustomerSms } from "@/lib/customer-sms";
 import { createJobFromLead, SlotTakenError } from "@/lib/job";
@@ -324,8 +324,7 @@ export type ExecuteOutcome =
 /** An approval still "executing" after this long crashed mid-run: someone has to check what happened. */
 export const STALE_EXECUTING_MS = 5 * 60_000;
 
-/** A plan approved later than this was made on an old picture of the shop; ask for a fresh one. */
-export const PROPOSAL_FRESH_MS = 12 * 60 * 60_000;
+export { PROPOSAL_FRESH_MS };
 
 /**
  * Proposal lifecycle (CopilotAction.status):
@@ -427,6 +426,8 @@ export async function executeProposal(params: {
     });
     return { ok: false, error: "This plan's details can't be read, so it didn't run. Nothing was changed. Ask Command for a fresh one.", status: 409, reason: "failed_before_effect" };
   }
+  const twin = await openTwin(business.id, pending.action, stored!.paramsJson, params.proposalId);
+  if (twin && twin.status !== "proposed") return refuseTwin(twin.status);
   const claimed = await prisma.copilotAction.updateMany({
     where: { id: params.proposalId, businessId: business.id, status: "proposed" },
     data: { status: "executing", approvalKind: decision.kind, approvedByEmail: params.by.email.trim().toLowerCase(), grantId: decision.grantId },
@@ -481,6 +482,12 @@ export async function executeProposal(params: {
       where: { id: proposal.id },
       data: { status: "executed", executedAt, resultJson: JSON.stringify(outcome.result) },
     });
+    await prisma.copilotAction
+      .updateMany({
+        where: { businessId: business.id, action: proposal.action, paramsJson: proposal.paramsJson, status: "proposed", id: { not: proposal.id } },
+        data: { status: "superseded", resultJson: JSON.stringify({ supersededBy: proposal.id }) },
+      })
+      .catch(() => undefined);
     stage = "audit";
     auditId = await auditOrThrow({
       businessId: business.id,

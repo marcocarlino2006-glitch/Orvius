@@ -36,6 +36,7 @@ export function isOutcomeView(data: unknown): data is Outcome {
 export type ReadBackState =
   | "done"
   | "withdrawn"
+  | "superseded"
   | "failed_before_effect"
   | "waiting_for_approval"
   | "done_unrecorded"
@@ -44,7 +45,7 @@ export type ReadBackState =
 
 export type ReadBack = { state: ReadBackState; preview: string; outcome: Outcome | null };
 
-const STATES = new Set<ReadBackState>(["done", "withdrawn", "failed_before_effect", "waiting_for_approval", "done_unrecorded", "needs_check", "running"]);
+const STATES = new Set<ReadBackState>(["done", "withdrawn", "superseded", "failed_before_effect", "waiting_for_approval", "done_unrecorded", "needs_check", "running"]);
 
 export function readReadBack(data: unknown, proposalId: string): ReadBack | null {
   if (!data || typeof data !== "object") return null;
@@ -65,6 +66,8 @@ export function describeReadBack(state: ReadBackState): { text: string; canAppro
       return { text: "It went through. The outcome below is read from the shop's record.", canApprove: false, settled: true };
     case "withdrawn":
       return { text: "This plan was dismissed. Nothing from it ran.", canApprove: false, settled: true };
+    case "superseded":
+      return { text: "The same plan already ran from another card, so this one won't run. The outcome below is read from the shop's record.", canApprove: false, settled: true };
     case "failed_before_effect":
       return { text: "It stopped before changing anything. You can approve it again.", canApprove: true, settled: false };
     case "waiting_for_approval":
