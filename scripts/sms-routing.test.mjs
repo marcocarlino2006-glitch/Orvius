@@ -219,4 +219,79 @@ test("the webhook holds an ambiguous reply, warns both owners without the text, 
   }
 });
 
+test("a reply to one pool number goes to the shop that texted from it; rows without a sender still match any number", async () => {
+  const phone = "+15555550184";
+  const a = await makeShop("Pool Proof Heating", "+15555550921");
+  const b = await makeShop("Pool Proof Electric", "+15555550922");
+  try {
+    await recordOutboundSms({ businessId: a.id, to: phone, audience: "customer", from: "+1 (555) 555-0811" });
+    await recordOutboundSms({ businessId: b.id, to: phone, audience: "customer", from: "+15555550812" });
+    const row = await prisma.outboundSms.findFirst({ where: { businessId: a.id } });
+    assert.equal(row.fromNormalized, "+15555550811", "the sender is kept normalized");
+
+    assert.equal((await resolveInboundSmsOwner({ to: "+15555550811", from: phone })).business?.id, a.id);
+    assert.equal((await resolveInboundSmsOwner({ to: "+15555550812", from: phone })).business?.id, b.id);
+    assert.equal((await resolveInboundSmsOwner({ to: "+15555550813", from: phone })).kind, "none", "a number neither used owns nothing");
+
+    await recordOutboundSms({ businessId: b.id, to: phone, audience: "customer" });
+    const legacy = await resolveInboundSmsOwner({ to: "+15555550811", from: phone });
+    assert.equal(legacy.kind, "ambiguous", "an older row without a sender could be either shop, so it is held, not guessed");
+  } finally {
+    await drop(a.id);
+    await drop(b.id);
+  }
+});
+
+test("the status callback fills in the pool member a messaging service picked, once", async () => {
+  const a = await makeShop("Callback Proof Air", "+15555550923");
+  const sid = `SMpool${Date.now()}`;
+  try {
+    await recordOutboundSms({ businessId: a.id, to: "+15555550185", audience: "customer", sid });
+    const { POST } = await import("../src/app/api/webhooks/twilio/status/route.ts");
+    const { NextRequest } = await import("next/server");
+    const receipt = (From) =>
+      POST(new NextRequest("http://localhost/api/webhooks/twilio/status", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ MessageSid: sid, MessageStatus: "sent", From }),
+      })).catch((error) => {
+        // The route's after() drain needs a request scope this test doesn't have; the receipt was already written.
+        if (!/outside a request scope/.test(error.message)) throw error;
+      });
+    await receipt("+15555550831");
+    await receipt("+15555550839");
+    const row = await prisma.outboundSms.findFirst({ where: { sid } });
+    assert.equal(row.fromNormalized, "+15555550831", "a later receipt never rewrites the sender");
+  } finally {
+    await drop(a.id);
+  }
+});
+
+test("the outbound-sender release adds one nullable column: old rows read null, old inserts still work, a second run changes nothing", async () => {
+  const { readFileSync, mkdtempSync, rmSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const { createClient } = await import("@libsql/client");
+  const { applyMigrationPlan, splitStatements, migrationPlanSha256, MIGRATION_PLAN_FILES } = await import("./turso-migrate.mjs");
+  const planFile = "prisma/releases/2026-10-17-outbound-sender.sql";
+  const sql = readFileSync(new URL(`../${planFile}`, import.meta.url), "utf8");
+  assert.deepEqual(splitStatements(sql), ['ALTER TABLE "OutboundSms" ADD COLUMN "fromNormalized" TEXT']);
+  assert.ok(!MIGRATION_PLAN_FILES.includes(planFile), "not registered for remote migration in this pass");
+  const dir = mkdtempSync(join(tmpdir(), "outbound-sender-"));
+  const client = createClient({ url: `file:${join(dir, "disposable.db")}` });
+  try {
+    await client.executeMultiple(`CREATE TABLE "OutboundSms" ("id" TEXT PRIMARY KEY, "businessId" TEXT NOT NULL, "toNormalized" TEXT NOT NULL, "audience" TEXT NOT NULL);
+      INSERT INTO "OutboundSms" VALUES ('o1', 'b1', '+15555550100', 'customer');`);
+    const tuple = { sql, planFile, planSha256: migrationPlanSha256(sql), release: "rehearsal", target: "staging", host: "disposable", approval: "TEST", backupRef: "none-disposable" };
+    await applyMigrationPlan(client, tuple);
+    assert.deepEqual((await client.execute(`SELECT "id","fromNormalized" FROM "OutboundSms"`)).rows.map((r) => ({ ...r })), [{ id: "o1", fromNormalized: null }]);
+    await client.execute(`INSERT INTO "OutboundSms" ("id","businessId","toNormalized","audience") VALUES ('o2','b1','+15555550101','customer')`);
+    await applyMigrationPlan(client, tuple);
+    assert.equal((await client.execute(`SELECT COUNT(*) AS n FROM "OutboundSms"`)).rows[0].n, 2);
+  } finally {
+    client.close();
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test.after(() => prisma.$disconnect());

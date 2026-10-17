@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { after } from "next/server";
 import { applyCustomerConfirmReceipt } from "@/lib/customer-confirm";
+import { normalizePhone } from "@/lib/customer";
 import { applyDepositDeliveryReceipt } from "@/lib/deposit-delivery";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { prisma } from "@/lib/prisma";
@@ -60,6 +61,10 @@ export async function POST(request: NextRequest) {
     messageStatus,
     errorCode,
   });
+  const sender = normalizePhone(String(form.get("From") ?? ""));
+  if (sender) {
+    await prisma.outboundSms.updateMany({ where: { sid: messageSid, fromNormalized: null }, data: { fromNormalized: sender } });
+  }
   const confirmReceipt = await applyCustomerConfirmReceipt({ messageSid, messageStatus, errorCode });
   const threadReceipt = await applyMessageReceipt({ messageSid, messageStatus });
   const intentReceipt = await applyIntentReceipt({ messageSid, messageStatus, errorCode });

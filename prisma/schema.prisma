@@ -410,6 +410,11 @@ model OutboundSms {
   businessId     String
   business       Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
   toNormalized   String
+  /**
+   * The number the text actually left from (a pool member when sent through a
+   * messaging service). Null on rows from before it was kept, read as "any".
+   */
+  fromNormalized String?
   audience       String
   sid            String?
   /**

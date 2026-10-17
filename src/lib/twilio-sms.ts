@@ -68,6 +68,8 @@ export async function recordOutboundSms(params: {
   sid?: string | null;
   body?: string | null;
   jobId?: string | null;
+  /** The number it left from, when the provider said. */
+  from?: string | null;
 }): Promise<void> {
   const toNormalized = normalizePhone(params.to);
   if (!toNormalized) return;
@@ -76,6 +78,7 @@ export async function recordOutboundSms(params: {
       data: {
         businessId: params.businessId,
         toNormalized,
+        fromNormalized: params.from ? normalizePhone(params.from) : null,
         audience: params.audience,
         sid: params.sid ?? null,
         body: params.audience === "tech" ? (params.body?.trim().slice(0, 1600) ?? null) : null,
@@ -211,7 +214,7 @@ export async function sendSms(params: {
     await raiseIntentException(done);
   };
 
-  let sms: { sid: string };
+  let sms: { sid: string; from?: string | null };
   let current: NonNullable<typeof sender> | null = simulated ? null : sender;
   let usedShared = !ownSender;
   for (let attempt = 1; ; attempt++) {
@@ -270,6 +273,8 @@ export async function sendSms(params: {
       sid: sms.sid,
       body: params.body,
       jobId: params.jobId,
+      // A messaging service may not name its pool member until the status callback, which fills it in.
+      from: sms.from ?? (current && "from" in current ? current.from : null),
     });
     if (params.audience === "customer") {
       await recordMessage({

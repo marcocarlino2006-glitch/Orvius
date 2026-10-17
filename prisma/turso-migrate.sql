@@ -1358,3 +1358,6 @@ CREATE TABLE IF NOT EXISTS "SetupDraft" (
 -- Refund ledger: Stripe's cumulative refund recorded on the payment or deposit it was for.
 ALTER TABLE "Payment" ADD COLUMN "refundedCents" INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE "Deposit" ADD COLUMN "refundedCents" INTEGER NOT NULL DEFAULT 0;
+
+-- Outbound sender: the number each text left from, so a reply to a pool member is attributed to the shop that used it.
+ALTER TABLE "OutboundSms" ADD COLUMN "fromNormalized" TEXT;

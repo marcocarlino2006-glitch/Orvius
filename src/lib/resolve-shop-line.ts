@@ -176,11 +176,14 @@ export async function resolveInboundSmsOwner(params: {
   const fromNormalized = normalizePhone(params.from);
   if (fromNormalized) {
     const since = new Date((params.now ?? new Date()).getTime() - REPLY_WINDOW_DAYS * 86_400_000);
+    const arrivedOn = normalizePhone(params.to);
     const recent = await prisma.outboundSms.findMany({
       where: {
         toNormalized: fromNormalized,
         createdAt: { gte: since },
         business: { isActive: true },
+        // A reply comes back to the number that texted; rows from before senders were kept match any number.
+        ...(arrivedOn ? { OR: [{ fromNormalized: arrivedOn }, { fromNormalized: null }] } : {}),
       },
       orderBy: { createdAt: "desc" },
       distinct: ["businessId"],
