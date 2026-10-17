@@ -764,3 +764,105 @@ html .ov-public .pricing-multi-row:not(.pricing-multi-row--recommended) {
 html .ov-public .pricing-chapter-compare .pricing-matrix-scroll {
   background: var(--ov-paper) !important;
 }
+
+/*
+ * ── Documents: a reading measure, ruled sections, scan rows ──
+ * Legal and trust pages read best at 720-780px, left on the site grid rather
+ * than centred. Numbered sections hang their number in the rail; dense lists
+ * become term rows (.legal-rows) or check rows (.legal-checks).
+ */
+
+.ov-public .ov-doc > * {
+  max-width: var(--ov-measure);
+}
+
+.ov-public .legal-prose section {
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--ov-line);
+}
+
+.ov-public .legal-prose section:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.ov-public .legal-prose section + section {
+  margin-top: 2.25rem;
+}
+
+.ov-public .legal-prose h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+  margin-bottom: 0.875rem;
+}
+
+.ov-public .legal-prose .legal-index {
+  flex: none;
+  width: var(--ov-rail);
+  color: var(--ov-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ov-public .legal-prose .legal-lead {
+  max-width: 40rem;
+  color: var(--ov-headline);
+  font-size: 1.0625rem;
+  line-height: 1.55;
+}
+
+.ov-public .legal-prose ul.legal-rows,
+.ov-public .legal-prose ul.legal-checks {
+  display: grid;
+  margin: 1rem 0 1.25rem;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--ov-line);
+}
+
+.ov-public .legal-prose ul.legal-rows > li,
+.ov-public .legal-prose ul.legal-checks > li {
+  margin: 0;
+  padding-block: 0.875rem;
+  border-bottom: 1px solid var(--ov-line);
+}
+
+.ov-public .legal-prose ul.legal-rows > li {
+  display: grid;
+  gap: 0.25rem 1.5rem;
+}
+
+.ov-public .legal-prose ul.legal-rows > li > strong {
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+
+@media (min-width: 720px) {
+  .ov-public .legal-prose ul.legal-rows > li {
+    grid-template-columns: 13rem minmax(0, 1fr);
+  }
+}
+
+.ov-public .legal-prose ul.legal-checks > li {
+  display: grid;
+  grid-template-columns: var(--ov-rail) minmax(0, 1fr);
+}
+
+.ov-public .legal-prose ul.legal-checks > li::before {
+  content: "✓";
+  color: var(--ov-muted);
+  font-weight: 600;
+}
+
+@media (max-width: 719px) {
+  .ov-public .legal-prose section + section {
+    margin-top: 1.75rem;
+  }
+
+  .ov-public .legal-prose ul.legal-rows > li,
+  .ov-public .legal-prose ul.legal-checks > li {
+    padding-block: 0.625rem;
+  }
+}
