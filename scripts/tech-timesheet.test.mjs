@@ -29,6 +29,19 @@ test("the week sheet groups minutes by technician", () => {
   assert.equal(end.toISOString().slice(0, 10), "2026-10-12");
 });
 
+test("a technician's week runs Monday to Monday in the shop's timezone, across clock changes and the Sunday-night edge", () => {
+  const chicago = weekBounds("2026-10-07", "America/Chicago");
+  assert.equal(chicago.start.toISOString(), "2026-10-05T05:00:00.000Z", "Monday midnight in Chicago, not UTC");
+  assert.equal(chicago.end.toISOString(), "2026-10-12T05:00:00.000Z");
+  const fallBack = weekBounds("2026-11-04", "America/Chicago");
+  assert.equal(fallBack.start.toISOString(), "2026-11-02T06:00:00.000Z", "after the clocks go back, midnight is 06:00Z");
+  const across = weekBounds("2026-10-28", "America/Chicago");
+  assert.equal((across.end.getTime() - across.start.getTime()) / 3_600_000, 169, "the week holding the fall-back hour is 169 hours");
+  // 9pm Sunday in Los Angeles is already Monday in UTC; with no day given it is still the shop's Sunday week.
+  const lateSunday = weekBounds(null, "America/Los_Angeles", new Date("2026-10-12T04:00:00Z"));
+  assert.equal(lateSunday.start.toISOString(), "2026-10-05T07:00:00.000Z");
+});
+
 test("the hours view is served by the dispatch API while Dispatch itself lives on Schedule", () => {
   const page = readFileSync(new URL("../src/app/dashboard/dispatch/page.tsx", import.meta.url), "utf8");
   const route = readFileSync(new URL("../src/app/api/dispatch/route.ts", import.meta.url), "utf8");

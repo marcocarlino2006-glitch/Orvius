@@ -1,3 +1,5 @@
+import { shopDayBounds } from "@/lib/availability";
+
 export type TimesheetJob = {
   id: string;
   title: string;
@@ -50,18 +52,22 @@ export function buildTimesheet(jobs: TimesheetJob[]): TimesheetLane[] {
   return [...lanes.values()].sort((a, b) => b.minutes - a.minutes || a.name.localeCompare(b.name));
 }
 
-/** Monday 00:00 UTC through the following Monday, from a YYYY-MM-DD shop day. */
-export function weekBounds(day: string) {
-  const [y, m, d] = day.split("-").map(Number);
-  const date = new Date(Date.UTC(y, (m ?? 1) - 1, d ?? 1, 12));
+/**
+ * Monday 00:00 through the following Monday 00:00 in the shop's timezone,
+ * from a YYYY-MM-DD shop day (today in the shop when none is given). A week
+ * that crosses a clock change is 167 or 169 hours, as the shop lived it.
+ */
+export function weekBounds(day: string | null | undefined, timezone = "UTC", now = new Date()) {
+  const today = shopDayBounds(day, timezone, now).day;
+  const [y, m, d] = today.split("-").map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d, 12));
   const dow = date.getUTCDay();
-  const back = dow === 0 ? 6 : dow - 1;
-  const start = new Date(date);
-  start.setUTCDate(date.getUTCDate() - back);
-  start.setUTCHours(0, 0, 0, 0);
-  const end = new Date(start);
-  end.setUTCDate(start.getUTCDate() + 7);
-  return { start, end };
+  const monday = new Date(date);
+  monday.setUTCDate(date.getUTCDate() - (dow === 0 ? 6 : dow - 1));
+  const nextMonday = new Date(monday);
+  nextMonday.setUTCDate(monday.getUTCDate() + 7);
+  const key = (x: Date) => x.toISOString().slice(0, 10);
+  return { start: shopDayBounds(key(monday), timezone).start, end: shopDayBounds(key(nextMonday), timezone).start };
 }
 
 export function formatHours(minutes: number) {

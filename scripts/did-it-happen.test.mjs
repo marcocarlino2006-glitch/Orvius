@@ -312,3 +312,11 @@ test("follow-up: a send that may have left keeps the claim — no second text fr
     await drop(business.id);
   }
 });
+
+test("the call page dials the number it shows: the request's checked callback, withheld when there is none", async () => {
+  const { readFileSync } = await import("node:fs");
+  const page = readFileSync(new URL("../src/app/dashboard/calls/[id]/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /const phone = call\.lead \? call\.lead\.phone : call\.callerPhone;/);
+  assert.match(page, /href=\{`tel:\$\{phone\}`\}/);
+  assert.doesNotMatch(page, /tel:\$\{call\.callerPhone\}/, "the button never dials raw caller ID over the checked number");
+});

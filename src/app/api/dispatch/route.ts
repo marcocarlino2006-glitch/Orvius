@@ -19,7 +19,7 @@ export async function GET(request: Request) {
     return NextResponse.json(await getDispatchWeek(business.id, day));
   }
   if (url.searchParams.get("view") === "hours") {
-    const { start, end } = weekBounds(day && /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : new Date().toISOString().slice(0, 10));
+    const { start, end } = weekBounds(day && /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : null, business.timezone ?? "America/New_York");
     const jobs = await prisma.job.findMany({
       where: {
         businessId: business.id,
