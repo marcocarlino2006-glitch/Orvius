@@ -320,10 +320,11 @@ export async function drainHousecallSyncs(options: { limit?: number; now?: Date;
 
 /** What Settings shows. */
 export async function housecallStatus(businessId: string) {
-  const [conn, recent, failing] = await Promise.all([
+  const [conn, recent, failing, checking] = await Promise.all([
     prisma.housecallConnection.findUnique({ where: { businessId }, select: { status: true, companyName: true, connectedAt: true, lastError: true } }),
     prisma.housecallSync.count({ where: { businessId, status: "done", createdAt: { gte: new Date(Date.now() - 30 * 86_400_000) } } }),
     prisma.housecallSync.count({ where: { businessId, status: { in: ["failed", "check"] } } }),
+    prisma.housecallSync.count({ where: { businessId, status: "check" } }),
   ]);
   return {
     available: housecallConfigured(),
@@ -333,6 +334,8 @@ export async function housecallStatus(businessId: string) {
     lastError: conn?.status === "reconnect" ? conn.lastError : null,
     sentLast30Days: recent,
     needsAttention: failing,
+    checking,
+    failed: failing - checking,
   };
 }
 

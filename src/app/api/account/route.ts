@@ -233,6 +233,13 @@ export async function GET(request: Request) {
   const founder = isFounderEmail(email);
   const readiness = getBillingReadiness();
 
+  /* A status that couldn't be read is named, so Settings says so instead of showing the connector as never set up. */
+  const integrationStatusErrors: string[] = [];
+  const integrationStatus = <T,>(name: string, read: Promise<T>) =>
+    read.catch(() => {
+      integrationStatusErrors.push(name);
+      return null;
+    });
   return NextResponse.json({
     user: {
       name: session.user.name ?? null,
@@ -268,10 +275,11 @@ export async function GET(request: Request) {
           error: businessRecord.fsmScheduleError,
         }
       : null,
-    jobber: businessRecord ? await jobberStatus(businessRecord.id).catch(() => null) : null,
-    housecall: businessRecord ? await housecallStatus(businessRecord.id).catch(() => null) : null,
-    servicetitan: businessRecord ? await serviceTitanStatus(businessRecord.id).catch(() => null) : null,
-    quickbooks: businessRecord ? await quickbooksStatus(businessRecord.id).catch(() => null) : null,
+    jobber: businessRecord ? await integrationStatus("jobber", jobberStatus(businessRecord.id)) : null,
+    housecall: businessRecord ? await integrationStatus("housecall", housecallStatus(businessRecord.id)) : null,
+    servicetitan: businessRecord ? await integrationStatus("servicetitan", serviceTitanStatus(businessRecord.id)) : null,
+    quickbooks: businessRecord ? await integrationStatus("quickbooks", quickbooksStatus(businessRecord.id)) : null,
+    integrationStatusErrors,
     billing: {
       configured: isStripeCheckoutConfigured(),
       fullyReady: isStripeConfigured(),

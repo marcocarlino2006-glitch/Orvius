@@ -11,6 +11,8 @@ export type JobberLink = {
   lastError: string | null;
   sentLast30Days: number;
   needsAttention: number;
+  checking?: number;
+  failed?: number;
 } | null;
 
 export type HousecallLink = {
@@ -21,6 +23,8 @@ export type HousecallLink = {
   lastError: string | null;
   sentLast30Days: number;
   needsAttention: number;
+  checking?: number;
+  failed?: number;
 } | null;
 
 export type ServiceTitanLink = {
@@ -31,6 +35,8 @@ export type ServiceTitanLink = {
   lastError: string | null;
   sentLast30Days: number;
   needsAttention: number;
+  checking?: number;
+  failed?: number;
 } | null;
 
 export type QuickBooksLink = {
@@ -41,6 +47,8 @@ export type QuickBooksLink = {
   lastError: string | null;
   sentLast30Days: number;
   needsAttention: number;
+  checking?: number;
+  failed?: number;
 } | null;
 
 export type Account = {
@@ -55,6 +63,8 @@ export type Account = {
   jobber?: JobberLink;
   housecall?: HousecallLink;
   servicetitan?: ServiceTitanLink;
+  /** Connectors whose status couldn't be read for this page, by key: jobber, housecall, servicetitan, quickbooks. */
+  integrationStatusErrors?: string[];
   quickbooks?: QuickBooksLink;
   user?: { name: string | null; email: string | null; image?: string | null };
   business: {
