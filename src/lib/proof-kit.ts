@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getReactivationValue, type ReactivationValue } from "@/lib/reactivation-value";
 import { formatWeeklyProof, getShopOutcomes, type ShopOutcomes } from "@/lib/shop-outcomes";
 
 export type ProofKitReplay = {
@@ -13,12 +14,14 @@ export type ProofKit = {
   outcomes: ShopOutcomes;
   proofText: string;
   replays: ProofKitReplay[];
+  reactivation: ReactivationValue;
 };
 
 type ProofDeps = {
   client?: typeof prisma;
   outcomes?: (businessId: string) => Promise<ShopOutcomes>;
   proof?: (outcomes: ShopOutcomes, shopName: string) => string;
+  reactivation?: (businessId: string) => Promise<ReactivationValue>;
 };
 
 /**
@@ -36,8 +39,10 @@ export async function getProofKit(businessId: string, deps: ProofDeps = {}): Pro
   if (!business) return null;
   const outcomesOf = deps.outcomes ?? ((id: string) => getShopOutcomes(id));
   const proofOf = deps.proof ?? formatWeeklyProof;
-  const [outcomes, rows] = await Promise.all([
+  const reactivationOf = deps.reactivation ?? ((id: string) => getReactivationValue(id));
+  const [outcomes, reactivation, rows] = await Promise.all([
     outcomesOf(business.id),
+    reactivationOf(business.id),
     client.galleryCall.findMany({
       where: { businessId: business.id, status: "listed" },
       orderBy: { reviewedAt: "desc" },
@@ -48,6 +53,7 @@ export async function getProofKit(businessId: string, deps: ProofDeps = {}): Pro
   return {
     shop: business,
     outcomes,
+    reactivation,
     proofText: proofOf(outcomes, business.name),
     replays: rows.map((row) => ({ id: row.id, href: `/calls/${row.id}`, views: row.views, trade: row.trade })),
   };

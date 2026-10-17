@@ -26,7 +26,9 @@ test("the proof kit joins one shop's outcomes, proof text and listed replays onl
     client,
     outcomes: async () => outcomes,
     proof: (o, name) => `proof for ${name}: ${o.calls} calls`,
+    reactivation: async () => ({ audience3: 4, audience6: 3, audience12: 2, avgTicketCents: 30000, estimatedCents: 90000 }),
   });
+  assert.equal(kit.reactivation.estimatedCents, 90000);
   assert.equal(kit.shop.name, "Al's Air");
   assert.equal(kit.outcomes, outcomes);
   assert.equal(kit.proofText, "proof for Al's Air: 12 calls");
@@ -39,7 +41,10 @@ test("an unknown shop has no proof kit, and the route stays privileged", async (
     business: { findUnique: async () => null },
     galleryCall: { findMany: async () => [] },
   };
-  assert.equal(await getProofKit("nope", { client, outcomes: async () => ({}) }), null);
+  assert.equal(
+    await getProofKit("nope", { client, outcomes: async () => ({}), reactivation: async () => ({}) }),
+    null,
+  );
   const route = read("src/app/api/admin/proof-kit/route.ts");
   assert.match(route, /isPrivilegedRequest/);
   assert.match(route, /status: 401/);
