@@ -320,3 +320,25 @@ test("the call page dials the number it shows: the request's checked callback, w
   assert.match(page, /href=\{`tel:\$\{phone\}`\}/);
   assert.doesNotMatch(page, /tel:\$\{call\.callerPhone\}/, "the button never dials raw caller ID over the checked number");
 });
+
+test("removing a job photo keeps which photo it was, once, on the job's history; another shop can't remove it", async () => {
+  const { deleteJobPhoto } = await import("../src/lib/job-field.ts");
+  const business = await shop();
+  const other = await shop();
+  try {
+    const job = await prisma.job.create({ data: { businessId: business.id, title: "No heat", status: "scheduled" } });
+    const photo = await prisma.jobPhoto.create({
+      data: { businessId: business.id, jobId: job.id, kind: "before", mime: "image/png", bytes: Buffer.from([1, 2, 3]), sizeBytes: 3, takenBy: "Dana", caption: "Furnace panel" },
+    });
+    await assert.rejects(deleteJobPhoto(other.id, job.id, photo.id), /not found/i);
+    assert.equal(await prisma.jobPhoto.count({ where: { id: photo.id } }), 1);
+    const removed = await deleteJobPhoto(business.id, job.id, photo.id);
+    assert.deepEqual([removed.id, removed.kind, removed.takenBy, removed.caption, removed.sizeBytes], [photo.id, "before", "Dana", "Furnace panel", 3]);
+    await assert.rejects(deleteJobPhoto(business.id, job.id, photo.id), /not found/i, "a replayed removal says it's gone");
+    const route = await import("../src/app/api/jobs/[id]/photos/[photoId]/route.ts");
+    assert.match(String(route.DELETE), /detail: \{ removed \}/);
+  } finally {
+    await drop(business.id);
+    await drop(other.id);
+  }
+});
