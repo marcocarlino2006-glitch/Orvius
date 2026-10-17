@@ -41,13 +41,28 @@ function AskDialog({ spec, done }: { spec: Spec; done: (answer: string | boolean
   const [text, setText] = useState(spec.kind === "text" ? spec.defaultValue ?? "" : "");
   const [choice, setChoice] = useState(spec.kind === "choice" ? spec.defaultValue ?? "" : "");
 
+  const cancel = () => done(spec.kind === "confirm" ? false : null);
+  const cancelRef = useRef(cancel);
+  cancelRef.current = cancel;
+
   useEffect(() => {
-    const first = field.current ?? card.current?.querySelector<HTMLElement>("[data-ask-primary]");
+    const first =
+      field.current ??
+      card.current?.querySelector<HTMLElement>('[role=radio][tabindex="0"]') ??
+      card.current?.querySelector<HTMLElement>("[data-ask-primary]:not([disabled])") ??
+      card.current?.querySelector<HTMLElement>(FOCUSABLE);
     first?.focus();
     if (spec.kind === "text" && spec.readOnly) field.current?.select();
+    /* Escape works even if focus was moved outside the card. */
+    const onEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== "Escape" || card.current?.contains(event.target as Node)) return;
+      event.preventDefault();
+      cancelRef.current();
+    };
+    document.addEventListener("keydown", onEscape);
+    return () => document.removeEventListener("keydown", onEscape);
   }, [spec]);
 
-  const cancel = () => done(spec.kind === "confirm" ? false : null);
   const blocked =
     (spec.kind === "text" && spec.required && !spec.readOnly && !text.trim()) || (spec.kind === "choice" && !choice);
   const accept = () => {
@@ -137,7 +152,9 @@ function AskDialog({ spec, done }: { spec: Spec; done: (answer: string | boolean
           </div>
         ) : null}
         {spec.kind === "choice" ? (
-          <div className="ask-dialog__choices" role="radiogroup" aria-label={spec.label}>
+          <div className="ask-dialog__field">
+          <p id={fieldId} className="ask-dialog__label">{spec.label}</p>
+          <div className="ask-dialog__choices" role="radiogroup" aria-labelledby={fieldId}>
             {spec.choices.map((c, i) => {
               const on = choice === c.value;
               return (
@@ -156,6 +173,7 @@ function AskDialog({ spec, done }: { spec: Spec; done: (answer: string | boolean
                 </button>
               );
             })}
+          </div>
           </div>
         ) : null}
         <div className="ask-dialog__actions">

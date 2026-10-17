@@ -200,7 +200,7 @@ export default function CustomersPage() {
             </div>
             </div>
           )}
-          {customers.length ? (
+          {customers.length && !more.hasMore ? (
             <ProListEnd count={customers.length} noun="customer" />
           ) : null}
           {!query ? <WinBackCard /> : null}

@@ -354,7 +354,7 @@ test("confirmations and typed answers use the app's dialog; completion answers a
   assert.deepEqual(native, []);
 
   const dialog = readFileSync("src/components/ask-dialog.tsx", "utf8");
-  for (const piece of ['aria-modal="true"', "aria-labelledby", 'role="radiogroup"', "aria-checked", '"Escape"', '"Tab"', "trigger.focus()"]) {
+  for (const piece of ['aria-modal="true"', "aria-labelledby", 'role="radiogroup"', "aria-checked", '"Escape"', '"Tab"', "trigger.focus()", "[role=radio][tabindex=\"0\"]", 'document.addEventListener("keydown", onEscape)']) {
     assert.ok(dialog.includes(piece), `dialog keeps ${piece}`);
   }
   for (const caller of ["src/components/job-status-advance.tsx", "src/components/work-card.tsx", "src/app/dashboard/jobs/[id]/page.tsx"]) {
@@ -412,4 +412,11 @@ test("Plan Finder answers are radio groups with arrow keys; the replay waveform 
   const phone = css.slice(css.indexOf("@media (max-width: 520px) {\n  .ov-public .ov-console-player"));
   assert.match(phone, /flex-wrap: wrap/);
   assert.match(phone, /\.ov-player-bar \{\s*min-width: 0/);
+});
+
+test("the customer list never says that's everything when the reply says there are more", async () => {
+  const { readFileSync } = await import("node:fs");
+  const page = readFileSync("src/app/dashboard/customers/page.tsx", "utf8");
+  assert.match(page, /customers\.length && !more\.hasMore \? \(\s*<ProListEnd/);
+  assert.match(page, /hasMore: data\?\.hasMore === true/);
 });
