@@ -34,6 +34,7 @@ test("density counts production shops by trade and metro, densest first", async 
   assert.equal(density.total, 5);
   assert.equal(density.metros, 2);
   assert.deepEqual(density.densest, { trade: "HVAC", metro: "Austin", shops: 2 });
+  assert.equal(density.concentrated, false, "2 shops is a leading cell, not density");
   assert.deepEqual(density.rows[0], { trade: "HVAC", metro: "Austin", shops: 2 });
   assert.match(read("src/app/api/admin/density/route.ts"), /isPrivilegedRequest/);
   assert.match(read("src/app/admin/page.tsx"), /DensityCard/);

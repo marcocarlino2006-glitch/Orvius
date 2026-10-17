@@ -6,8 +6,12 @@ export type Density = {
   total: number;
   metros: number;
   densest: DensityRow | null;
+  /** A trade×metro cell at 5+ shops: dense enough to concentrate selling there. */
+  concentrated: boolean;
   rows: DensityRow[];
 };
+
+export const DENSITY_FOCUS_MIN = 5;
 
 const STATE_ZIP = /^[A-Za-z]{2}\s+\d{5}(?:-\d{4})?$/;
 const STATE_ONLY = /^[A-Za-z]{2}$/;
@@ -49,10 +53,12 @@ export async function getDensity(client = prisma): Promise<Density> {
   const rows = [...byCell.values()].sort(
     (a, b) => b.shops - a.shops || a.trade.localeCompare(b.trade) || a.metro.localeCompare(b.metro),
   );
+  const densest = rows.find((row) => row.metro !== "Metro not set") ?? null;
   return {
     total: shops.length,
     metros: new Set(rows.map((row) => row.metro).filter((metro) => metro !== "Metro not set")).size,
-    densest: rows.find((row) => row.metro !== "Metro not set") ?? null,
+    densest,
+    concentrated: densest != null && densest.shops >= DENSITY_FOCUS_MIN,
     rows,
   };
 }

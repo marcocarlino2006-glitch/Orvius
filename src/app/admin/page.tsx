@@ -17,6 +17,7 @@ import type { CompanyScoreboard, ScoreboardWeek } from "@/lib/company-scoreboard
 import type { LaunchFunnel } from "@/lib/launch-funnel";
 import type { ProofKit } from "@/lib/proof-kit";
 import type { Density } from "@/lib/density";
+import type { PaymentsAttach } from "@/lib/payments-attach";
 import { activationText, retentionText } from "@/lib/scoreboard-text";
 import { revenueLines, valueLines } from "@/lib/revenue-lines";
 import { signupChannelText } from "@/lib/acquisition";
@@ -115,6 +116,7 @@ export default function AdminPage() {
   const [board, setBoard] = useState<CompanyScoreboard | null>(null);
   const [funnel, setFunnel] = useState<LaunchFunnel | null>(null);
   const [density, setDensity] = useState<Density | null>(null);
+  const [attach, setAttach] = useState<PaymentsAttach | null>(null);
   const [kit, setKit] = useState<ProofKit | null>(null);
   const [kitShopId, setKitShopId] = useState("");
   const [ownerEdits, setOwnerEdits] = useState<Record<string, string>>({});
@@ -194,6 +196,10 @@ export default function AdminPage() {
     fetch("/api/admin/density")
       .then((res) => (res.ok ? res.json() : null))
       .then(setDensity)
+      .catch(() => null);
+    fetch("/api/admin/payments-attach")
+      .then((res) => (res.ok ? res.json() : null))
+      .then(setAttach)
       .catch(() => null);
   }, []);
 
@@ -386,6 +392,7 @@ export default function AdminPage() {
       {board ? <ScoreboardCard board={board} /> : null}
       {funnel ? <LaunchFunnelCard funnel={funnel} /> : null}
       {density ? <DensityCard density={density} /> : null}
+      {attach ? <PaymentsAttachCard attach={attach} /> : null}
       <ProofKitCard
         businesses={businesses}
         kit={kit}
@@ -933,6 +940,31 @@ function DensityCard({ density }: { density: Density }) {
         Metro is read from the city in the shop address; addresses without a readable city are counted as
         Metro not set, never guessed. Density is won metro by metro: one trade owning one metro beats thin
         coverage everywhere.
+        {density.concentrated && density.densest
+          ? ` ${density.densest.trade} in ${density.densest.metro} is at ${density.densest.shops} shops — concentrate selling there; that cell compounds first.`
+          : " No cell is at 5 shops yet, so density has not formed anywhere — pick the leading cell and feed it."}
+      </p>
+    </section>
+  );
+}
+
+function PaymentsAttachCard({ attach }: { attach: PaymentsAttach }) {
+  const money = (cents: number) => `$${(cents / 100).toLocaleString()}`;
+  return (
+    <section className="card mb-8 p-6" aria-label="Payments attach">
+      <p className="home-os-kicker">Money through Orvius</p>
+      <h2 className="mt-2 font-serif text-xl tracking-[-0.03em] text-void">
+        The rake, measured
+      </h2>
+      <p className="mt-2 font-sans text-sm text-void">
+        {attach.shopsCollecting} of {attach.productionShops} production shops collect through Orvius ·{" "}
+        {money(attach.collectedKeptCents)} kept all-time · {money(attach.openBilledCents)} billed and still
+        open.
+      </p>
+      <p className="mt-3 font-sans text-xs text-ash">
+        Kept means recorded payments and paid deposits, gross less refunds. Money shops collect outside
+        Orvius is not visible and is never estimated — shops not yet collecting here, and billed work still
+        open, are the attach opportunity.
       </p>
     </section>
   );
@@ -978,6 +1010,13 @@ function ProofKitCard({
             {kit.outcomes.jobsBooked} jobs booked
             {kit.outcomes.bookingRate != null ? ` · ${kit.outcomes.bookingRate}% booking rate` : ""} · $
             {(kit.outcomes.collectedCents / 100).toLocaleString()} collected.
+          </p>
+          <p className="mt-2">
+            Dormant customers: {kit.reactivation.audience3} quiet 3+ months · {kit.reactivation.audience6}{" "}
+            at 6+ · {kit.reactivation.audience12} at 12+
+            {kit.reactivation.estimatedCents != null
+              ? ` — waking the 6-month group is worth about $${(kit.reactivation.estimatedCents / 100).toLocaleString()} at their average ticket (estimate, owner sends from Win-back).`
+              : " — set an average ticket to size the win-back prize."}
           </p>
           {kit.replays.length ? (
             <ul className="mt-3 space-y-1">
