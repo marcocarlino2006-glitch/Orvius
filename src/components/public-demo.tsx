@@ -95,7 +95,7 @@ export function PublicDemo({ scenarios }: { scenarios: Scenario[] }) {
         {!active ? (
           <div className="pd-empty">
             <p className="pd-kicker">Summit Heating &amp; Air · demo shop</p>
-            <p>Pick a call on the left. Orvius takes it the way it would for your shop: it checks the shop&apos;s schedule, books or holds the job, texts the customer and logs every step. The caller is simulated; everything after the hello is the real pipeline.</p>
+            <p>Pick a call to start; nothing runs until you do. Orvius takes it the way it would for your shop: it checks the shop&apos;s schedule, books or holds the job, texts the customer and logs every step. The caller is simulated; everything after the hello is the real pipeline.</p>
           </div>
         ) : (
           <>

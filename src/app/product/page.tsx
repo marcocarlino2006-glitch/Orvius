@@ -73,7 +73,7 @@ export default function ProductPage() {
         </div>
       </section>
 
-      <section className="tier1-story tier1-story-muted">
+      <section className="tier1-story tier1-story-muted tier1-bridge">
         <div className="editorial-wrap tier1-story-grid">
           <div>
             <h2 className="tier1-section-title type-headline">

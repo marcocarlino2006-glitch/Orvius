@@ -335,7 +335,7 @@
 .ov-public .ov-hero-stage.ov-hero-stage--art {
   position: relative;
   isolation: isolate;
-  margin-top: clamp(2.5rem, 5vw, 4rem);
+  margin-top: clamp(1rem, 1.7vw, 1.5rem);
   padding: clamp(1.25rem, 4vw, 3.5rem);
   border-radius: 0.75rem;
   overflow: hidden;

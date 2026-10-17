@@ -99,7 +99,7 @@ export default function PricingPage() {
         </div>
       </section>
 
-      <section className="tier1-close">
+      <section className="tier1-close tier1-bridge">
         <div className="editorial-wrap tier1-close-inner">
           <h2 className="tier1-section-title type-headline">
             Built to pay back with one additional job.
