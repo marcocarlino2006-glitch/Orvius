@@ -9,16 +9,20 @@ import test from "node:test";
 import { PrismaClient } from "@prisma/client";
 
 import { recordOutboundSms, smsSender } from "../src/lib/twilio-sms.ts";
-import { resolveBusinessForInboundSms } from "../src/lib/resolve-shop-line.ts";
+for (const key of ["TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_MESSAGING_SERVICE_SID", "RESEND_API_KEY"]) {
+  delete process.env[key];
+}
+const { namedCandidate, resolveBusinessForInboundSms, resolveInboundSmsOwner } = await import("../src/lib/resolve-shop-line.ts");
 
 const prisma = new PrismaClient();
 const PLATFORM_LINE = "+18446439170";
 const CUSTOMER = "+15555550177";
 
-async function makeShop(name, line) {
+async function makeShop(name, line, ownerPhone = null) {
   return prisma.business.create({
     data: {
       name,
+      ownerPhone,
       slug: `sms-route-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
       billingStatus: "pilot",
       twilioPhone: line,
@@ -29,7 +33,7 @@ async function makeShop(name, line) {
 
 const drop = (id) => prisma.business.delete({ where: { id } }).catch(() => {});
 
-test("a reply to the shared sender goes to the shop that last texted that phone", async () => {
+test("a reply to the shared sender goes to the one shop that texted that phone", async () => {
   const prev = process.env.TWILIO_PHONE_NUMBER;
   process.env.TWILIO_PHONE_NUMBER = PLATFORM_LINE;
   const demo = await prisma.business.findFirst({
@@ -42,13 +46,8 @@ test("a reply to the shared sender goes to the shop that last texted that phone"
     let hit = await resolveBusinessForInboundSms({ to: PLATFORM_LINE, from: CUSTOMER });
     assert.equal(hit?.id, a.id);
 
-    await new Promise((r) => setTimeout(r, 5));
-    await recordOutboundSms({ businessId: b.id, to: CUSTOMER, audience: "customer" });
-    hit = await resolveBusinessForInboundSms({ to: PLATFORM_LINE, from: CUSTOMER });
-    assert.equal(hit?.id, b.id, "most recent sender wins");
-
     const pooled = await resolveBusinessForInboundSms({ to: "+15555550999", from: CUSTOMER });
-    assert.equal(pooled?.id, b.id, "a messaging-service pool number no shop owns routes the same way");
+    assert.equal(pooled?.id, a.id, "a messaging-service pool number no shop owns routes the same way");
 
     const stranger = await resolveBusinessForInboundSms({ to: PLATFORM_LINE, from: "+15555550178" });
     assert.equal(stranger?.id ?? null, demo?.id ?? null, "no history falls back to the line's owner");
@@ -99,6 +98,107 @@ test("the messaging service pool is preferred over the single number", () => {
     else process.env.TWILIO_MESSAGING_SERVICE_SID = prevSid;
     if (prevNum === undefined) delete process.env.TWILIO_PHONE_NUMBER;
     else process.env.TWILIO_PHONE_NUMBER = prevNum;
+  }
+});
+
+test("two shops texted that phone: the reply is held unless it names one or comes from an owner", async () => {
+  const phone = "+15555550181";
+  const a = await makeShop("Hold Proof Cooling LLC", "+15555550911", "+15555550961");
+  const b = await makeShop("Hold Proof Plumbing", "+15555550912", "+15555550962");
+  try {
+    await recordOutboundSms({ businessId: a.id, to: phone, audience: "customer" });
+    await new Promise((r) => setTimeout(r, 5));
+    await recordOutboundSms({ businessId: b.id, to: phone, audience: "customer" });
+
+    const held = await resolveInboundSmsOwner({ to: "+15555550999", from: phone, body: "Is Tuesday still ok?" });
+    assert.equal(held.kind, "ambiguous", "the latest sender no longer wins by default");
+    assert.deepEqual(held.candidates.map((c) => c.id).sort(), [a.id, b.id].sort());
+    assert.equal(await resolveBusinessForInboundSms({ to: "+15555550999", from: phone }), null);
+
+    const named = await resolveInboundSmsOwner({ to: "+15555550999", from: phone, body: "hold proof cooling" });
+    assert.equal(named.kind, "shop");
+    assert.equal(named.business.id, a.id, "naming the older shop routes to it, legal suffix optional");
+    assert.equal(named.clarified, true);
+
+    await recordOutboundSms({ businessId: a.id, to: b.ownerPhone, audience: "customer" });
+    await recordOutboundSms({ businessId: b.id, to: b.ownerPhone, audience: "owner" });
+    const owner = await resolveInboundSmsOwner({ to: "+15555550999", from: b.ownerPhone, body: "BOOK" });
+    assert.equal(owner.kind, "shop");
+    assert.equal(owner.business.id, b.id, "an owner's own control text is never held");
+
+    const own = await resolveInboundSmsOwner({ to: a.twilioPhone, from: phone, body: "hi" });
+    assert.equal(own.business.id, a.id, "a shop's own line is never ambiguous");
+  } finally {
+    await drop(a.id);
+    await drop(b.id);
+  }
+});
+
+test("a reply names a shop only when exactly one name appears whole", () => {
+  const shops = [{ name: "Cool Air LLC" }, { name: "Cool Air Pros" }, { name: "Smith & Sons Plumbing" }];
+  assert.equal(namedCandidate("This is for Cool Air LLC", shops)?.name, "Cool Air LLC");
+  assert.equal(namedCandidate("cool air pros!", shops)?.name, "Cool Air Pros");
+  assert.equal(namedCandidate("smith and sons plumbing", shops)?.name, "Smith & Sons Plumbing");
+  assert.equal(namedCandidate("cool", shops), null, "a fragment names nobody");
+  assert.equal(namedCandidate("Cool Air", shops)?.name, "Cool Air LLC", "a name without its legal suffix still counts");
+  assert.equal(namedCandidate("Cool Air LLC or Cool Air Pros", shops), null, "two names is still ambiguous");
+  assert.equal(namedCandidate(undefined, shops), null);
+});
+
+test("the webhook holds an ambiguous reply, warns both owners without the text, and releases it to the shop the customer names", async () => {
+  const phone = "+15555550182";
+  const a = await makeShop("Release Proof Heating", "+15555550913", "+15555550963");
+  const b = await makeShop("Release Proof Electric", "+15555550914", "+15555550964");
+  const { POST } = await import("../src/app/api/webhooks/twilio/sms/route.ts");
+  const { NextRequest } = await import("next/server");
+  const text = (Body, MessageSid) =>
+    POST(
+      new NextRequest("http://localhost/api/webhooks/twilio/sms", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ From: phone, To: "+15555550999", Body, MessageSid }),
+      }),
+    );
+  const sid = (n) => `SMhold${n}${Date.now()}`;
+  try {
+    await recordOutboundSms({ businessId: a.id, to: phone, audience: "customer" });
+    await recordOutboundSms({ businessId: b.id, to: phone, audience: "customer" });
+
+    const first = sid(1);
+    const ask = await (await text("The basement is leaking again, can someone come today?", first)).text();
+    assert.match(ask, /more than one business/i);
+    assert.match(ask, /Release Proof Heating/);
+    assert.match(ask, /Release Proof Electric/);
+    await text("The basement is leaking again, can someone come today?", first);
+
+    assert.equal(await prisma.lead.count({ where: { businessId: { in: [a.id, b.id] } } }), 0, "no shop gets the text by guess");
+    const heldRows = await prisma.webhookEvent.findMany({ where: { source: "twilio-sms", externalId: first, eventType: "inbound-held" } });
+    assert.equal(heldRows.length, 1);
+    assert.equal(heldRows[0].status, "held");
+    assert.equal(heldRows[0].businessId, null);
+
+    const alerts = await prisma.ownerNotification.findMany({ where: { businessId: { in: [a.id, b.id] }, dedupeKey: { startsWith: `sms-held:${first}` } } });
+    assert.deepEqual([...new Set(alerts.map((n) => n.businessId))].sort(), [a.id, b.id].sort(), "each candidate owner hears once per channel");
+    assert.ok(alerts.every((n) => n.message.includes(phone) && !/basement/i.test(n.message)), "neither owner sees a text that may be for the other");
+
+    const pick = sid(2);
+    await text("Release Proof Heating", pick);
+    await text("Release Proof Heating", pick);
+    const leads = await prisma.lead.findMany({ where: { businessId: { in: [a.id, b.id] } } });
+    assert.equal(leads.length, 1, "one lead, once, even when the answer is redelivered");
+    assert.equal(leads[0].businessId, a.id);
+    assert.match(leads[0].notes, /basement is leaking/, "the held words reach the shop the customer named");
+    const released = await prisma.webhookEvent.findUnique({ where: { id: heldRows[0].id } });
+    assert.equal(released.status, "released");
+    assert.equal(released.businessId, a.id);
+
+    const stop = await (await text("STOP", sid(3))).text();
+    assert.match(stop, /unsubscribed/i);
+    const optOuts = await prisma.smsOptOut.findMany({ where: { businessId: { in: [a.id, b.id] }, clearedAt: null } });
+    assert.deepEqual(optOuts.map((o) => o.businessId).sort(), [a.id, b.id].sort(), "STOP to the shared sender stops every shop that texted");
+  } finally {
+    await drop(a.id);
+    await drop(b.id);
   }
 });
 

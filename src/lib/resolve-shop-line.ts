@@ -122,22 +122,56 @@ export async function resolveBusinessByInboundPhone(
   return pickTenant(matches, { kind: "line", key: normalized || phone!.trim() });
 }
 
+export type InboundSmsOwner =
+  | { kind: "shop"; business: ShopLineMatch; clarified?: boolean }
+  | { kind: "ambiguous"; candidates: ShopLineMatch[] }
+  | { kind: "none" };
+
+const LEGAL_SUFFIX = /\b(llc|inc|co|corp|company|ltd)\b/g;
+
+function plainWords(value: string) {
+  return value.toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
+/** The one candidate a customer's text names, or null when it names none or several. */
+export function namedCandidate<T extends { name: string }>(body: string | undefined, candidates: T[]): T | null {
+  if (!body) return null;
+  const text = ` ${plainWords(body)} `;
+  const hits = candidates
+    .map((c) => {
+      const full = plainWords(c.name);
+      const bare = full.replace(LEGAL_SUFFIX, " ").replace(/\s+/g, " ").trim();
+      const said = [full, bare].filter((n) => n.length >= 3 && text.includes(` ${n} `)).sort((x, y) => y.length - x.length)[0];
+      return said ? { c, said } : null;
+    })
+    .filter((h): h is { c: T; said: string } => h !== null)
+    .sort((x, y) => y.said.length - x.said.length);
+  if (!hits.length) return null;
+  /* "Cool Air Pros" also contains "Cool Air"; the longer name is what was said. */
+  const [top, ...rest] = hits;
+  return rest.every((h) => ` ${top.said} `.includes(` ${h.said} `) && h.said !== top.said) ? top.c : null;
+}
+
 /**
- * The shop an inbound text belongs to.
+ * Who an inbound text belongs to.
  *
  * A text to a shop's own line belongs to that shop. Everything Orvius sends
  * goes out from the shared sender (the platform line or the messaging-service
- * pool), so a text arriving there is a reply, and it belongs to whichever shop
- * last texted that phone. Only when no shop has, does it fall to the owner of
- * the number it arrived on (the demo shop for the platform line).
+ * pool), so a text arriving there is a reply to whichever shop texted that
+ * phone in the last 30 days. When two or more shops did, the reply is
+ * ambiguous: it belongs to one of them only if it comes from that shop's
+ * owner or names that shop; otherwise guessing would hand one shop's customer
+ * to another, so the caller holds it. With no recent sender it falls to the
+ * owner of the number it arrived on (the demo shop for the platform line).
  */
-export async function resolveBusinessForInboundSms(params: {
+export async function resolveInboundSmsOwner(params: {
   to: string;
   from: string;
+  body?: string;
   now?: Date;
-}): Promise<ShopLineMatch | null> {
+}): Promise<InboundSmsOwner> {
   const direct = await resolveBusinessByInboundPhone(params.to);
-  if (direct && !isDemoPlatformLine(params.to)) return direct;
+  if (direct && !isDemoPlatformLine(params.to)) return { kind: "shop", business: direct };
 
   const fromNormalized = normalizePhone(params.from);
   if (fromNormalized) {
@@ -150,18 +184,35 @@ export async function resolveBusinessForInboundSms(params: {
       },
       orderBy: { createdAt: "desc" },
       distinct: ["businessId"],
-      take: 2,
+      take: 5,
       select: { business: { select: SHOP_LINE_SELECT } },
     });
-    if (recent.length > 1) {
-      logWarn("tenant.sms_reply_two_shops", {
-        chosen: recent[0].business.id,
-        alsoTexted: recent[1].business.id,
-        rule: "most_recent_sender",
+    const shops = recent.map((r) => r.business);
+    if (shops.length === 1) return { kind: "shop", business: shops[0] };
+    if (shops.length > 1) {
+      const owner = shops.filter((s) => normalizePhone(s.ownerPhone) === fromNormalized);
+      if (owner.length === 1) return { kind: "shop", business: owner[0] };
+      const named = namedCandidate(params.body, shops);
+      if (named) return { kind: "shop", business: named, clarified: true };
+      logWarn("tenant.sms_reply_ambiguous", {
+        from: redactKey(fromNormalized),
+        businessIds: shops.map((s) => s.id),
+        rule: "held",
       });
+      return { kind: "ambiguous", candidates: shops };
     }
-    if (recent[0]) return recent[0].business;
   }
 
-  return direct;
+  return direct ? { kind: "shop", business: direct } : { kind: "none" };
+}
+
+/** The shop an inbound text belongs to; null when none does or ownership is ambiguous. */
+export async function resolveBusinessForInboundSms(params: {
+  to: string;
+  from: string;
+  body?: string;
+  now?: Date;
+}): Promise<ShopLineMatch | null> {
+  const owner = await resolveInboundSmsOwner(params);
+  return owner.kind === "shop" ? owner.business : null;
 }
