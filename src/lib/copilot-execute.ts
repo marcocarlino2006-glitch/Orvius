@@ -435,6 +435,12 @@ export async function executeProposal(params: {
   if (claimed.count === 0) {
     return { ok: false, error: "Proposal not found or already used", status: 404 };
   }
+  // Two copies approved at once both pass the check above; whichever sees the other after claiming steps back.
+  const racing = await openTwin(business.id, pending.action, stored!.paramsJson, params.proposalId);
+  if (racing && racing.status !== "proposed") {
+    await prisma.copilotAction.updateMany({ where: { id: params.proposalId, status: "executing" }, data: { status: "proposed", approvalKind: null, approvedByEmail: null, grantId: null } });
+    return refuseTwin(racing.status);
+  }
   const proposal = await prisma.copilotAction.findUniqueOrThrow({ where: { id: params.proposalId } });
 
   let touched = false;

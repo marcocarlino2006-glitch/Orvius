@@ -329,6 +329,22 @@ test("once one copy runs, the other waiting copies are retired and read back as 
   }
 });
 
+test("two copies approved at the same moment never both run, and neither is left running", async () => {
+  const { s, lead } = await leadShop();
+  try {
+    const paramsJson = JSON.stringify({ leadId: lead.id });
+    const copies = await Promise.all(
+      [0, 1].map(() => prisma.copilotAction.create({ data: { businessId: s.id, action: "mark_contacted", paramsJson, preview: "Mark", status: "proposed" } })),
+    );
+    const results = await Promise.all(copies.map((c) => executeProposal({ business: s, proposalId: c.id, by: { role: "owner", email: s.ownerEmail } })));
+    assert.ok(results.filter((r) => r.ok).length <= 1);
+    assert.ok(await prisma.auditEvent.count({ where: { businessId: s.id, action: "copilot.executed" } }) <= 1);
+    assert.equal(await prisma.copilotAction.count({ where: { businessId: s.id, status: "executing" } }), 0);
+  } finally {
+    await prisma.business.delete({ where: { id: s.id } });
+  }
+});
+
 test("the plan readback names a retired copy", () => {
   assert.match(read("src/app/api/copilot/route.ts"), /item\.status === "superseded"\s*\?\s*"superseded"/);
 });
