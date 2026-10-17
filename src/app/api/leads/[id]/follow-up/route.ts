@@ -25,6 +25,8 @@ export async function POST(_request: Request, { params }: Params) {
     leadId: id,
     by: { actor: actor.actor === "owner" ? "owner" : "teammate", actorEmail: actor.actorEmail },
   });
-  if (!result.sent) return NextResponse.json({ error: result.reason }, { status: 409 });
-  return NextResponse.json({ ok: true });
+  if (!result.sent) {
+    return NextResponse.json({ error: result.reason, ...(result.uncertain ? { reason: "unknown_submission" } : {}) }, { status: 409 });
+  }
+  return NextResponse.json({ ok: true, leadId: id });
 }

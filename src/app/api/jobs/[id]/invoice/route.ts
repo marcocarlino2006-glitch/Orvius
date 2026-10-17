@@ -58,6 +58,7 @@ export async function POST(request: Request, { params }: Params) {
         {
           error: `The customer already has this bill at ${formatCentsExact(repriceHeld.fromCents)}. To change it to ${formatCentsExact(repriceHeld.toCents)}, add why.`,
           code: "bill_committed",
+          reason: "bill_committed",
           ...repriceHeld,
         },
         { status: 409 },

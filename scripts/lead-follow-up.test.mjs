@@ -169,7 +169,7 @@ test("a text that did not go out frees the lead for another try", async () => {
       by,
       now: AFTERNOON,
       send: async () => {
-        throw new Error("Twilio 400");
+        throw Object.assign(new Error("Twilio 400"), { status: 400 });
       },
     });
     assert.equal(thrown.sent, false);

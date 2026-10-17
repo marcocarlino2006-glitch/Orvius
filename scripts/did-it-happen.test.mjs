@@ -247,3 +247,68 @@ test("booking: the service area is honored — out of area and missing ZIP are r
     await drop(open.id);
   }
 });
+
+/* ---------- lead follow-up ---------- */
+
+const { sendLeadFollowUp, previewFollowUp, FOLLOW_UP_UNCERTAIN } = await import("../src/lib/lead-follow-up.ts");
+const AFTERNOON = new Date("2026-09-29T19:00:00Z");
+
+async function followUpLead() {
+  const business = await prisma.business.create({
+    data: { name: "Cole Heating", slug: `dfu-${stamp()}`, trade: "HVAC", hoursJson: "{}", servicesJson: "[]", timezone: "America/Chicago", vapiPhoneNumber: randomPhone(), followUpMode: "ask", environment: "live" },
+  });
+  const phone = randomPhone();
+  const row = await prisma.lead.create({
+    data: { businessId: business.id, name: "Ann Cole", phone, serviceType: "AC not cooling", urgency: "this-week", status: "new", createdAt: new Date(AFTERNOON.getTime() - 4 * 3_600_000) },
+  });
+  return { business, row };
+}
+
+test("follow-up: the send carries an intent, so the ledger knows which lead it was for", async () => {
+  const { business, row } = await followUpLead();
+  try {
+    const calls = [];
+    const result = await sendLeadFollowUp({
+      businessId: business.id,
+      leadId: row.id,
+      by: { actor: "owner", actorEmail: "o@example.test" },
+      now: AFTERNOON,
+      send: async (p) => (calls.push(p), { sent: true, sid: "SM1" }),
+    });
+    assert.equal(result.sent, true);
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].intent.eventType, "lead.follow_up");
+    assert.equal(calls[0].intent.eventId, row.id);
+    assert.equal(calls[0].intent.severity, "routine");
+  } finally {
+    await drop(business.id);
+  }
+});
+
+test("follow-up: a send that may have left keeps the claim — no second text from a tap or the cron", async () => {
+  const { business, row } = await followUpLead();
+  try {
+    let attempts = 0;
+    const timeout = async () => {
+      attempts++;
+      throw new Error("socket hang up");
+    };
+    const by = { actor: "owner", actorEmail: "o@example.test" };
+    const first = await sendLeadFollowUp({ businessId: business.id, leadId: row.id, by, now: AFTERNOON, send: timeout });
+    assert.deepEqual(first, { sent: false, reason: FOLLOW_UP_UNCERTAIN, uncertain: true });
+    assert.ok((await prisma.lead.findUniqueOrThrow({ where: { id: row.id } })).followUpSentAt, "the stamp stays");
+    const again = await sendLeadFollowUp({ businessId: business.id, leadId: row.id, by, now: AFTERNOON, send: timeout });
+    assert.equal(again.sent, false);
+    assert.equal(attempts, 1, "the second press never reached the provider");
+    assert.ok(await prisma.auditEvent.findFirst({ where: { businessId: business.id, action: "lead.follow_up_unknown" } }));
+
+    await prisma.smsIntent.create({
+      data: { businessId: business.id, eventType: "lead.follow_up", eventId: row.id, recipientNormalized: row.phone, channel: "sms", audience: "customer", messageVersion: 1, status: "unknown_submission" },
+    });
+    const preview = await previewFollowUp(business.id, row.id, AFTERNOON);
+    assert.equal(preview.uncertain, true);
+    assert.equal(preview.canSend, false);
+  } finally {
+    await drop(business.id);
+  }
+});
