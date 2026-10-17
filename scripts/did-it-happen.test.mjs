@@ -380,3 +380,19 @@ test("confirmations and typed answers use the app's dialog; completion answers a
     reason: "Ticket 41",
   });
 });
+
+test("public claims: the browser demo explains the microphone before the browser asks and says it's a sample; payments and the search caption don't promise what depends on someone else", async () => {
+  const { readFileSync } = await import("node:fs");
+  const demo = readFileSync("src/components/talk-in-browser.tsx", "utf8");
+  const form = demo.slice(demo.indexOf('type="submit"'), demo.indexOf('view.state === "joining"'));
+  assert.match(form, /asks your browser for the microphone, used for this demo call only/);
+  assert.match(form, /sample HVAC shop, so nothing you say books real work/);
+  assert.match(form, /not that shop's real line/);
+  const ready = demo.slice(demo.indexOf('view.state === "ready"'), demo.indexOf('view.state === "connecting"'));
+  assert.ok(ready.indexOf("asks your browser for the microphone") < ready.indexOf("start(view.ticketId)"), "said before the button that triggers it");
+
+  assert.doesNotMatch(readFileSync("src/lib/payments-intro.ts", "utf8"), /About 5 minutes/);
+  const { company } = await import("../src/lib/company.ts");
+  assert.match(company.searchDescription, /once your number is registered/);
+  assert.doesNotMatch(company.searchDescription, /real schedule, texts customers/);
+});

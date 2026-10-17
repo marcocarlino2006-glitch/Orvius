@@ -89,7 +89,7 @@ export function paymentsActivation(state: ConnectState): PaymentsActivation {
     default:
       return {
         state: "todo",
-        detail: "Text customers their bill and let them pay by card. Money goes to your bank, not to Orvius. About 5 minutes.",
+        detail: "Text customers their bill and let them pay by card. Money goes to your bank, not to Orvius. Stripe asks for your business and bank details; how long it takes depends on what Stripe needs to check.",
         action: { label: "Set up payments", href: PAYMENTS_HREF },
       };
   }
