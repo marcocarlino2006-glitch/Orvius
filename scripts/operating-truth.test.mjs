@@ -533,6 +533,97 @@ test("Receptionist corrections: synced is true only with the provider's echo", a
   assert.ok(s);
 });
 
+test("Settings: the reply carries the normalized saved values, and the screen adopts them over what was typed", async () => {
+  const { mergeSaved } = await import("../src/components/settings-center/settings-model.ts");
+  await liveShop();
+  const vapi = voiceProvider(["echo"]);
+  try {
+    const typed = { transferPhone: "(312) 555-0199", greeting: "  Hello from Truth HVAC.  " };
+    const save = await call(() => accountRoute.PATCH(req("PATCH", "/api/account", typed)));
+    assert.equal(save.status, 200, JSON.stringify(save.body));
+    assert.equal(save.body.business.transferPhone, "+13125550199");
+    assert.equal(save.body.business.greeting, "Hello from Truth HVAC.");
+    const screen = mergeSaved({ transferPhone: null, greeting: "old", name: "Truth HVAC" }, typed, save.body, new Set());
+    assert.deepEqual([screen.transferPhone, screen.greeting, screen.name], ["+13125550199", "Hello from Truth HVAC.", "Truth HVAC"]);
+    const reopened = await call(() => accountRoute.GET(req("GET", "/api/account")));
+    assert.equal(reopened.body.business.transferPhone, "+13125550199", "closing and reopening shows what was saved");
+  } finally {
+    vapi.restore();
+  }
+});
+
+test("Settings: if the apply record can't be read, the reload says unconfirmed, never applied", async () => {
+  await liveShop();
+  const vapi = voiceProvider(["echo"]);
+  try {
+    assert.equal((await call(() => accountRoute.PATCH(req("PATCH", "/api/account", { greeting: "Recorded greeting." })))).body.receptionistApply.state, "applied");
+  } finally {
+    vapi.restore();
+  }
+  const original = prisma.auditEvent.findMany;
+  prisma.auditEvent.findMany = async () => {
+    throw new Error("read timeout");
+  };
+  try {
+    const reload = await call(() => accountRoute.GET(req("GET", "/api/account")));
+    assert.equal(reload.status, 200);
+    assert.equal(reload.body.receptionistApply.state, "unconfirmed");
+    const save = await call(() => accountRoute.PATCH(req("PATCH", "/api/account", { autopilot: false })));
+    assert.equal(save.body.receptionistApply.state, "unconfirmed");
+  } finally {
+    prisma.auditEvent.findMany = original;
+  }
+});
+
+test("Settings: a reply from a server without the apply field still shows a failed sync, and a plain 200 is never read as applied", async () => {
+  const { applyFromReply } = await import("../src/components/settings-center/settings-model.ts");
+  const failed = applyFromReply({ assistantSynced: false, syncError: "Assistant sync failed" }, null);
+  assert.deepEqual([failed.state, failed.error, failed.canApply], ["failed", "Assistant sync failed", true]);
+  assert.equal(applyFromReply({ assistantSynced: true }, null), null);
+  const previous = { state: "unconfirmed", appliedAt: null, error: null, next: "x", canApply: true };
+  assert.equal(applyFromReply({}, previous), previous);
+});
+
+test("Settings: two quick edits to the greeting through the client's save path; the slower first reply can't undo the second", async () => {
+  const { mergeSaved } = await import("../src/components/settings-center/settings-model.ts");
+  const s = await liveShop();
+  const vapi = voiceProvider(["echo"]);
+  const viaVapi = globalThis.fetch;
+  let n = 0;
+  globalThis.fetch = async (url, init) => {
+    if (!String(url).startsWith("/api/account")) return viaVapi(url, init);
+    const mine = ++n;
+    const res = await accountRoute.PATCH(new Request(`http://local.test${url}`, init));
+    if (mine === 1) await new Promise((r) => setTimeout(r, 40));
+    await drain();
+    return res;
+  };
+  const queue = serialQueue();
+  const inLine = new Map();
+  let screen = { greeting: "start", name: s.name };
+  const save = (fields) => {
+    const keys = Object.keys(fields);
+    for (const k of keys) inLine.set(k, (inLine.get(k) ?? 0) + 1);
+    return queue(async () => {
+      try {
+        const reply = await sendWrite("/api/account", "PATCH", fields);
+        const later = new Set([...inLine].filter(([k, c]) => c > (keys.includes(k) ? 1 : 0)).map(([k]) => k));
+        screen = mergeSaved(screen, fields, reply, later);
+      } finally {
+        for (const k of keys) inLine.set(k, inLine.get(k) - 1);
+      }
+    });
+  };
+  try {
+    await Promise.all([save({ greeting: "First edit." }), save({ greeting: "Second edit." })]);
+  } finally {
+    globalThis.fetch = viaVapi;
+    vapi.restore();
+  }
+  assert.equal(screen.greeting, "Second edit.");
+  assert.equal((await prisma.business.findUnique({ where: { id: s.id } })).greeting, "Second edit.");
+});
+
 /* ------------------------------ uncertain writes ------------------------------ */
 
 test("client writes: a refusal is certain; no answer, a server error or an unreadable reply is uncertain and never says nothing changed", async () => {

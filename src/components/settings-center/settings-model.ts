@@ -170,3 +170,44 @@ export function dollars(value: string): number | null {
 export type Business = NonNullable<Account["business"]>;
 
 export type PatchFn = (fields: Patch) => Promise<boolean>;
+
+type Apply = import("@/lib/assistant-apply").ReceptionistApply;
+export type SaveReply = {
+  business?: Partial<Business>;
+  receptionistApply?: Apply | null;
+  assistantSynced?: boolean;
+  syncError?: string | null;
+};
+
+/**
+ * What the screen holds after a save's reply: the server's saved values win
+ * over what was typed (they are normalized), except fields a newer save still
+ * in line is about to change, so a slow reply never undoes a later edit.
+ */
+export function mergeSaved(prev: Business, sent: Patch, reply: SaveReply, changingLater: ReadonlySet<string>): Business {
+  const canonical = reply.business ?? (sent as Partial<Business>);
+  const next = { ...prev } as Record<string, unknown>;
+  for (const [key, value] of Object.entries(canonical)) {
+    if (!changingLater.has(key)) next[key] = value;
+  }
+  return next as Business;
+}
+
+/**
+ * Whether the receptionist took the saved settings, from the reply. A reply
+ * without the newer field still says so through assistantSynced/syncError;
+ * that is never read as applied, because a resolved request isn't evidence.
+ */
+export function applyFromReply(reply: SaveReply, previous: Apply | null): Apply | null {
+  if (reply.receptionistApply) return reply.receptionistApply;
+  if (reply.assistantSynced === false) {
+    return {
+      state: "failed",
+      appliedAt: null,
+      error: reply.syncError ?? null,
+      next: "Your settings are saved, but the receptionist didn't confirm them. Apply them again; nothing about your phone line changes.",
+      canApply: true,
+    };
+  }
+  return previous;
+}

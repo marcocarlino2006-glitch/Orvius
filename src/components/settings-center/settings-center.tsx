@@ -28,7 +28,7 @@ import { TRADES, type Trade } from "@/lib/trades";
 import { SettingsGeneral } from "./settings-general";
 import { SettingsIcon } from "./settings-icons";
 import { ScGroup, ScRow } from "./settings-primitives";
-import { FOUNDER_CERT, parseCert, type Account, type Patch, type Technician } from "./settings-model";
+import { FOUNDER_CERT, applyFromReply, mergeSaved, parseCert, type Account, type Patch, type SaveReply, type Technician } from "./settings-model";
 import { AccountSection } from "./sections/account-section";
 import { BusinessSection } from "./sections/business-section";
 import { ActivitySection } from "./sections/activity-section";
@@ -39,6 +39,13 @@ import { InternalSection } from "./sections/internal-section";
 import { NotificationsSection } from "./sections/notifications-section";
 import { ReceptionistSection } from "./sections/receptionist-section";
 import { TeamSection } from "./sections/team-section";
+
+/*
+  One queue for every account save in this tab, kept outside the dialog, so
+  closing and reopening Settings mid-save still waits for the earlier save.
+*/
+const accountSaves = serialQueue();
+const savesInLine = new Map<string, number>();
 
 const GROUP_LABELS: Record<string, string | null> = {
   business: "Business",
@@ -170,27 +177,22 @@ export function SettingsCenter({
     return () => clearTimeout(t);
   }, [saveState]);
 
-  /*
-    Saves go one at a time, so a slow earlier reply can't land on top of a
-    newer edit. Each reply's canonical values are merged, except fields a
-    later save still in line is about to change.
-  */
-  const enqueue = useRef(serialQueue()).current;
-  const inFlight = useRef(new Map<string, number>());
+  /* Saves go one at a time; each reply's saved values replace what was typed, except fields a newer save will change. */
+  const enqueue = accountSaves;
   const patch = useCallback(
     (fields: Patch): Promise<boolean> => {
       const keys = Object.keys(fields);
-      for (const k of keys) inFlight.current.set(k, (inFlight.current.get(k) ?? 0) + 1);
+      for (const k of keys) savesInLine.set(k, (savesInLine.get(k) ?? 0) + 1);
       return enqueue(async () => {
         setSaveState("saving");
         setError(null);
         try {
           invalidateAccount();
-          const data = await sendWrite<{ business?: Partial<NonNullable<Account["business"]>>; receptionistApply?: ReceptionistApply | null }>("/api/account", "PATCH", fields);
-          const later = new Set([...inFlight.current].filter(([k, n]) => n > (keys.includes(k) ? 1 : 0)).map(([k]) => k));
-          const canonical = Object.fromEntries(Object.entries(data.business ?? (fields as object)).filter(([k]) => !later.has(k)));
-          setAccount((prev) => (prev && prev.business ? { ...prev, business: { ...prev.business, ...canonical } } : prev));
-          if (data.receptionistApply) setApply(data.receptionistApply);
+          const data = await sendWrite<SaveReply>("/api/account", "PATCH", fields);
+          invalidateAccount();
+          const later = new Set([...savesInLine].filter(([k, n]) => n > (keys.includes(k) ? 1 : 0)).map(([k]) => k));
+          setAccount((prev) => (prev && prev.business ? { ...prev, business: mergeSaved(prev.business, fields, data, later) } : prev));
+          setApply((prev) => applyFromReply(data, prev));
           setSaveState("saved");
           return true;
         } catch (err) {
@@ -204,7 +206,7 @@ export function SettingsCenter({
           setSaveState("idle");
           return false;
         } finally {
-          for (const k of keys) inFlight.current.set(k, Math.max(0, (inFlight.current.get(k) ?? 1) - 1));
+          for (const k of keys) savesInLine.set(k, Math.max(0, (savesInLine.get(k) ?? 1) - 1));
         }
       });
     },
@@ -216,6 +218,7 @@ export function SettingsCenter({
     setError(null);
     try {
       const data = await enqueue(() => sendWrite<{ receptionistApply?: ReceptionistApply }>("/api/account/sync-assistant", "POST"));
+      invalidateAccount();
       if (data.receptionistApply) setApply(data.receptionistApply);
     } catch (err) {
       setError(isUncertain(err) ? "Orvius didn't hear back from the receptionist check. Reopen settings to see where it stands." : err instanceof Error ? err.message : "That didn't go through.");
