@@ -28,6 +28,19 @@ export function heldReplyAsk(candidates: Array<{ name: string }>) {
   return `Thanks, we got your message. More than one business texts you through this number, so reply with the name of the one you mean (${list}) and we'll pass it on.`;
 }
 
+/** START on a shared sender restarts texts from one business, named, never from every business at once. */
+export function heldStartAsk(candidates: Array<{ name: string }>) {
+  const names = candidates.map((c) => c.name);
+  const list = names.length > 1 ? `${names.slice(0, -1).join(", ")} or ${names[names.length - 1]}` : names[0];
+  return `More than one business texts you through this number. To get texts again, reply START and the business name (${list}), like "START ${names[0]}".`;
+}
+
+/** The words left once the business's name is taken out, so "START Cool Air" reads as START. */
+export function withoutShopName(body: string, name: string): string {
+  const escaped = name.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+");
+  return body.replace(new RegExp(escaped, "ig"), " ").replace(/\s+/g, " ").trim();
+}
+
 /**
  * Keep a reply no single shop can claim, tell each candidate owner without
  * showing them the text (it may be meant for someone else), and return the

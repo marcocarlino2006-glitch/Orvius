@@ -202,6 +202,17 @@ test("the webhook holds an ambiguous reply, warns both owners without the text, 
     assert.match(stop, /unsubscribed/i);
     const optOuts = await prisma.smsOptOut.findMany({ where: { businessId: { in: [a.id, b.id] }, clearedAt: null } });
     assert.deepEqual(optOuts.map((o) => o.businessId).sort(), [a.id, b.id].sort(), "STOP to the shared sender stops every shop that texted");
+
+    const bare = await (await text("START", sid(4))).text();
+    assert.match(bare, /reply START and the business name/i);
+    assert.equal(
+      await prisma.smsOptOut.count({ where: { businessId: { in: [a.id, b.id] }, clearedAt: null } }),
+      2,
+      "a START that names no business restarts none of them",
+    );
+    await text("START Release Proof Electric", sid(5));
+    const still = await prisma.smsOptOut.findMany({ where: { businessId: { in: [a.id, b.id] }, clearedAt: null } });
+    assert.deepEqual(still.map((o) => o.businessId), [a.id], "naming one business restarts only that one");
   } finally {
     await drop(a.id);
     await drop(b.id);

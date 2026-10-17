@@ -31,7 +31,7 @@ import {
 } from "@/lib/webhook-auth";
 import { recordWebhookEvent } from "@/lib/webhook-events";
 import { resolveInboundSmsOwner } from "@/lib/resolve-shop-line";
-import { holdAmbiguousReply, releaseHeldReplies } from "@/lib/held-sms-reply";
+import { heldStartAsk, holdAmbiguousReply, releaseHeldReplies, withoutShopName } from "@/lib/held-sms-reply";
 import { twimlMessage as twimlResponse } from "@/lib/twiml";
 import { tooManyRequests, webhookAuthFailureLimited } from "@/lib/rate-limit";
 import { recordAudit } from "@/lib/audit";
@@ -167,7 +167,8 @@ export async function POST(request: NextRequest) {
     return twimlResponse(text);
   };
 
-  const keyword = parseSmsKeyword(body) ?? (isBareYes(body) && (await isOptedOut(business.id, from)) ? "start" : null);
+  const namedStart = owner.kind === "shop" && owner.clarified && parseSmsKeyword(withoutShopName(typed, business.name)) === "start";
+  const keyword = namedStart ? "start" : parseSmsKeyword(body) ?? (isBareYes(body) && (await isOptedOut(business.id, from)) ? "start" : null);
   if (keyword) {
     if (keyword === "stop" && !fromOwner) {
       await warnOwnerOfCancelWord({ business, from, body, messageSid });
@@ -531,10 +532,21 @@ async function answerAmbiguousReply(params: {
   if (keyword === "help") {
     return twimlResponse(smsHelpReply({ programName: company.smsProgramName, supportEmail: company.supportEmail }));
   }
-  if (keyword === "stop" || keyword === "start") {
+  if (keyword === "start") {
+    // A STOP covered every candidate; a START that names none restarts none of them.
+    await recordWebhookEvent({
+      source: "twilio-sms",
+      externalId: messageSid || `ambiguous:${from}:start:${Date.now()}`,
+      eventType: "keyword-start-unnamed",
+      status: "processed",
+      payload: { from, to, keyword, businessIds: candidates.map((c) => c.id) },
+    });
+    return twimlResponse(heldStartAsk(candidates));
+  }
+  if (keyword === "stop") {
     let text = "";
     for (const shop of candidates) {
-      if (keyword === "stop") await warnOwnerOfCancelWord({ business: shop, from, body, messageSid });
+      await warnOwnerOfCancelWord({ business: shop, from, body, messageSid });
       text = await handleSmsKeyword({ keyword, businessId: shop.id, businessName: shop.name, from, ownerPhone: shop.ownerPhone });
     }
     await recordWebhookEvent({
