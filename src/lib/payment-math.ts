@@ -53,6 +53,14 @@ export function moneyTotals(rows: ReceiptRow[] | undefined | null): MoneyTotals 
   return { grossCents, refundedCents, netCents: grossCents - refundedCents };
 }
 
+/**
+ * A card receipt from Stripe test mode: its checkout session id says so
+ * ("cs_test_…", stored as "stripe:cs_test_…" on payments). No real money moved.
+ */
+export function isTestModeReceipt(ref: string | null | undefined): boolean {
+  return /^(stripe:)?cs_test_/.test(ref ?? "");
+}
+
 export function addTotals(...parts: MoneyTotals[]): MoneyTotals {
   return parts.reduce((a, b) => ({ grossCents: a.grossCents + b.grossCents, refundedCents: a.refundedCents + b.refundedCents, netCents: a.netCents + b.netCents }), { grossCents: 0, refundedCents: 0, netCents: 0 });
 }

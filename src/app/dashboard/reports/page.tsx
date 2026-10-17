@@ -5,7 +5,7 @@ import { OsShell } from "@/components/os-shell";
 import { formatCents } from "@/lib/money";
 import { MIN_ESTIMATES_FOR_RATE, REPORT_PERIODS, type OperatingEvidence, type OwnerReport, type ReportPeriodId, type ReportRow } from "@/lib/owner-report-types";
 
-type ReportResponse = { period: ReportPeriodId; start: string; end: string; previousStart: string; previousEnd: string; timezone: string; report: OwnerReport; truncated?: string[] };
+type ReportResponse = { period: ReportPeriodId; start: string; end: string; previousStart: string; previousEnd: string; timezone: string; report: OwnerReport; truncated?: string[]; testMode?: { payments: number; cents: number } };
 
 const money = (cents: number | null) => (cents == null ? "—" : (formatCents(cents) ?? "$0"));
 const pct = (rate: number | null) => (rate == null ? "—" : `${Math.round(rate * 100)}%`);
@@ -237,6 +237,11 @@ export default function ReportsPage() {
           {r.operating?.shopSynthetic ? (
             <p className="ox-state-copy" role="note">
               This is a demo or test workspace. Every amount below is sample or test money, not money the business took in.
+            </p>
+          ) : null}
+          {!r.operating?.shopSynthetic && data.testMode?.payments ? (
+            <p className="ox-state-copy" role="note">
+              {money(data.testMode.cents)} of this, from {data.testMode.payments} card payment{data.testMode.payments === 1 ? "" : "s"}, was made in Stripe test mode. No real money moved for {data.testMode.payments === 1 ? "it" : "them"}.
             </p>
           ) : null}
           {data.truncated?.length ? (

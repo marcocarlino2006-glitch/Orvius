@@ -1032,6 +1032,33 @@ test("customers: the list says when it stops short instead of ending quietly", a
   assert.equal(all.body.hasMore, false);
 });
 
+test("reports: Stripe test-mode card receipts are named on the report and CSV; live and cash receipts are not, and totals don't move", async () => {
+  const { isTestModeReceipt } = await import("../src/lib/payment-math.ts");
+  assert.equal(isTestModeReceipt("stripe:cs_test_a1"), true);
+  assert.equal(isTestModeReceipt("cs_test_a1"), true);
+  assert.equal(isTestModeReceipt("stripe:cs_live_a1"), false);
+  assert.equal(isTestModeReceipt("cash"), false);
+  assert.equal(isTestModeReceipt(null), false);
+
+  const s = await shop();
+  const clean = await buildOwnerReport(s.id, "this_month");
+  assert.deepEqual(clean.testMode, { payments: 0, cents: 0 });
+  assert.doesNotMatch(reportCsv(clean.report, clean.truncated, clean.testMode), /Test mode/);
+
+  const job = await prisma.job.create({ data: { businessId: s.id, title: "Tune-up", status: "completed", completedAt: new Date() } });
+  const invoice = await prisma.invoice.create({ data: { businessId: s.id, jobId: job.id, amountCents: 30_000, status: "paid", paidAt: new Date(), sentAt: new Date(), publicToken: `tok-${uid()}` } });
+  await prisma.payment.create({ data: { businessId: s.id, invoiceId: invoice.id, amountCents: 10_000, status: "recorded", method: "cash" } });
+  await prisma.payment.create({ data: { businessId: s.id, invoiceId: invoice.id, amountCents: 15_000, status: "succeeded", method: `stripe:cs_test_${uid()}`, refundedCents: 5_000 } });
+  await prisma.payment.create({ data: { businessId: s.id, invoiceId: invoice.id, amountCents: 5_000, status: "succeeded", method: `stripe:cs_live_${uid()}` } });
+  await prisma.deposit.create({ data: { businessId: s.id, amountCents: 4_000, status: "paid", paidAt: new Date(), stripeSessionId: `cs_test_${uid()}` } });
+
+  const { report, truncated, testMode } = await buildOwnerReport(s.id, "this_month");
+  assert.deepEqual(testMode, { payments: 2, cents: 14_000 }, "the test card payment kept $100 after its refund, plus the $40 test deposit");
+  assert.deepEqual(report.money, { grossCents: 34_000, refundedCents: 5_000, netCents: 29_000 }, "totals are unchanged, so every screen still agrees");
+  const csv = reportCsv(report, truncated, testMode);
+  assert.match(csv, /^Test mode,2 card payments made in Stripe test mode are in these totals; no real money moved,140\.00,2/m);
+});
+
 test("reports: a period past the row cap is marked partial on screen and in the CSV, never totalled short in silence", async () => {
   const { reportCsv } = await import("../src/lib/owner-report.ts");
   const s = await shop();

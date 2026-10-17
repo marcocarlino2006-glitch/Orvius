@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { COLLECTED_STATUSES, moneyTotals, refundedOf } from "@/lib/payment-math";
+import { COLLECTED_STATUSES, RECEIPT_STATUSES, isTestModeReceipt, moneyTotals, refundedOf } from "@/lib/payment-math";
 import { MIN_ESTIMATES_FOR_RATE, type CallLeadRow, type EstimateRow, type JobRow, type MoneyRow, type OpenInvoiceRow, type OperatingEvidence, type OwnerReport, type ReportPeriodId, type ReportRow } from "@/lib/owner-report-types";
 
 import { workflowReport, type WorkflowReport } from "@/lib/workflow-events";
@@ -146,7 +146,9 @@ function capped<T>(rows: T[], section: string, hit: Set<string>): T[] {
 }
 const WON = ["accepted", "paid"];
 
-async function moneyIn(businessId: string, start: Date, end: Date, hit: Set<string>): Promise<MoneyRow[]> {
+export type TestModeMoney = { payments: number; cents: number };
+
+async function moneyIn(businessId: string, start: Date, end: Date, hit: Set<string>, testMode?: TestModeMoney): Promise<MoneyRow[]> {
   /*
     Paid means paid, even when the paid-on date is missing: every production
     path stamps paidAt alongside the status, but a paid row with no paidAt
@@ -158,15 +160,24 @@ async function moneyIn(businessId: string, start: Date, end: Date, hit: Set<stri
   const [invoices, deposits] = await Promise.all([
     prisma.invoice.findMany({
       where: { businessId, status: { in: ["paid", "partial", "refunded"] }, ...inWindow("paidAt") },
-      select: { amountCents: true, status: true, payments: { select: { amountCents: true, status: true, refundedCents: true } }, job: { select: { technicianId: true, lead: { select: { source: true } } } } },
+      select: { amountCents: true, status: true, payments: { select: { amountCents: true, status: true, refundedCents: true, method: true } }, job: { select: { technicianId: true, lead: { select: { source: true } } } } },
       take: ROW_CAP + 1,
     }).then((rows) => capped(rows, "money", hit)),
     prisma.deposit.findMany({
       where: { businessId, status: { in: ["paid", "refunded"] }, ...inWindow("paidAt") },
-      select: { amountCents: true, status: true, refundedCents: true, lead: { select: { source: true } }, job: { select: { technicianId: true, lead: { select: { source: true } } } } },
+      select: { amountCents: true, status: true, refundedCents: true, stripeSessionId: true, lead: { select: { source: true } }, job: { select: { technicianId: true, lead: { select: { source: true } } } } },
       take: ROW_CAP + 1,
     }).then((rows) => capped(rows, "money", hit)),
   ]);
+  if (testMode) {
+    const receipts = [
+      ...invoices.flatMap((i) => i.payments.filter((p) => isTestModeReceipt(p.method))),
+      ...deposits.filter((d) => isTestModeReceipt(d.stripeSessionId)),
+    ];
+    const totals = moneyTotals(receipts);
+    testMode.payments = receipts.filter((r) => RECEIPT_STATUSES.includes(r.status)).length;
+    testMode.cents = totals.netCents;
+  }
   return [
     ...invoices.map((i) => {
       /*
@@ -201,8 +212,9 @@ export async function buildOwnerReport(businessId: string, period: ReportPeriodI
   const inWindow = { gte: w.start, lt: w.end };
   const hit = new Set<string>();
   const previousHit = new Set<string>();
+  const testMode: TestModeMoney = { payments: 0, cents: 0 };
   const [money, previousMoney, estimates, jobs, callLeads, technicians, openInvoices] = await Promise.all([
-    moneyIn(businessId, w.start, w.end, hit),
+    moneyIn(businessId, w.start, w.end, hit, testMode),
     moneyIn(businessId, w.prevStart, w.prevEnd, previousHit),
     prisma.estimate.findMany({
       where: { businessId, sentAt: inWindow },
@@ -260,6 +272,7 @@ export async function buildOwnerReport(businessId: string, period: ReportPeriodI
     timezone,
     report: operating ? { ...report, operating } : report,
     truncated: [...hit],
+    testMode,
   };
 }
 
@@ -287,7 +300,7 @@ export function operatingEvidence(w: WorkflowReport): OperatingEvidence {
   };
 }
 
-export function reportCsv(report: OwnerReport, truncated: string[] = []) {
+export function reportCsv(report: OwnerReport, truncated: string[] = [], testMode?: TestModeMoney) {
   const cell = (v: string | number) => {
     const s = String(v);
     return /[",\n]/.test(s) || /^[=+\-@]/.test(s) ? `"${s.replace(/"/g, '""').replace(/^([=+\-@])/, "'$1")}"` : s;
@@ -309,6 +322,9 @@ export function reportCsv(report: OwnerReport, truncated: string[] = []) {
         ]
       : []),
     ...(report.operating?.shopSynthetic ? [["Workspace", "Demo or test workspace: sample or test money, not real takings", "", "", "", "", ""]] : []),
+    ...(testMode?.payments
+      ? [["Test mode", `${testMode.payments} card payment${testMode.payments === 1 ? "" : "s"} made in Stripe test mode are in these totals; no real money moved`, money(testMode.cents), testMode.payments, "", "", ""]]
+      : []),
     ...(truncated.length ? [["Partial", `Over ${ROW_CAP} rows; totals leave some out: ${truncated.join(", ")}`, "", "", "", "", ""]] : []),
   ];
   return lines.map((row) => row.map(cell).join(",")).join("\n");
