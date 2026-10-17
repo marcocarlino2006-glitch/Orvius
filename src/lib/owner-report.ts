@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { COLLECTED_STATUSES, moneyTotals, refundedOf } from "@/lib/payment-math";
-import { MIN_ESTIMATES_FOR_RATE, type CallLeadRow, type EstimateRow, type JobRow, type MoneyRow, type OpenInvoiceRow, type OwnerReport, type ReportPeriodId, type ReportRow } from "@/lib/owner-report-types";
+import { MIN_ESTIMATES_FOR_RATE, type CallLeadRow, type EstimateRow, type JobRow, type MoneyRow, type OpenInvoiceRow, type OperatingEvidence, type OwnerReport, type ReportPeriodId, type ReportRow } from "@/lib/owner-report-types";
+
+import { workflowReport, type WorkflowReport } from "@/lib/workflow-events";
 
 export { MIN_ESTIMATES_FOR_RATE, REPORT_PERIODS } from "@/lib/owner-report-types";
 export type { OwnerReport, ReportPeriodId, ReportRow } from "@/lib/owner-report-types";
@@ -239,7 +241,40 @@ export async function buildOwnerReport(businessId: string, period: ReportPeriodI
       };
     }),
   });
-  return { period, start: w.start.toISOString(), end: w.end.toISOString(), previousStart: w.prevStart.toISOString(), previousEnd: w.prevEnd.toISOString(), timezone, report };
+  const operating = await workflowReport(businessId, w.start, { until: w.end }).then(operatingEvidence, () => undefined);
+  return {
+    period,
+    start: w.start.toISOString(),
+    end: w.end.toISOString(),
+    previousStart: w.prevStart.toISOString(),
+    previousEnd: w.prevEnd.toISOString(),
+    timezone,
+    report: operating ? { ...report, operating } : report,
+  };
+}
+
+function median(values: number[]): number | null {
+  if (!values.length) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[mid] : Math.round((sorted[mid - 1] + sorted[mid]) / 2);
+}
+
+export function operatingEvidence(w: WorkflowReport): OperatingEvidence {
+  return {
+    observed: {
+      completedJobs: w.completedJobs,
+      money: w.money,
+      ownerDecisions: w.ownerDecisions,
+      exceptions: w.exceptions,
+      recovered: w.recovered,
+      medianStartToCompleteMs: median(w.startToCompleteMs),
+    },
+    attributableJobs: w.attributableJobs,
+    syntheticLeftOut: w.excluded,
+    shopSynthetic: w.shopSynthetic,
+    unknown: w.unknown,
+  };
 }
 
 export function reportCsv(report: OwnerReport) {
@@ -255,6 +290,13 @@ export function reportCsv(report: OwnerReport) {
     ["Total", "", money(report.collectedCents), report.payments, report.jobsCompleted, report.estimates.sent, report.estimates.won],
     ...(report.money && report.money.refundedCents > 0
       ? [["Before refunds", "", money(report.money.grossCents), "", "", "", ""], ["Refunded", "", money(report.money.refundedCents), "", "", "", ""]]
+      : []),
+    ...(report.operating
+      ? [
+          ["Observed", "Jobs a person marked done through Orvius", money(report.operating.observed.money.netCents), "", report.operating.observed.completedJobs, "", ""],
+          ["Attributable", "From a call Orvius answered or a Command booking", "", "", report.operating.attributableJobs, "", ""],
+          ["Synthetic", "Demo, test and simulated events left out", "", "", report.operating.syntheticLeftOut, "", ""],
+        ]
       : []),
   ];
   return lines.map((row) => row.map(cell).join(",")).join("\n");

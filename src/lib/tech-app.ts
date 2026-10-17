@@ -1,4 +1,6 @@
 import { recordAudit } from "@/lib/audit";
+import { buildOutcome } from "@/lib/outcome";
+import { recordWorkflowProgress } from "@/lib/workflow-events";
 import { COLLECTED_STATUSES } from "@/lib/payment-math";
 import { safeTimezone, shopDayBounds, formatShopTime } from "@/lib/availability";
 import { firstName } from "@/lib/customer-confirm";
@@ -429,6 +431,12 @@ export async function techUpdateJob(
       ...actor,
       summary: `${tech.name} is on the way${lateNote}`,
     });
+  }
+  if (status) {
+    /* What the technician reported is already saved; reporting it never turns into an error they retry. */
+    await buildOutcome(tech.businessId, { jobId: job.id })
+      .then((view) => (view ? recordWorkflowProgress(view, { actor: "technician" }) : undefined))
+      .catch(() => undefined);
   }
   return techJobDetail(tech, job.id);
 }

@@ -1,4 +1,5 @@
 import { recordAudit } from "@/lib/audit";
+import { recordSetupMilestone } from "@/lib/workflow-events";
 import { logInfo, logWarn } from "@/lib/logger";
 import {
   FORWARD_TEST_WINDOW_MS,
@@ -87,7 +88,8 @@ export async function startForwardTest(params: {
 
 async function markProven(businessId: string, testId: string, businessNumber: string) {
   const now = new Date();
-  await prisma.business.updateMany({ where: { id: businessId, lineVerifiedAt: null }, data: { lineVerifiedAt: now } });
+  const firstCall = await prisma.business.updateMany({ where: { id: businessId, lineVerifiedAt: null }, data: { lineVerifiedAt: now } });
+  if (firstCall.count) await recordSetupMilestone(businessId, "line_proven", now, { forwardTestId: testId }).catch(() => undefined);
   const stamped = await prisma.business.updateMany({
     where: { id: businessId, overflowForwardConfirmedAt: null },
     data: { overflowForwardConfirmedAt: now, overflowProvedAt: now },

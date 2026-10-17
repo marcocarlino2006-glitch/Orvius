@@ -169,6 +169,21 @@ export async function POST(request: Request) {
       }
       const outcome = await resolveReconcile({ business, proposalId: body.proposalId, happened: body.outcome === "done", by: authResult });
       if (!outcome.ok) return NextResponse.json({ error: outcome.error }, { status: outcome.status });
+      try {
+        const resolved = await prisma.copilotAction.findFirst({ where: { id: body.proposalId, businessId: business.id }, select: { paramsJson: true, resultJson: true } });
+        const p = readParams(resolved?.paramsJson) ?? {};
+        const r = parseResult(resolved?.resultJson ?? null);
+        const jobId = typeof r?.jobId === "string" ? r.jobId : (p.jobId ?? null);
+        const leadId = typeof r?.leadId === "string" ? r.leadId : (p.leadId ?? null);
+        const view = jobId || leadId ? await buildOutcome(business.id, { jobId, leadId }) : null;
+        if (view) {
+          const who = { actor: personActor(authResult).actor as "owner" | "teammate", email: authResult.email };
+          await recordWorkflowDecision(view, "resolved_exception", who, `${body.proposalId}:${body.outcome}`);
+          await recordWorkflowProgress(view, who);
+        }
+      } catch (error) {
+        logWarn("workflow.report_failed", { proposalId: body.proposalId, error: error instanceof Error ? error.message : "unknown" });
+      }
       return NextResponse.json(outcome);
     }
 

@@ -35,5 +35,27 @@ export type OwnerReport = {
   stillToCollect: { totalCents: number; count: number; invoices: OpenInvoiceRow[] };
   byTechnician: ReportRow[];
   bySource: ReportRow[];
+  /** Work that moved through Orvius in the period, from workflow events checked against the job records. Absent when it couldn't be read. */
+  operating?: OperatingEvidence;
+};
+
+export type OperatingEvidence = {
+  /** Seen in the records: jobs a person marked done, money on those jobs, decisions, problems and recoveries. */
+  observed: {
+    completedJobs: number;
+    money: { grossCents: number; refundedCents: number; netCents: number };
+    ownerDecisions: number;
+    exceptions: number;
+    recovered: number;
+    /** Middle of request-to-done times, when at least one is known. */
+    medianStartToCompleteMs: number | null;
+  };
+  /** Of the observed jobs, the ones from a real call Orvius answered or a booking approved in Command. A hand in it, not proof it caused the sale. */
+  attributableJobs: number;
+  /** Demo, test and simulated events left out. All of a shop's work is synthetic when the shop is. */
+  syntheticLeftOut: number;
+  shopSynthetic: boolean;
+  /** What these numbers can't tell you. */
+  unknown: readonly string[];
 };
 

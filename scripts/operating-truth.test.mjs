@@ -824,6 +824,57 @@ test("Command: a decision saved without its history row says so, instead of erro
   assert.equal(await prisma.job.count({ where: { businessId: ran.business.id, leadId: ran.lead.id } }), 1);
 });
 
+/* ------------------------------ evidence ------------------------------ */
+
+test("evidence from real callers: a person marking work done writes the decision, the progress and the first-outcome milestone; the owner report keeps observed, attributable and synthetic apart", async () => {
+  const s = await shop();
+  const phoneCall = await prisma.call.create({ data: { businessId: s.id, callerPhone: "+13125550147", status: "ended" } });
+  const lead = await prisma.lead.create({ data: { businessId: s.id, name: "Rosa Diaz", phone: "+13125550147", status: "booked", callId: phoneCall.id } });
+  const job = await prisma.job.create({ data: { businessId: s.id, leadId: lead.id, title: "AC repair", status: "on_site", scheduledAt: new Date(), onSiteAt: new Date() } });
+  const demoCall = await prisma.call.create({ data: { businessId: s.id, channel: "web_demo", status: "ended" } });
+  const demoLead = await prisma.lead.create({ data: { businessId: s.id, name: "Web Demo", phone: "+13125550148", status: "booked", callId: demoCall.id } });
+  const demoJob = await prisma.job.create({ data: { businessId: s.id, leadId: demoLead.id, title: "Tune-up", status: "on_site", scheduledAt: new Date(), onSiteAt: new Date() } });
+  const stillOpen = await prisma.job.create({ data: { businessId: s.id, title: "Not done", status: "scheduled", scheduledAt: new Date() } });
+
+  for (const id of [job.id, demoJob.id]) {
+    const done = await call(() => jobRoute.PATCH(req("PATCH", `/api/jobs/${id}`, { status: "completed", completion: { path: "field", resolutionCode: "repaired", finalAmountCents: 20_000 } }), idParams(id)));
+    assert.equal(done.status, 200, JSON.stringify(done.body));
+  }
+  await prisma.auditEvent.create({ data: { businessId: s.id, entityType: "job", entityId: stillOpen.id, jobId: stillOpen.id, action: "workflow.stage_done", actor: "system", summary: "forged", detailJson: JSON.stringify({ stage: "completion" }) } });
+
+  const audits = await prisma.auditEvent.findMany({ where: { businessId: s.id, action: { in: ["workflow.decision", "workflow.setup_milestone"] } } });
+  assert.equal(audits.filter((a) => a.action === "workflow.decision").length, 2);
+  assert.deepEqual(audits.filter((a) => a.action === "workflow.setup_milestone").map((a) => JSON.parse(a.detailJson).milestone), ["first_outcome"], "once per shop");
+
+  const { report } = await buildOwnerReport(s.id, "this_month");
+  assert.deepEqual(
+    [report.operating.observed.completedJobs, report.operating.attributableJobs, report.operating.observed.ownerDecisions, report.operating.shopSynthetic],
+    [2, 1, 2, false],
+    "the forged event and the open job don't count; the browser-demo call isn't attributable",
+  );
+  assert.ok(report.operating.unknown.some((u) => /hours saved/i.test(u)));
+  assert.match(reportCsv(report), /Attributable,From a call Orvius answered or a Command booking,,,1/);
+
+  process.env.ORVIUS_FOUNDER_EMAILS = s.ownerEmail;
+  try {
+    const founder = (await buildOwnerReport(s.id, "this_month")).report.operating;
+    assert.equal(founder.shopSynthetic, true);
+    assert.equal(founder.observed.completedJobs, 0, "the founder's own shop never counts as customer work");
+    assert.ok(founder.syntheticLeftOut > 0);
+  } finally {
+    delete process.env.ORVIUS_FOUNDER_EMAILS;
+  }
+});
+
+test("evidence: resolving a flagged plan is recorded as the owner's decision", async () => {
+  const { business, lead, proposalId } = await commandPlan();
+  await prisma.copilotAction.update({ where: { id: proposalId }, data: { status: "executing", createdAt: new Date(Date.now() - 60 * 60_000), paramsJson: JSON.stringify({ leadId: lead.id }) } });
+  const resolved = await call(() => copilotRoute.POST(req("POST", "/api/copilot?mode=resolve", { proposalId, outcome: "not_done" })));
+  assert.equal(resolved.status, 200);
+  const decisions = await prisma.auditEvent.findMany({ where: { businessId: business.id, action: "workflow.decision" } });
+  assert.ok(decisions.some((d) => JSON.parse(d.detailJson).decision === "resolved_exception"));
+});
+
 /* ------------------------------ team boundary ------------------------------ */
 
 const techsRoute = await import("../src/app/api/technicians/route.ts");
