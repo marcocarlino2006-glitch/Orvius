@@ -1,5 +1,6 @@
 "use client";
 
+import { askText } from "@/components/ask-dialog";
 import { useEffect, useRef, useState } from "react";
 
 export function CopyLinkButton({ value }: { value: string }) {
@@ -10,7 +11,7 @@ export function CopyLinkButton({ value }: { value: string }) {
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
-      window.prompt("Copy this calendar link", value);
+      await askText({ title: "Copy this calendar link", body: "Your browser didn't allow copying. Select the link and copy it.", label: "Calendar link", defaultValue: value, readOnly: true });
     }
   }
   return (

@@ -1,5 +1,6 @@
 "use client";
 
+import { askConfirm } from "@/components/ask-dialog";
 import { useEffect, useState } from "react";
 import { displayPhone } from "@/lib/customer";
 import type { SettingsSectionId } from "@/lib/settings-center";
@@ -59,7 +60,7 @@ export function IntegrationsSection({
   }, []);
 
   async function disconnectQuickBooks() {
-    if (!window.confirm("Disconnect QuickBooks? New payments stop going to QuickBooks. Receipts already there stay.")) return;
+    if (!(await askConfirm({ title: "Disconnect QuickBooks?", body: "New payments stop going to QuickBooks. Receipts already there stay.", confirmLabel: "Disconnect", danger: true }))) return;
     setQbBusy(true);
     setQbNote(null);
     try {
@@ -87,7 +88,7 @@ export function IntegrationsSection({
   }, []);
 
   async function disconnectJobber() {
-    if (!window.confirm("Disconnect Jobber? New calls stop going to Jobber. Requests already there stay.")) return;
+    if (!(await askConfirm({ title: "Disconnect Jobber?", body: "New calls stop going to Jobber. Requests already there stay.", confirmLabel: "Disconnect", danger: true }))) return;
     setJobberBusy(true);
     setJobberNote(null);
     try {
@@ -125,7 +126,7 @@ export function IntegrationsSection({
   }
 
   async function disconnectHousecall() {
-    if (!window.confirm("Disconnect Housecall Pro? New calls stop going to Housecall Pro. Leads already there stay.")) return;
+    if (!(await askConfirm({ title: "Disconnect Housecall Pro?", body: "New calls stop going to Housecall Pro. Leads already there stay.", confirmLabel: "Disconnect", danger: true }))) return;
     setHcpBusy(true);
     setHcpNote(null);
     try {
@@ -163,7 +164,7 @@ export function IntegrationsSection({
   }
 
   async function disconnectServiceTitan() {
-    if (!window.confirm("Disconnect ServiceTitan? New calls stop going to its booking queue. Bookings already there stay.")) return;
+    if (!(await askConfirm({ title: "Disconnect ServiceTitan?", body: "New calls stop going to its booking queue. Bookings already there stay.", confirmLabel: "Disconnect", danger: true }))) return;
     setStBusy(true);
     setStNote(null);
     try {
@@ -179,7 +180,7 @@ export function IntegrationsSection({
   }
 
   async function resetFeed() {
-    if (!window.confirm("Reset the calendar link? Calendars subscribed to the old link stop updating until you add the new one.")) return;
+    if (!(await askConfirm({ title: "Reset the calendar link?", body: "Calendars subscribed to the old link stop updating until you add the new one.", confirmLabel: "Reset link", danger: true }))) return;
     setFeedBusy(true);
     setFeedNote(null);
     try {

@@ -342,3 +342,41 @@ test("removing a job photo keeps which photo it was, once, on the job's history;
     await drop(other.id);
   }
 });
+
+test("confirmations and typed answers use the app's dialog; completion answers are checked before anything is sent", async () => {
+  const { readdirSync, readFileSync, statSync } = await import("node:fs");
+  const { join } = await import("node:path");
+  const walk = (dir) => readdirSync(dir).flatMap((name) => {
+    const path = join(dir, name);
+    return statSync(path).isDirectory() ? walk(path) : /\.(ts|tsx)$/.test(name) ? [path] : [];
+  });
+  const native = walk("src").filter((file) => /\bwindow\.(confirm|prompt|alert)\(|(^|[^\w.])(confirm|prompt|alert)\(\s*["'`]/m.test(readFileSync(file, "utf8")));
+  assert.deepEqual(native, []);
+
+  const dialog = readFileSync("src/components/ask-dialog.tsx", "utf8");
+  for (const piece of ['aria-modal="true"', "aria-labelledby", 'role="radiogroup"', "aria-checked", '"Escape"', '"Tab"', "trigger.focus()"]) {
+    assert.ok(dialog.includes(piece), `dialog keeps ${piece}`);
+  }
+  for (const caller of ["src/components/job-status-advance.tsx", "src/components/work-card.tsx", "src/app/dashboard/jobs/[id]/page.tsx"]) {
+    assert.match(readFileSync(caller, "utf8"), /await askCompletion\(/, `${caller} waits for the answer`);
+  }
+
+  const { readCompletion } = await import("../src/lib/completion-answers.ts");
+  assert.deepEqual(readCompletion({ resolutionCode: "repaired", price: "$1,250.50" }, { fromOnSite: true }), {
+    completion: { path: "field", resolutionCode: "repaired", finalAmountCents: 125050, noCharge: false },
+  });
+  assert.deepEqual(readCompletion({ resolutionCode: "diagnostic_only", price: "0" }, { fromOnSite: true }).completion, {
+    path: "field", resolutionCode: "diagnostic_only", finalAmountCents: 0, noCharge: true,
+  });
+  assert.equal(readCompletion({ resolutionCode: "maintenance", price: "" }, { fromOnSite: true }).completion.finalAmountCents, null);
+  assert.ok("error" in readCompletion({ resolutionCode: "made_up", price: "" }, { fromOnSite: true }));
+  assert.ok("error" in readCompletion({ resolutionCode: "repaired", price: "50001" }, { fromOnSite: true }));
+  assert.ok("error" in readCompletion({ resolutionCode: "repaired", price: "-1" }, { fromOnSite: true }));
+  assert.ok("error" in readCompletion({ resolutionCode: "repaired", price: "abc" }, { fromOnSite: true }));
+  assert.ok("error" in readCompletion({ resolutionCode: "repaired", price: "10", source: "rumour", reason: "x" }, { fromOnSite: false }));
+  assert.ok("error" in readCompletion({ resolutionCode: "repaired", price: "10", source: "paper_ticket", reason: "  " }, { fromOnSite: false }));
+  assert.deepEqual(readCompletion({ resolutionCode: "repaired", price: "10", source: "paper_ticket", reason: " Ticket 41 " }, { fromOnSite: false }), {
+    completion: { path: "correction", evidenceSource: "paper_ticket", resolutionCode: "repaired", finalAmountCents: 1000, noCharge: false },
+    reason: "Ticket 41",
+  });
+});

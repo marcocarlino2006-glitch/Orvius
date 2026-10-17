@@ -1,5 +1,6 @@
 "use client";
 
+import { askConfirm } from "@/components/ask-dialog";
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { OutcomeCard } from "@/components/outcome-card";
@@ -462,7 +463,12 @@ export function DemoWorkspaceBar({ sampleFrom, onChange }: { sampleFrom: string 
   const from = sampleFrom ? new Date(sampleFrom) : null;
   const stale = Boolean(from && Date.now() - from.getTime() > DAY_MS);
   async function reset() {
-    if (!window.confirm("Start the demo over at today's date? Everything you did in this demo shop is cleared. Your real shop is not touched.")) return;
+    const again = await askConfirm({
+      title: "Start the demo over at today's date?",
+      body: "Everything you did in this demo shop is cleared. Your real shop is not touched.",
+      confirmLabel: "Start over",
+    });
+    if (!again) return;
     setBusy(true);
     try {
       await openDemo(true);

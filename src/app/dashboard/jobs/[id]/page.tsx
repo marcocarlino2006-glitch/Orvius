@@ -1,5 +1,6 @@
 "use client";
 
+import { askConfirm, askText } from "@/components/ask-dialog";
 import { askCompletion } from "@/components/completion-prompt";
 import { JobBillSection, type JobBill } from "@/components/job-bill-section";
 import { RecordFetchError, recordFailureFrom } from "@/lib/dashboard-fetch";
@@ -169,7 +170,7 @@ export default function JobDetailPage() {
 
   async function advance(status: string) {
     if (status !== "completed") return patch({ status });
-    const asked = askCompletion({ fromOnSite: job?.status === "on_site" });
+    const asked = await askCompletion({ fromOnSite: job?.status === "on_site" });
     if (!asked) return;
     if ("error" in asked) return setError(asked.error);
     return patch({ status, completion: asked.completion, ...(asked.reason ? { reason: asked.reason } : {}) });
@@ -248,12 +249,32 @@ export default function JobDetailPage() {
               ? "Waiting for the customer to confirm"
               : "No time picked yet";
 
-  function closeJob() {
-    const reason = changeReason.trim() || window.prompt("Why is this job being cancelled? This goes in the history.")?.trim();
+  async function closeJob() {
+    const typed = changeReason.trim();
+    if (
+      typed &&
+      !(await askConfirm({
+        title: "Cancel this job?",
+        body: "The technician's day updates right away.",
+        confirmLabel: "Cancel job",
+        cancelLabel: "Keep job",
+        danger: true,
+      }))
+    )
+      return;
+    const reason =
+      typed ||
+      (await askText({
+        title: "Cancel this job?",
+        body: "The technician's day updates right away. The reason goes in the history.",
+        label: "Why is it being cancelled?",
+        multiline: true,
+        confirmLabel: "Cancel job",
+        cancelLabel: "Keep job",
+        danger: true,
+      }))?.trim();
     if (reason === undefined) return;
-    if (window.confirm("Cancel this job? The technician's day updates right away.")) {
-      void patch({ status: "cancelled", ...(reason ? { reason } : {}) }).then(() => setChangeReason(""));
-    }
+    void patch({ status: "cancelled", ...(reason ? { reason } : {}) }).then(() => setChangeReason(""));
   }
 
   function startReschedule() {

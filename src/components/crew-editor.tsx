@@ -1,5 +1,6 @@
 "use client";
 
+import { askConfirm } from "@/components/ask-dialog";
 import { useState } from "react";
 import { TechScheduleEditor, type TechTimeOff } from "@/components/tech-schedule-editor";
 import { toast } from "@/components/toaster";
@@ -86,8 +87,8 @@ function TechAppLink({ tech, onChanged }: { tech: Tech; onChanged: () => void })
       return "Link copied.";
     });
 
-  const turnOff = () => {
-    if (!window.confirm(`Turn off ${tech.name}'s app link? It stops working right away.`)) return;
+  const turnOff = async () => {
+    if (!(await askConfirm({ title: `Turn off ${tech.name}'s app link?`, body: "It stops working right away.", confirmLabel: "Turn off", danger: true }))) return;
     void run("Turning off", async () => {
       await call("DELETE");
       return "Link turned off.";
@@ -233,12 +234,13 @@ function RemoveFromTeam({ tech, onDone }: { tech: Tech; onDone: () => void }) {
   const [error, setError] = useState<string | null>(null);
 
   async function remove() {
-    if (
-      !window.confirm(
-        `Take ${tech.name} off the team? Their upcoming jobs come off them and go to someone else when one person clearly fits; the rest show as "Needs a tech". Their app link stops working.`,
-      )
-    )
-      return;
+    const confirmed = await askConfirm({
+      title: `Take ${tech.name} off the team?`,
+      body: 'Their upcoming jobs come off them and go to someone else when one person clearly fits; the rest show as "Needs a tech". Their app link stops working.',
+      confirmLabel: "Take off team",
+      danger: true,
+    });
+    if (!confirmed) return;
     setBusy(true);
     setError(null);
     try {

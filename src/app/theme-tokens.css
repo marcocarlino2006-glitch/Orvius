@@ -47,6 +47,8 @@
     scripts/verify-dock.cjs scans the whole scroll range and asserts it.
   */
   --ui-dock-glass: rgb(31 31 34 / 0.9);
+  --ui-danger: #f26b6b;
+  --ui-on-danger: #111113;
 }
 
 [data-theme="day"] {
@@ -69,6 +71,8 @@
   --ui-lip: inset 0 1px 0 0 rgb(255 255 255 / 0.9);
   --ui-dock-shadow: 0 12px 32px rgb(38 37 30 / 0.12);
   --ui-dock-glass: rgb(255 255 255 / 0.9);
+  --ui-danger: #b42318;
+  --ui-on-danger: #ffffff;
 }
 
 /*

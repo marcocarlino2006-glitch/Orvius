@@ -1,5 +1,6 @@
 "use client";
 
+import { askConfirm } from "@/components/ask-dialog";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { JOB_OUTCOMES, jobOutcomeLabel } from "@/lib/job-outcome";
@@ -654,7 +655,7 @@ function Pay({ base, detail, onPaid }: { base: string; detail: Detail; onPaid: (
   const paid = m.invoice?.status === "paid";
 
   async function collect(method: "text" | "here" | "cash" | "check") {
-    if ((method === "cash" || method === "check") && !window.confirm(`Mark ${money(m.balanceCents)} paid by ${method}?`)) return;
+    if ((method === "cash" || method === "check") && !(await askConfirm({ title: `Mark ${money(m.balanceCents)} paid by ${method}?`, body: "Only if you have it in hand. This records the job as paid.", confirmLabel: `Paid by ${method}` }))) return;
     setBusy(method);
     setError(null);
     setDone(null);

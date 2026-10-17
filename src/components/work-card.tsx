@@ -1,5 +1,6 @@
 "use client";
 
+import { askText } from "@/components/ask-dialog";
 import { askCompletion } from "@/components/completion-prompt";
 import Link from "next/link";
 import { useState } from "react";
@@ -102,16 +103,25 @@ export function WorkCard({
       onChange();
     });
 
-  const markDone = () => {
-    const asked = askCompletion({ fromOnSite: item.stage === "on_site" });
+  const markDone = async () => {
+    const asked = await askCompletion({ fromOnSite: item.stage === "on_site" });
     if (!asked) return;
     if ("error" in asked) return setError(asked.error);
     void setJob({ status: "completed", completion: asked.completion, ...(asked.reason ? { reason: asked.reason } : {}) }, "Marked done");
   };
 
-  const closeJob = () => {
-    const reason = window.prompt("Why close this job? This goes in the history.", "The visit time passed and it never happened")?.trim();
-    if (reason === undefined) return;
+  const closeJob = async () => {
+    const answer = await askText({
+      title: "Close this job?",
+      body: "This goes in the history.",
+      label: "Why close it",
+      defaultValue: "The visit time passed and it never happened",
+      multiline: true,
+      confirmLabel: "Close job",
+      danger: true,
+    });
+    if (answer == null) return;
+    const reason = answer.trim();
     void setJob({ status: "cancelled", ...(reason ? { reason } : {}) }, "Job closed");
   };
 

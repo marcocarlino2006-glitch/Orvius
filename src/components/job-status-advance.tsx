@@ -43,7 +43,7 @@ export function JobStatusAdvance({
     const previous = status;
     const target = next.status;
     if (target === "completed") {
-      const asked = askCompletion({ fromOnSite: status === "on_site" });
+      const asked = await askCompletion({ fromOnSite: status === "on_site" });
       if (!asked) return;
       if ("error" in asked) {
         toast({ title: asked.error, tone: "error" });

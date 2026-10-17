@@ -9,6 +9,7 @@ import "./globals.css";
 import "./public-v2.css";
 import "./theme-tokens.css";
 import "./public-polish.css";
+import "./ask-dialog.css";
 
 /**
  * One face everywhere: Inter for the site, the product and every number in it

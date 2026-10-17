@@ -1,5 +1,6 @@
 "use client";
 
+import { askConfirm } from "@/components/ask-dialog";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert, ShellLoading, ShellPanel } from "@/components/shell-primitives";
 import { toast } from "@/components/toaster";
@@ -169,8 +170,9 @@ export default function PriceBookPage() {
                         type="button"
                         className="ox-btn ox-btn--quiet ox-btn--sm"
                         disabled={busy}
-                        onClick={() => {
-                          if (window.confirm(`Remove ${item.name}? Jobs that already used it keep their lines.`)) void send(`/api/price-book/${item.id}`, "DELETE");
+                        onClick={async () => {
+                          if (await askConfirm({ title: `Remove ${item.name}?`, body: "Jobs that already used it keep their lines.", confirmLabel: "Remove", danger: true }))
+                            void send(`/api/price-book/${item.id}`, "DELETE");
                         }}
                       >
                         Remove

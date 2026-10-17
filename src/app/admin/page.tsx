@@ -1,5 +1,6 @@
 "use client";
 
+import { askConfirm } from "@/components/ask-dialog";
 import { OsShell } from "@/components/os-shell";
 import { TollFreeForm } from "@/components/toll-free-form";
 import { LiveStatusBar } from "@/components/live-status-bar";
@@ -300,7 +301,7 @@ export default function AdminPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Delete this business and its Vapi assistant?")) return;
+    if (!(await askConfirm({ title: "Delete this business and its Vapi assistant?", body: "This can't be undone from here.", confirmLabel: "Delete", danger: true }))) return;
 
     const res = await fetch(`/api/businesses?id=${id}`, { method: "DELETE" });
     if (!res.ok) {
