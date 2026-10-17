@@ -80,23 +80,6 @@ html[data-theme="day"] .ov-public .ov-surface-anchor {
   border-top: 1px solid var(--ov-line) !important;
 }
 
-.ov-public .ov-chapter-head {
-  display: grid;
-  gap: 0.5rem;
-  margin-bottom: var(--ov-gap-module);
-}
-
-.ov-public .ov-chapter-index {
-  color: var(--ov-muted);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
-.ov-public .ov-measure {
-  max-width: var(--ov-measure);
-}
-
 /* ── Indexed ruled rows: a number rail and one line of rhythm ── */
 
 .ov-public .ov-rows {
