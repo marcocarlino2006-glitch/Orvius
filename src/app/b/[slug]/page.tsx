@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { PublicShopFallback, type ShopContact } from "@/components/public-shop-fallback";
+import { sendWrite } from "@/lib/client-write";
+import { CHECKING, checkRecord, newOperationKey, runCheckedWrite, type CheckedResult, type ReadBackAnswer } from "@/lib/checked-write";
 import "@/app/public-field.css";
 import "./book.css";
 
@@ -14,6 +16,28 @@ type Info = {
   slots: Slot[];
 };
 type Done = { label: string; confirmTextSent: boolean };
+type Outcome = Done | { received: string };
+
+/** Only a reply that names the booked time counts as booked. */
+function asDone(data: unknown): Done | null {
+  const d = data as { ok?: unknown; label?: unknown; confirmTextSent?: unknown } | null;
+  if (d?.ok !== true || typeof d.label !== "string" || !d.label) return null;
+  return { label: d.label, confirmTextSent: d.confirmTextSent === true };
+}
+
+/** One key per service and time on this page, kept across a reload, so pressing Book again is the same booking. */
+function attemptKey(slug: string, service: string, at: string) {
+  const name = `orvius-book:${slug}:${service}:${at}`;
+  try {
+    const saved = sessionStorage.getItem(name);
+    if (saved && /^[A-Za-z0-9-]{8,64}$/.test(saved)) return saved;
+    const key = newOperationKey();
+    sessionStorage.setItem(name, key);
+    return key;
+  } catch {
+    return newOperationKey();
+  }
+}
 
 function dayKey(iso: string, timezone: string | null) {
   return new Date(iso).toLocaleDateString("en-US", {
@@ -48,6 +72,10 @@ export default function BookPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<Done | null>(null);
+  const [received, setReceived] = useState<string | null>(null);
+  const [checking, setChecking] = useState(false);
+  /** A booking whose outcome Orvius couldn't confirm: Book becomes "Check again" until the record answers. */
+  const [pending, setPending] = useState<string | null>(null);
 
   const load = async (nextService: string | null) => {
     const qs = nextService ? `?${new URLSearchParams({ service: nextService })}` : "";
@@ -92,29 +120,71 @@ export default function BookPage() {
     return [...groups.entries()];
   }, [info, tz]);
 
+  const bookUrl = `/api/public/book/${encodeURIComponent(slug)}`;
+
+  const readBooking = async (key: string): Promise<ReadBackAnswer<Outcome>> => {
+    const res = await fetch(`${bookUrl}?${new URLSearchParams({ booking: key })}`, { cache: "no-store" });
+    if (!res.ok) return null;
+    const found = ((await res.json().catch(() => null)) as { booking?: unknown } | null)?.booking;
+    if (asDone(found)) return asDone(found);
+    const reason = (found as { reason?: unknown } | null)?.reason;
+    if (reason === "none") return "absent";
+    if (reason === "received") return { received: String((found as { message?: unknown }).message ?? "") };
+    return null;
+  };
+
+  const settle = (result: CheckedResult<Outcome>, key: string) => {
+    if (result.kind === "confirmed") {
+      if ("received" in result.value) setReceived(result.value.received || "The business has your request and will contact you to set a time.");
+      else setDone(result.value);
+      return;
+    }
+    if (result.kind === "unknown") {
+      setPending(key);
+      setError(result.message);
+      return;
+    }
+    setPending(null);
+    setError(result.message);
+  };
+
   const submit = async () => {
     if (!service || !slot || busy) return;
+    if (pending) return void checkAgain();
+    const key = attemptKey(slug, service, slot.at);
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch(`/api/public/book/${encodeURIComponent(slug)}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ serviceType: service, at: slot.at, ...form }),
+      const result = await runCheckedWrite<Outcome>({
+        send: () => sendWrite(bookUrl, "POST", { serviceType: service, at: slot.at, ...form, bookingKey: key }),
+        accept: asDone,
+        readBack: () => readBooking(key),
+        onChecking: () => setChecking(true),
       });
-      const data = await res.json().catch(() => null);
-      if (!res.ok) {
-        setError(data?.error ?? "That didn't go through. Try again or call us.");
-        if (data?.reason === "slot_taken") {
-          setSlot(null);
-          await load(service);
-        }
+      if (result.kind === "failed" && result.reason === "received") {
+        setReceived(result.message);
         return;
       }
-      setDone({ label: data.label, confirmTextSent: data.confirmTextSent });
-    } catch {
-      setError("Network error. Check your connection and try again.");
+      settle(result, key);
+      if (result.kind === "failed" && result.reason === "slot_taken") {
+        setSlot(null);
+        await load(service);
+      }
     } finally {
+      setChecking(false);
+      setBusy(false);
+    }
+  };
+
+  const checkAgain = async () => {
+    if (!pending || busy) return;
+    setBusy(true);
+    setChecking(true);
+    setError(null);
+    try {
+      settle(await checkRecord(() => readBooking(pending)), pending);
+    } finally {
+      setChecking(false);
       setBusy(false);
     }
   };
@@ -154,6 +224,24 @@ export default function BookPage() {
     );
   }
 
+  if (received) {
+    return (
+      <main className="pf pf--center">
+        <div className="pf-head">
+          <p className="pf-kicker">{info.business.name}</p>
+          <h1 className="pf-title">Request received</h1>
+          <p className="pf-sub">No time is held yet.</p>
+        </div>
+        <div className="pf-card pf-done">
+          <p className="pf-muted">
+            {received}
+            {phone ? ` Or call ${formatPhone(phone)}.` : ""}
+          </p>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="pf bk">
       <div className="pf-head">
@@ -177,6 +265,7 @@ export default function BookPage() {
               type="button"
               className={`bk-chip ${service === name ? "is-on" : ""}`}
               aria-pressed={service === name}
+              disabled={Boolean(pending)}
               onClick={() => void pickService(name)}
             >
               {name}
@@ -214,6 +303,7 @@ export default function BookPage() {
                       type="button"
                       className={`bk-time ${slot?.at === s.at ? "is-on" : ""}`}
                       aria-pressed={slot?.at === s.at}
+                      disabled={Boolean(pending)}
                       onClick={() => setSlot(s)}
                     >
                       {timeOnly(s.at, tz)}
@@ -300,13 +390,24 @@ export default function BookPage() {
           <p className="pf-muted">
             By booking you agree to get texts about this appointment from {info.business.name}. Reply STOP to opt out.
           </p>
-          {error ? (
+          {checking ? (
+            <p className="pf-muted" role="status">
+              {CHECKING}
+            </p>
+          ) : error ? (
             <p className="pf-error" role="alert">
               {error}
+              {pending && phone ? ` You can also call ${formatPhone(phone)}.` : ""}
             </p>
           ) : null}
           <button type="submit" className="pf-btn pf-btn--primary" disabled={busy}>
-            {busy ? "Booking…" : `Book ${timeOnly(slot.at, tz)}, ${dayKey(slot.at, tz)}`}
+            {checking
+              ? "Checking…"
+              : busy
+                ? "Booking…"
+                : pending
+                  ? "Check if it went through"
+                  : `Book ${timeOnly(slot.at, tz)}, ${dayKey(slot.at, tz)}`}
           </button>
         </form>
       ) : error ? (

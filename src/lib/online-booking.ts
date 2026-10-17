@@ -12,6 +12,7 @@ import { buildLeadAlertDedupeKey, enqueueOwnerAlert } from "@/lib/notifications"
 import { prisma } from "@/lib/prisma";
 import { recordAudit } from "@/lib/audit";
 import { formatShopTime, safeTimezone } from "@/lib/availability";
+import { isInServiceArea } from "@/lib/service-area";
 import { classifyRequest, parseServiceOverrides, resolveTrade, TRADE_PLAYBOOKS } from "@/lib/trade-playbooks";
 
 /**
@@ -50,6 +51,7 @@ type BookingShop = Pick<
   | "ownerEmail"
   | "vapiPhoneNumber"
   | "twilioPhone"
+  | "serviceZipsJson"
 >;
 
 const SHOP_SELECT = {
@@ -73,6 +75,7 @@ const SHOP_SELECT = {
   ownerEmail: true,
   vapiPhoneNumber: true,
   twilioPhone: true,
+  serviceZipsJson: true,
 } as const;
 
 export type PublicShop = BookingShop;
@@ -157,13 +160,51 @@ export type BookingInput = {
   notes?: string | null;
   /** The optional, unticked-by-default promotional texts box. */
   marketingOptIn?: boolean;
+  /** Made once per booking attempt by the page; the same key twice is the same booking, not a second one. */
+  bookingKey?: string | null;
 };
 
 export type BookingResult =
-  | { ok: true; jobId: string; scheduledAt: string; label: string; confirmTextSent: boolean }
-  | { ok: false; reason: "bad_phone" | "bad_service" | "bad_time" | "slot_taken" | "safety" | "owner_sets_times"; message: string };
+  | { ok: true; jobId: string; scheduledAt: string; label: string; confirmTextSent: boolean; replayed?: boolean }
+  | { ok: false; reason: "bad_phone" | "bad_service" | "bad_time" | "slot_taken" | "safety" | "owner_sets_times" | "out_of_area"; message: string }
+  | { ok: false; reason: "received"; message: string };
+
+const BOOKING_KEY = /^[A-Za-z0-9-]{8,64}$/;
+const bookingExternalId = (key: string) => `web-booking:${key}`;
+
+/**
+ * Where an earlier submission with this key ended up. A booking that made a
+ * job reads back as booked, exactly as the first reply said. A request that
+ * stopped short of a job (the slot went at the last moment) is with the
+ * owner. "none" means nothing with this key was ever written.
+ */
+export async function bookingReadBack(shop: Pick<BookingShop, "id" | "timezone" | "name">, key: string): Promise<BookingResult | { ok: false; reason: "none"; message: string }> {
+  if (!BOOKING_KEY.test(key)) return { ok: false, reason: "none", message: "No booking found." };
+  const lead = await prisma.lead.findUnique({
+    where: { businessId_externalId: { businessId: shop.id, externalId: bookingExternalId(key) } },
+    select: { id: true, job: { select: { id: true, scheduledAt: true } } },
+  });
+  if (!lead) return { ok: false, reason: "none", message: "No booking found." };
+  if (!lead.job?.scheduledAt) {
+    return { ok: false, reason: "received", message: `${shop.name} has your request, but the time you picked wasn't held. They'll contact you to set one.` };
+  }
+  const texted = await prisma.outboundSms.count({ where: { businessId: shop.id, jobId: lead.job.id, audience: "customer" } });
+  return {
+    ok: true,
+    jobId: lead.job.id,
+    scheduledAt: lead.job.scheduledAt.toISOString(),
+    label: formatShopTime(lead.job.scheduledAt, shop.timezone ?? "America/New_York"),
+    confirmTextSent: texted > 0,
+    replayed: true,
+  };
+}
 
 export async function bookOnline(shop: BookingShop, input: BookingInput): Promise<BookingResult> {
+  const key = input.bookingKey && BOOKING_KEY.test(input.bookingKey) ? input.bookingKey : null;
+  if (key) {
+    const earlier = await bookingReadBack(shop, key);
+    if (earlier.ok || earlier.reason !== "none") return earlier as BookingResult;
+  }
   const phone = normalizePhone(input.phone);
   if (!phone || !isTextableNumber(phone)) {
     return { ok: false, reason: "bad_phone", message: "Enter a US or Canadian mobile number we can text the confirmation to." };
@@ -186,6 +227,16 @@ export async function bookOnline(shop: BookingShop, input: BookingInput): Promis
     };
   }
 
+  if (isInServiceArea(input.address, shop.serviceZipsJson) === false) {
+    return {
+      ok: false,
+      reason: "out_of_area",
+      message: input.address?.trim()
+        ? `That address looks outside the area ${shop.name} books online. Call them${shop.vapiPhoneNumber ? ` at ${shop.vapiPhoneNumber}` : ""} to ask.`
+        : "Add the service address with its ZIP code so we can check it's in the area.",
+    };
+  }
+
   if (holdsForApproval(await getSchedulingPolicy(shop.id))) {
     return {
       ok: false,
@@ -205,21 +256,40 @@ export async function bookOnline(shop: BookingShop, input: BookingInput): Promis
     address: input.address,
     trade: tradeForCapture(shop),
   });
-  const lead = await prisma.lead.create({
-    data: {
-      businessId: shop.id,
-      name,
-      phone,
-      email: input.email?.trim().toLowerCase().slice(0, 200) || null,
-      address: input.address?.trim().slice(0, 300) || null,
-      notes: input.notes?.trim().slice(0, 1000) || null,
-      serviceType: input.serviceType,
-      source: "web",
-      status: "new",
-      categoryCode: demand.categoryCode,
-      postalCode: demand.postalCode,
-    },
-  });
+  let lead;
+  try {
+    lead = await prisma.lead.create({
+      data: {
+        businessId: shop.id,
+        externalId: key ? bookingExternalId(key) : null,
+        name,
+        phone,
+        email: input.email?.trim().toLowerCase().slice(0, 200) || null,
+        address: input.address?.trim().slice(0, 300) || null,
+        notes: input.notes?.trim().slice(0, 1000) || null,
+        serviceType: input.serviceType,
+        source: "web",
+        status: "new",
+        categoryCode: demand.categoryCode,
+        postalCode: demand.postalCode,
+      },
+    });
+  } catch (error) {
+    /* The same press arrived twice at once; the first write is the booking, this one reads it back. */
+    if (key && (error as { code?: string })?.code === "P2002") {
+      // The first copy may still be writing its job; give it a moment before calling the request time-less.
+      for (let attempt = 0; attempt < 10; attempt++) {
+        const earlier = await bookingReadBack(shop, key);
+        if (earlier.ok) return earlier;
+        if (attempt === 9) {
+          if (earlier.reason !== "none") return earlier as BookingResult;
+          break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      }
+    }
+    throw error;
+  }
   await linkTouchToCustomer({
     businessId: shop.id,
     leadId: lead.id,
