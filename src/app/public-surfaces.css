@@ -690,3 +690,77 @@ html[data-theme="day"] .ov-public .mkt-nav .mkt-nav-cta::before {
 .ov-public .ov-endcap {
   max-width: 42rem !important;
 }
+
+/*
+ * ── Pricing: one plan speaks, the others stay quiet ──
+ * The highlighted plan (featured, or the Plan Finder's pick, never both) gets
+ * an ink header band above its price and the stone inset; the rest are hairline
+ * outlines on the page. Empty badges keep the band's height so prices align.
+ * `html` lifts these over the night-theme card rules in globals.css.
+ */
+
+html .ov-public .tier1-pricing-plans .tier1-plan {
+  --plan-pad-x: 1.5rem;
+  --plan-pad-top: 0rem;
+  overflow: hidden;
+  padding: var(--plan-pad-top) var(--plan-pad-x) 1.5rem !important;
+}
+
+html .ov-public .tier1-pricing-plans .tier1-plan-quiet {
+  background: transparent !important;
+  border-color: var(--ov-line) !important;
+}
+
+html .ov-public .tier1-pricing-plans .tier1-plan-featured {
+  background: var(--ov-stone) !important;
+  border-color: var(--ov-line-strong) !important;
+}
+
+html .ov-public .tier1-pricing-plans .tier1-plan-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+  margin: 0 calc(var(--plan-pad-x) * -1) 0.75rem !important;
+  padding: 0.5rem var(--plan-pad-x);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+html .ov-public .tier1-pricing-plans .tier1-plan-featured .tier1-plan-badge {
+  --plan-dot: #6ee7a8;
+  background: var(--ov-charcoal);
+  color: var(--ov-paper) !important;
+}
+
+html[data-theme="night"] .ov-public .tier1-pricing-plans .tier1-plan-featured .tier1-plan-badge {
+  --plan-dot: #167d5e;
+  background: var(--ov-headline);
+}
+
+html .ov-public .tier1-pricing-plans .tier1-plan-featured .tier1-plan-badge::before {
+  content: "";
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 999px;
+  background: var(--plan-dot);
+}
+
+html .ov-public .pricing-multi-row:not(.pricing-multi-row--recommended) {
+  background: transparent !important;
+}
+
+@media (max-width: 1099px) {
+  html .ov-public .tier1-pricing-plans .tier1-plan-badge--empty {
+    display: none;
+  }
+
+  html .ov-public .tier1-pricing-plans .tier1-plan-quiet {
+    padding-top: 1.5rem !important;
+  }
+}
+
+html .ov-public .pricing-chapter-compare .pricing-matrix-scroll {
+  background: var(--ov-paper) !important;
+}
