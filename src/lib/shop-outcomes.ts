@@ -1,7 +1,9 @@
+import { shopDayBounds } from "@/lib/availability";
 import { isAfterHours } from "@/lib/business";
 import { COLLECTED_STATUSES, addTotals, moneyTotals, type MoneyTotals } from "@/lib/payment-math";
 import { estimatedRevenueCents, formatCentsExact } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
+import { weekBounds } from "@/lib/tech-timesheet";
 
 /** How much history the trend draws. Eight weeks fits a screen and a season. */
 const TREND_WEEKS = 8;
@@ -18,16 +20,36 @@ export type OutcomeWeek = {
   partial: boolean;
 };
 
+function shiftDay(isoDay: string, days: number) {
+  const [y, m, d] = isoDay.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d + days, 12)).toISOString().slice(0, 10);
+}
+
 /*
   Monday, not Sunday. A trades week runs Monday to Saturday with emergencies on
   the weekend attached to the week they interrupt, so a Sunday-aligned bucket
-  splits every weekend across two bars.
+  splits every weekend across two bars. Weeks start at midnight where the shop
+  is, not where the server is, so a Sunday-night call stays in its own week.
 */
-function weekStart(at: Date) {
-  const start = new Date(at);
-  start.setHours(0, 0, 0, 0);
-  start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
-  return start;
+export function trendWeeks(timezone: string, now = new Date(), count = TREND_WEEKS) {
+  const today = shopDayBounds(null, timezone, now).day;
+  const current = weekBounds(today, timezone);
+  const monday = shopDayBounds(null, timezone, current.start).day;
+  const weeks = Array.from({ length: count }, (_, i) => {
+    const day = shiftDay(monday, -7 * (count - 1 - i));
+    return { day, start: shopDayBounds(day, timezone).start };
+  });
+  return { weeks, end: current.end };
+}
+
+/** Which of the given weeks a moment falls in, or -1 outside them all. */
+export function weekIndex(weeks: { start: Date }[], end: Date, at: Date) {
+  const t = at.getTime();
+  if (weeks.length === 0 || t < weeks[0].start.getTime() || t >= end.getTime()) return -1;
+  for (let i = weeks.length - 1; i >= 0; i--) {
+    if (t >= weeks[i].start.getTime()) return i;
+  }
+  return -1;
 }
 
 export type ShopOutcomes = {
@@ -84,13 +106,6 @@ export async function getShopOutcomes(
   businessId: string,
   windowDays = 7,
 ): Promise<ShopOutcomes> {
-  const since = new Date();
-  since.setDate(since.getDate() - windowDays);
-  since.setHours(0, 0, 0, 0);
-
-  const trendSince = weekStart(new Date());
-  trendSince.setDate(trendSince.getDate() - 7 * (TREND_WEEKS - 1));
-
   const business = await prisma.business.findUnique({
     where: { id: businessId },
     select: {
@@ -101,6 +116,14 @@ export async function getShopOutcomes(
       baselineJobsPerWeek: true,
     },
   });
+  const timezone = business?.timezone ?? "America/New_York";
+  const now = new Date();
+  const since = shopDayBounds(
+    shiftDay(shopDayBounds(null, timezone, now).day, -windowDays),
+    timezone,
+  ).start;
+  const trend = trendWeeks(timezone, now);
+  const trendSince = trend.weeks[0].start;
 
   const [
     calls,
@@ -214,7 +237,6 @@ export async function getShopOutcomes(
   const leadCount = leads.length;
   const bookedFromLeads = leads.filter((l) => l.job).length;
   const hoursJson = business?.hoursJson ?? "{}";
-  const timezone = business?.timezone ?? "America/New_York";
 
   const afterHoursLeadsList = leads.filter((lead) =>
     isAfterHours(lead.createdAt, hoursJson, timezone),
@@ -253,29 +275,18 @@ export async function getShopOutcomes(
       baselineJobs != null,
   );
 
-  const currentWeek = weekStart(new Date()).getTime();
-  const buckets = new Map<number, { leads: number; booked: number }>();
-  for (let i = 0; i < TREND_WEEKS; i++) {
-    buckets.set(trendSince.getTime() + i * 7 * 86_400_000, {
-      leads: 0,
-      booked: 0,
-    });
-  }
+  const weekly: OutcomeWeek[] = trend.weeks.map((week, i) => ({
+    start: week.day,
+    leads: 0,
+    booked: 0,
+    partial: i === trend.weeks.length - 1,
+  }));
   for (const lead of trendLeads) {
-    const key = weekStart(lead.createdAt).getTime();
-    const bucket = buckets.get(key);
-    if (!bucket) continue;
-    bucket.leads += 1;
-    if (lead.job) bucket.booked += 1;
+    const i = weekIndex(trend.weeks, trend.end, lead.createdAt);
+    if (i < 0) continue;
+    weekly[i].leads += 1;
+    if (lead.job) weekly[i].booked += 1;
   }
-  const trend: OutcomeWeek[] = [...buckets.entries()]
-    .sort(([a], [b]) => a - b)
-    .map(([at, counts]) => ({
-      start: new Date(at).toISOString().slice(0, 10),
-      leads: counts.leads,
-      booked: counts.booked,
-      partial: at === currentWeek,
-    }));
 
   return {
     windowDays,
@@ -312,7 +323,7 @@ export async function getShopOutcomes(
     openEstimateCents,
     openInvoiceCents,
     economicsReady,
-    weeks: trend,
+    weeks: weekly,
   };
 }
 

@@ -2,22 +2,22 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { PrismaClient } from "@prisma/client";
 
-import { getShopOutcomes } from "../src/lib/shop-outcomes.ts";
+import { getShopOutcomes, trendWeeks, weekIndex } from "../src/lib/shop-outcomes.ts";
 
 const prisma = new PrismaClient();
 
-/** The Monday the trend would bucket `at` into. */
+/** The Monday a UTC shop's trend would bucket `at` into. */
 function mondayOf(at) {
   const start = new Date(at);
-  start.setHours(0, 0, 0, 0);
-  start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
+  start.setUTCHours(0, 0, 0, 0);
+  start.setUTCDate(start.getUTCDate() - ((start.getUTCDay() + 6) % 7));
   return start;
 }
 
 function inWeek(weeksAgo, dayInWeek = 1, hour = 10) {
   const monday = mondayOf(new Date());
-  monday.setDate(monday.getDate() - weeksAgo * 7 + dayInWeek);
-  monday.setHours(hour, 0, 0, 0);
+  monday.setUTCDate(monday.getUTCDate() - weeksAgo * 7 + dayInWeek);
+  monday.setUTCHours(hour, 0, 0, 0);
   return monday;
 }
 
@@ -27,6 +27,7 @@ async function shopWithLeads(label, rows) {
       name: label,
       slug: `${label.toLowerCase().replace(/\W+/g, "-")}-${Date.now()}`,
       billingStatus: "pilot",
+      timezone: "UTC",
     },
   });
 
@@ -164,6 +165,46 @@ test("a lead older than the trend is not folded into the first bar", async () =>
       "the twenty-week-old lead is out of range and stays out",
     );
     assert.equal(weeks[0].leads, 0, "it is not swept into the oldest bucket");
+  } finally {
+    await prisma.business.delete({ where: { id: business.id } }).catch(() => {});
+  }
+});
+
+test("weeks start at midnight where the shop is, across a clock change", () => {
+  // Tuesday Nov 10 2026; US clocks fell back on Sunday Nov 1.
+  const now = new Date("2026-11-10T15:00:00Z");
+  const { weeks, end } = trendWeeks("America/New_York", now, 3);
+
+  assert.deepEqual(weeks.map((w) => w.day), ["2026-10-26", "2026-11-02", "2026-11-09"]);
+  assert.deepEqual(
+    weeks.map((w) => w.start.toISOString()),
+    ["2026-10-26T04:00:00.000Z", "2026-11-02T05:00:00.000Z", "2026-11-09T05:00:00.000Z"],
+    "Monday midnight in New York, an hour later in UTC once clocks fall back",
+  );
+  assert.equal(end.toISOString(), "2026-11-16T05:00:00.000Z");
+
+  // Sunday 11:30 PM in New York is already Monday in UTC.
+  assert.equal(weekIndex(weeks, end, new Date("2026-11-09T04:30:00Z")), 1, "Sunday night stays in its own week");
+  assert.equal(weekIndex(weeks, end, new Date("2026-11-09T05:00:00Z")), 2, "Monday midnight opens the next");
+  assert.equal(weekIndex(weeks, end, new Date("2026-10-26T03:59:59Z")), -1, "before the first week is out");
+  assert.equal(weekIndex(weeks, end, end), -1, "next Monday is out");
+});
+
+test("a Sunday-night lead lands in the shop's week, not the server's", async () => {
+  const business = await shopWithLeads("Trend Shop Time", []);
+  try {
+    await prisma.business.update({ where: { id: business.id }, data: { timezone: "Pacific/Honolulu" } });
+    const { weeks: frame } = trendWeeks("Pacific/Honolulu");
+    // 10 PM Sunday in Honolulu (UTC-10) is 8 AM Monday in UTC.
+    const sundayNight = new Date(frame.at(-1).start.getTime() - 2 * 3_600_000);
+    await prisma.lead.create({
+      data: { businessId: business.id, name: "Caller", serviceType: "No heat", createdAt: sundayNight },
+    });
+
+    const { weeks } = await getShopOutcomes(business.id);
+    assert.equal(weeks.at(-1).start, frame.at(-1).day, "buckets are labelled with the shop's Monday");
+    assert.equal(weeks.at(-1).leads, 0, "this week is still empty");
+    assert.equal(weeks.at(-2).leads, 1, "the Sunday call counts toward last week");
   } finally {
     await prisma.business.delete({ where: { id: business.id } }).catch(() => {});
   }
