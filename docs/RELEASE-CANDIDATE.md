@@ -219,7 +219,7 @@ Proposed change, for approval before any code changes:
 - Until the owner answers, reminders for that balance are held. Nothing is texted to the customer about money the shop may have chosen to give back.
 - Reports stay on receipts: gross, refunded and net retained do not depend on the answer. Still to collect and the customer's balance do.
 
-This needs one additive field for a written-off amount and reason (or reuse of the existing adjustment record, if the owner prefers), its migration and rehearsal, and changes to the three contract tests. None of that is in this release.
+This needs one additive field for a written-off amount and reason, its migration and rehearsal, and changes to the three contract tests. None of that is in this release.
 
 ### Also in this branch, after the refund ledger
 
