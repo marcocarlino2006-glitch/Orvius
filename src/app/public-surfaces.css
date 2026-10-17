@@ -527,3 +527,166 @@ html[data-theme="day"] .ov-public .mkt-nav .mkt-nav-cta::before {
     margin-bottom: var(--ov-gap-module);
   }
 }
+
+/* ── Coverage panel: which trades pass the five checks ── */
+
+.ov-public .ov-coverage {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ov-public .ov-coverage li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 4rem;
+  align-items: center;
+  column-gap: 0.875rem;
+  padding-block: 0.5rem;
+  border-bottom: 1px solid var(--ov-line);
+  font-size: 0.875rem;
+}
+
+.ov-public .ov-coverage li:last-child {
+  border-bottom: 0;
+}
+
+.ov-public .ov-coverage-name {
+  color: var(--ov-muted);
+}
+
+.ov-public .ov-coverage li[data-open] .ov-coverage-name {
+  color: var(--ov-headline);
+  font-weight: 600;
+}
+
+.ov-public .ov-coverage-meter {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.ov-public .ov-coverage-meter i {
+  width: 0.875rem;
+  height: 0.375rem;
+  border-radius: 0.125rem;
+  background: var(--ov-line);
+}
+
+.ov-public .ov-coverage-meter i[data-on] {
+  background: var(--ov-muted);
+}
+
+.ov-public .ov-coverage li[data-open] .ov-coverage-meter i {
+  background: var(--ov-select);
+}
+
+.ov-public .ov-coverage-state {
+  color: var(--ov-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.ov-public .ov-coverage li[data-open] .ov-coverage-state {
+  color: var(--ov-select);
+}
+
+/* ── Two-column indexed rows ── */
+
+@media (min-width: 720px) {
+  .ov-public .ov-rows--two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: clamp(1.5rem, 3vw, 2.5rem);
+  }
+}
+
+.ov-public .ov-rows--two .ov-row-title {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+/* ── Trade sections: 3/12 lead, 4.5/12 + 4.5/12 detail ── */
+
+.ov-public .ov-trade + .ov-trade {
+  border-top: 1px solid var(--ov-line) !important;
+}
+
+.ov-public .ov-trade-grid {
+  display: grid;
+  gap: var(--ov-gap-module);
+}
+
+@media (min-width: 1024px) {
+  .ov-public .ov-trade-grid {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 4.5fr) minmax(0, 4.5fr);
+    column-gap: clamp(1.5rem, 3vw, 3rem);
+    align-items: start;
+  }
+
+  .ov-public .ov-trade-lead {
+    position: sticky;
+    top: 6rem;
+  }
+}
+
+.ov-public .ov-trade-lead .tier1-section-title {
+  margin-top: 0.375rem !important;
+}
+
+.ov-public .ov-trade-customers {
+  margin: 0.625rem 0 0;
+  color: var(--ov-muted);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+.ov-public .ov-col-label {
+  margin: 0 0 0.625rem;
+  color: var(--ov-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.ov-public .ov-trade-col .tier1-plan-list {
+  margin-top: 0 !important;
+}
+
+.ov-public .ov-trade-col .tier1-plan-list + .ov-col-label {
+  margin-top: var(--ov-gap-module);
+}
+
+/* A small trailing cue on a link that leads somewhere to scan next. */
+.ov-public .ov-scan-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-top: 1rem;
+  color: var(--ov-headline);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.ov-public .ov-scan-link::after {
+  content: "→";
+  color: var(--ov-muted);
+  transition: transform 140ms ease;
+}
+
+.ov-public .ov-scan-link:hover::after {
+  transform: translateX(2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-public .ov-scan-link::after {
+    transition: none;
+  }
+}
+
+/* ── End-cap: a contained close, not another chapter ── */
+
+.ov-public .ov-endcap {
+  max-width: 42rem !important;
+}
