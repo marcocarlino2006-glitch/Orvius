@@ -136,38 +136,47 @@ test("one calculation: gross is receipts, refunded is capped per receipt, a lega
   assert.deepEqual(moneyTotals(null), { grossCents: 0, refundedCents: 0, netCents: 0 });
 });
 
-test("partial, replayed, late-smaller and full card refunds: kept money is right at every step, the bill stays paid, one decision is raised", async () => {
+/** Kept money as every owner-facing caller computes it: shop outcomes, the owner report and the job's payment stage. */
+async function keptEverywhere(s, jobId) {
+  const outcomes = await getShopOutcomes(s.id);
+  const { report } = await buildOwnerReport(s.id, "this_month");
+  const outcome = await buildOutcome(s.id, { jobId });
+  return { outcomes: outcomes.money, report: report.money, reportCollected: report.collectedCents, stage: outcome.money };
+}
+
+test("$100 cash + $200 card, Stripe's running refund total $50 then $200: $300 gross, $250 then $100 kept, in every owner-facing total", async () => {
   const s = await shop();
   const bill = await paidBill(s);
-  const start = await getShopOutcomes(s.id);
-  assert.equal(start.collectedCents, 30_000);
+  const start = await keptEverywhere(s, bill.job.id);
+  assert.deepEqual(start.outcomes, { grossCents: 30_000, refundedCents: 0, netCents: 30_000 });
 
-  const partial = await applyChargeRefund(cardRefund(s, bill, 5_000));
-  assert.deepEqual([partial.applied, partial.changed, partial.full], ["invoice", true, false]);
-  const replay = await applyChargeRefund(cardRefund(s, bill, 5_000));
-  assert.equal(replay.changed, false, "a replay changes nothing");
-  const late = await applyChargeRefund(cardRefund(s, bill, 3_000));
-  assert.equal(late.changed, false, "Stripe sends running totals, so a smaller late one is old news");
-  assert.equal((await prisma.payment.findUnique({ where: { id: bill.cardRow.id } })).refundedCents, 5_000);
-  assert.equal((await prisma.payment.findUnique({ where: { id: bill.cardRow.id } })).amountCents, 20_000, "the original receipt is kept");
+  assert.deepEqual(await applyChargeRefund(cardRefund(s, bill, 5_000)), { applied: "invoice", id: bill.invoice.id, full: false });
+  await applyChargeRefund(cardRefund(s, bill, 5_000));
+  await applyChargeRefund(cardRefund(s, bill, 3_000));
+  const card = await prisma.payment.findUnique({ where: { id: bill.cardRow.id } });
+  assert.deepEqual([card.amountCents, card.refundedCents, card.status], [20_000, 5_000, "succeeded"], "the receipt stays; the running total is recorded once, and a late smaller one is old news");
+  const mid = await keptEverywhere(s, bill.job.id);
+  const fifty = { grossCents: 30_000, refundedCents: 5_000, netCents: 25_000 };
+  assert.deepEqual(mid.outcomes, fifty);
+  assert.deepEqual(mid.report, fifty);
+  assert.equal(mid.reportCollected, 25_000);
+  assert.deepEqual([mid.stage.refundedCents, mid.stage.keptCents], [5_000, 25_000]);
+  assert.equal((await prisma.invoice.findUnique({ where: { id: bill.invoice.id } })).status, "paid", "a partial refund changes no status (standing contract)");
 
-  const mid = await getShopOutcomes(s.id);
-  assert.equal(mid.collectedCents, 25_000);
-  assert.deepEqual(mid.money, { grossCents: 30_000, refundedCents: 5_000, netCents: 25_000 });
-  assert.equal((await prisma.invoice.findUnique({ where: { id: bill.invoice.id } })).status, "paid", "a partial refund doesn't reopen the bill");
-  assert.equal((await openExceptions(s)).length, 0, "a partial refund on a paid bill is a fact, not a decision");
+  assert.deepEqual(await applyChargeRefund(cardRefund(s, bill, 20_000, true)), { applied: "invoice", id: bill.invoice.id, full: true });
+  await applyChargeRefund(cardRefund(s, bill, 20_000, true));
+  await applyChargeRefund(cardRefund(s, bill, 5_000));
+  const end = await keptEverywhere(s, bill.job.id);
+  const all = { grossCents: 30_000, refundedCents: 20_000, netCents: 10_000 };
+  assert.deepEqual(end.outcomes, all, "$200 is Stripe's running total, not a second $200 on top of the $50");
+  assert.deepEqual(end.report, all);
+  assert.deepEqual([end.stage.refundedCents, end.stage.keptCents], [20_000, 10_000]);
 
-  const full = await applyChargeRefund(cardRefund(s, bill, 20_000, true));
-  assert.deepEqual([full.changed, full.full, full.adjustment], [true, true, true]);
-  assert.equal((await applyChargeRefund(cardRefund(s, bill, 20_000, true))).reason, "already_refunded");
-  const end = await getShopOutcomes(s.id);
-  assert.deepEqual(end.money, { grossCents: 30_000, refundedCents: 20_000, netCents: 10_000 });
-  const invoice = await prisma.invoice.findUnique({ where: { id: bill.invoice.id }, include: { payments: true } });
-  assert.equal(invoice.status, "paid", "cash was kept and the customer isn't chased for the card part");
-  assert.deepEqual(invoice.payments.map((p) => p.status).sort(), ["recorded", "succeeded"], "no payment row is rewritten");
-  const exceptions = await openExceptions(s);
-  assert.deepEqual(exceptions.map(reasonOf), ["refund_on_settled_bill"]);
-
+  const invoice = await prisma.invoice.findUnique({ where: { id: bill.invoice.id }, include: { payments: { orderBy: { createdAt: "asc" } } } });
+  assert.equal(invoice.status, "partial", "standing contract: the refunded card share is owed again, the cash stays collected");
+  assert.equal(invoice.amountCents, 30_000, "the committed bill is not rewritten");
+  assert.deepEqual(invoice.payments.map((p) => [p.method.split(":")[0], p.amountCents, p.status, p.refundedCents]), [["cash", 10_000, "recorded", 0], ["stripe", 20_000, "refunded", 20_000]]);
+  assert.equal((await openExceptions(s)).length, 0);
   const audits = await prisma.auditEvent.findMany({ where: { businessId: s.id, action: { in: ["invoice.refunded", "invoice.partially_refunded"] } } });
   assert.equal(audits.length, 2, "one record per distinct running total");
 });
@@ -178,10 +187,42 @@ test("a full refund arriving before the partial one: the partial changes nothing
   const full = await applyChargeRefund(cardRefund(s, bill, 20_000, true));
   assert.equal(full.applied, "invoice");
   const invoice = await prisma.invoice.findUnique({ where: { id: bill.invoice.id }, include: { payments: true } });
-  assert.equal(invoice.status, "refunded", "every collected payment went back, so the bill reads refunded and owes nothing");
-  assert.equal((await openExceptions(s)).length, 0, "nothing kept, nothing to decide");
+  assert.equal(invoice.status, "refunded", "every collected payment went back, so the bill reads refunded");
   assert.equal((await applyChargeRefund(cardRefund(s, bill, 5_000))).reason, "already_refunded");
   assert.deepEqual((await getShopOutcomes(s.id)).money, { grossCents: 20_000, refundedCents: 20_000, netCents: 0 });
+});
+
+test("a payment marked refunded before refund amounts were recorded counts as fully refunded, once", async () => {
+  const s = await shop();
+  const bill = await paidBill(s);
+  await prisma.payment.update({ where: { id: bill.cardRow.id }, data: { status: "refunded", refundedCents: 0 } });
+  await prisma.invoice.update({ where: { id: bill.invoice.id }, data: { status: "partial" } });
+  assert.deepEqual((await getShopOutcomes(s.id)).money, { grossCents: 30_000, refundedCents: 20_000, netCents: 10_000 });
+  await applyChargeRefund(cardRefund(s, bill, 20_000, true));
+  assert.deepEqual((await getShopOutcomes(s.id)).money, { grossCents: 30_000, refundedCents: 20_000, netCents: 10_000 }, "a later event doesn't subtract it again");
+});
+
+test("historical partial refunds known only from audit rows: backfilled from the highest running total when attributable, listed when not, idempotent", async () => {
+  const { planRefundBackfill, applyRefundBackfill } = await import("./refund-backfill.mjs");
+  const s = await shop();
+  const single = await paidBill(s);
+  const several = await paidBill(s, { cash: 0, card: 10_000 });
+  await prisma.payment.create({ data: { businessId: s.id, invoiceId: several.invoice.id, amountCents: 10_000, status: "succeeded", method: "stripe:cs_second" } });
+  const deposit = await prisma.deposit.create({ data: { businessId: s.id, amountCents: 5_000, status: "paid", paidAt: new Date() } });
+  const legacy = (action, detail) => prisma.auditEvent.create({ data: { businessId: s.id, entityType: "shop", entityId: s.id, action, actor: "orvius", summary: "legacy", detailJson: JSON.stringify(detail) } });
+  await legacy("invoice.partially_refunded", { invoiceId: single.invoice.id, chargeId: "ch_old", amountRefundedCents: 3_000 });
+  await legacy("invoice.partially_refunded", { invoiceId: single.invoice.id, chargeId: "ch_old", amountRefundedCents: 7_000 });
+  await legacy("invoice.partially_refunded", { invoiceId: several.invoice.id, chargeId: "ch_amb", amountRefundedCents: 2_000 });
+  await legacy("deposit.partially_refunded", { depositId: deposit.id, chargeId: "ch_dep_old", amountRefundedCents: 1_000 });
+
+  const plan = await planRefundBackfill(prisma, { businessId: s.id });
+  assert.deepEqual(plan.apply.map((a) => [a.table, a.id, a.cents]).sort(), [["deposit", deposit.id, 1_000], ["payment", single.cardRow.id, 7_000]].sort(), "highest running total per charge, not 3,000 + 7,000");
+  assert.deepEqual(plan.ambiguous.map((a) => [a.chargeId, a.why]), [["ch_amb", "several_card_receipts"]]);
+  assert.equal(await applyRefundBackfill(prisma, plan), 2);
+  assert.deepEqual((await getShopOutcomes(s.id)).money, { grossCents: 55_000, refundedCents: 8_000, netCents: 47_000 });
+  const again = await planRefundBackfill(prisma, { businessId: s.id });
+  assert.equal(again.apply.length, 0);
+  assert.equal(again.skipped.length, 2);
 });
 
 test("two refund events at once: the higher running total wins, whichever lands last", async () => {
@@ -214,7 +255,7 @@ test("a refund of a duplicate charge Orvius never recorded changes nothing and r
   assert.equal((await getShopOutcomes(s.id)).collectedCents, 30_000);
 });
 
-test("a deposit refunded after the bill went out: the bill is left as the customer has it and the decision goes to Command", async () => {
+test("a deposit refunded after the bill went out: the bill is left as the customer has it and the question goes to Command", async () => {
   const s = await shop();
   const lead = await prisma.lead.create({ data: { businessId: s.id, name: "Rosa Diaz", phone: "+13125550147", status: "booked" } });
   const job = await prisma.job.create({ data: { businessId: s.id, leadId: lead.id, title: "AC", status: "completed", finalAmountCents: 42_000 } });
@@ -224,7 +265,7 @@ test("a deposit refunded after the bill went out: the bill is left as the custom
 
   assert.equal(await paidDepositCents(s.id, job.id), 5_000);
   const partial = await applyChargeRefund({ ...input, amountRefundedCents: 2_000, fullyRefunded: false });
-  assert.deepEqual([partial.applied, partial.changed, partial.adjustment], ["deposit", true, true]);
+  assert.deepEqual(partial, { applied: "deposit", id: deposit.id, full: false });
   const afterPartial = await prisma.deposit.findUnique({ where: { id: deposit.id } });
   assert.deepEqual([afterPartial.status, afterPartial.refundedCents, afterPartial.amountCents], ["paid", 2_000, 5_000]);
 

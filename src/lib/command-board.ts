@@ -558,12 +558,6 @@ export function mismatchText(row: Pick<Mismatch, "kind" | "entityType" | "system
       detail: `Stripe refunded ${cents(observed.amountCents)} of the booking deposit. The customer's bill was priced with the deposit taken off and stays at ${cents(expected.invoiceCents)}; Orvius won't ask them for more on its own. If they should pay the refunded amount, change the bill with a reason. Otherwise mark this resolved.`,
     };
   }
-  if (row.kind === "payment" && observed.reason === "refund_on_settled_bill") {
-    return {
-      title: "Card payment refunded on a paid bill",
-      detail: `Stripe refunded ${cents(observed.amountCents)} on this bill. The bill still reads ${expected.status === "partial" ? "part paid" : "paid"} and the customer won't be asked again on its own; the money totals show it as refunded. If they owe it again, change the bill with a reason and send it. Otherwise mark this resolved.`,
-    };
-  }
   if (row.kind === "payment" && observed.reason === "refund_record_unpaid") {
     return {
       title: `Stripe refund on a ${row.entityType} never recorded as paid`,

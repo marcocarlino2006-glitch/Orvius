@@ -228,25 +228,23 @@ test("a failure after an inbound text is saved can't stop its owner alert", () =
 });
 
 // B10
-test("a full Stripe refund marks the deposit refunded; a partial one records the amount; replays do nothing", async () => {
+test("a full Stripe refund marks the deposit refunded; a partial one only logs it; replays do nothing", async () => {
   const shop = await makeShop({ stripeConnectAccountId: `acct_${stamp()}` });
-  const account = shop.stripeConnectAccountId;
   try {
     const deposit = await prisma.deposit.create({ data: { businessId: shop.id, amountCents: 5000, status: "paid" } });
     const partial = await applyChargeRefund({
       metadata: { kind: "booking_deposit", depositId: deposit.id, businessId: shop.id },
-      account,
+      account: shop.stripeConnectAccountId,
       amountRefundedCents: 1000,
       fullyRefunded: false,
       chargeId: "ch_partial",
     });
     assert.equal(partial.applied, "deposit");
     assert.equal((await prisma.deposit.findUnique({ where: { id: deposit.id } })).status, "paid");
-    assert.equal((await prisma.deposit.findUnique({ where: { id: deposit.id } })).refundedCents, 1000);
 
     await applyChargeRefund({
       metadata: { kind: "booking_deposit", depositId: deposit.id, businessId: shop.id },
-      account,
+      account: shop.stripeConnectAccountId,
       amountRefundedCents: 5000,
       fullyRefunded: true,
       chargeId: "ch_full",
@@ -255,7 +253,7 @@ test("a full Stripe refund marks the deposit refunded; a partial one records the
 
     const replay = await applyChargeRefund({
       metadata: { kind: "booking_deposit", depositId: deposit.id, businessId: shop.id },
-      account,
+      account: shop.stripeConnectAccountId,
       amountRefundedCents: 5000,
       fullyRefunded: true,
       chargeId: "ch_full",

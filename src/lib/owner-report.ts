@@ -149,8 +149,8 @@ async function moneyIn(businessId: string, start: Date, end: Date): Promise<Mone
   const inWindow = (field: "paidAt") => ({ OR: [dated(field), { [field]: null, ...dated("updatedAt") }] });
   const [invoices, deposits] = await Promise.all([
     prisma.invoice.findMany({
-      where: { businessId, status: { in: ["paid", "refunded"] }, ...inWindow("paidAt") },
-      select: { amountCents: true, payments: { select: { amountCents: true, status: true, refundedCents: true } }, job: { select: { technicianId: true, lead: { select: { source: true } } } } },
+      where: { businessId, status: { in: ["paid", "partial", "refunded"] }, ...inWindow("paidAt") },
+      select: { amountCents: true, status: true, payments: { select: { amountCents: true, status: true, refundedCents: true } }, job: { select: { technicianId: true, lead: { select: { source: true } } } } },
       take: ROW_CAP,
     }),
     prisma.deposit.findMany({
@@ -160,7 +160,22 @@ async function moneyIn(businessId: string, start: Date, end: Date): Promise<Mone
     }),
   ]);
   return [
-    ...invoices.map((i) => ({ amountCents: i.amountCents, refundedCents: Math.min(i.amountCents, moneyTotals(i.payments).refundedCents), technicianId: i.job?.technicianId ?? null, source: i.job?.lead?.source ?? null, kind: "invoice" as const })),
+    ...invoices.map((i) => {
+      /*
+        What came in on a bill is its receipts, so a refunded card share that
+        reopens the bill doesn't take the cash with it. A bill marked paid with
+        no receipt rows (older records) still counts at its amount.
+      */
+      const money = moneyTotals(i.payments);
+      const legacyPaid = money.grossCents === 0 && i.status === "paid";
+      return {
+        amountCents: legacyPaid ? i.amountCents : money.grossCents,
+        refundedCents: legacyPaid ? 0 : money.refundedCents,
+        technicianId: i.job?.technicianId ?? null,
+        source: i.job?.lead?.source ?? null,
+        kind: "invoice" as const,
+      };
+    }),
     ...deposits.map((d) => ({
       amountCents: d.amountCents,
       refundedCents: refundedOf(d),

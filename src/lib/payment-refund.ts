@@ -3,7 +3,7 @@ import { formatCentsExact } from "@/lib/money";
 import { logWarn } from "@/lib/logger";
 import { enqueueOwnerAlert } from "@/lib/notification-queue";
 import { raiseReconciliation } from "@/lib/system-of-record";
-import { OWNER_METHODS, isCollected, refundedOf } from "@/lib/payment-math";
+import { OWNER_METHODS, collectedCents, isCollected, refundedOf } from "@/lib/payment-math";
 import { prisma } from "@/lib/prisma";
 
 export type RefundInput = {
@@ -21,7 +21,7 @@ export type RefundInput = {
 };
 
 export type RefundOutcome =
-  | { applied: "deposit" | "invoice"; id: string; full: boolean; changed: boolean; adjustment?: boolean }
+  | { applied: "deposit" | "invoice"; id: string; full: boolean }
   | { applied: null; reason: "not_ours" | "not_found" | "already_refunded" | "duplicate_charge" | "unmatched_payment" };
 
 type Shop = { id: string; name: string; ownerPhone: string | null; ownerEmail: string | null; stripeConnectAccountId: string | null };
@@ -31,10 +31,9 @@ type Shop = { id: string; name: string; ownerPhone: string | null; ownerEmail: s
  * fact: the original receipt stays, the cumulative refund is recorded beside
  * it, and totals show gross, refunded and kept. Stripe sends the running
  * total, so recording the highest one seen makes replays and late, smaller
- * events change nothing. A refund never makes a customer owe again: a bill
- * that read paid stays paid, and whether to ask for the money again is the
- * owner's decision in Command. Nothing changes unless the signed event came
- * from the shop's own connected account.
+ * events change nothing. What the customer owes follows the standing
+ * contract (see refundInvoice); a committed bill is never rewritten. Nothing
+ * changes unless the signed event came from the shop's own connected account.
  */
 export async function applyChargeRefund(input: RefundInput): Promise<RefundOutcome> {
   const meta = input.metadata ?? {};
@@ -81,7 +80,7 @@ async function refundDeposit(input: RefundInput, shop: Shop, depositId: string):
 
   const full = input.fullyRefunded || input.amountRefundedCents >= deposit.amountCents;
   const cents = full ? deposit.amountCents : Math.min(Math.max(0, input.amountRefundedCents), deposit.amountCents);
-  if (cents <= refundedOf(deposit)) return { applied: "deposit", id: deposit.id, full, changed: false };
+  if (cents <= refundedOf(deposit)) return { applied: "deposit", id: deposit.id, full };
 
   // Every record below is idempotent and written before the refund is, so a failed write is retried, not lost.
   const amount = formatCentsExact(cents);
@@ -102,7 +101,6 @@ async function refundDeposit(input: RefundInput, shop: Shop, depositId: string):
     already has that bill (sent, signed or paid toward), it stays as they have
     it; whether they now owe the refunded amount is the owner's call.
   */
-  let adjustment = false;
   const jobId = deposit.jobId ?? (deposit.leadId ? (await prisma.job.findFirst({ where: { businessId: shop.id, leadId: deposit.leadId }, select: { id: true } }))?.id : null);
   if (jobId) {
     const invoice = await prisma.invoice.findFirst({
@@ -122,12 +120,11 @@ async function refundDeposit(input: RefundInput, shop: Shop, depositId: string):
         expected: { invoiceCents: invoice.amountCents, depositCents: deposit.amountCents },
         observed: { reason: "deposit_refunded_after_billing", depositId: deposit.id, chargeId: input.chargeId, amountCents: cents },
       });
-      adjustment = true;
     }
   }
-  const changed = await raiseRefund("deposit", deposit.id, cents);
+  await raiseRefund("deposit", deposit.id, cents);
   if (full) await prisma.deposit.updateMany({ where: { id: deposit.id, status: "paid" }, data: { status: "refunded" } });
-  return { applied: "deposit", id: deposit.id, full, changed, adjustment };
+  return { applied: "deposit", id: deposit.id, full };
 }
 
 async function refundInvoice(input: RefundInput, shop: Shop, invoiceId: string): Promise<RefundOutcome> {
@@ -136,43 +133,19 @@ async function refundInvoice(input: RefundInput, shop: Shop, invoiceId: string):
     await flagUnappliedRefund(input, shop, { type: "invoice", id: invoiceId }, "record_missing");
     return { applied: null, reason: "not_found" };
   }
+  if (invoice.status === "refunded") return { applied: null, reason: "already_refunded" };
   const target = refundedPayment(invoice.payments, input.sessionId);
   if (!target) {
     // A charge with no payment row is a duplicate Orvius refunded itself; without a session it's ambiguous.
     if (input.sessionId) return { applied: null, reason: "duplicate_charge" };
-    if (invoice.status === "refunded") return { applied: null, reason: "already_refunded" };
     logWarn("billing.refund_payment_ambiguous", { chargeId: input.chargeId, invoiceId: invoice.id });
     await flagUnappliedRefund(input, shop, { type: "invoice", id: invoice.id }, "payment_unmatched");
     return { applied: null, reason: "unmatched_payment" };
   }
-  if (refundedOf(target) >= target.amountCents) return { applied: null, reason: "already_refunded" };
 
   const full = input.fullyRefunded || input.amountRefundedCents >= target.amountCents;
   const cents = full ? target.amountCents : Math.min(Math.max(0, input.amountRefundedCents), target.amountCents);
-  if (cents <= refundedOf(target)) return { applied: "invoice", id: invoice.id, full, changed: false };
-
-  /*
-    Only a bill whose every collected payment has now gone back reads
-    "refunded", and it owes nothing. Otherwise the bill keeps its status and
-    the customer is not asked again; the owner decides in Command.
-  */
-  const after = invoice.payments.map((p) => (p.id === target.id ? { ...p, refundedCents: cents } : p));
-  const anyKept = after.some((p) => isCollected(p.status) && refundedOf(p) < p.amountCents);
-  const settled = invoice.status === "paid" || invoice.status === "partial";
-  let adjustment = false;
-  if (settled && full && anyKept) {
-    await raiseReconciliation({
-      businessId: shop.id,
-      kind: "payment",
-      entityType: "invoice",
-      entityId: invoice.id,
-      system: "stripe",
-      externalId: input.chargeId,
-      expected: { invoiceCents: invoice.amountCents, status: invoice.status },
-      observed: { reason: "refund_on_settled_bill", paymentId: target.id, chargeId: input.chargeId, amountCents: cents },
-    });
-    adjustment = true;
-  }
+  if (cents <= refundedOf(target)) return { applied: "invoice", id: invoice.id, full };
 
   const amount = formatCentsExact(cents);
   await recordAudit({
@@ -187,14 +160,29 @@ async function refundInvoice(input: RefundInput, shop: Shop, invoiceId: string):
     detail: { invoiceId: invoice.id, paymentId: target.id, chargeId: input.chargeId, amountRefundedCents: cents },
     idempotencyKey: `refund:${input.chargeId}:${cents}`,
   });
-  const changed = await raiseRefund("payment", target.id, cents);
-  if (settled && !anyKept) {
+  await raiseRefund("payment", target.id, cents);
+
+  /*
+    The standing contract: a partial refund only records the amount; a full
+    one marks that payment refunded and the bill is re-read from what is still
+    collected, so a refunded card share is owed again while other money stays.
+  */
+  if (full && target.status !== "refunded") {
+    const remaining = collectedCents(invoice.payments.filter((p) => p.id !== target.id));
+    const status =
+      invoice.status !== "paid" && invoice.status !== "partial"
+        ? invoice.status
+        : remaining >= invoice.amountCents
+          ? "paid"
+          : remaining > 0
+            ? "partial"
+            : "refunded";
     await prisma.$transaction([
-      prisma.payment.updateMany({ where: { invoiceId: invoice.id, id: { in: after.filter((p) => isCollected(p.status)).map((p) => p.id) } }, data: { status: "refunded" } }),
-      prisma.invoice.update({ where: { id: invoice.id }, data: { status: "refunded" } }),
+      prisma.payment.update({ where: { id: target.id }, data: { status: "refunded" } }),
+      prisma.invoice.update({ where: { id: invoice.id }, data: { status } }),
     ]);
   }
-  return { applied: "invoice", id: invoice.id, full, changed, adjustment };
+  return { applied: "invoice", id: invoice.id, full };
 }
 
 /** The card payment a refund was for: its session's row, or the only card-like row when the session is unknown. */

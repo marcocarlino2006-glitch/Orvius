@@ -507,9 +507,10 @@ async function adjustmentShown(t) {
 /*
   A $300 bill paid $100 cash and $200 by card. Stripe then refunds the card in
   steps and sends the running total each time, with a replay and a late,
-  smaller event mixed in. The owner should see what was kept, the bill should
-  not start asking the customer for money, and the one real decision (whether
-  the customer owes the $200 again) should be waiting in Command.
+  smaller event mixed in. The owner should see what was kept, a partial refund
+  should not change what is owed, and the full one (whether
+  the customer owes the $200 again) follows the standing contract: the
+  refunded card share is owed again and the cash stays collected.
 */
 async function refundTotals() {
   const t = new Tally("partial_then_full_card_refund");
@@ -544,10 +545,8 @@ async function refundTotals() {
   t.check("invoiceAfterFull", status);
   t.check("refundBreakdownShown", afterFull.money ? afterFull.money : null);
   if (kept(afterFull) !== 10_000) t.recover("correct the collected total by hand");
-  if (status !== "paid") t.recover("undo the balance the refund reopened, or explain it to the customer");
-  const shown = await adjustmentShown(t);
-  t.check("decisionInCommand", shown);
-  if (!shown) t.recover("remember to decide whether the customer owes the refunded $200");
+  /* Standing contract: a full card refund reopens that share, so the bill reads part paid. */
+  if (status !== "partial") t.recover("work out what the customer owes after the refund");
   t.check("openExceptions", await prisma.reconciliationException.count({ where: { businessId: shop.id, status: "open" } }));
   return t.finish(shop.id);
 }

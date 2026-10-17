@@ -128,7 +128,7 @@ export function JobBillSection({
         </p>
         {(invoice.refundedCents ?? 0) > 0 ? (
           <p className="job-money-lead">
-            {formatCentsExact(invoice.refundedCents!)} refunded in Stripe, {formatCentsExact(invoice.keptCents ?? 0)} kept. The bill stays paid; if the customer owes it again, decide in Command under Exceptions.
+            {formatCentsExact(invoice.refundedCents!)} refunded in Stripe, {formatCentsExact(invoice.keptCents ?? 0)} kept.
           </p>
         ) : null}
       </div>
