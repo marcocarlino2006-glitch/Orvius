@@ -52,6 +52,7 @@ const { receptionistApplyStatus, applyReceptionistSettings, recordLiveMatch, ass
 const { writeErrorFor, sendWrite, serialQueue, isUncertain, UNCERTAIN_WRITE, UNREADABLE_REPLY } = await import("../src/lib/client-write.ts");
 const { loadCapabilities } = await import("../src/lib/capabilities.ts");
 const { ensureDemoWorkspace } = await import("../src/lib/demo-workspace.ts");
+const { readExecuteReply, readCancelReply, readReadBack, describeReadBack, isBillReply } = await import("../src/lib/plan-reply.ts");
 const accountRoute = await import("../src/app/api/account/route.ts");
 const syncRoute = await import("../src/app/api/account/sync-assistant/route.ts");
 const rulesRoute = await import("../src/app/api/account/receptionist-rules/route.ts");
@@ -696,6 +697,131 @@ test("Command: a plan that may have run says so, and is not run again", async ()
   assert.doesNotMatch(first.body.error, /nothing (was )?changed/i);
   const again = await call(() => copilotRoute.POST(req("POST", "/api/copilot?mode=execute", { proposalId: ask.body.proposal.proposalId, approved: true })));
   assert.notEqual(again.status, 200, "approving again doesn't run it a second time");
+});
+
+async function commandPlan() {
+  const email = `truth-cmd-${uid()}@orvius.test`;
+  const { business } = await ensureDemoWorkspace(email);
+  created.push(business.id);
+  await prisma.business.update({ where: { id: business.id }, data: { autopilot: true } });
+  signedInAs = email;
+  const lead = await prisma.lead.create({ data: { businessId: business.id, name: "Rosa Diaz", phone: "+13125550147", serviceType: "AC not cooling", address: "702 Main St, Evanston IL 60202", status: "new" } });
+  const ask = await call(() => askRoute.POST(req("POST", "/api/command/ask", { text: "Book Rosa Diaz in the next suitable window and assign an available qualified technician" })));
+  assert.equal(ask.body?.kind, "proposal", JSON.stringify(ask.body));
+  return { business, lead, proposalId: ask.body.proposal.proposalId };
+}
+const readBack = (id) => call(() => copilotRoute.GET(req("GET", `/api/copilot?proposalId=${encodeURIComponent(id)}`)));
+const execute = (id) => call(() => copilotRoute.POST(req("POST", "/api/copilot?mode=execute", { proposalId: id, approved: true })));
+
+test("Command replies: only a reply that names this plan and says what happened counts; anything else is read back", () => {
+  const good = { ok: true, proposalId: "p1", confirmation: { summary: "Booked Rosa for Tue 9am." }, outcome: { stages: [] } };
+  assert.equal(readExecuteReply(good, "p1")?.summary, "Booked Rosa for Tue 9am.");
+  for (const bad of [null, {}, { ok: true }, { ...good, proposalId: "p2" }, { ...good, confirmation: {} }, { ...good, confirmation: { summary: "  " } }, { ...good, ok: "true" }]) {
+    assert.equal(readExecuteReply(bad, "p1"), null, JSON.stringify(bad));
+  }
+  assert.equal(readCancelReply({ ok: true, proposalId: "p1", status: "cancelled" }, "p1"), true);
+  assert.equal(readCancelReply({ ok: true, proposalId: "p1" }, "p1"), false);
+  assert.equal(readCancelReply({}, "p1"), false);
+  assert.equal(isBillReply({ ok: true, invoiceId: "inv_1" }), true);
+  assert.equal(isBillReply({ ok: true }), false);
+  assert.equal(isBillReply({ invoiceId: "inv_1" }), false);
+  assert.equal(readReadBack({ proposal: { id: "p1", state: "teleported" } }, "p1"), null);
+  assert.equal(readReadBack({ proposal: { id: "p2", state: "done" } }, "p1"), null);
+  for (const state of ["done", "withdrawn", "done_unrecorded", "needs_check", "running"]) assert.equal(describeReadBack(state).canApprove, false, state);
+  for (const state of ["failed_before_effect", "waiting_for_approval"]) assert.equal(describeReadBack(state).canApprove, true, state);
+  for (const state of ["done", "withdrawn", "failed_before_effect", "waiting_for_approval", "done_unrecorded", "needs_check", "running"]) {
+    assert.doesNotMatch(describeReadBack(state).text, /^Done\.?$/);
+  }
+});
+
+test("Command: the approval reply is lost; the read-back says it went through, Approve doesn't come back, and there is exactly one booking", async () => {
+  const { business, lead, proposalId } = await commandPlan();
+  const before = await readBack(proposalId);
+  assert.equal(before.status, 200);
+  assert.equal(before.body.proposal.state, "waiting_for_approval");
+  const lost = await execute(proposalId);
+  assert.equal(lost.status, 200, JSON.stringify(lost.body));
+  const after = await readBack(proposalId);
+  const seen = readReadBack(after.body, proposalId);
+  assert.equal(seen?.state, "done");
+  assert.equal(describeReadBack(seen.state).canApprove, false);
+  assert.ok(seen.outcome?.stages?.length, "the read-back carries the job's outcome");
+  const again = await execute(proposalId);
+  assert.notEqual(again.status, 200);
+  assert.equal(await prisma.job.count({ where: { businessId: business.id, leadId: lead.id } }), 1);
+  assert.equal(await prisma.auditEvent.count({ where: { businessId: business.id, action: "copilot.executed" } }), 1);
+});
+
+test("Command: another shop's plan can't be read back", async () => {
+  const { proposalId } = await commandPlan();
+  await commandPlan();
+  const other = await readBack(proposalId);
+  assert.equal(other.status, 404);
+  assert.equal(other.body.proposal, undefined);
+});
+
+test("Command: a plan that stopped before changing anything reads back as approvable, and approving it books once", async () => {
+  const { business, lead, proposalId } = await commandPlan();
+  await prisma.copilotAction.update({ where: { id: proposalId }, data: { resultJson: JSON.stringify({ failedBeforeEffect: true, error: "timeout" }) } });
+  const seen = readReadBack((await readBack(proposalId)).body, proposalId);
+  assert.equal(seen?.state, "failed_before_effect");
+  assert.equal(describeReadBack(seen.state).canApprove, true);
+  assert.equal((await execute(proposalId)).status, 200);
+  assert.equal(await prisma.job.count({ where: { businessId: business.id, leadId: lead.id } }), 1);
+});
+
+test("Command: unreadable stored details are refused before anything changes; dismissing or resolving them never errors after the status moved", async () => {
+  const { business, lead, proposalId } = await commandPlan();
+  await prisma.copilotAction.update({ where: { id: proposalId }, data: { paramsJson: "{not json" } });
+  const run = await execute(proposalId);
+  assert.equal(run.status, 409);
+  assert.equal(run.body.reason, "proposal_unreadable");
+  assert.equal((await prisma.copilotAction.findUnique({ where: { id: proposalId } })).status, "proposed");
+  assert.equal(await prisma.job.count({ where: { businessId: business.id, leadId: lead.id } }), 0);
+  const cancel = await call(() => copilotRoute.POST(req("POST", "/api/copilot?mode=cancel", { proposalId })));
+  assert.equal(cancel.status, 200, JSON.stringify(cancel.body));
+  assert.equal(readCancelReply(cancel.body, proposalId), true);
+  assert.equal((await prisma.copilotAction.findUnique({ where: { id: proposalId } })).status, "cancelled");
+
+  const stuck = await commandPlan();
+  await prisma.copilotAction.update({ where: { id: stuck.proposalId }, data: { status: "executing", paramsJson: "[]", createdAt: new Date(Date.now() - 60 * 60_000) } });
+  const resolved = await call(() => copilotRoute.POST(req("POST", "/api/copilot?mode=resolve", { proposalId: stuck.proposalId, outcome: "not_done" })));
+  assert.equal(resolved.status, 200, JSON.stringify(resolved.body));
+  assert.deepEqual([resolved.body.ok, resolved.body.status, resolved.body.recorded], [true, "proposed", true]);
+});
+
+test("Command: a decision saved without its history row says so, instead of erroring and inviting a repeat", async () => {
+  const { proposalId } = await commandPlan();
+  const original = prisma.auditEvent.create;
+  prisma.auditEvent.create = async () => {
+    throw new Error("disk full");
+  };
+  let cancel;
+  try {
+    cancel = await call(() => copilotRoute.POST(req("POST", "/api/copilot?mode=cancel", { proposalId })));
+  } finally {
+    prisma.auditEvent.create = original;
+  }
+  assert.equal(cancel.status, 200);
+  assert.equal(cancel.body.recorded, false);
+  assert.equal((await prisma.copilotAction.findUnique({ where: { id: proposalId } })).status, "cancelled");
+
+  const ran = await commandPlan();
+  prisma.auditEvent.create = async (args) => {
+    if (args?.data?.action === "copilot.executed") throw new Error("disk full");
+    return original.call(prisma.auditEvent, args);
+  };
+  let run;
+  try {
+    run = await execute(ran.proposalId);
+  } finally {
+    prisma.auditEvent.create = original;
+  }
+  assert.equal(run.status, 200);
+  assert.equal(run.body.recorded, false);
+  assert.match(run.body.confirmation.summary, /flagged in Command to confirm/);
+  assert.notEqual((await execute(ran.proposalId)).status, 200, "an unrecorded success is not offered again");
+  assert.equal(await prisma.job.count({ where: { businessId: ran.business.id, leadId: ran.lead.id } }), 1);
 });
 
 /* ------------------------------ activation ------------------------------ */

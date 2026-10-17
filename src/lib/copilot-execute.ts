@@ -1,6 +1,6 @@
 import { COMMAND_POLICY_VERSION, decideApproval, grantsForActor } from "@/lib/command-authority";
 import type { Business } from "@prisma/client";
-import { personActor, recordAudit, type AuditInput } from "@/lib/audit";
+import { personActor, recordAudit, writeAudit, type AuditInput } from "@/lib/audit";
 import { DEFAULT_JOB_DURATION_MIN } from "@/lib/availability";
 import { isWindowOpen, openWindows, windowLabel } from "@/lib/copilot-propose";
 import { sendCustomerConfirmSms } from "@/lib/customer-confirm";
@@ -341,6 +341,16 @@ export function needsCheck(item: { status: string; createdAt: Date; executedAt?:
   return item.status === "executing" && now.getTime() - item.createdAt.getTime() > STALE_EXECUTING_MS;
 }
 
+/** Stored plan parameters, or null when they can't be read. Parsed before any status changes, never after. */
+export function readParams(json: string | null | undefined): ProposalParams | null {
+  try {
+    const value = JSON.parse(json ?? "null");
+    return value && typeof value === "object" && !Array.isArray(value) ? (value as ProposalParams) : null;
+  } catch {
+    return null;
+  }
+}
+
 function errorText(error: unknown) {
   return error instanceof Error ? error.message : String(error);
 }
@@ -394,6 +404,11 @@ export async function executeProposal(params: {
   }
   const decision = decideApproval({ actor: params.by, proposal: pending, grants: await grantsForActor(business.id, params.by.email) });
   if (!decision.ok) return { ok: false, error: decision.error, status: 403, reason: "no_command_authority" };
+  const stored = await prisma.copilotAction.findFirst({ where: { id: params.proposalId, businessId: business.id }, select: { paramsJson: true } });
+  const planParams = readParams(stored?.paramsJson);
+  if (!planParams) {
+    return { ok: false, error: "This plan's details can't be read, so it won't run. Ask Command for a fresh one. Nothing was changed.", status: 409, reason: "proposal_unreadable" };
+  }
   const claimed = await prisma.copilotAction.updateMany({
     where: { id: params.proposalId, businessId: business.id, status: "proposed" },
     data: { status: "executing", approvalKind: decision.kind, approvedByEmail: params.by.email.trim().toLowerCase(), grantId: decision.grantId },
@@ -409,7 +424,7 @@ export async function executeProposal(params: {
     outcome = await runProposal(
       business,
       proposal.action,
-      JSON.parse(proposal.paramsJson) as ProposalParams,
+      planParams,
       () => {
         touched = true;
       },
@@ -449,7 +464,7 @@ export async function executeProposal(params: {
       data: { status: "executed", executedAt, resultJson: JSON.stringify(outcome.result) },
     });
     stage = "audit";
-    auditId = await recordAudit({
+    auditId = await writeAudit({
       businessId: business.id,
       entityType: outcome.entity.type,
       entityId: outcome.entity.id,
@@ -492,7 +507,7 @@ export async function executeProposal(params: {
   };
 }
 
-export type ResolveOutcome = { ok: true; status: "executed" | "proposed" } | { ok: false; error: string; status: number };
+export type ResolveOutcome = { ok: true; status: "executed" | "proposed"; recorded: boolean } | { ok: false; error: string; status: number };
 
 /** A person checked a flagged approval: it happened ("done"), or it didn't and can be approved again ("not_done"). */
 export async function resolveReconcile(params: {
@@ -513,13 +528,14 @@ export async function resolveReconcile(params: {
     return { ok: false, error: "This one went through — only the record is missing, so confirm it instead.", status: 409 };
   }
   const next = params.happened ? "executed" : "proposed";
+  const p = readParams(item.paramsJson) ?? {};
   const moved = await prisma.copilotAction.updateMany({
     where: { id: item.id, status: item.status },
     data: params.happened ? { status: next, executedAt: item.executedAt ?? now } : { status: next },
   });
   if (moved.count === 0) return { ok: false, error: "Someone else just resolved this", status: 409 };
-  const p = JSON.parse(item.paramsJson) as ProposalParams;
-  await recordAudit({
+  // The decision is already saved; a failed record is reported, not turned into an error that invites a repeat.
+  const recorded = await writeAudit({
     businessId: params.business.id,
     entityType: p.jobId ? "job" : p.leadId ? "lead" : "copilot",
     entityId: p.jobId ?? p.leadId ?? item.id,
@@ -532,6 +548,12 @@ export async function resolveReconcile(params: {
     jobId: p.jobId ?? null,
     leadId: p.leadId ?? null,
     idempotencyKey: `copilot:${item.id}:reconciled:${item.status}:${now.getTime()}`,
-  });
-  return { ok: true, status: next };
+  }).then(
+    () => true,
+    (error: unknown) => {
+      console.error("[copilot] resolved but unrecorded", item.id, errorText(error));
+      return false;
+    },
+  );
+  return { ok: true, status: next, recorded };
 }

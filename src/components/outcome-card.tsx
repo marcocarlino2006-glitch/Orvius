@@ -6,6 +6,7 @@ import { PlanCard, type Proposal } from "@/components/command-board";
 import { JOB_OUTCOMES } from "@/lib/job-outcome";
 import type { Outcome, OutcomeOption, OutcomeStage } from "@/lib/outcome";
 import { isUncertain, sendWrite } from "@/lib/client-write";
+import { isBillReply, isOutcomeView } from "@/lib/plan-reply";
 import { formatWhen } from "@/lib/when";
 
 const STATE_WORD: Record<OutcomeStage["state"], string> = {
@@ -58,7 +59,7 @@ export function OutcomeCard({ outcome, onChange }: { outcome: Outcome; onChange:
     try {
       const res = await fetch(`/api/work/outcome?kind=job&id=${encodeURIComponent(jobId)}`);
       const data = await res.json().catch(() => null);
-      if (res.ok && data?.outcome) {
+      if (res.ok && isOutcomeView(data?.outcome)) {
         setHoldBill(false);
         onChange(data.outcome);
         return true;
@@ -77,6 +78,10 @@ export function OutcomeCard({ outcome, onChange }: { outcome: Outcome; onChange:
     try {
       const body = option.kind === "assign_tech" ? { action: "assign_tech", jobId: option.jobId, technicianId: option.technicianId } : { action: "reschedule", jobId: option.jobId, at: option.at };
       const data = await send("/api/copilot", "POST", body);
+      if (typeof data.proposalId !== "string" || typeof data.preview !== "string") {
+        setError("The plan didn't come back readable. Nothing runs without your approval; refresh to see it in Command.");
+        return;
+      }
       setPlan({ proposalId: data.proposalId, preview: data.preview });
     } catch (err) {
       setError(err instanceof Error ? err.message : "That wasn't accepted.");
@@ -91,14 +96,20 @@ export function OutcomeCard({ outcome, onChange }: { outcome: Outcome; onChange:
     setError(null);
     setNote(null);
     let sent = false;
+    let unsure = false;
     try {
-      await send(`/api/jobs/${jobId}/invoice`, "POST", { totalCents: outcome.money.totalCents, send: true });
-      sent = true;
+      const data = await send(`/api/jobs/${jobId}/invoice`, "POST", { totalCents: outcome.money.totalCents, send: true });
+      if (isBillReply(data)) sent = true;
+      else unsure = true;
     } catch (err) {
-      if (isUncertain(err)) setHoldBill(true);
+      if (isUncertain(err)) unsure = true;
       setError(err instanceof Error ? err.message : "The bill wasn't accepted.");
     }
-    if (sent && !(await reload())) {
+    if (unsure) {
+      setHoldBill(true);
+      /* The fresh view decides; while it says the send is unconfirmed, re-sending waits for the owner's check. */
+      if (!(await reload())) setError((prev) => prev ?? `The bill may or may not have gone. ${STALE_VIEW} Don't send it again from here.`);
+    } else if (sent && !(await reload())) {
       setHoldBill(true);
       setNote(`The bill was handed to the carrier. ${STALE_VIEW} Don't send it again from here.`);
     }
@@ -186,12 +197,12 @@ export function OutcomeCard({ outcome, onChange }: { outcome: Outcome; onChange:
         <CompleteForm
           jobId={jobId!}
           onSitePath={outcome.job?.status === "on_site"}
-          onDone={(next) => {
+          onDone={(next, certain) => {
             if (next) return onChange(next);
-            /* Recorded, but the reply carried no fresh view: don't leave "Record it done" up to be pressed twice. */
+            /* No fresh view, or no trustworthy reply: don't leave "Record it done" up to be pressed twice. */
             setHoldBill(true);
             void reload().then((fresh) => {
-              if (!fresh) setNote(`Recorded as done. ${STALE_VIEW}`);
+              if (!fresh) setNote(certain ? `Recorded as done. ${STALE_VIEW}` : `This may or may not have been recorded. ${STALE_VIEW}`);
             });
           }}
         />
@@ -225,7 +236,7 @@ const CORRECTION_SOURCES: { value: string; label: string }[] = [
 ];
 
 /** Marking work done from Command: what happened and the total, from a person. Orvius never infers it. */
-function CompleteForm({ jobId, onSitePath, onDone }: { jobId: string; onSitePath: boolean; onDone: (next: Outcome | null) => void }) {
+function CompleteForm({ jobId, onSitePath, onDone }: { jobId: string; onSitePath: boolean; onDone: (next: Outcome | null, certain: boolean) => void }) {
   const [open, setOpen] = useState(false);
   const [code, setCode] = useState("");
   const [amount, setAmount] = useState("");
@@ -259,9 +270,14 @@ function CompleteForm({ jobId, onSitePath, onDone }: { jobId: string; onSitePath
           ...(onSitePath ? {} : { evidenceSource: source }),
         },
       });
-      onDone(data.outcome ?? null);
+      if (data.ok === false) {
+        setError(typeof data.error === "string" ? data.error : "That wasn't saved.");
+        return;
+      }
+      onDone(isOutcomeView(data.outcome) ? data.outcome : null, Boolean(data.job || data.outcome));
     } catch (err) {
       setError(err instanceof Error ? err.message : "That wasn't saved.");
+      if (isUncertain(err)) onDone(null, false);
     } finally {
       setBusy(false);
     }
