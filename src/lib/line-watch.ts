@@ -4,6 +4,7 @@ import { getWebhookUrl } from "@/lib/env";
 import { logInfo, logWarn } from "@/lib/logger";
 import { enqueueOwnerAlert } from "@/lib/notification-queue";
 import { prisma } from "@/lib/prisma";
+import { pickTenant } from "@/lib/resolve-shop-line";
 import { syncBusinessAssistant } from "@/lib/sync-business-assistant";
 import { listVapiNumbers, vapiRequest, type VapiNumber, type VapiWebhookMessage } from "@/lib/vapi";
 
@@ -200,7 +201,11 @@ export async function recoverLostCallsAccountWide(
     if (lost.length) {
       const assistantIds = [...new Set(lost.map((c) => c.assistantId).filter((id): id is string => Boolean(id)))];
       const shops = await prisma.business.findMany({ where: { vapiAssistantId: { in: assistantIds }, isActive: true } });
-      const byAssistant = new Map(shops.map((b) => [b.vapiAssistantId!, b]));
+      const byAssistant = new Map<string, Business>();
+      for (const id of assistantIds) {
+        const owner = pickTenant(shops.filter((b) => b.vapiAssistantId === id), { kind: "assistant", key: id });
+        if (owner) byAssistant.set(id, owner);
+      }
       for (const call of lost) {
         const business = call.assistantId ? byAssistant.get(call.assistantId) : undefined;
         if (!business) {

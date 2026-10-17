@@ -13,7 +13,7 @@ import { isProduction } from "@/lib/runtime";
 import { isDatabaseBusy, recordWebhookEvent } from "@/lib/webhook-events";
 import { verifyVapiWebhookSecret } from "@/lib/webhook-auth";
 import { tooManyRequests, webhookAuthFailureLimited } from "@/lib/rate-limit";
-import { resolveBusinessByInboundPhone } from "@/lib/resolve-shop-line";
+import { pickTenant, resolveBusinessByInboundPhone } from "@/lib/resolve-shop-line";
 import {
   buildPreviewAssistant,
   claimPreviewCall,
@@ -65,9 +65,13 @@ async function findBusinessForCall(
   }
 
   if (assistantId) {
-    const byAssistant = await prisma.business.findFirst({
-      where: { vapiAssistantId: assistantId, isActive: true },
-    });
+    const byAssistant = pickTenant(
+      await prisma.business.findMany({
+        where: { vapiAssistantId: assistantId, isActive: true },
+        orderBy: { createdAt: "asc" },
+      }),
+      { kind: "assistant", key: assistantId },
+    );
     if (byAssistant) return byAssistant;
   }
 

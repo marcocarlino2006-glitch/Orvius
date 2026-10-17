@@ -1,11 +1,13 @@
 import { prisma } from "@/lib/prisma";
-import { logWarn } from "@/lib/logger";
+import { logError, logWarn } from "@/lib/logger";
 import { normalizePhone } from "@/lib/customer";
-import { isDemoPlatformLine } from "@/lib/demo-business";
+import { isDemoBusiness, isDemoPlatformLine, workspaceEnvironment } from "@/lib/demo-business";
 
 const SHOP_LINE_SELECT = {
   id: true,
   name: true,
+  slug: true,
+  environment: true,
   timezone: true,
   ownerPhone: true,
   ownerEmail: true,
@@ -29,6 +31,8 @@ const REPLY_WINDOW_DAYS = 30;
 type ShopLineMatch = {
   id: string;
   name: string;
+  slug: string;
+  environment: string;
   timezone: string;
   ownerPhone: string | null;
   ownerEmail: string | null;
@@ -46,10 +50,51 @@ type ShopLineMatch = {
   networkOn: boolean;
 };
 
+type TenantCandidate = { id: string; slug: string; name: string; environment: string | null; createdAt: Date };
+
 /**
- * Resolve the shop that owns an inbound line.
- * One number → one shop. If DB collisions exist, pick the oldest shop
- * (stable demo/primary owner) and log — never silently fan-out to the wrong tenant.
+ * One owner for a line or assistant that several active shops claim.
+ * The demo line goes to a demo shop. Otherwise a single live customer shop
+ * wins over demo and test shops; when only demo or test shops collide the
+ * oldest keeps it. Two live customer shops on one key is a provisioning
+ * error, and guessing would put one shop's caller in another's records, so
+ * nobody gets it and the collision is logged for the founder to fix.
+ */
+export function pickTenant<T extends TenantCandidate>(
+  matches: T[],
+  context: { kind: "line" | "assistant"; key: string },
+): T | null {
+  if (matches.length <= 1) return matches[0] ?? null;
+  const ordered = [...matches].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+  const fields = { kind: context.kind, key: context.kind === "line" ? redactKey(context.key) : context.key, businessIds: ordered.map((m) => m.id) };
+
+  if (context.kind === "line" && isDemoPlatformLine(context.key)) {
+    const demo = ordered.find((m) => isDemoBusiness(m));
+    if (demo) {
+      logWarn("tenant.shared_line_collision", { ...fields, chosen: demo.id, rule: "demo_line" });
+      return demo;
+    }
+  }
+
+  const live = ordered.filter((m) => workspaceEnvironment(m.environment) === "production" && !isDemoBusiness(m));
+  if (live.length === 1) {
+    logWarn("tenant.shared_line_collision", { ...fields, chosen: live[0].id, rule: "single_live_shop" });
+    return live[0];
+  }
+  if (live.length === 0) {
+    logWarn("tenant.shared_line_collision", { ...fields, chosen: ordered[0].id, rule: "oldest_non_live" });
+    return ordered[0];
+  }
+  logError("tenant.ambiguous_owner", { ...fields, liveBusinessIds: live.map((m) => m.id) });
+  return null;
+}
+
+function redactKey(value: string) {
+  return value.length > 4 ? `…${value.slice(-4)}` : value;
+}
+
+/**
+ * Resolve the shop that owns an inbound line. See pickTenant for collisions.
  */
 export async function resolveBusinessByInboundPhone(
   phone: string | null | undefined,
@@ -74,18 +119,7 @@ export async function resolveBusinessByInboundPhone(
     orderBy: { createdAt: "asc" },
   });
 
-  if (matches.length === 0) return null;
-
-  if (matches.length > 1) {
-    logWarn("tenant.shared_line_collision", {
-      phone: normalized ?? phone,
-      businessIds: matches.map((m) => m.id),
-      names: matches.map((m) => m.name),
-      chosen: matches[0].id,
-    });
-  }
-
-  return matches[0];
+  return pickTenant(matches, { kind: "line", key: normalized || phone!.trim() });
 }
 
 /**
@@ -108,16 +142,25 @@ export async function resolveBusinessForInboundSms(params: {
   const fromNormalized = normalizePhone(params.from);
   if (fromNormalized) {
     const since = new Date((params.now ?? new Date()).getTime() - REPLY_WINDOW_DAYS * 86_400_000);
-    const last = await prisma.outboundSms.findFirst({
+    const recent = await prisma.outboundSms.findMany({
       where: {
         toNormalized: fromNormalized,
         createdAt: { gte: since },
         business: { isActive: true },
       },
       orderBy: { createdAt: "desc" },
+      distinct: ["businessId"],
+      take: 2,
       select: { business: { select: SHOP_LINE_SELECT } },
     });
-    if (last) return last.business;
+    if (recent.length > 1) {
+      logWarn("tenant.sms_reply_two_shops", {
+        chosen: recent[0].business.id,
+        alsoTexted: recent[1].business.id,
+        rule: "most_recent_sender",
+      });
+    }
+    if (recent[0]) return recent[0].business;
   }
 
   return direct;
