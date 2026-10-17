@@ -40,6 +40,18 @@ mock.module(twilioPhoneUrl, {
   },
 });
 mock.module(vapiLineUrl, { namedExports: { ...vapiLine, attachAssistantToShopLine: async (p) => void lineWork.push(`attach ${p.phone}`) } });
+const housecallUrl = new URL("../src/lib/housecall.ts", import.meta.url).href;
+const housecall = await import(housecallUrl);
+let housecallUnreadable = false;
+mock.module(housecallUrl, {
+  namedExports: {
+    ...housecall,
+    housecallStatus: async (businessId) => {
+      if (housecallUnreadable) throw new Error("database timeout");
+      return housecall.housecallStatus(businessId);
+    },
+  },
+});
 
 const { prisma } = await import("../src/lib/prisma.ts");
 const { moneyTotals, refundedOf, addTotals } = await import("../src/lib/payment-math.ts");
@@ -643,6 +655,27 @@ test("Settings: if the apply record can't be read, the reload says unconfirmed, 
     assert.equal(save.body.receptionistApply.state, "unconfirmed");
   } finally {
     prisma.auditEvent.findMany = original;
+  }
+});
+
+test("Settings: a connector whose status can't be read is named in the account reply, and the others still load", async () => {
+  await shop();
+  const before = await call(() => accountRoute.GET(req("GET", "/api/account")));
+  assert.equal(before.status, 200);
+  assert.deepEqual(before.body.integrationStatusErrors, []);
+  assert.equal(before.body.housecall.status, "none");
+
+  housecallUnreadable = true;
+  try {
+    const reply = await call(() => accountRoute.GET(req("GET", "/api/account")));
+    assert.equal(reply.status, 200, "one unreadable connector doesn't fail the whole account");
+    assert.deepEqual(reply.body.integrationStatusErrors, ["housecall"], "the unreadable one is named");
+    assert.equal(reply.body.housecall, null, "and not reported as never set up");
+    for (const name of ["jobber", "servicetitan", "quickbooks"]) {
+      assert.equal(reply.body[name].status, "none", `${name} still reads`);
+    }
+  } finally {
+    housecallUnreadable = false;
   }
 });
 
