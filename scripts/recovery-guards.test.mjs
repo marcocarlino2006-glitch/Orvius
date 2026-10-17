@@ -200,6 +200,37 @@ test("a text closed as refused or unknown is left to the owner, not retried", as
   }
 });
 
+test("a job text held while the sender wasn't verified goes out once it is — even days later — with assignment, cancellation and reassignment rechecked", async () => {
+  const held = await assignedJob(3 * 24 * 60);
+  const cancelled = await assignedJob(3 * 24 * 60);
+  const moved = await assignedJob(3 * 24 * 60);
+  const past = await assignedJob(3 * 24 * 60);
+  try {
+    await prisma.job.update({ where: { id: cancelled.job.id }, data: { status: "cancelled" } });
+    const other = await prisma.technician.create({ data: { businessId: moved.s.id, name: "Rae", phone: null } });
+    await prisma.job.update({ where: { id: moved.job.id }, data: { technicianId: other.id } });
+    await prisma.job.update({ where: { id: past.job.id }, data: { scheduledAt: new Date(Date.now() - 86_400_000) } });
+
+    let ready = false;
+    const eligible = async () => ready;
+    const waiting = await sweepUntoldAssignments({ eligible });
+    assert.ok(waiting.held >= 1, "while held, nothing is attempted");
+    assert.equal(await sendsTo(held.s, held.tech), 0);
+
+    ready = true;
+    await sweepUntoldAssignments({ eligible });
+    assert.equal(await sendsTo(held.s, held.tech), 1, "the held text goes out once the sender is ready");
+    assert.ok((await prisma.job.findUnique({ where: { id: held.job.id } })).techNotifiedAt);
+    await sweepUntoldAssignments({ eligible });
+    assert.equal(await sendsTo(held.s, held.tech), 1, "and only once");
+    assert.equal(await sendsTo(cancelled.s, cancelled.tech), 0, "a cancelled job is never texted");
+    assert.equal(await sendsTo(moved.s, moved.tech), 0, "the technician it moved away from is never texted");
+    assert.equal(await sendsTo(past.s, past.tech), 0, "an old assignment for a visit already past is left alone");
+  } finally {
+    await prisma.business.deleteMany({ where: { id: { in: [held.s.id, cancelled.s.id, moved.s.id, past.s.id] } } });
+  }
+});
+
 test("the sweep waits out the assign request's own send", async () => {
   const { s, tech } = await assignedJob(0);
   try {

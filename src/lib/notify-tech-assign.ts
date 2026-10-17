@@ -5,7 +5,7 @@ import { buildTechJobAssignMessage } from "@/lib/tech-assign-sms";
 import { markTechNotified, resetTechAnswer } from "@/lib/tech-response";
 import { ensureTechAppToken, techAppUrl } from "@/lib/tech-app-link";
 import { raiseIntentException } from "@/lib/sms-intent";
-import { sendSms } from "@/lib/twilio-sms";
+import { sendSms, textingHeld } from "@/lib/twilio-sms";
 
 /**
  * Notify the technician by SMS when a job is newly assigned to them.
@@ -142,9 +142,11 @@ const UNTOLD_LOOKBACK_MS = 24 * 60 * 60_000;
  * second send, one that may have left is closed as unknown with an owner
  * exception, and only a text that never left goes out. Never throws.
  */
-export async function sweepUntoldAssignments(options: { now?: Date; limit?: number } = {}) {
+export async function sweepUntoldAssignments(options: { now?: Date; limit?: number; eligible?: (businessId: string) => Promise<boolean> } = {}) {
   const now = options.now ?? new Date();
-  const result = { checked: 0, sent: 0, unsent: 0 };
+  const result = { checked: 0, sent: 0, unsent: 0, held: 0 };
+  const eligible = options.eligible ?? (async (businessId: string) => !(await textingHeld(businessId)));
+  const ready = new Map<string, boolean>();
   try {
     const jobs = await prisma.job.findMany({
       where: {
@@ -154,7 +156,15 @@ export async function sweepUntoldAssignments(options: { now?: Date; limit?: numb
         techNotifiedAt: null,
         techAcceptedAt: null,
         techDeclinedAt: null,
-        techAssignedAt: { lte: new Date(now.getTime() - UNTOLD_GRACE_MS), gte: new Date(now.getTime() - UNTOLD_LOOKBACK_MS) },
+        /*
+          Recent assignments, plus older ones still ahead on the schedule: a
+          job text held while the shop's sender wasn't verified goes out once
+          it is, instead of aging out of the window untold.
+        */
+        OR: [
+          { techAssignedAt: { lte: new Date(now.getTime() - UNTOLD_GRACE_MS), gte: new Date(now.getTime() - UNTOLD_LOOKBACK_MS) } },
+          { techAssignedAt: { lt: new Date(now.getTime() - UNTOLD_LOOKBACK_MS) }, scheduledAt: { gte: now } },
+        ],
         business: { isActive: true },
       },
       orderBy: { techAssignedAt: "desc" },
@@ -163,6 +173,11 @@ export async function sweepUntoldAssignments(options: { now?: Date; limit?: numb
     });
     for (const job of jobs) {
       result.checked += 1;
+      if (!ready.has(job.businessId)) ready.set(job.businessId, await eligible(job.businessId).catch(() => false));
+      if (!ready.get(job.businessId)) {
+        result.held += 1;
+        continue;
+      }
       const prior = await priorAssignText(job, now);
       if (prior === "sent") {
         await markTechNotified(job.id, job.technicianId!);
