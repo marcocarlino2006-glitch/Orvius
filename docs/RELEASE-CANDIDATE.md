@@ -258,3 +258,19 @@ Recovery: rolling back to `a6ab9de1` needs no data change. Superseded plans stay
 Compatibility: no columns or tables are added. `inbound-held` and `released` are new `WebhookEvent.eventType` and `status` values. Code from `a6ab9de1` never reads them; it only reads `twilio-sms` rows by exact key.
 
 Recovery: rolling back to `a6ab9de1` routes ambiguous replies to the most recent sender again. Any rows still `held` at rollback are not replayed by the old code, so before rolling back, export `WebhookEvent` rows where `eventType = 'inbound-held' AND status = 'held'` and route them by hand. After the release, list the same rows weekly. A non-empty list means customers who never answered the "which business?" question.
+
+### Product-quality pass (same branch, one additive column)
+
+Not applied anywhere. Prepared and rehearsed on disposable databases only.
+
+- Outbound sender migration: `prisma/releases/2026-10-17-outbound-sender.sql`, sha256 `3b0c09809d1ebda1a4886f849d2cd1eaa08f7a982f87a8200984853a0271b2d7`. One statement: `ALTER TABLE "OutboundSms" ADD COLUMN "fromNormalized" TEXT;`, also appended to `prisma/turso-migrate.sql`. Existing rows read NULL, which the reply resolver treats as "any number", the same as before. `scripts/sms-routing.test.mjs` applies it through `applyMigrationPlan` to a disposable database with old-shape rows, and asserts that the file is not in `MIGRATION_PLAN_FILES`. `ops/migration-targets.json` stays empty.
+- Order: back up, apply the refund-ledger file, then this file, verify that `OutboundSms.fromNormalized` exists, then deploy. Prisma selects every column, so this code must not run against an unmigrated database.
+- Rollback: redeploy `a6ab9de1`. It ignores the column, so the column can stay. Dropping it would only lose which number each text left from.
+- What changed:
+  - Lost replies: public booking, Settings saves, receptionist corrections, pay-link sends, lead follow-ups and Command approvals show "Checking what happened", then read the shop's own record. Repeat presses replay instead of acting twice.
+  - Texting: shared-sender attribution uses the number each text left from, and an ambiguous START restarts nobody. The Inbox shows held, unknown, delivered, undelivered and photo-unavailable states. Follow-ups go through the text-intent ledger. Technician texts held for carrier registration go out once the sender is ready.
+  - Field work: Call back dials only the checked number. A technician's week is Monday to Monday in the shop's timezone. Removing a photo or replacing a signature leaves a history row. Every browser `prompt`/`confirm` is now the app's own dialog.
+  - Money and reports: customer screens show paid and refunded side by side. Lists, the owner report and the CSV say when they stop short. A demo or test report says its money is sample. Customer edits record the person and the fields changed.
+  - Integrations: ServiceTitan checks the record contract at send time, ties each booking to its lead, and raises one reconciliation item per lost reply. Settings separates refused sends from lost replies, and says when a connector's status couldn't be read.
+  - Public pages: the demo explains the microphone before the browser asks. The payment-setup time claim and the search caption were corrected. The replay player fits at 320 and 390. Plan Finder answers are radio groups.
+- Compatibility: aside from the column, no tables or values that old code reads were changed. New audit actions: `job.signature_replaced`, `lead.follow_up_unknown`, `keyword-start-unnamed`. A photo-removal audit row now carries what was removed.
