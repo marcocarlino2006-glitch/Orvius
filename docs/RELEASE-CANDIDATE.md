@@ -197,8 +197,34 @@ Not applied anywhere. Prepared and rehearsed on disposable databases only.
 
 - File: `prisma/releases/2026-10-17-refund-ledger.sql`, sha256 `718732b85018cfa56fc01c9f6b65942d7e3367f3c431e6121d0eb3d0ba04de1f`. Two statements: `Payment.refundedCents` and `Deposit.refundedCents`, `INTEGER NOT NULL DEFAULT 0`. The same two lines are appended to `prisma/turso-migrate.sql` for fresh databases.
 - Compatibility: additive with a constant default, so SQLite adds the columns without rebuilding the tables, and existing rows read 0 (no refund recorded). Code from `a6ab9de1` ignores the columns and keeps working against a migrated database. The new code selects the columns, so it must not run against an unmigrated database.
-- Legacy data: rows already marked `refunded` count as fully refunded through `refundedOf`, so no backfill is needed. Partial refunds recorded before this release left no trace on the row (the old code only changed statuses), so totals for those stay as they were.
+- Legacy data: rows already marked `refunded` count as fully refunded through `refundedOf`, with no backfill. Partial refunds from before this release left no trace on the row, only audit rows carrying Stripe's running total. `scripts/refund-backfill.mjs` reads those and, per charge, takes the highest running total. It attributes a deposit by `depositId`, and an invoice by `paymentId` or by the invoice's single card receipt. Anything else is listed as ambiguous (several card receipts, no card receipt, no record named, deposit missing) and left alone. It is plan-only by default. `--apply` refuses any non-`file:` database unless `REFUND_BACKFILL_APPROVAL` is set, and only ever raises a value. Tested on disposable databases only; to be run against a copy of production first.
 - Rehearsal: `scripts/operating-truth.test.mjs` applies the file through `applyMigrationPlan` to a disposable database that has old-shape rows, checks they read 0, checks that inserts without the column still work, and checks that a second run changes nothing. Separately, a database built from the `a6ab9de1` `schema.prisma` and then given this file has an empty `prisma migrate diff` against the new schema, so these two columns are the whole gap.
 - Not registered: `MIGRATION_PLAN_FILES` in `scripts/turso-migrate.mjs` was left unchanged, because it is the reviewed-file allowlist for remote migration. Registering this file is a one-line change that belongs to the approval for this release. `ops/migration-targets.json` stays empty.
 - Order: back up, apply the file, verify the two columns exist, then deploy the new code.
 - Rollback: redeploy `a6ab9de1`. It reads the tables correctly with the columns present, so the columns can stay. Dropping them is not needed and would discard recorded refunds.
+
+### Refund and customer-debt policy: proposal for the owner (not implemented)
+
+The standing contract is unchanged in this release, and so are its tests (`money-invariants`, `money-safety`, `backlog-tier0`). When Stripe reports a card payment fully refunded, that payment becomes `refunded` and the invoice is reopened. It goes to `partial` if cash still covers some of it, `paid` if other receipts still cover all of it, and `refunded` if nothing does. The refunded card share therefore shows as owed by the customer again. A partial refund changes no status. Its amount is recorded (`refundedCents`) so totals show gross, refunded and net, and the bill stays as it was. Committed invoices are never rewritten.
+
+The question for the owner is whether a refund should, by default, mean the customer owes that money again. Shops refund for two very different reasons:
+
+1. **Making it right.** Goodwill, a callback, or a disputed charge settled in the customer's favour. The customer should not owe it again, and reopening the bill would put a balance on Still to collect and could trigger reminder texts for money the shop chose to give back.
+2. **Changing how they pay.** The card was refunded so the customer can pay another way, or because the amount was wrong. The balance really is owed again.
+
+Proposed change, for approval before any code changes:
+
+- Keep the current behavior as the default (option 2 above), because it never hides money that is owed.
+- When a full card refund reopens a bill, raise one Command decision instead of a silent reopen: "Stripe refunded $X on <job>. Does <customer> owe it again?" There would be two answers. "Yes, still owed" keeps the reopened balance. "No, we gave it back" closes the balance with a written-off amount and a reason, recorded as an owner money action under the existing money-authority grants.
+- Until the owner answers, reminders for that balance are held. Nothing is texted to the customer about money the shop may have chosen to give back.
+- Reports stay on receipts: gross, refunded and net retained do not depend on the answer. Still to collect and the customer's balance do.
+
+This needs one additive field for a written-off amount and reason (or reuse of the existing adjustment record, if the owner prefers), its migration and rehearsal, and changes to the three contract tests. None of that is in this release.
+
+### Also in this branch, after the refund ledger
+
+- Command: Approve and Dismiss read the reply's shape. A lost, unreadable or mismatched reply makes the card read back the plan from the shop's own record (`GET /api/copilot?proposalId=`) instead of saying "Done" or "Nothing changed". Approve returns only if the record shows the plan never took effect. Stored plan details are parsed before any status change, and a decision saved without its history row reports `recorded: false` instead of an error.
+- Bills and completion from the outcome card: a bill counts as sent only when the reply names its invoice, and a completion reply nobody can read keeps the button away until a fresh view arrives.
+- Team: adding, editing, deactivating and time off for technicians need the owner or a manager (`team.manage`, which already existed). Dispatchers keep reading the crew, assigning and scheduling. No grants were migrated.
+- Setup after go-live: each unfinished item says whether it waits on the owner, a provider or real proof, with one next step on top. Customer texting reads carrier approval, and the first job counts only when a person marked it done.
+- Evidence: setup milestones, owner decisions and technician progress are written by the routes where they happen. Workflow numbers are checked against job records, and the owner report shows them as observed, attributable and synthetic, with what stays unknown.
