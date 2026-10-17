@@ -138,9 +138,15 @@ export function summarizeReport(input: {
 }
 
 const ROW_CAP = 5000;
+/** Rows past the cap are left out; the report names each section that hit it instead of quietly totalling less. */
+function capped<T>(rows: T[], section: string, hit: Set<string>): T[] {
+  if (rows.length <= ROW_CAP) return rows;
+  hit.add(section);
+  return rows.slice(0, ROW_CAP);
+}
 const WON = ["accepted", "paid"];
 
-async function moneyIn(businessId: string, start: Date, end: Date): Promise<MoneyRow[]> {
+async function moneyIn(businessId: string, start: Date, end: Date, hit: Set<string>): Promise<MoneyRow[]> {
   /*
     Paid means paid, even when the paid-on date is missing: every production
     path stamps paidAt alongside the status, but a paid row with no paidAt
@@ -153,13 +159,13 @@ async function moneyIn(businessId: string, start: Date, end: Date): Promise<Mone
     prisma.invoice.findMany({
       where: { businessId, status: { in: ["paid", "partial", "refunded"] }, ...inWindow("paidAt") },
       select: { amountCents: true, status: true, payments: { select: { amountCents: true, status: true, refundedCents: true } }, job: { select: { technicianId: true, lead: { select: { source: true } } } } },
-      take: ROW_CAP,
-    }),
+      take: ROW_CAP + 1,
+    }).then((rows) => capped(rows, "money", hit)),
     prisma.deposit.findMany({
       where: { businessId, status: { in: ["paid", "refunded"] }, ...inWindow("paidAt") },
       select: { amountCents: true, status: true, refundedCents: true, lead: { select: { source: true } }, job: { select: { technicianId: true, lead: { select: { source: true } } } } },
-      take: ROW_CAP,
-    }),
+      take: ROW_CAP + 1,
+    }).then((rows) => capped(rows, "money", hit)),
   ]);
   return [
     ...invoices.map((i) => {
@@ -193,16 +199,18 @@ export async function buildOwnerReport(businessId: string, period: ReportPeriodI
   const timezone = shop?.timezone ?? "America/New_York";
   const w = reportWindow(period, timezone, now);
   const inWindow = { gte: w.start, lt: w.end };
+  const hit = new Set<string>();
+  const previousHit = new Set<string>();
   const [money, previousMoney, estimates, jobs, callLeads, technicians, openInvoices] = await Promise.all([
-    moneyIn(businessId, w.start, w.end),
-    moneyIn(businessId, w.prevStart, w.prevEnd),
+    moneyIn(businessId, w.start, w.end, hit),
+    moneyIn(businessId, w.prevStart, w.prevEnd, previousHit),
     prisma.estimate.findMany({
       where: { businessId, sentAt: inWindow },
       select: { amountCents: true, status: true, job: { select: { technicianId: true } } },
-      take: ROW_CAP,
-    }),
-    prisma.job.findMany({ where: { businessId, status: "completed", completedAt: inWindow }, select: { technicianId: true }, take: ROW_CAP }),
-    prisma.lead.findMany({ where: { businessId, source: "call", createdAt: inWindow }, select: { job: { select: { id: true } } }, take: ROW_CAP }),
+      take: ROW_CAP + 1,
+    }).then((rows) => capped(rows, "estimates", hit)),
+    prisma.job.findMany({ where: { businessId, status: "completed", completedAt: inWindow }, select: { technicianId: true }, take: ROW_CAP + 1 }).then((rows) => capped(rows, "jobs", hit)),
+    prisma.lead.findMany({ where: { businessId, source: "call", createdAt: inWindow }, select: { job: { select: { id: true } } }, take: ROW_CAP + 1 }).then((rows) => capped(rows, "calls", hit)),
     prisma.technician.findMany({ where: { businessId }, select: { id: true, name: true } }),
     prisma.invoice.findMany({
       where: { businessId, status: { in: ["sent", "open", "partial"] } },
@@ -216,9 +224,10 @@ export async function buildOwnerReport(businessId: string, period: ReportPeriodI
         job: { select: { id: true, title: true, customer: { select: { name: true } }, lead: { select: { name: true } } } },
       },
       orderBy: { createdAt: "asc" },
-      take: ROW_CAP,
-    }),
+      take: ROW_CAP + 1,
+    }).then((rows) => capped(rows, "still to collect", hit)),
   ]);
+  if (previousHit.size) hit.add("previous period money");
   const report = summarizeReport({
     money,
     previousMoney,
@@ -250,6 +259,7 @@ export async function buildOwnerReport(businessId: string, period: ReportPeriodI
     previousEnd: w.prevEnd.toISOString(),
     timezone,
     report: operating ? { ...report, operating } : report,
+    truncated: [...hit],
   };
 }
 
@@ -277,7 +287,7 @@ export function operatingEvidence(w: WorkflowReport): OperatingEvidence {
   };
 }
 
-export function reportCsv(report: OwnerReport) {
+export function reportCsv(report: OwnerReport, truncated: string[] = []) {
   const cell = (v: string | number) => {
     const s = String(v);
     return /[",\n]/.test(s) || /^[=+\-@]/.test(s) ? `"${s.replace(/"/g, '""').replace(/^([=+\-@])/, "'$1")}"` : s;
@@ -298,6 +308,8 @@ export function reportCsv(report: OwnerReport) {
           ["Synthetic", "Demo, test and simulated events left out", "", "", report.operating.syntheticLeftOut, "", ""],
         ]
       : []),
+    ...(report.operating?.shopSynthetic ? [["Workspace", "Demo or test workspace: sample or test money, not real takings", "", "", "", "", ""]] : []),
+    ...(truncated.length ? [["Partial", `Over ${ROW_CAP} rows; totals leave some out: ${truncated.join(", ")}`, "", "", "", "", ""]] : []),
   ];
   return lines.map((row) => row.map(cell).join(",")).join("\n");
 }

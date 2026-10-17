@@ -5,7 +5,7 @@ import { OsShell } from "@/components/os-shell";
 import { formatCents } from "@/lib/money";
 import { MIN_ESTIMATES_FOR_RATE, REPORT_PERIODS, type OperatingEvidence, type OwnerReport, type ReportPeriodId, type ReportRow } from "@/lib/owner-report-types";
 
-type ReportResponse = { period: ReportPeriodId; start: string; end: string; previousStart: string; previousEnd: string; timezone: string; report: OwnerReport };
+type ReportResponse = { period: ReportPeriodId; start: string; end: string; previousStart: string; previousEnd: string; timezone: string; report: OwnerReport; truncated?: string[] };
 
 const money = (cents: number | null) => (cents == null ? "—" : (formatCents(cents) ?? "$0"));
 const pct = (rate: number | null) => (rate == null ? "—" : `${Math.round(rate * 100)}%`);
@@ -234,6 +234,16 @@ export default function ReportsPage() {
       {r && data ? (
         <div aria-busy={loading}>
           <p className="rp-range font-sans">{range(data.start, data.end, data.timezone)}</p>
+          {r.operating?.shopSynthetic ? (
+            <p className="ox-state-copy" role="note">
+              This is a demo or test workspace. Every amount below is sample or test money, not money the business took in.
+            </p>
+          ) : null}
+          {data.truncated?.length ? (
+            <p className="ox-state-copy" role="note">
+              Partial: this period has more rows than the report reads at once, so these totals leave some out ({data.truncated.join(", ")}). A shorter period gives full totals.
+            </p>
+          ) : null}
           <div className="rp-tiles">
             <div className="rp-tile">
               <p className="rp-k">{r.money && r.money.refundedCents > 0 ? "Kept" : "Collected"}</p>

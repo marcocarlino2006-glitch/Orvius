@@ -58,6 +58,8 @@ const syncRoute = await import("../src/app/api/account/sync-assistant/route.ts")
 const rulesRoute = await import("../src/app/api/account/receptionist-rules/route.ts");
 const askRoute = await import("../src/app/api/command/ask/route.ts");
 const copilotRoute = await import("../src/app/api/copilot/route.ts");
+const customersRoute = await import("../src/app/api/customers/route.ts");
+const customerRoute = await import("../src/app/api/customers/[id]/route.ts");
 
 const created = [];
 after(async () => {
@@ -952,6 +954,92 @@ const timeOffRoute = await import("../src/app/api/technicians/[id]/time-off/rout
 const jobRoute = await import("../src/app/api/jobs/[id]/route.ts");
 const crewRoute = await import("../src/app/api/team/crew/route.ts");
 const idParams = (id) => ({ params: Promise.resolve({ id }) });
+
+test("customers: the list, the record and the report agree on paid and refunded; the original receipt stays; a partial list says so", async () => {
+  const s = await shop();
+  const phone = `+1312555${String(Math.floor(Math.random() * 1e4)).padStart(4, "0")}`;
+  const customer = await prisma.customer.create({ data: { businessId: s.id, phone, phoneNormalized: phone, name: "Pat Refund" } });
+  const bill = await paidBill(s);
+  await prisma.job.update({ where: { id: bill.job.id }, data: { customerId: customer.id } });
+  await applyChargeRefund(cardRefund(s, bill, 5_000));
+  await applyChargeRefund(cardRefund(s, bill, 5_000));
+  assert.equal((await prisma.payment.findUnique({ where: { id: bill.cardRow.id } })).amountCents, 20_000, "the receipt keeps its original amount");
+
+  const list = await call(() => customersRoute.GET(req("GET", "/api/customers")));
+  const row = list.body.customers.find((c) => c.id === customer.id);
+  assert.equal(row.collectedCents, 30_000);
+  assert.equal(row.refundedCents, 5_000, "a replayed refund event is counted once");
+  assert.equal(row.owedCents, 0, "a partial refund doesn't reopen debt in this view");
+  assert.equal(list.body.hasMore, false);
+  assert.equal(list.body.moneyPartial, false);
+
+  const detail = await call(() => customerRoute.GET(req("GET", `/api/customers/${customer.id}`), { params: Promise.resolve({ id: customer.id }) }));
+  const payments = detail.body.timeline.filter((e) => e.type === "payment");
+  assert.equal(payments.reduce((n, e) => n + (e.refundedCents ?? 0), 0), 5_000);
+  assert.ok(payments.some((e) => /\$50 refunded/.test(e.title)), "the refunded card row says how much went back");
+
+  const { report } = await buildOwnerReport(s.id, "this_month");
+  assert.deepEqual(report.money, { grossCents: 30_000, refundedCents: 5_000, netCents: 25_000 });
+
+  signedInAs = `nobody-${uid()}@example.test`;
+  const outsider = await call(() => customersRoute.GET(req("GET", "/api/customers")));
+  assert.notEqual(outsider.status, 200);
+});
+
+test("customers: the list says when it stops short instead of ending quietly", async () => {
+  const s = await shop();
+  for (let i = 0; i < 3; i++) {
+    const phone = `+1312556${i}${String(Math.floor(Math.random() * 1e3)).padStart(3, "0")}`;
+    await prisma.customer.create({ data: { businessId: s.id, phone, phoneNormalized: phone } });
+  }
+  const page = await call(() => customersRoute.GET(req("GET", "/api/customers?limit=2")));
+  assert.equal(page.body.customers.length, 2);
+  assert.equal(page.body.hasMore, true);
+  const all = await call(() => customersRoute.GET(req("GET", "/api/customers?limit=3")));
+  assert.equal(all.body.hasMore, false);
+});
+
+test("reports: a period past the row cap is marked partial on screen and in the CSV, never totalled short in silence", async () => {
+  const { reportCsv } = await import("../src/lib/owner-report.ts");
+  const s = await shop();
+  const { report, truncated } = await buildOwnerReport(s.id, "this_month");
+  assert.deepEqual(truncated, []);
+  assert.doesNotMatch(reportCsv(report, truncated), /Partial/);
+  assert.match(reportCsv(report, ["money", "jobs"]), /Partial,.*money, jobs/);
+  const source = (await import("node:fs")).readFileSync("src/lib/owner-report.ts", "utf8");
+  assert.doesNotMatch(source, /take: ROW_CAP(?! \+ 1)/, "every capped read asks for one more row so it can tell");
+});
+
+test("customer edits record who made them and which fields changed; a save that changes nothing records nothing; another shop's customer is refused", async () => {
+  const s = await shop();
+  const owner = signedInAs;
+  const customer = await prisma.customer.create({ data: { businessId: s.id, phone: "+13125557001", phoneNormalized: "+13125557001", address: "1 Old Rd", email: "old@example.test" } });
+  const manager = `mgr-${uid()}@example.test`;
+  await prisma.membership.create({ data: { businessId: s.id, email: manager, role: "manager" } });
+  signedInAs = manager;
+  const patch = (body, id = customer.id) => call(() => customerRoute.PATCH(req("PATCH", `/api/customers/${id}`, body), { params: Promise.resolve({ id }) }));
+
+  assert.equal((await patch({ address: "2 New Rd", email: "old@example.test", notes: "Gate code 12" })).status, 200);
+  const rows = await prisma.auditEvent.findMany({ where: { businessId: s.id, action: "customer.updated" } });
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].actor, "teammate");
+  assert.equal(rows[0].actorEmail, manager);
+  assert.deepEqual(JSON.parse(rows[0].detailJson).changed.sort(), ["address", "notes"]);
+  assert.match(rows[0].summary, /address/);
+  assert.doesNotMatch(rows[0].detailJson, /Gate code|New Rd/, "the history names fields, not the customer's details");
+
+  assert.equal((await patch({ address: "2 New Rd" })).status, 200);
+  assert.equal(await prisma.auditEvent.count({ where: { businessId: s.id, action: "customer.updated" } }), 1, "a repeat writes nothing");
+
+  assert.equal((await patch({ email: "not-an-email" })).status, 400);
+  assert.equal((await prisma.customer.findUnique({ where: { id: customer.id } })).email, "old@example.test", "a bad body changes nothing");
+
+  const other = await shop();
+  const theirs = await prisma.customer.create({ data: { businessId: other.id, phone: "+13125557002", phoneNormalized: "+13125557002", address: "9 Their St" } });
+  signedInAs = owner;
+  assert.equal((await patch({ address: "hijack" }, theirs.id)).status, 404);
+  assert.equal((await prisma.customer.findUnique({ where: { id: theirs.id } })).address, "9 Their St");
+});
 
 test("crew changes are for the owner or a manager; a dispatcher still reads the crew, assigns and schedules work", async () => {
   const s = await shop();

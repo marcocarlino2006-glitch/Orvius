@@ -188,6 +188,7 @@ export async function internalEconomicsReport(opts: { now?: Date; windowDays?: n
   const report = overageEconomicsReport({ shops: econShops, calls: econCalls, texts: econTexts, model: [], fixed: [], invoices: [], waivers: [] }, { now, windowDays });
   return {
     ...report,
+    truncated: shops.length >= 10_000 || calls.length >= 50_000 || texts.length >= 50_000,
     revenue: null,
     overage: null,
     observedMarginCents: null,

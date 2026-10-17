@@ -2685,6 +2685,12 @@ html[data-theme="day"] .os-shell .dsp-date {
   display: none;
 }
 
+.cp-list-note {
+  padding: 0.75rem 0.25rem;
+  color: var(--ox-mute);
+  font-size: 0.8125rem;
+}
+
 @media (min-width: 1100px) {
   .cp-layout {
     grid-template-columns: minmax(0, 1fr) minmax(22rem, 28rem);

@@ -16,6 +16,7 @@ type CustomerRecordCardProps = {
   returning?: boolean;
   collectedCents?: number;
   owedCents?: number;
+  refundedCents?: number;
   /** Wide layouts show history beside the list; the drawer stays for narrow ones. */
   onSelect?: () => void;
   selected?: boolean;
@@ -33,6 +34,7 @@ export function CustomerRecordCard({
   returning = interactionCount > 1,
   collectedCents = 0,
   owedCents = 0,
+  refundedCents = 0,
   onSelect,
   selected = false,
 }: CustomerRecordCardProps) {
@@ -73,6 +75,7 @@ export function CustomerRecordCard({
         {collectedCents > 0 || owedCents > 0 ? (
           <p className="lead-rail-money">
             {collectedCents > 0 ? <span>{formatCents(collectedCents)} paid</span> : null}
+            {refundedCents > 0 ? <span>{formatCents(refundedCents)} refunded</span> : null}
             {owedCents > 0 ? <span className="is-owed">{formatCents(owedCents)} owed</span> : null}
           </p>
         ) : null}

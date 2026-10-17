@@ -84,6 +84,6 @@ test("a customer's lifetime value counts paid bills at face and open bills by ba
     { customerId: null, invoices: [{ amountCents: 10000, status: "paid", payments: [] }] },
     { customerId: "c2", invoices: [] },
   ]);
-  assert.deepEqual(out.get("c1"), { collected: 45000, owed: 15000 }, "void and draft bills are not money, and jobs without a customer belong to nobody");
+  assert.deepEqual(out.get("c1"), { collected: 45000, owed: 15000, refunded: 0 }, "void and draft bills are not money, and jobs without a customer belong to nobody");
   assert.ok(!out.has("c2"), "a customer with no bills shows no money line at all");
 });

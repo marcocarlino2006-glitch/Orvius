@@ -45,6 +45,7 @@ type TimelineEvent = {
   urgency: string | null;
   status: string | null;
   amountCents?: number | null;
+  refundedCents?: number;
 };
 
 export default function CustomerDetailPage() {
@@ -100,11 +101,13 @@ export default function CustomerDetailPage() {
   }
 
   const paidCents = timeline.filter((e) => e.type === "payment" && !["failed", "claimed", "refunded"].includes((e.status ?? "").toLowerCase())).reduce((sum, e) => sum + (e.amountCents ?? 0), 0);
+  const refundedCents = timeline.filter((e) => e.type === "payment").reduce((sum, e) => sum + (e.refundedCents ?? 0), 0);
   const summary = [
     `Customer since ${formatDay(customer.firstSeenAt)}`,
     `${customer.callCount} call${customer.callCount === 1 ? "" : "s"}`,
     `${customer.jobCount ?? 0} job${customer.jobCount === 1 ? "" : "s"}`,
     paidCents ? `${usd(paidCents)} paid` : null,
+    refundedCents ? `${usd(refundedCents)} refunded` : null,
   ]
     .filter(Boolean)
     .join(" · ");
