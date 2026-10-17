@@ -42,9 +42,13 @@ function practiceLine(trade: Trade): string {
   }
 }
 
-export function ShopPreviewForm() {
-  const [shopName, setShopName] = useState("");
-  const [trade, setTrade] = useState<Trade>("HVAC");
+export function ShopPreviewForm({ initial }: { initial?: { name?: string; trade?: string } } = {}) {
+  const [shopName, setShopName] = useState(initial?.name ?? "");
+  const [trade, setTrade] = useState<Trade>(
+    initial?.trade && (OFFERED_TRADES as readonly string[]).includes(initial.trade)
+      ? (initial.trade as Trade)
+      : "HVAC",
+  );
   const [serviceArea, setServiceArea] = useState("");
   const [services, setServices] = useState("");
   const [ownerPhone, setOwnerPhone] = useState("");

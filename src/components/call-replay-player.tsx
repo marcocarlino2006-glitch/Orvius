@@ -17,6 +17,7 @@ function delays(replay: Replay): number[] {
 export function CallReplayPlayer({ replay }: { replay: Replay }) {
   const [shown, setShown] = useState(0);
   const [run, setRun] = useState(0);
+  const [shared, setShared] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
   const done = shown >= replay.turns.length;
 
@@ -82,6 +83,18 @@ export function CallReplayPlayer({ replay }: { replay: Replay }) {
         <Link href={tryHref} className="ov-btn ov-btn--solid">
           Hear your business answer
         </Link>
+        <button
+          type="button"
+          className="ov-btn ov-btn--quiet"
+          onClick={() => {
+            void navigator.clipboard
+              ?.writeText(window.location.href)
+              .then(() => setShared(true))
+              .catch(() => setShared(false));
+          }}
+        >
+          {shared ? "Link copied" : "Share this call"}
+        </button>
         {done ? (
           <button type="button" className="ov-btn ov-btn--quiet" onClick={() => setRun((n) => n + 1)}>
             Play again

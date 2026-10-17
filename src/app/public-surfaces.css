@@ -1031,3 +1031,89 @@ html .ov-public .pricing-chapter-compare .pricing-matrix-scroll {
     padding: 1.75rem 1.25rem;
   }
 }
+
+/*
+ * ── Claim your front door ──
+ * The claim form is deliberately small: a name, a trade, and a shareable link.
+ * The card it returns is stone, the link itself is the artifact owners pass on.
+ */
+
+.ov-public .ov-claim-form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+@media (min-width: 720px) {
+  .ov-public .ov-claim-form {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto;
+    align-items: end;
+  }
+}
+
+.ov-public .ov-claim-field {
+  display: grid;
+  gap: 0.375rem;
+  color: var(--ov-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.ov-public .ov-claim-field input,
+.ov-public .ov-claim-field select {
+  min-height: 44px;
+  padding: 0 0.875rem;
+  border: 1px solid var(--ov-line-strong);
+  border-radius: 0.5rem;
+  background: var(--ov-paper);
+  color: var(--ov-ink);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.ov-public .ov-claim-submit {
+  min-height: 44px;
+  white-space: nowrap;
+}
+
+.ov-public .ov-claim-card {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--ov-line);
+  border-radius: 0.75rem;
+  background: var(--ov-stone);
+}
+
+.ov-public .ov-claim-shop {
+  margin: 0;
+  color: var(--ov-headline);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.ov-public .ov-claim-link {
+  margin: 0;
+  color: var(--ov-accent-text);
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+
+.ov-public .ov-claim-note {
+  margin: 0;
+  color: var(--ov-muted);
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.ov-public .ov-claim-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.ov-public .ov-claim-band {
+  border-top: 1px solid var(--ov-line);
+}
