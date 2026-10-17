@@ -43,7 +43,7 @@ function Cell({ mark }: { mark: Mark }) {
 export function HomeCompare() {
   return (
     <section
-      className="mkt-section mkt-section-dark hx-section hx-compare"
+      className="mkt-section mkt-section-dark hx-section hx-compare ov-surface-canvas"
       aria-labelledby="home-compare-heading"
     >
       <div className="editorial-wrap mkt-section-inner">
