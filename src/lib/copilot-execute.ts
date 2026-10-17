@@ -1,6 +1,6 @@
 import { COMMAND_POLICY_VERSION, decideApproval, grantsForActor } from "@/lib/command-authority";
 import type { Business } from "@prisma/client";
-import { personActor, recordAudit, writeAudit, type AuditInput } from "@/lib/audit";
+import { personActor, recordAudit, type AuditInput } from "@/lib/audit";
 import { DEFAULT_JOB_DURATION_MIN } from "@/lib/availability";
 import { isWindowOpen, openWindows, windowLabel } from "@/lib/copilot-propose";
 import { sendCustomerConfirmSms } from "@/lib/customer-confirm";
@@ -341,6 +341,20 @@ export function needsCheck(item: { status: string; createdAt: Date; executedAt?:
   return item.status === "executing" && now.getTime() - item.createdAt.getTime() > STALE_EXECUTING_MS;
 }
 
+/**
+ * recordAudit never throws, and a null id means either a failed write or a row
+ * already there under this key, so the row itself decides.
+ */
+export async function auditOrThrow(input: AuditInput): Promise<string> {
+  const id = await recordAudit(input);
+  if (id) return id;
+  const existing = input.idempotencyKey
+    ? await prisma.auditEvent.findFirst({ where: { businessId: input.businessId, idempotencyKey: input.idempotencyKey }, select: { id: true } })
+    : null;
+  if (!existing) throw new Error(`audit row not written: ${input.action}`);
+  return existing.id;
+}
+
 /** Stored plan parameters, or null when they can't be read. Parsed before any status changes, never after. */
 export function readParams(json: string | null | undefined): ProposalParams | null {
   try {
@@ -407,7 +421,11 @@ export async function executeProposal(params: {
   const stored = await prisma.copilotAction.findFirst({ where: { id: params.proposalId, businessId: business.id }, select: { paramsJson: true } });
   const planParams = readParams(stored?.paramsJson);
   if (!planParams) {
-    return { ok: false, error: "This plan's details can't be read, so it won't run. Ask Command for a fresh one. Nothing was changed.", status: 409, reason: "proposal_unreadable" };
+    await prisma.copilotAction.updateMany({
+      where: { id: params.proposalId, businessId: business.id, status: "proposed" },
+      data: { resultJson: JSON.stringify({ failedBeforeEffect: true, error: "unreadable plan details" }) },
+    });
+    return { ok: false, error: "This plan's details can't be read, so it didn't run. Nothing was changed. Ask Command for a fresh one.", status: 409, reason: "failed_before_effect" };
   }
   const claimed = await prisma.copilotAction.updateMany({
     where: { id: params.proposalId, businessId: business.id, status: "proposed" },
@@ -464,7 +482,7 @@ export async function executeProposal(params: {
       data: { status: "executed", executedAt, resultJson: JSON.stringify(outcome.result) },
     });
     stage = "audit";
-    auditId = await writeAudit({
+    auditId = await auditOrThrow({
       businessId: business.id,
       entityType: outcome.entity.type,
       entityId: outcome.entity.id,
@@ -507,7 +525,8 @@ export async function executeProposal(params: {
   };
 }
 
-export type ResolveOutcome = { ok: true; status: "executed" | "proposed"; recorded: boolean } | { ok: false; error: string; status: number };
+/** `recorded: false` only when the decision saved but its history row didn't. */
+export type ResolveOutcome = { ok: true; status: "executed" | "proposed"; recorded?: false } | { ok: false; error: string; status: number };
 
 /** A person checked a flagged approval: it happened ("done"), or it didn't and can be approved again ("not_done"). */
 export async function resolveReconcile(params: {
@@ -535,7 +554,7 @@ export async function resolveReconcile(params: {
   });
   if (moved.count === 0) return { ok: false, error: "Someone else just resolved this", status: 409 };
   // The decision is already saved; a failed record is reported, not turned into an error that invites a repeat.
-  const recorded = await writeAudit({
+  const recorded = await auditOrThrow({
     businessId: params.business.id,
     entityType: p.jobId ? "job" : p.leadId ? "lead" : "copilot",
     entityId: p.jobId ?? p.leadId ?? item.id,
@@ -555,5 +574,5 @@ export async function resolveReconcile(params: {
       return false;
     },
   );
-  return { ok: true, status: next, recorded };
+  return { ok: true, status: next, ...(recorded ? {} : { recorded: false as const }) };
 }

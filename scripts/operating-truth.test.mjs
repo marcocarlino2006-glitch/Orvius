@@ -775,7 +775,8 @@ test("Command: unreadable stored details are refused before anything changes; di
   await prisma.copilotAction.update({ where: { id: proposalId }, data: { paramsJson: "{not json" } });
   const run = await execute(proposalId);
   assert.equal(run.status, 409);
-  assert.equal(run.body.reason, "proposal_unreadable");
+  assert.equal(run.body.reason, "failed_before_effect");
+  assert.match(run.body.error, /Nothing was changed/);
   assert.equal((await prisma.copilotAction.findUnique({ where: { id: proposalId } })).status, "proposed");
   assert.equal(await prisma.job.count({ where: { businessId: business.id, leadId: lead.id } }), 0);
   const cancel = await call(() => copilotRoute.POST(req("POST", "/api/copilot?mode=cancel", { proposalId })));
@@ -787,7 +788,7 @@ test("Command: unreadable stored details are refused before anything changes; di
   await prisma.copilotAction.update({ where: { id: stuck.proposalId }, data: { status: "executing", paramsJson: "[]", createdAt: new Date(Date.now() - 60 * 60_000) } });
   const resolved = await call(() => copilotRoute.POST(req("POST", "/api/copilot?mode=resolve", { proposalId: stuck.proposalId, outcome: "not_done" })));
   assert.equal(resolved.status, 200, JSON.stringify(resolved.body));
-  assert.deepEqual([resolved.body.ok, resolved.body.status, resolved.body.recorded], [true, "proposed", true]);
+  assert.deepEqual(resolved.body, { ok: true, status: "proposed" });
 });
 
 test("Command: a decision saved without its history row says so, instead of erroring and inviting a repeat", async () => {

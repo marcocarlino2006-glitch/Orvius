@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { executeProposal, needsCheck, readParams, resolveReconcile, STALE_EXECUTING_MS } from "@/lib/copilot-execute";
+import { auditOrThrow, executeProposal, needsCheck, readParams, resolveReconcile, STALE_EXECUTING_MS } from "@/lib/copilot-execute";
 import { COPILOT_ACTIONS, proposeAction } from "@/lib/copilot-propose";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
-import { personActor, writeAudit } from "@/lib/audit";
+import { personActor } from "@/lib/audit";
 import { sharedRateLimit, tooManyRequests } from "@/lib/rate-limit";
 import { requireEntitledSession } from "@/lib/tenant";
 import { grantsForActor, mayResolve, mayWithdraw } from "@/lib/command-authority";
@@ -73,7 +73,7 @@ async function readBack(businessId: string, proposalId: string, now: Date) {
 }
 
 /** List open approvals and the recent audit trail for Command, or read back one plan with ?proposalId=. */
-export async function GET(request?: Request) {
+export async function GET(request: Request) {
   const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
   const { business } = authResult;
@@ -82,7 +82,7 @@ export async function GET(request?: Request) {
   if ("error" in planGate) return planGate.error;
 
   const now = new Date();
-  const one = request ? new URL(request.url).searchParams.get("proposalId") : null;
+  const one = request?.url ? new URL(request.url).searchParams.get("proposalId") : null;
   if (one) {
     const found = await readBack(business.id, one, now);
     return found ? NextResponse.json(found) : NextResponse.json({ error: "No such plan in this shop" }, { status: 404 });
@@ -210,7 +210,7 @@ export async function POST(request: Request) {
       if (withdrawn.count === 0) {
         return NextResponse.json({ error: "This plan already started, so it can't be withdrawn. If it stops partway it is flagged to check." }, { status: 409 });
       }
-      const recorded = await writeAudit({
+      const recorded = await auditOrThrow({
         businessId: business.id,
         entityType: params.jobId ? "job" : params.leadId ? "lead" : "copilot",
         entityId: params.jobId ?? params.leadId ?? proposal.id,
