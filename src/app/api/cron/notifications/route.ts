@@ -4,6 +4,7 @@ import { runAutopilot } from "@/lib/autopilot";
 import { ensureAssistantCurrent } from "@/lib/sync-business-assistant";
 import { prisma } from "@/lib/prisma";
 import { sweepUnfinishedCallReports } from "@/lib/call-ingest";
+import { sweepUntoldAssignments } from "@/lib/notify-tech-assign";
 import { getBearerToken, secretsMatch, verifyAdminRequest } from "@/lib/env";
 import { releaseLapsedLines, suspendUnpaidLines } from "@/lib/line-lifecycle";
 import { sweepPausedPlans } from "@/lib/plan-pause";
@@ -119,9 +120,10 @@ export async function GET(request: NextRequest) {
     }
   };
 
-  const [strandedTextLeads, lateCallReports] = await Promise.all([
+  const [strandedTextLeads, lateCallReports, untoldAssignments] = await Promise.all([
     step("stranded_text_leads", () => alertStrandedTextLeads()),
     step("unfinished_call_reports", () => sweepUnfinishedCallReports()),
+    step("untold_assignments", () => sweepUntoldAssignments()),
   ]);
   const notifications = await step("notifications", () => processNotificationQueue(50));
 
@@ -205,6 +207,7 @@ export async function GET(request: NextRequest) {
     overage,
     strandedTextLeads,
     lateCallReports,
+    untoldAssignments,
     lapsedLines,
     unpaidLines,
     pausedPlans,

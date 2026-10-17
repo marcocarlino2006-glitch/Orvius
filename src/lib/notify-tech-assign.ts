@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { buildTechJobAssignMessage } from "@/lib/tech-assign-sms";
 import { markTechNotified, resetTechAnswer } from "@/lib/tech-response";
 import { ensureTechAppToken, techAppUrl } from "@/lib/tech-app-link";
+import { raiseIntentException } from "@/lib/sms-intent";
 import { sendSms } from "@/lib/twilio-sms";
 
 /**
@@ -73,7 +74,7 @@ async function deliverAssignSms(jobId: string): Promise<{ sent: boolean; reason?
       jobId: job.id,
       intent: {
         eventType: "job.tech_assigned",
-        eventId: `${job.id}:${job.technicianId}@${job.scheduledAt?.toISOString() ?? "unscheduled"}`,
+        eventId: `${job.id}:${job.technicianId}@${job.scheduledAt?.toISOString() ?? "unscheduled"}${job.techAssignedAt ? `#${job.techAssignedAt.getTime()}` : ""}`,
         severity: "severe",
       },
     });
@@ -127,6 +128,92 @@ export async function notifyTechPendingJobs(params: {
     console.error("[tech-assign-sms] pending flush", err);
   }
   return { sent, skipped };
+}
+
+/** Long enough that the assign request's own send has finished. */
+export const UNTOLD_GRACE_MS = 2 * 60_000;
+const UNTOLD_LOOKBACK_MS = 24 * 60 * 60_000;
+
+/**
+ * Assignments whose job text never got recorded: the send failed before the
+ * provider took it, the process died mid-send, or the provider took it and
+ * the reply was lost before the job was stamped. Each is retried through the
+ * same intent key, so a text the provider already took is stamped without a
+ * second send, one that may have left is closed as unknown with an owner
+ * exception, and only a text that never left goes out. Never throws.
+ */
+export async function sweepUntoldAssignments(options: { now?: Date; limit?: number } = {}) {
+  const now = options.now ?? new Date();
+  const result = { checked: 0, sent: 0, unsent: 0 };
+  try {
+    const jobs = await prisma.job.findMany({
+      where: {
+        status: { in: ["scheduled", "confirmed"] },
+        technicianId: { not: null },
+        technician: { phone: { not: null } },
+        techNotifiedAt: null,
+        techAcceptedAt: null,
+        techDeclinedAt: null,
+        techAssignedAt: { lte: new Date(now.getTime() - UNTOLD_GRACE_MS), gte: new Date(now.getTime() - UNTOLD_LOOKBACK_MS) },
+        business: { isActive: true },
+      },
+      orderBy: { techAssignedAt: "desc" },
+      take: options.limit ?? 50,
+      select: { id: true, businessId: true, technicianId: true, techAssignedAt: true },
+    });
+    for (const job of jobs) {
+      result.checked += 1;
+      const prior = await priorAssignText(job, now);
+      if (prior === "sent") {
+        await markTechNotified(job.id, job.technicianId!);
+        result.sent += 1;
+        continue;
+      }
+      if (prior === "settled") {
+        result.unsent += 1;
+        continue;
+      }
+      const sent = await deliverAssignSms(job.id);
+      if (sent.sent) result.sent += 1;
+      else result.unsent += 1;
+    }
+  } catch (err) {
+    console.error("[tech-assign-sms] untold sweep", err);
+  }
+  return result;
+}
+
+/*
+  Any job text already attempted for this assignment, whatever key it was
+  written under. Taken by the provider means stamp it; closed, in flight, or
+  a lease that died mid-send means never send again — a dead lease is closed
+  as unknown so the owner hears it may not have gone out.
+*/
+async function priorAssignText(
+  job: { id: string; businessId: string; technicianId: string | null; techAssignedAt: Date | null },
+  now: Date,
+): Promise<"sent" | "settled" | null> {
+  if (!job.technicianId || !job.techAssignedAt) return "settled";
+  const rows = await prisma.smsIntent.findMany({
+    where: {
+      businessId: job.businessId,
+      eventType: "job.tech_assigned",
+      eventId: { startsWith: `${job.id}:${job.technicianId}@` },
+      createdAt: { gte: job.techAssignedAt },
+    },
+  });
+  if (!rows.length) return null;
+  if (rows.some((r) => ["submitted", "delivered", "undelivered"].includes(r.status))) return "sent";
+  for (const row of rows) {
+    if (row.status === "leased" && (!row.leaseUntil || row.leaseUntil.getTime() <= now.getTime())) {
+      const closed = await prisma.smsIntent.updateMany({
+        where: { id: row.id, status: "leased", updatedAt: row.updatedAt },
+        data: { status: "unknown_submission", leaseUntil: null, lastError: "lease expired mid-send" },
+      });
+      if (closed.count) await raiseIntentException({ ...row, status: "unknown_submission" });
+    }
+  }
+  return "settled";
 }
 
 /** Tell the assigned technician their job moved. Never throws. */

@@ -2,6 +2,7 @@ import { sweepUnfinishedCallReports } from "@/lib/call-ingest";
 import { escalateUnackedEmergencies } from "@/lib/emergency-ack";
 import { logError } from "@/lib/logger";
 import { processNotificationQueue } from "@/lib/notifications";
+import { sweepUntoldAssignments } from "@/lib/notify-tech-assign";
 import { alertStrandedTextLeads } from "@/lib/stranded-lead-alerts";
 
 const STRANDED_SWEEP_EVERY_MS = 60_000;
@@ -42,7 +43,7 @@ export async function drainOwnerAlerts(context: Record<string, unknown> = {}) {
       try {
         if (Date.now() - lastStrandedSweep >= STRANDED_SWEEP_EVERY_MS) {
           lastStrandedSweep = Date.now();
-          await Promise.all([alertStrandedTextLeads(), sweepUnfinishedCallReports(), escalateUnackedEmergencies()]);
+          await Promise.all([alertStrandedTextLeads(), sweepUnfinishedCallReports(), escalateUnackedEmergencies(), sweepUntoldAssignments()]);
         }
         await processNotificationQueue(10);
       } catch (error) {

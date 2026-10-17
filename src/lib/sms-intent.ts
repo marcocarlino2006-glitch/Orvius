@@ -111,6 +111,7 @@ export async function claimIntent(params: {
   }
   if (existing.status === "leased") {
     const marked = await finishIntent(existing.id, { status: "unknown_submission", error: "lease expired mid-send" });
+    await raiseIntentException(marked);
     return { kind: "closed", intent: marked };
   }
   const took = await prisma.smsIntent.updateMany({
