@@ -22,7 +22,8 @@ test("the launch funnel counts the loop from records that already exist", async 
       count: async (args) => (args?.where ? 2 : 5),
     },
   };
-  const funnel = await getLaunchFunnel(stub);
+  const cohort = async () => ({ capacity: 25, taken: 2, left: 23, month: "October" });
+  const funnel = await getLaunchFunnel(stub, cohort);
   assert.deepEqual(funnel, {
     previewsStarted: 10,
     previewsCalled: 3,
@@ -30,6 +31,7 @@ test("the launch funnel counts the loop from records that already exist", async 
     replayViews: 27,
     shopsTotal: 5,
     shopsPaying: 2,
+    cohort: { capacity: 25, taken: 2, left: 23, month: "October" },
   });
   assert.deepEqual(calls[1], ["preview", { where: { lastCallAt: { not: null } } }], "a preview counts as called only once a call landed");
 });
@@ -40,5 +42,6 @@ test("the funnel readout is privileged and claims are honestly not counted", () 
   assert.match(route, /status: 401/);
   const card = read("src/app/admin/page.tsx");
   assert.match(card, /LaunchFunnelCard/);
+  assert.match(card, /Founding cohort, \{funnel\.cohort\.month\}/);
   assert.match(card, /are not\s+stored, so they are not counted here/);
 });

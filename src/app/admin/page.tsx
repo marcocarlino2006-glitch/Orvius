@@ -861,6 +861,18 @@ function LaunchFunnelCard({ funnel }: { funnel: LaunchFunnel }) {
         All-time counts from preview, replay and shop records. Front-door claims are link clicks and are not
         stored, so they are not counted here.
       </p>
+      {funnel.cohort.capacity != null ? (
+        <p className="mt-2 font-sans text-sm text-void">
+          Founding cohort, {funnel.cohort.month}: {funnel.cohort.taken} of {funnel.cohort.capacity} spots
+          taken{funnel.cohort.left != null ? ` · ${funnel.cohort.left} left` : ""}. Demand above the line,
+          capacity here — when previews outrun spots, the queue is the story; when spots outrun previews,
+          distribution is the problem.
+        </p>
+      ) : (
+        <p className="mt-2 font-sans text-xs text-ash">
+          No monthly shop capacity set (ORVIUS_MONTHLY_SHOP_CAPACITY), so no cohort count is shown.
+        </p>
+      )}
     </section>
   );
 }
