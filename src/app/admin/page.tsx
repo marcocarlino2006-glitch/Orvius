@@ -14,6 +14,7 @@ import { hearLink } from "@/lib/hear-link";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { CompanyScoreboard, ScoreboardWeek } from "@/lib/company-scoreboard";
+import type { LaunchFunnel } from "@/lib/launch-funnel";
 import { activationText, retentionText } from "@/lib/scoreboard-text";
 import { revenueLines, valueLines } from "@/lib/revenue-lines";
 import { signupChannelText } from "@/lib/acquisition";
@@ -109,6 +110,7 @@ export default function AdminPage() {
   const [health, setHealth] = useState<HealthStatus | null>(null);
   const [gate, setGate] = useState<LaunchGate | null>(null);
   const [board, setBoard] = useState<CompanyScoreboard | null>(null);
+  const [funnel, setFunnel] = useState<LaunchFunnel | null>(null);
   const [ownerEdits, setOwnerEdits] = useState<Record<string, string>>({});
   const [prospects, setProspects] = useState<Prospect[]>([]);
   const [prospectCounts, setProspectCounts] = useState<Record<string, number>>({});
@@ -178,6 +180,10 @@ export default function AdminPage() {
     fetch("/api/admin/scoreboard")
       .then((res) => (res.ok ? res.json() : null))
       .then(setBoard)
+      .catch(() => null);
+    fetch("/api/admin/launch-funnel")
+      .then((res) => (res.ok ? res.json() : null))
+      .then(setFunnel)
       .catch(() => null);
   }, []);
 
@@ -358,6 +364,7 @@ export default function AdminPage() {
       <LiveStatusBar />
 
       {board ? <ScoreboardCard board={board} /> : null}
+      {funnel ? <LaunchFunnelCard funnel={funnel} /> : null}
       {gate ? <LaunchGateCard gate={gate} /> : null}
 
       <section className="card mb-8 p-6">
@@ -825,6 +832,39 @@ function firstJobText(minutes: number | null) {
 }
 
 /** The weekly board: the same numbers every Monday, this week against last. */
+function LaunchFunnelCard({ funnel }: { funnel: LaunchFunnel }) {
+  const steps: Array<{ label: string; value: number }> = [
+    { label: "Previews started (hear your shop)", value: funnel.previewsStarted },
+    { label: "Previews that took a call", value: funnel.previewsCalled },
+    { label: "Calls shared as replays", value: funnel.replaysShared },
+    { label: "Replay views by other owners", value: funnel.replayViews },
+    { label: "Shops signed up", value: funnel.shopsTotal },
+    { label: "Shops paying", value: funnel.shopsPaying },
+  ];
+  return (
+    <section className="card mb-8 p-6" aria-label="Launch funnel">
+      <p className="home-os-kicker">Launch funnel</p>
+      <h2 className="mt-2 font-serif text-xl tracking-[-0.03em] text-void">
+        Claim → hear it → share the call → sign up → pay
+      </h2>
+      <table className="mt-4 w-full font-sans text-sm">
+        <tbody>
+          {steps.map((step) => (
+            <tr key={step.label} className="border-t border-black/5">
+              <td className="py-1.5 text-void">{step.label}</td>
+              <td className="py-1.5 text-right tabular-nums text-void">{step.value}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="mt-3 font-sans text-xs text-ash">
+        All-time counts from preview, replay and shop records. Front-door claims are link clicks and are not
+        stored, so they are not counted here.
+      </p>
+    </section>
+  );
+}
+
 function ScoreboardCard({ board }: { board: CompanyScoreboard }) {
   const rows: Array<{ label: string; value: (week: ScoreboardWeek) => string }> = [
     { label: "New shops", value: (w) => String(w.newShops) },
