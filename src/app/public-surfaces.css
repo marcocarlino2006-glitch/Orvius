@@ -329,3 +329,201 @@ html[data-theme="day"] .ov-public .mkt-nav .mkt-nav-cta::before {
     padding: 1rem;
   }
 }
+
+/* ── Split hero: 7:5 claim and proof on desktop; the proof steps aside on a phone ── */
+
+@media (min-width: 1024px) {
+  .ov-public .ov-hero-split {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    column-gap: clamp(2.5rem, 5vw, 5rem);
+    align-items: end;
+  }
+}
+
+.ov-public .ov-hero-aside {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .ov-public .ov-hero-aside {
+    display: block;
+  }
+}
+
+/* ── Multi-location board (illustration) ── */
+
+.ov-public .ov-board {
+  margin: 0;
+  padding: 1.125rem 1.25rem 1rem;
+  border: 1px solid var(--ov-line);
+  border-radius: 0.75rem;
+  background: var(--ov-paper);
+}
+
+.ov-public .ov-board-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.ov-public .ov-board-table th,
+.ov-public .ov-board-table td {
+  padding: 0.625rem 0.5rem;
+  border-bottom: 1px solid var(--ov-line);
+  text-align: right;
+}
+
+.ov-public .ov-board-table th:first-child {
+  text-align: left;
+}
+
+.ov-public .ov-board-table thead th {
+  padding-top: 0;
+  color: var(--ov-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.ov-public .ov-board-table tbody th {
+  color: var(--ov-headline);
+  font-weight: 600;
+}
+
+.ov-public .ov-board-table td {
+  color: var(--ov-ink);
+}
+
+.ov-public .ov-board-table tr[data-attention] th,
+.ov-public .ov-board-table tr[data-attention] td {
+  background: var(--ov-stone);
+}
+
+.ov-public .ov-board-table tr[data-attention] th {
+  box-shadow: inset 3px 0 0 var(--ov-select);
+}
+
+.ov-public .ov-board-table tr[data-attention] td:last-child {
+  color: var(--ov-headline);
+  font-weight: 700;
+}
+
+.ov-public .ov-board-flag {
+  display: block;
+  margin-top: 0.125rem;
+  color: var(--ov-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.ov-public .ov-board-foot {
+  margin: 0.75rem 0 0;
+  color: var(--ov-muted);
+  font-size: 0.8125rem;
+}
+
+/* ── Lead module, then the rest as quieter rows ── */
+
+.ov-public .ov-lead-module {
+  display: grid;
+  grid-template-columns: var(--ov-rail) minmax(0, 1fr);
+  column-gap: 1rem;
+  margin-bottom: var(--ov-gap-chapter);
+  padding: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+  border-radius: 0.75rem;
+  background: var(--ov-stone);
+}
+
+.ov-public .ov-lead-title {
+  margin: 0;
+  max-width: 24ch;
+  color: var(--ov-headline);
+  font-size: var(--fs-display-sm);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+.ov-public .ov-lead-body {
+  margin: 0.875rem 0 0;
+  max-width: 40rem;
+  color: var(--ov-muted);
+  font-size: var(--fs-lead);
+  line-height: 1.6;
+}
+
+@media (max-width: 599px) {
+  .ov-public .ov-lead-module {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 0.5rem;
+  }
+}
+
+@media (min-width: 900px) {
+  .ov-public .ov-rows--three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: clamp(1.5rem, 3vw, 2.5rem);
+    border-top: 0;
+  }
+
+  .ov-public .ov-rows--three .ov-row {
+    border-top: 1px solid var(--ov-line-strong);
+    border-bottom: 0;
+  }
+}
+
+/* A closing band is a decision, not a chapter: compact, and the ink anchor. */
+.ov-public .ov-surface-anchor.tier1-bridge .tier1-story-grid {
+  align-items: center;
+}
+
+/* ── Editorial annotation: a ruled column of facts beside a hero ── */
+
+.ov-public .ov-annotation {
+  display: grid;
+  margin: 0;
+  border-top: 1px solid var(--ov-line-strong);
+}
+
+.ov-public .ov-annotation > div {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+  column-gap: 1rem;
+  padding-block: 0.875rem;
+  border-bottom: 1px solid var(--ov-line);
+}
+
+.ov-public .ov-annotation dt {
+  color: var(--ov-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.ov-public .ov-annotation dd {
+  margin: 0;
+  color: var(--ov-headline);
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+
+/* ── Chapter split: a heading column and a body column on desktop ── */
+
+@media (min-width: 960px) {
+  .ov-public .ov-chapter-split {
+    display: grid;
+    grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+    column-gap: clamp(2rem, 5vw, 5rem);
+    align-items: start;
+  }
+
+  .ov-public .ov-chapter-split > .tier1-section-title {
+    margin-top: 0 !important;
+  }
+}
+
+@media (max-width: 959px) {
+  .ov-public .ov-chapter-split > .tier1-section-title {
+    margin-bottom: var(--ov-gap-module);
+  }
+}

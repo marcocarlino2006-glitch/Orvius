@@ -12,11 +12,19 @@ export const metadata: Metadata = {
   description: `${company.productName} — ${company.mission} ${company.categoryClaim}`,
 };
 
+/* Facts restated from the sections below, so the hero's second column is proof, not decoration. */
+const TODAY: Array<[string, string]> = [
+  ["Starts at", "The phone: calls a business can't take"],
+  ["Launch trades", "Heating & cooling, plumbing, electrical"],
+  ["Answers in", "English and Spanish"],
+  ["Built by", company.legalName],
+];
+
 export default function AboutPage() {
   return (
     <MarketingShell>
       <section className="tier1-hero tier1-hero-compact">
-        <div className="editorial-wrap">
+        <div className="editorial-wrap ov-hero-split">
           <ShellPageIntro
             label="Our mission"
             title={company.mission}
@@ -33,27 +41,42 @@ export default function AboutPage() {
               </>
             }
           />
+          <aside className="ov-hero-aside" aria-label="Orvius today">
+            <dl className="ov-annotation">
+              {TODAY.map(([term, detail]) => (
+                <div key={term}>
+                  <dt>{term}</dt>
+                  <dd>{detail}</dd>
+                </div>
+              ))}
+            </dl>
+          </aside>
         </div>
       </section>
 
-      <section className="tier1-story">
-        <div className="editorial-wrap max-w-3xl">
+      <section className="tier1-story ov-chapter">
+        <div className="editorial-wrap ov-chapter-split">
           <h2 className="tier1-section-title type-headline">Where we&apos;re going.</h2>
-          <ol className="mt-6 space-y-6">
+          <ol className="ov-rows">
             {company.vision.map((step, i) => (
-              <li key={step.title}>
-                <p className="tier1-eyebrow type-eyebrow">Step {i + 1}</p>
-                <h3 className="tier1-section-title type-headline" style={{ fontSize: "1.375rem" }}>
-                  {step.title}
-                </h3>
-                <p className="tier1-section-lead font-sans">{step.body}</p>
+              <li key={step.title} className="ov-row">
+                <span className="ov-row-index" aria-hidden>
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <div>
+                  <h3 className="ov-row-title">
+                    <span className="sr-only">Step {i + 1}: </span>
+                    {step.title}
+                  </h3>
+                  <p className="ov-row-body">{step.body}</p>
+                </div>
               </li>
             ))}
           </ol>
         </div>
       </section>
 
-      <section className="tier1-story tier1-story-muted">
+      <section className="tier1-story ov-chapter ov-surface-anchor">
         <div className="editorial-wrap max-w-3xl">
           <h2 className="tier1-section-title type-headline">Where we are today.</h2>
           <p className="tier1-section-lead font-sans">

@@ -35,11 +35,52 @@ const pillars = [
   },
 ] as const;
 
+/* Fictional locations for the illustration; sorted the way the real board sorts, attention first. */
+const boardRows = [
+  { name: "Eastgate", calls: 41, booked: 27, waiting: 3, attention: true },
+  { name: "Northside", calls: 58, booked: 44, waiting: 1, attention: false },
+  { name: "Riverbend", calls: 36, booked: 29, waiting: 0, attention: false },
+  { name: "Airport Rd", calls: 22, booked: 17, waiting: 0, attention: false },
+];
+
+function LocationBoard() {
+  return (
+    <figure className="ov-board" aria-label="Illustration of the multi-location board with fictional locations">
+      <figcaption className="ov-specimen-label">Illustration · fictional locations, last 7 days</figcaption>
+      <table className="ov-board-table">
+        <thead>
+          <tr>
+            <th scope="col">Location</th>
+            <th scope="col">Calls</th>
+            <th scope="col">Booked</th>
+            <th scope="col">Waiting</th>
+          </tr>
+        </thead>
+        <tbody>
+          {boardRows.map((r) => (
+            <tr key={r.name} data-attention={r.attention || undefined}>
+              <th scope="row">
+                {r.name}
+                {r.attention ? <span className="ov-board-flag">Needs attention</span> : null}
+              </th>
+              <td>{r.calls}</td>
+              <td>{r.booked}</td>
+              <td>{r.waiting}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="ov-board-foot">Sorted so the location with callers still waiting is on top.</p>
+    </figure>
+  );
+}
+
 export default function EnterprisePage() {
+  const [lead, ...rest] = pillars;
   return (
     <MarketingShell>
       <section className="tier1-hero tier1-hero-compact">
-        <div className="editorial-wrap">
+        <div className="editorial-wrap ov-hero-split">
           <ShellPageIntro
             label="Enterprise"
             title="Every location on one board."
@@ -59,20 +100,32 @@ export default function EnterprisePage() {
               </>
             }
           />
+          <div className="ov-hero-aside">
+            <LocationBoard />
+          </div>
         </div>
       </section>
 
-      <section className="tier1-story">
+      <section className="tier1-story ov-chapter">
         <div className="editorial-wrap">
-          <ol className="mkt-laws mkt-laws--ruled font-sans">
-            {pillars.map((c) => (
-              <li key={c.id} className="mkt-law mkt-law--ruled">
-                <span className="mkt-law-index" aria-hidden>
+          <div className="ov-lead-module">
+            <span className="ov-row-index" aria-hidden>
+              {lead.id}
+            </span>
+            <div>
+              <h2 className="ov-lead-title">{lead.title}</h2>
+              <p className="ov-lead-body">{lead.body}</p>
+            </div>
+          </div>
+          <ol className="ov-rows ov-rows--three font-sans">
+            {rest.map((c) => (
+              <li key={c.id} className="ov-row">
+                <span className="ov-row-index" aria-hidden>
                   {c.id}
                 </span>
-                <div className="mkt-law-copy">
-                  <h2 className="mkt-law-title">{c.title}</h2>
-                  <p className="mkt-law-body">{c.body}</p>
+                <div>
+                  <h2 className="ov-row-title">{c.title}</h2>
+                  <p className="ov-row-body">{c.body}</p>
                 </div>
               </li>
             ))}
@@ -80,7 +133,7 @@ export default function EnterprisePage() {
         </div>
       </section>
 
-      <section className="tier1-story tier1-story-muted">
+      <section className="tier1-story tier1-bridge ov-surface-anchor">
         <div className="editorial-wrap tier1-story-grid">
           <div>
             <h2 className="tier1-section-title type-headline">
