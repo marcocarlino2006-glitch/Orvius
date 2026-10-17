@@ -866,3 +866,71 @@ html .ov-public .pricing-chapter-compare .pricing-matrix-scroll {
     padding-block: 0.625rem;
   }
 }
+
+/*
+ * ── Help: a capped index on one calm tier ──
+ * The index sits on canvas; each group is one paper panel divided by hairlines,
+ * with the arrow trailing at the row's end so the eye scans titles, not cards.
+ */
+
+.ov-public .ov-help > * {
+  max-width: 57.5rem;
+}
+
+.ov-public .ov-help .help-search input {
+  background: var(--ov-paper);
+}
+
+.ov-public .ov-help .help-list {
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--ov-line);
+  border-radius: 0.5rem;
+  background: var(--ov-paper);
+}
+
+.ov-public .ov-help .help-list > li + li {
+  border-top: 1px solid var(--ov-line);
+}
+
+.ov-public .ov-help .help-card {
+  grid-template-columns: minmax(0, 1fr) 1.25rem;
+  column-gap: 1rem;
+  border: 0;
+  border-radius: 0;
+}
+
+.ov-public .ov-help .help-card > span {
+  grid-column: 1;
+}
+
+.ov-public .ov-help .help-card-title::after {
+  content: none;
+}
+
+.ov-public .ov-help .help-card::after {
+  content: "→" / "";
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  justify-self: end;
+  color: var(--ov-muted);
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.ov-public .ov-help .help-card:hover,
+.ov-public .ov-help .help-card:focus-visible {
+  background: var(--ov-stone);
+}
+
+.ov-public .ov-help .help-card:hover::after,
+.ov-public .ov-help .help-card:focus-visible::after {
+  transform: translateX(2px);
+  color: var(--ov-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-public .ov-help .help-card::after {
+    transition: none;
+  }
+}
