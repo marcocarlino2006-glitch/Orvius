@@ -9,7 +9,8 @@ import { ProEconomicsPanel } from "@/components/pro-economics-panel";
 import { NumbersGroup } from "./sections/numbers-group";
 import { fetchAccount, invalidateAccount } from "@/lib/account-client";
 import type { ReceptionistApply } from "@/lib/assistant-apply";
-import { isUncertain, sendWrite, serialQueue } from "@/lib/client-write";
+import { isUncertain, sendWrite, serialQueue, UNREADABLE_REPLY, WriteError } from "@/lib/client-write";
+import { checkRecord, COULD_NOT_CONFIRM, CHECKING } from "@/lib/checked-write";
 import { formatWhen } from "@/lib/when";
 import type { CaptureMode, CarrierId } from "@/lib/carrier-forward";
 import { displayPhone } from "@/lib/customer";
@@ -28,7 +29,7 @@ import { TRADES, type Trade } from "@/lib/trades";
 import { SettingsGeneral } from "./settings-general";
 import { SettingsIcon } from "./settings-icons";
 import { ScGroup, ScRow } from "./settings-primitives";
-import { FOUNDER_CERT, applyFromReply, mergeSaved, parseCert, type Account, type Patch, type SaveReply, type Technician } from "./settings-model";
+import { FOUNDER_CERT, applyFromReply, isSaveReply, mergeSaved, parseCert, recordHolds, type Account, type Patch, type SaveReply, type Technician } from "./settings-model";
 import { AccountSection } from "./sections/account-section";
 import { BusinessSection } from "./sections/business-section";
 import { ActivitySection } from "./sections/activity-section";
@@ -68,7 +69,7 @@ export function SettingsCenter({
   const ring1 = useOptionalRing1();
   const [account, setAccount] = useState<Account | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "checking" | "saved">("idle");
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [apply, setApply] = useState<ReceptionistApply | null>(null);
@@ -190,18 +191,47 @@ export function SettingsCenter({
           invalidateAccount();
           const data = await sendWrite<SaveReply>("/api/account", "PATCH", fields);
           invalidateAccount();
+          if (!isSaveReply(data)) throw new WriteError(UNREADABLE_REPLY, true, 200);
           const later = new Set([...savesInLine].filter(([k, n]) => n > (keys.includes(k) ? 1 : 0)).map(([k]) => k));
           setAccount((prev) => (prev && prev.business ? { ...prev, business: mergeSaved(prev.business, fields, data, later) } : prev));
           setApply((prev) => applyFromReply(data, prev));
           setSaveState("saved");
           return true;
         } catch (err) {
+          if (!isUncertain(err)) {
+            setError(err instanceof Error ? err.message : "That wasn't saved.");
+            setSaveState("idle");
+            return false;
+          }
+          /* No readable answer: the saved record decides, and the screen takes its values. */
+          setSaveState("checking");
+          const result = await checkRecord<Account>(async () => {
+            invalidateAccount();
+            const res = await fetch("/api/account", { cache: "no-store" });
+            if (!res.ok) return null;
+            const record = (await res.json().catch(() => null)) as Account | null;
+            return record?.business ? record : null;
+          });
+          if (result.kind !== "confirmed") {
+            setError(COULD_NOT_CONFIRM);
+            setSaveState("idle");
+            return false;
+          }
+          const record = result.value;
+          const later = new Set([...savesInLine].filter(([k, n]) => n > (keys.includes(k) ? 1 : 0)).map(([k]) => k));
+          setAccount((prev) =>
+            prev && prev.business && record.business ? { ...prev, business: mergeSaved(prev.business, {}, { business: record.business }, later) } : prev,
+          );
+          setApply(record.receptionistApply ?? null);
+          const held = record.business ? recordHolds(record.business, fields) : "unknown";
+          if (held === "holds") {
+            setSaveState("saved");
+            return true;
+          }
           setError(
-            isUncertain(err)
-              ? "Orvius didn't get an answer, so this may not have saved. Reopen settings to see what's saved before changing it again."
-              : err instanceof Error
-                ? err.message
-                : "That wasn't saved.",
+            held === "differs"
+              ? "Orvius checked: this change isn't in your saved settings. Settings now show what's saved."
+              : "Orvius didn't get an answer and can't see this setting from here. Reopen settings to check it before changing it again.",
           );
           setSaveState("idle");
           return false;
@@ -521,7 +551,7 @@ export function SettingsCenter({
               {current.label}
             </h2>
             <span className="sc-save" aria-live="polite">
-              {saveState === "saving" ? "Saving…" : saveState === "saved" ? "Saved" : ""}
+              {saveState === "saving" ? "Saving…" : saveState === "checking" ? CHECKING : saveState === "saved" ? "Saved" : ""}
             </span>
             <button type="button" className="sc-icon-btn" aria-label="Close settings" onClick={onClose}>
               <SettingsIcon name="close" />

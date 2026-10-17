@@ -534,6 +534,74 @@ test("Receptionist corrections: synced is true only with the provider's echo", a
   assert.ok(s);
 });
 
+test("Receptionist corrections: a repeated press writes nothing new, a removal replay says it's gone, and a stale window can't overwrite", async () => {
+  const s = await liveShop();
+  const vapi = voiceProvider(["echo"]);
+  try {
+    const text = "Always ask whether the dog is inside";
+    const first = await call(() => rulesRoute.POST(req("POST", "/api/account/receptionist-rules", { text })));
+    assert.equal(first.status, 200);
+    const patchesAfterFirst = vapi.calls.filter((c) => c.startsWith("PATCH")).length;
+    const audits = await prisma.auditEvent.count({ where: { businessId: s.id, action: "receptionist_rule.add" } });
+    const again = await call(() => rulesRoute.POST(req("POST", "/api/account/receptionist-rules", { text })));
+    assert.equal(again.status, 200);
+    assert.equal(again.body.unchanged, true);
+    assert.equal(again.body.rule.id, first.body.rule.id);
+    assert.equal(typeof again.body.synced, "boolean", "the replay still says where the receptionist stands");
+    assert.equal(vapi.calls.filter((c) => c.startsWith("PATCH")).length, patchesAfterFirst, "no second provider write");
+    assert.equal(await prisma.auditEvent.count({ where: { businessId: s.id, action: "receptionist_rule.add" } }), audits, "no second audit");
+    assert.equal(JSON.parse((await prisma.business.findUniqueOrThrow({ where: { id: s.id } })).receptionistRulesJson).length, 1);
+
+    const removed = await call(() => rulesRoute.DELETE(req("DELETE", `/api/account/receptionist-rules?id=${first.body.rule.id}`)));
+    assert.equal(removed.status, 200);
+    assert.equal(typeof removed.body.synced, "boolean");
+    assert.deepEqual(removed.body.rules, []);
+    const replay = await call(() => rulesRoute.DELETE(req("DELETE", `/api/account/receptionist-rules?id=${first.body.rule.id}`)));
+    assert.equal(replay.status, 404);
+    assert.match(replay.body.error, /already gone/);
+
+    // Another window saved between this request's read and its write: the write is refused, not merged blind.
+    const realUpdateMany = prisma.business.updateMany;
+    prisma.business.updateMany = async (args) => {
+      prisma.business.updateMany = realUpdateMany;
+      await prisma.business.update({ where: { id: s.id }, data: { receptionistRulesJson: JSON.stringify([{ id: "other01", text: "Offer the morning slot first", createdAt: new Date().toISOString() }]) } });
+      return realUpdateMany.call(prisma.business, args);
+    };
+    const stale = await call(() => rulesRoute.POST(req("POST", "/api/account/receptionist-rules", { text: "Ask for the gate code" })));
+    prisma.business.updateMany = realUpdateMany;
+    assert.equal(stale.status, 409);
+    assert.equal(stale.body.reason, "changed_elsewhere");
+    const kept = JSON.parse((await prisma.business.findUniqueOrThrow({ where: { id: s.id } })).receptionistRulesJson);
+    assert.deepEqual(kept.map((r) => r.id), ["other01"], "the other window's correction survives");
+  } finally {
+    vapi.restore();
+  }
+});
+
+test("Settings: a save counts only with the saved record; after a lost reply the record decides", async () => {
+  const { isSaveReply, recordHolds } = await import("../src/components/settings-center/settings-model.ts");
+  assert.equal(isSaveReply({ business: { greeting: "Hi" } }), true);
+  for (const bad of [null, {}, { business: null }, { business: [] }, { ok: true }, "ok"]) assert.equal(isSaveReply(bad), false, JSON.stringify(bad));
+  assert.equal(recordHolds({ greeting: "Hi", autopilot: true }, { greeting: "Hi", autopilot: true }), "holds");
+  assert.equal(recordHolds({ greeting: "Old" }, { greeting: "Hi" }), "differs");
+  assert.equal(recordHolds({ greeting: "Hi" }, { secretField: 1 }), "unknown", "a field the record doesn't show is never called saved");
+  assert.equal(recordHolds({ overflowForwardConfirmedAt: "2026-10-01T00:00:00Z" }, { overflowForwardConfirmedAt: true }), "holds");
+  assert.equal(recordHolds({ overflowForwardConfirmedAt: null }, { overflowForwardConfirmedAt: true }), "differs");
+  assert.equal(recordHolds({}, {}), "unknown");
+
+  await liveShop();
+  const vapi = voiceProvider(["echo"]);
+  try {
+    const sent = { greeting: "Thanks for calling Truth HVAC.", autopilot: true };
+    const save = await call(() => accountRoute.PATCH(req("PATCH", "/api/account", sent)));
+    assert.equal(isSaveReply(save.body), true);
+    const record = await call(() => accountRoute.GET(req("GET", "/api/account")));
+    assert.equal(recordHolds(record.body.business, sent), "holds", "the read-back the screen uses confirms the save");
+  } finally {
+    vapi.restore();
+  }
+});
+
 test("Settings: the reply carries the normalized saved values, and the screen adopts them over what was typed", async () => {
   const { mergeSaved } = await import("../src/components/settings-center/settings-model.ts");
   await liveShop();

@@ -193,6 +193,29 @@ export function mergeSaved(prev: Business, sent: Patch, reply: SaveReply, changi
   return next as Business;
 }
 
+/** A save counts as saved only when the reply carries the saved business record. */
+export function isSaveReply(data: unknown): data is SaveReply & { business: Partial<Business> } {
+  const business = (data as { business?: unknown } | null)?.business;
+  return typeof business === "object" && business !== null && !Array.isArray(business);
+}
+
+/**
+ * After a lost reply: does the saved record already hold what was sent? Only
+ * fields the record reports are compared, and only exact values count, so a
+ * value the server would normalize reads as "not shown" rather than "saved".
+ */
+export function recordHolds(record: Partial<Business>, sent: Patch): "holds" | "differs" | "unknown" {
+  const keys = Object.keys(sent);
+  if (!keys.length || keys.some((key) => !(key in record))) return "unknown";
+  const same = keys.every((key) => {
+    const have = (record as Record<string, unknown>)[key];
+    const want = sent[key];
+    if (typeof want === "boolean" && (typeof have === "string" || have === null)) return want === (have !== null);
+    return (have ?? null) === (want ?? null);
+  });
+  return same ? "holds" : "differs";
+}
+
 /**
  * Whether the receptionist took the saved settings, from the reply. A reply
  * without the newer field still says so through assistantSynced/syncError;
