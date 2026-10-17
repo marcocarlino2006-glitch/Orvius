@@ -94,6 +94,7 @@ function MessagesInner() {
   const [listError, setListError] = useState<string | null>(null);
   const [newPhone, setNewPhone] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const sendKey = useRef<{ key: string; phone: string; body: string } | null>(null);
 
   const loadThreads = useCallback(async (q: string) => {
     try {
@@ -183,22 +184,38 @@ function MessagesInner() {
     if (!active || !body || sending) return;
     setSending(true);
     setError(null);
+    const sent = sendKey.current;
+    const operationKey = sent && sent.phone === active && sent.body === body ? sent.key : crypto.randomUUID();
+    sendKey.current = { key: operationKey, phone: active, body };
     try {
       const res = await fetch("/api/messages/thread", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: active, body }),
+        body: JSON.stringify({ phone: active, body, operationKey }),
       });
       const data = await res.json().catch(() => null);
-      if (!res.ok) {
-        setError(data?.error ?? "The text didn't send. Try again.");
+      if (res.ok && data?.sent === true) {
+        sendKey.current = null;
+        setDraft("");
+        if (data.thread) setDetail(data.thread);
+        void loadThreads(query);
         return;
       }
-      setDraft("");
-      if (data?.thread) setDetail(data.thread);
-      void loadThreads(query);
+      if (res.status === 202) {
+        setError(data?.error ?? "This text may have gone out. Check the thread before writing it again.");
+        void loadThread(active, true);
+        return;
+      }
+      if (res.status >= 400 && res.status < 500 && res.status !== 429) sendKey.current = null;
+      if (data?.refused) sendKey.current = null;
+      setError(
+        data?.error ??
+          (res.ok || res.status >= 500
+            ? "Orvius couldn't confirm this text. Press Send again to check; it won't go twice."
+            : "The text didn't send. Try again."),
+      );
     } catch {
-      setError("Network error. The text didn't send.");
+      setError("No answer from Orvius, so the text may have gone out. Press Send again to check; it won't go twice.");
     } finally {
       setSending(false);
     }

@@ -235,6 +235,14 @@ export async function nextIntentVersion(params: { businessId: string; eventType:
   return { version: (latest?.messageVersion ?? 0) + 1, priorIntentId: latest?.id ?? null };
 }
 
+/** The intent already written for an event and recipient, if any. */
+export async function findIntent(params: { businessId: string; eventType: string; eventId: string; to: string }) {
+  return prisma.smsIntent.findFirst({
+    where: { businessId: params.businessId, eventType: params.eventType, eventId: params.eventId, recipientNormalized: params.to, channel: "sms" },
+    orderBy: { messageVersion: "desc" },
+  });
+}
+
 /** The latest intent for an event and recipient, for linking a follow-up message to it. */
 export async function latestIntentId(params: { businessId: string; eventType: string; eventId: string; to: string }) {
   const latest = await prisma.smsIntent.findFirst({
