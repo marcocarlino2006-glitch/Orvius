@@ -928,6 +928,49 @@ test("an old /t/<jobToken> link sends the technician to their own app link, neve
 
 /* ------------------------------ activation ------------------------------ */
 
+test("after go-live: every unfinished item says who it waits on, there is one next step for the owner, and texting and the first job are proven, not assumed", async () => {
+  const liveCheck = await import("../src/app/api/onboarding/live-check/route.ts");
+  const saved = { service: process.env.TWILIO_MESSAGING_SERVICE_SID, number: process.env.TWILIO_PHONE_NUMBER };
+  process.env.TWILIO_MESSAGING_SERVICE_SID = `MG${uid()}`;
+  try {
+    const s = await shop({ twilioPhone: "+13125550188", vapiPhoneNumber: "+13125550188" });
+    const first = await call(() => liveCheck.GET());
+    assert.equal(first.status, 200);
+    const byId = Object.fromEntries(first.body.items.map((i) => [i.id, i]));
+    for (const item of first.body.items) {
+      if (item.state !== "live") assert.ok(["owner", "provider", "proof"].includes(item.waitingOn), `${item.id} says who it waits on`);
+    }
+    assert.equal(byId.line.waitingOn, "owner", "a saved number is not a working line");
+    assert.equal(byId.texting.state, "todo");
+    assert.equal(byId.texting.waitingOn, "provider", "a configured sender isn't carrier approval");
+    assert.equal(byId.first_outcome.waitingOn, "proof");
+    assert.equal(first.body.summary.next.id, "line", "one next step, the first thing only the owner can do");
+
+    await prisma.business.update({ where: { id: s.id }, data: { lineVerifiedAt: new Date() } });
+    const lead = await prisma.lead.create({ data: { businessId: s.id, name: "Rosa Diaz", phone: "+13125550147", status: "booked" } });
+    await prisma.job.create({ data: { businessId: s.id, leadId: lead.id, title: "Tune-up", status: "completed", completedAt: new Date() } });
+    const unproven = await call(() => liveCheck.GET());
+    assert.equal(unproven.body.items.find((i) => i.id === "first_outcome").state, "todo", "done without what happened isn't verified");
+    assert.notEqual(unproven.body.summary.next?.id, "line");
+
+    const lead2 = await prisma.lead.create({ data: { businessId: s.id, name: "Ann Lee", phone: "+13125550149", status: "booked" } });
+    await prisma.job.create({ data: { businessId: s.id, leadId: lead2.id, title: "AC repair", status: "completed", completedAt: new Date(), resolutionCode: "repaired" } });
+    const proven = await call(() => liveCheck.GET());
+    const outcome = proven.body.items.find((i) => i.id === "first_outcome");
+    assert.equal(outcome.state, "live");
+    assert.match(outcome.detail, /AC repair/);
+
+    const test = await shop({ environment: "test" });
+    const tl = await prisma.lead.create({ data: { businessId: test.id, name: "Sim Caller", phone: "+13125550148", status: "booked" } });
+    await prisma.job.create({ data: { businessId: test.id, leadId: tl.id, title: "Simulated", status: "completed", completedAt: new Date(), resolutionCode: "repaired" } });
+    const sim = await call(() => liveCheck.GET());
+    assert.equal(sim.body.items.find((i) => i.id === "first_outcome").state, "todo", "a test-mode job never counts as the first real outcome");
+  } finally {
+    if (saved.service === undefined) delete process.env.TWILIO_MESSAGING_SERVICE_SID;
+    else process.env.TWILIO_MESSAGING_SERVICE_SID = saved.service;
+  }
+});
+
 test("owner alerts: a phone on file is not delivery; ready after a delivered text or accepted email, pending again after a later failure", async () => {
   const s = await shop();
   const alerts = async () => (await loadCapabilities(s.id)).find((c) => c.id === "owner_alerts");

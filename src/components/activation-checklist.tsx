@@ -4,12 +4,19 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import type { ActivationItem } from "@/lib/activation";
 
-const STATE_LABEL: Record<ActivationItem["state"], string> = { live: "On", todo: "To do", off: "Off" };
+const WAIT_LABEL: Record<NonNullable<ActivationItem["waitingOn"]>, string> = { owner: "Your move", provider: "Waiting on provider", proof: "Not verified yet" };
+
+function stateLabel(item: ActivationItem) {
+  if (item.state === "live") return "Ready";
+  if (item.waitingOn) return WAIT_LABEL[item.waitingOn];
+  return item.state === "off" ? "Off" : "To do";
+}
 
 /** What is on after go-live. Each row is proven by a real event, never by a saved setting. */
 export function ActivationChecklist({ onlyLeft = false }: { onlyLeft?: boolean }) {
   const [items, setItems] = useState<ActivationItem[] | null>(null);
   const [headline, setHeadline] = useState("");
+  const [next, setNext] = useState<ActivationItem | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [alertNote, setAlertNote] = useState<{ ok: boolean; text: string } | null>(null);
   const [sending, setSending] = useState(false);
@@ -18,9 +25,10 @@ export function ActivationChecklist({ onlyLeft = false }: { onlyLeft?: boolean }
     try {
       const res = await fetch("/api/onboarding/live-check", { cache: "no-store" });
       if (!res.ok) throw new Error();
-      const json = (await res.json()) as { items: ActivationItem[]; summary: { headline: string } };
+      const json = (await res.json()) as { items: ActivationItem[]; summary: { headline: string; next?: ActivationItem | null } };
       setItems(json.items);
       setHeadline(json.summary.headline);
+      setNext(json.summary.next ?? null);
       setLoadError(false);
     } catch {
       setLoadError(true);
@@ -68,10 +76,19 @@ export function ActivationChecklist({ onlyLeft = false }: { onlyLeft?: boolean }
   return (
     <section className="activation font-sans" aria-label="What's live">
       <p className="activation-headline">{headline}</p>
+      {next ? (
+        <p className="activation-next" role="status">
+          <strong>Next: {next.label}.</strong> {next.detail}
+        </p>
+      ) : items.some((i) => i.state !== "live") ? (
+        <p className="activation-next" role="status">
+          Nothing is waiting on you. The rest is with a provider or waiting for real calls and jobs to prove it.
+        </p>
+      ) : null}
       <ul className="activation-list">
         {shown.map((item) => (
-          <li key={item.id} className={`activation-item is-${item.state}`}>
-            <span className="activation-state">{STATE_LABEL[item.state]}</span>
+          <li key={item.id} className={`activation-item is-${item.state}${item.waitingOn ? ` is-wait-${item.waitingOn}` : ""}`}>
+            <span className="activation-state">{stateLabel(item)}</span>
             <div className="activation-body">
               <p className="activation-label">{item.label}</p>
               <p className="activation-detail">{item.detail}</p>
