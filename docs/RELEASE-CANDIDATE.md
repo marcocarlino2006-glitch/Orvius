@@ -274,3 +274,7 @@ Not applied anywhere. Prepared and rehearsed on disposable databases only.
   - Integrations: ServiceTitan checks the record contract at send time, ties each booking to its lead, and raises one reconciliation item per lost reply. Settings separates refused sends from lost replies, and says when a connector's status couldn't be read.
   - Public pages: the demo explains the microphone before the browser asks. The payment-setup time claim and the search caption were corrected. The replay player fits at 320 and 390. Plan Finder answers are radio groups.
 - Compatibility: aside from the column, no tables or values that old code reads were changed. New audit actions: `job.signature_replaced`, `lead.follow_up_unknown`, `keyword-start-unnamed`. A photo-removal audit row now carries what was removed.
+- Follow-ups (no schema change):
+  - Inbox texts send at most once. Each typed message carries an `operationKey`, recorded as an `owner.text` intent in the existing text-intent ledger. A repeat press, a simultaneous twin request or a retry after a lost reply reads the first send back. A provider that never answered returns 202 with "may have gone out, won't send again". A request without a key, from a client older than this release, sends as before.
+  - The weekly outcome trend starts each week at Monday midnight in the shop's timezone, across clock changes.
+  - Reports and the CSV name card payments made in Stripe test mode, recognised by their stored `cs_test_` checkout session ID. Totals are unchanged.
