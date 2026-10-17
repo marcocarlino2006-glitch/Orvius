@@ -824,6 +824,108 @@ test("Command: a decision saved without its history row says so, instead of erro
   assert.equal(await prisma.job.count({ where: { businessId: ran.business.id, leadId: ran.lead.id } }), 1);
 });
 
+/* ------------------------------ team boundary ------------------------------ */
+
+const techsRoute = await import("../src/app/api/technicians/route.ts");
+const techRoute = await import("../src/app/api/technicians/[id]/route.ts");
+const timeOffRoute = await import("../src/app/api/technicians/[id]/time-off/route.ts");
+const jobRoute = await import("../src/app/api/jobs/[id]/route.ts");
+const crewRoute = await import("../src/app/api/team/crew/route.ts");
+const idParams = (id) => ({ params: Promise.resolve({ id }) });
+
+test("crew changes are for the owner or a manager; a dispatcher still reads the crew, assigns and schedules work", async () => {
+  const s = await shop();
+  const owner = signedInAs;
+  const tech = await prisma.technician.create({ data: { businessId: s.id, name: "Dee Tech", phone: "+13125550161", isActive: true } });
+  const other = await prisma.technician.create({ data: { businessId: s.id, name: "Ray Tech", phone: "+13125550162", isActive: true } });
+  const wednesday = (weeks) => {
+    const at = new Date(Date.now() + weeks * 7 * 86_400_000);
+    while (at.getUTCDay() !== 3) at.setUTCDate(at.getUTCDate() + 1);
+    at.setUTCHours(16, 0, 0, 0);
+    return at;
+  };
+  const job = await prisma.job.create({ data: { businessId: s.id, title: "Tune-up", status: "scheduled", scheduledAt: wednesday(1), technicianId: tech.id } });
+  const dispatcher = `disp-${uid()}@example.test`;
+  const manager = `mgr-${uid()}@example.test`;
+  await prisma.membership.create({ data: { businessId: s.id, email: dispatcher, role: "dispatcher" } });
+  await prisma.membership.create({ data: { businessId: s.id, email: manager, role: "manager" } });
+
+  signedInAs = dispatcher;
+  const refused = [
+    await call(() => techsRoute.POST(req("POST", "/api/technicians", { name: "New Person", phone: "+13125550163" }))),
+    await call(() => techRoute.PATCH(req("PATCH", `/api/technicians/${tech.id}`, { name: "Renamed" }), idParams(tech.id))),
+    await call(() => techRoute.PATCH(req("PATCH", `/api/technicians/${tech.id}`, { active: false }), idParams(tech.id))),
+    await call(() => timeOffRoute.POST(req("POST", `/api/technicians/${tech.id}/time-off`, { from: "2030-01-06", to: "2030-01-07" }), idParams(tech.id))),
+    await call(() => timeOffRoute.DELETE(req("DELETE", `/api/technicians/${tech.id}/time-off?entry=x`), idParams(tech.id))),
+  ];
+  assert.deepEqual(refused.map((r) => r.status), [403, 403, 403, 403, 403]);
+  const fresh = await prisma.technician.findUnique({ where: { id: tech.id } });
+  assert.deepEqual([fresh.name, fresh.isActive], ["Dee Tech", true]);
+  assert.equal(await prisma.technician.count({ where: { businessId: s.id } }), 2);
+  assert.equal(await prisma.technicianTimeOff.count({ where: { technicianId: tech.id } }), 0);
+
+  const list = await call(() => techsRoute.GET());
+  assert.equal(list.status, 200);
+  const crew = await call(() => crewRoute.GET());
+  assert.equal(crew.status, 200);
+  assert.equal(crew.body.canManage, false);
+  const assign = await call(() => jobRoute.PATCH(req("PATCH", `/api/jobs/${job.id}`, { technicianId: other.id }), idParams(job.id)));
+  assert.equal(assign.status, 200, JSON.stringify(assign.body));
+  assert.equal((await prisma.job.findUnique({ where: { id: job.id } })).technicianId, other.id);
+  const moved = wednesday(2);
+  const schedule = await call(() => jobRoute.PATCH(req("PATCH", `/api/jobs/${job.id}`, { scheduledAt: moved.toISOString() }), idParams(job.id)));
+  assert.equal(schedule.status, 200, JSON.stringify(schedule.body));
+
+  signedInAs = manager;
+  assert.equal((await call(() => techRoute.PATCH(req("PATCH", `/api/technicians/${tech.id}`, { name: "Dee Tech Sr" }), idParams(tech.id)))).status, 200);
+  assert.equal((await call(() => crewRoute.GET())).body.canManage, true);
+  signedInAs = owner;
+  assert.equal((await call(() => techRoute.PATCH(req("PATCH", `/api/technicians/${tech.id}`, { active: false }), idParams(tech.id)))).status, 200);
+});
+
+test("a shared Messaging Service SID on its own is not carrier approval: texting stays held", async () => {
+  const { textingEligibility } = await import("../src/lib/sms-eligibility.ts");
+  const s = await shop();
+  const saved = { service: process.env.TWILIO_MESSAGING_SERVICE_SID, number: process.env.TWILIO_PHONE_NUMBER };
+  process.env.TWILIO_MESSAGING_SERVICE_SID = `MG${uid()}`;
+  try {
+    const held = await textingEligibility(s.id);
+    assert.equal(held.ok, false);
+    assert.equal(held.reason, "shared_sender_unverified");
+    const report = await loadCapabilities(s.id);
+    assert.equal(report.find((c) => c.id === "sms").state, "pending");
+    await prisma.shopTexting.create({ data: { businessId: s.id, status: "campaign_review", detailsJson: "{}", messagingServiceSid: `MG${uid()}` } });
+    assert.equal((await textingEligibility(s.id)).reason, "own_campaign_pending", "a shop's own service waiting on the carriers isn't approved either");
+  } finally {
+    if (saved.service === undefined) delete process.env.TWILIO_MESSAGING_SERVICE_SID;
+    else process.env.TWILIO_MESSAGING_SERVICE_SID = saved.service;
+  }
+});
+
+test("an old /t/<jobToken> link sends the technician to their own app link, never to /tech/<jobToken>", async () => {
+  const s = await shop();
+  const tech = await prisma.technician.create({ data: { businessId: s.id, name: "Dee Tech", phone: "+13125550161", isActive: true } });
+  const jobToken = `jt-${uid()}`;
+  const job = await prisma.job.create({ data: { businessId: s.id, title: "Tune-up", status: "scheduled", technicianId: tech.id, techToken: jobToken } });
+  const { ensureTechAppToken, techForToken, techJobDetail } = await import("../src/lib/tech-app.ts");
+  const { readFileSync, readdirSync, statSync } = await import("node:fs");
+  const page = readFileSync(new URL("../src/app/t/[token]/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /where: \{ techToken: token \}/);
+  assert.match(page, /const appToken = await ensureTechAppToken\(job\.technicianId\);\s*redirect\(`\/tech\/\$\{appToken\}\/jobs\/\$\{job\.id\}`\)/);
+  const appToken = await ensureTechAppToken(tech.id);
+  assert.ok(appToken && appToken !== jobToken);
+  const session = await techForToken(appToken);
+  assert.equal((await techJobDetail(session, job.id)).job.id, job.id, "the app link opens the same job");
+  assert.equal(await techForToken(jobToken), null, "a job token is not an app token");
+  const walk = (dir) => readdirSync(dir).flatMap((name) => {
+    const path = `${dir}/${name}`;
+    return statSync(path).isDirectory() ? walk(path) : /\.tsx?$/.test(name) ? [path] : [];
+  });
+  const src = new URL("../src", import.meta.url).pathname;
+  const offenders = walk(src).filter((file) => /\/tech\/\$\{[^}]*techToken/.test(readFileSync(file, "utf8")));
+  assert.deepEqual(offenders, [], "nothing builds a /tech/ link from a job token");
+});
+
 /* ------------------------------ activation ------------------------------ */
 
 test("owner alerts: a phone on file is not delivery; ready after a delivered text or accepted email, pending again after a later failure", async () => {

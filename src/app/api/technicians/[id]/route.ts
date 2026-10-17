@@ -8,14 +8,14 @@ import { publicTechnician } from "@/lib/tech-app-link";
 import { normalizePhone } from "@/lib/customer";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
-import { requireEntitledSession } from "@/lib/tenant";
+import { requirePermission, type requireEntitledSession } from "@/lib/tenant";
 import { skillOptions } from "@/lib/trade-playbooks";
 import { parseTechHours } from "@/lib/tech-hours";
 
 type Params = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: Request, { params }: Params) {
-  const authResult = await requireEntitledSession();
+  const authResult = await requirePermission("team.manage");
   if ("error" in authResult) return authResult.error;
   const { business } = authResult;
 

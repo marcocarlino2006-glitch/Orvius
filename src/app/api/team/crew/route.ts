@@ -6,6 +6,7 @@ import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
 import { publicTechnician } from "@/lib/tech-app-link";
 import { requireEntitledSession } from "@/lib/tenant";
+import { can } from "@/lib/workspace-access-labels";
 
 /**
  * The crew as Team shows it: what each person can do, when they work, what
@@ -61,6 +62,7 @@ export async function GET() {
     timezone: business.timezone ?? "America/New_York",
     today: shopDayBounds(null, business.timezone ?? "America/New_York", now).day,
     trade: business.trade ?? null,
+    canManage: can(authResult.role, "team.manage"),
     former,
     crew: crew.map((tech) => {
       const mine = jobs.filter((j) => j.technicianId === tech.id);
