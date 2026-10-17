@@ -2229,6 +2229,8 @@ body {
 .ov-public .ov-player-track {
   position: relative;
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
   display: flex;
   align-items: flex-end;
   gap: 1px;
@@ -2279,6 +2281,30 @@ body {
   font-size: 0.75rem;
   letter-spacing: 0;
   font-variant-numeric: tabular-nums;
+}
+
+/* On a phone the waveform gets its own row, and bars give up their gap and
+   floor so all of them fit instead of pushing the time off the card. */
+@media (max-width: 520px) {
+  .ov-public .ov-console-player {
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+    padding: 0.6rem 0.75rem;
+  }
+
+  .ov-public .ov-player-time {
+    margin-left: auto;
+  }
+
+  .ov-public .ov-player-track {
+    order: 3;
+    flex: 1 1 100%;
+    gap: 0;
+  }
+
+  .ov-public .ov-player-bar {
+    min-width: 0;
+  }
 }
 
 .ov-public .ov-console-rail {

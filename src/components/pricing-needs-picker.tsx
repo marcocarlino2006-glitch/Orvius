@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useId, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import {
   recommendPlan,
   shopNeeds,
@@ -60,17 +60,23 @@ export function PricingNeedsPicker({
     if (step > 0) setStep(step - 1);
   }
 
-  function selectSize(id: ShopSizeId) {
+  function checkSize(id: ShopSizeId) {
     setSize(id);
-    const next = recommendPlan({ need, size: id });
-    onRecommend?.(next.planId);
+    onRecommend?.(recommendPlan({ need, size: id }).planId);
+  }
+
+  function selectSize(id: ShopSizeId) {
+    checkSize(id);
     advance();
   }
 
-  function selectNeed(id: ShopNeedId) {
+  function checkNeed(id: ShopNeedId) {
     setNeed(id);
-    const next = recommendPlan({ need: id, size });
-    onRecommend?.(next.planId);
+    onRecommend?.(recommendPlan({ need: id, size }).planId);
+  }
+
+  function selectNeed(id: ShopNeedId) {
+    checkNeed(id);
     advance();
   }
 
@@ -95,96 +101,59 @@ export function PricingNeedsPicker({
       <div className="pricing-wizard-head font-sans">
         <p className="pricing-wizard-kicker type-eyebrow">Plan finder</p>
         <h2 className="pricing-wizard-title type-headline">Which plan fits your shop?</h2>
-        <nav className="pricing-wizard-steps" aria-label="Progress">
+        <ol className="pricing-wizard-steps" aria-label="Progress">
           {STEPS.map((item, index) => (
-            <span
+            <li
               key={item.id}
+              aria-current={index === step ? "step" : undefined}
               className={`pricing-wizard-step ${index === step ? "pricing-wizard-step-active" : ""} ${index < step ? "pricing-wizard-step-done" : ""}`}
             >
               {index + 1}. {item.label}
-            </span>
+            </li>
           ))}
-        </nav>
+        </ol>
       </div>
 
       {currentStep === "size" ? (
-        <fieldset className="pricing-wizard-panel">
-          <legend className="pricing-wizard-legend font-sans">
-            How many trucks do you run?
-          </legend>
-          <ul className="pricing-needs-options">
-            {shopSizes.map((item) => (
-              <li key={item.id}>
-                <button
-                  type="button"
-                  className={`pricing-needs-option font-sans ${size === item.id ? "pricing-needs-option-active" : ""}`}
-                  onClick={() => selectSize(item.id)}
-                >
-                  <span className="pricing-needs-option-label">{item.label}</span>
-                  <span className="pricing-needs-option-detail">{item.trucks} {item.trucks === "1" ? "truck" : "trucks"}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </fieldset>
+        <ChoiceGroup
+          legend="How many trucks do you run?"
+          choices={shopSizes.map((item) => ({ value: item.id, label: item.label, detail: `${item.trucks} ${item.trucks === "1" ? "truck" : "trucks"}` }))}
+          value={size}
+          onCheck={checkSize}
+          onPick={selectSize}
+        />
       ) : null}
 
       {currentStep === "need" ? (
-        <fieldset className="pricing-wizard-panel">
-          <legend className="pricing-wizard-legend font-sans">
-            What do you need most right now?
-          </legend>
-          <ul className="pricing-needs-options">
-            {shopNeeds.map((item) => (
-              <li key={item.id}>
-                <button
-                  type="button"
-                  className={`pricing-needs-option font-sans ${need === item.id ? "pricing-needs-option-active" : ""}`}
-                  onClick={() => selectNeed(item.id)}
-                >
-                  <span className="pricing-needs-option-label">{item.label}</span>
-                  <span className="pricing-needs-option-detail">{item.detail}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
+        <ChoiceGroup
+          legend="What do you need most right now?"
+          choices={shopNeeds.map((item) => ({ value: item.id, label: item.label, detail: item.detail }))}
+          value={need}
+          onCheck={checkNeed}
+          onPick={selectNeed}
+        >
           <button type="button" className="pricing-wizard-back font-sans" onClick={back}>
             ← Back
           </button>
-        </fieldset>
+        </ChoiceGroup>
       ) : null}
 
       {currentStep === "locations" ? (
-        <fieldset className="pricing-wizard-panel">
-          <legend className="pricing-wizard-legend font-sans">
-            Do you operate more than one location?
-          </legend>
-          <ul className="pricing-needs-options pricing-needs-options-compact">
-            <li>
-              <button
-                type="button"
-                className={`pricing-needs-option font-sans ${multiLocation === false ? "pricing-needs-option-active" : ""}`}
-                onClick={() => selectLocations(false)}
-              >
-                <span className="pricing-needs-option-label">One shop</span>
-                <span className="pricing-needs-option-detail">Single location</span>
-              </button>
-            </li>
-            <li>
-              <button
-                type="button"
-                className={`pricing-needs-option font-sans ${multiLocation === true ? "pricing-needs-option-active" : ""}`}
-                onClick={() => selectLocations(true)}
-              >
-                <span className="pricing-needs-option-label">Multiple locations</span>
-                <span className="pricing-needs-option-detail">2+ shops or franchise</span>
-              </button>
-            </li>
-          </ul>
+        <ChoiceGroup
+          legend="Do you operate more than one location?"
+          compact
+          choices={[
+            { value: false, label: "One shop", detail: "Single location" },
+            { value: true, label: "Multiple locations", detail: "2+ shops or franchise" },
+          ]}
+          value={multiLocation}
+          onCheck={selectLocations}
+          onPick={selectLocations}
+        >
           <button type="button" className="pricing-wizard-back font-sans" onClick={back}>
             ← Back
           </button>
-        </fieldset>
+        </ChoiceGroup>
       ) : null}
 
       {(need || size || multiLocation !== null) && step === stepCount - 1 ? (
@@ -197,5 +166,72 @@ export function PricingNeedsPicker({
         </div>
       ) : null}
     </section>
+  );
+}
+
+type Choice<T> = { value: T; label: ReactNode; detail: ReactNode };
+
+/**
+ * One question as a radio group: arrow keys move the choice without leaving
+ * the step, Enter, Space or a click picks it and moves on.
+ */
+function ChoiceGroup<T extends string | boolean>({
+  legend,
+  choices,
+  value,
+  onCheck,
+  onPick,
+  compact,
+  children,
+}: {
+  legend: string;
+  choices: Choice<T>[];
+  value: T | null;
+  onCheck: (value: T) => void;
+  onPick: (value: T) => void;
+  compact?: boolean;
+  children?: ReactNode;
+}) {
+  const legendId = useId();
+  const list = useRef<HTMLUListElement>(null);
+  const checked = choices.findIndex((c) => c.value === value);
+
+  function onKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    const step = event.key === "ArrowDown" || event.key === "ArrowRight" ? 1 : event.key === "ArrowUp" || event.key === "ArrowLeft" ? -1 : 0;
+    if (!step) return;
+    event.preventDefault();
+    const next = (index + step + choices.length) % choices.length;
+    onCheck(choices[next].value);
+    list.current?.querySelectorAll<HTMLButtonElement>("[role=radio]")[next]?.focus();
+  }
+
+  return (
+    <fieldset className="pricing-wizard-panel">
+      <legend id={legendId} className="pricing-wizard-legend font-sans">
+        {legend}
+      </legend>
+      <ul ref={list} className={`pricing-needs-options${compact ? " pricing-needs-options-compact" : ""}`} role="radiogroup" aria-labelledby={legendId}>
+        {choices.map((choice, index) => {
+          const on = index === checked;
+          return (
+            <li key={String(choice.value)} role="presentation">
+              <button
+                type="button"
+                role="radio"
+                aria-checked={on}
+                tabIndex={on || (checked === -1 && index === 0) ? 0 : -1}
+                className={`pricing-needs-option font-sans ${on ? "pricing-needs-option-active" : ""}`}
+                onClick={() => onPick(choice.value)}
+                onKeyDown={(event) => onKeyDown(event, index)}
+              >
+                <span className="pricing-needs-option-label">{choice.label}</span>
+                <span className="pricing-needs-option-detail">{choice.detail}</span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      {children}
+    </fieldset>
   );
 }

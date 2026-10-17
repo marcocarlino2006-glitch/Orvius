@@ -396,3 +396,20 @@ test("public claims: the browser demo explains the microphone before the browser
   assert.match(company.searchDescription, /once your number is registered/);
   assert.doesNotMatch(company.searchDescription, /real schedule, texts customers/);
 });
+
+test("Plan Finder answers are radio groups with arrow keys; the replay waveform fits a phone instead of pushing the time off the card", async () => {
+  const { readFileSync } = await import("node:fs");
+  const picker = readFileSync("src/components/pricing-needs-picker.tsx", "utf8");
+  for (const piece of ['role="radiogroup"', 'role="radio"', "aria-checked={on}", "aria-labelledby={legendId}", '"ArrowDown"', '"ArrowUp"', 'aria-current={index === step ? "step" : undefined}']) {
+    assert.ok(picker.includes(piece), `picker keeps ${piece}`);
+  }
+  assert.equal((picker.match(/<ChoiceGroup\b/g) ?? []).length, 3, "all three questions use the radio group");
+  assert.doesNotMatch(picker, /<nav className="pricing-wizard-steps"/);
+
+  const css = readFileSync("src/app/public-v2.css", "utf8");
+  const track = css.slice(css.indexOf(".ov-public .ov-player-track {"), css.indexOf("}", css.indexOf(".ov-public .ov-player-track {")));
+  assert.match(track, /min-width: 0/);
+  const phone = css.slice(css.indexOf("@media (max-width: 520px) {\n  .ov-public .ov-console-player"));
+  assert.match(phone, /flex-wrap: wrap/);
+  assert.match(phone, /\.ov-player-bar \{\s*min-width: 0/);
+});
