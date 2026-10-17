@@ -194,3 +194,28 @@ export async function getLaunchGate(options: { textDelivery?: TextDelivery } = {
     textDelivery: delivery,
   };
 }
+
+export type PortalStep = { key: GateItem["key"]; label: string; why: string };
+
+/**
+ * Opening order, fastest path to live: the slow approvals start first and
+ * run in parallel, the instant switches wait until everything they depend
+ * on is green, and the signup switch itself is always the last move.
+ */
+export const PORTAL_ORDER: PortalStep[] = [
+  { key: "textDelivery", label: "File toll-free verification", why: "Slowest step — carriers take business days. File first, it approves while you do everything else." },
+  { key: "emailReady", label: "Resend key + domain DNS", why: "DNS propagation runs itself once the records are in." },
+  { key: "billingReady", label: "Stripe prices", why: "npm run stripe:setup prints the price IDs; paste them into Vercel." },
+  { key: "authReady", label: "Google sign-in", why: "Minutes in Vercel once the OAuth client exists." },
+  { key: "telephonyReady", label: "Twilio + Vapi keys", why: "Copy-paste from both consoles." },
+  { key: "lineProvisioningReady", label: "Per-shop line provisioning", why: "Turns green with the Twilio/Vapi keys above." },
+  { key: "voiceWebhookReady", label: "Voice webhook secret", why: "Same random value in Vercel and in Vapi." },
+  { key: "legalReady", label: "Formation state", why: "One env value: the state the LLC is organized in." },
+  { key: "selfServeEnabled", label: "Flip ORVIUS_SELF_SERVE_SIGNUP=1", why: "Always last. The portal opens the moment this lands with everything above green." },
+];
+
+/** The steps still standing between here and an open portal, in opening order. */
+export function portalSequence(gate: { items: GateItem[] }): PortalStep[] {
+  const pending = new Set(gate.items.filter((item) => !item.ready).map((item) => item.key));
+  return PORTAL_ORDER.filter((step) => pending.has(step.key));
+}

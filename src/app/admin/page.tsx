@@ -53,6 +53,7 @@ type LaunchGate = {
   signupOpen: boolean;
   blockers: number;
   items: Array<{ key: string; label: string; ready: boolean; blocksSignup: boolean; fix: string[]; canSubmit?: boolean }>;
+  sequence?: Array<{ key: string; label: string; why: string }>;
 };
 
 const PIPELINE_STATUSES = [
@@ -1124,6 +1125,18 @@ function LaunchGateCard({ gate }: { gate: LaunchGate }) {
         </div>
         <ShellBadge tone={gate.signupOpen ? "live" : "flare"}>{gate.signupOpen ? "Open" : "Closed"}</ShellBadge>
       </div>
+      {gate.sequence?.length ? (
+        <div className="mt-4 rounded-lg bg-black/[0.03] p-4">
+          <p className="font-sans text-sm font-medium text-void">Open the portal, in this order</p>
+          <ol className="mt-2 list-decimal space-y-1.5 pl-5 font-sans text-sm text-void">
+            {gate.sequence.map((step) => (
+              <li key={step.key}>
+                {step.label} <span className="text-ash">— {step.why}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      ) : null}
       <ul className="mt-4 space-y-3">
         {gate.items.map((item) => (
           <li key={item.key} className="font-sans text-sm">
