@@ -354,10 +354,7 @@ function MessagesInner() {
                           {Array.from({ length: entry.photos }, (_, i) => {
                             const src = `/api/messages/media?id=${encodeURIComponent(entry.id)}&i=${i}`;
                             return (
-                              <a key={i} href={src} target="_blank" rel="noreferrer" className="msg-photo">
-                                {/* eslint-disable-next-line @next/next/no-img-element -- authed proxy, not optimisable */}
-                                <img src={src} alt={`Photo ${i + 1} from the customer`} loading="lazy" />
-                              </a>
+                              <MessagePhoto key={i} src={src} index={i} />
                             );
                           })}
                         </div>
@@ -368,10 +365,7 @@ function MessagesInner() {
                       <span className="msg-meta">
                         {entry.author === "owner" ? "You" : entry.author === "orvius" ? "Orvius" : "Customer"} ·{" "}
                         {stamp(entry.at)}
-                        {entry.direction === "out" && entry.deliveryStatus === "delivered" ? " · Delivered" : null}
-                        {entry.direction === "out" && (entry.deliveryStatus === "failed" || entry.deliveryStatus === "undelivered") ? (
-                          <span className="msg-failed"> · Not delivered. Call them instead.</span>
-                        ) : null}
+                        {entry.direction === "out" ? <DeliveryNote status={entry.deliveryStatus ?? null} /> : null}
                       </span>
                     </div>
                   ),
@@ -457,5 +451,47 @@ export default function MessagesPage() {
         <MessagesInner />
       </Suspense>
     </OsShell>
+  );
+}
+
+/** What the record says about an outbound text, and nothing it doesn't. */
+function DeliveryNote({ status }: { status: string | null }) {
+  switch (status) {
+    case "delivered":
+    case "read":
+      return <> · Delivered</>;
+    case "failed":
+    case "undelivered":
+      return <span className="msg-failed"> · Not delivered. Call them instead.</span>;
+    case "held":
+      return <span className="msg-failed"> · Held, not sent: texting isn&apos;t verified with the carriers yet.</span>;
+    case "held_for_human":
+      return <> · Held, not sent: someone had taken this conversation over.</>;
+    case "unknown_submission":
+      return <span className="msg-failed"> · Unknown: the carrier never said whether this left. Orvius won&apos;t resend it.</span>;
+    case "queued":
+    case "accepted":
+    case "sending":
+    case "sent":
+      return <> · Sent, waiting on the carrier</>;
+    default:
+      return null;
+  }
+}
+
+function MessagePhoto({ src, index }: { src: string; index: number }) {
+  const [missing, setMissing] = useState(false);
+  if (missing) {
+    return (
+      <span className="msg-photo msg-photo--missing" role="img" aria-label={`Photo ${index + 1} is unavailable`}>
+        Photo unavailable
+      </span>
+    );
+  }
+  return (
+    <a href={src} target="_blank" rel="noreferrer" className="msg-photo">
+      {/* eslint-disable-next-line @next/next/no-img-element -- authed proxy, not optimisable */}
+      <img src={src} alt={`Photo ${index + 1} from the customer`} loading="lazy" onError={() => setMissing(true)} />
+    </a>
   );
 }

@@ -308,4 +308,38 @@ test("media parsing caps photos and rejects lookalike hosts", () => {
   );
 });
 
+test("the thread shows texts that never left: held ones and ones whose submission is unknown, never as delivered", async () => {
+  const business = await shop();
+  const phone = randomPhone();
+  const other = randomPhone();
+  try {
+    await recordMessage({ businessId: business.id, phone, direction: "out", author: "orvius", body: "Your visit is confirmed.", sid: `SM${stamp()}` });
+    await prisma.auditEvent.create({
+      data: { businessId: business.id, entityType: "notification", entityId: phone, action: "sms.held_sender_unverified", actor: "system", summary: "Held", detailJson: JSON.stringify({ to: phone, author: "owner", body: "Running 10 min late" }) },
+    });
+    await prisma.auditEvent.create({
+      data: { businessId: business.id, entityType: "notification", entityId: other, action: "sms.held_sender_unverified", actor: "system", summary: "Held", detailJson: JSON.stringify({ to: other, body: "Not this thread" }) },
+    });
+    await prisma.smsIntent.create({
+      data: { businessId: business.id, eventType: "invoice.pay_link", eventId: "inv1", recipientNormalized: phone, audience: "customer", status: "unknown_submission" },
+    });
+    const thread = await getThread(business.id, phone);
+    const outs = thread.entries.filter((e) => e.kind === "text");
+    assert.deepEqual(outs.map((e) => e.deliveryStatus).sort(), [null, "held", "unknown_submission"].sort());
+    const held = outs.find((e) => e.deliveryStatus === "held");
+    assert.equal(held.author, "owner");
+    assert.equal(held.body, "Running 10 min late");
+    assert.ok(!outs.some((e) => e.body === "Not this thread"), "another customer's held text stays out of this thread");
+    assert.match(outs.find((e) => e.deliveryStatus === "unknown_submission").body, /invoice pay link/);
+    const otherShop = await shop();
+    try {
+      assert.equal((await getThread(otherShop.id, phone)).entries.length, 0, "another shop sees none of it");
+    } finally {
+      await drop(otherShop.id);
+    }
+  } finally {
+    await drop(business.id);
+  }
+});
+
 test.after(() => prisma.$disconnect());
