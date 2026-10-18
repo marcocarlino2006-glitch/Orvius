@@ -281,8 +281,8 @@ const APPLIANCE_REPAIR: TradePlaybook = {
     GAS_SMELL,
     { key: "appliance_fire", label: "Sparks, smoke or burning from an appliance", instruction: "Tell the caller to unplug it or shut off the breaker if it's safe, and call 911 if there is fire. Call them back now.", keywords: [/spark/, ...SMOKE_WORDS, /(burning|melting) smell/, /on fire/] },
   ],
-  emergency: [/(washer|dishwasher).{0,30}(flood|leak|water everywhere)/],
-  sameDay: [/(fridge|refrigerator|freezer).{0,30}(not cooling|warm|stopped|died)/, /\btoday\b/, /\basap\b/, /\burgent\b/],
+  emergency: [/(washer|dishwasher).{0,30}(flood|pouring|gushing|water everywhere|can'?t (shut|turn) (it|the water) off|won'?t stop)/],
+  sameDay: [/(fridge|refrigerator|freezer).{0,30}(not cooling|warm|stopped|died)/, /(washer|dishwasher).{0,30}\bleak/, /\btoday\b/, /\basap\b/, /\burgent\b/],
 };
 
 const AUTO_REPAIR: TradePlaybook = {

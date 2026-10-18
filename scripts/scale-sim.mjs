@@ -184,7 +184,7 @@ function buildCaller(r, shop, n, stamp) {
       return {
         kind,
         phone,
-        calls: [call(0, { structured: { name: name.toUpperCase(), phone: messyPhone, serviceType: issue, urgency: pick(r, URGENCY), address: address.replace(",", "") } })],
+        calls: [call(0, { structured: { name: name.toUpperCase(), phone: messyPhone, serviceType: issue, urgency: pick(r, URGENCY.filter((u) => u !== "Emergency")), address: address.replace(",", "") } })],
         expect: { jobs: 1, alert: true },
       };
     }
