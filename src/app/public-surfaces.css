@@ -228,6 +228,11 @@ html[data-theme="day"] .ov-public .mkt-nav .mkt-nav-cta::before {
   grid-column: 2;
 }
 
+.ov-public .pd-scenario-sub a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .ov-public .pd-scenario-num {
   grid-row: span 2;
   padding-top: 0.15rem;
