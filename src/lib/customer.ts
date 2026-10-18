@@ -79,6 +79,18 @@ export async function findOrCreateCustomer(touch: CustomerTouch) {
 }
 
 /**
+ * The maintained counter can lag the records (imports, backfills, rows
+ * written before counting existed). Displays floor it at what the
+ * customer's own calls, leads and jobs prove — never the other way.
+ */
+export function interactionFloor(
+  maintained: number,
+  counts: { calls: number; leads: number; jobs: number },
+): number {
+  return Math.max(maintained, counts.calls, counts.leads, counts.jobs);
+}
+
+/**
  * Same match, plus whether this touch created the customer. countTouch=false
  * lets a retried or already-linked touch refresh details without inflating
  * the interaction count.

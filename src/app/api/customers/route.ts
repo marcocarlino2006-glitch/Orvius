@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { customerDisplayName } from "@/lib/customer";
+import { customerDisplayName, interactionFloor } from "@/lib/customer";
 import { summarizeCustomerMoney, type CustomerMoney } from "@/lib/customer-money";
 import { RECEIPT_STATUSES } from "@/lib/payment-math";
 import { requirePlanModule } from "@/lib/plan-gate";
@@ -78,15 +78,9 @@ export async function GET(request: Request) {
         phone: customer.phone,
         email: customer.email,
         address: customer.address,
-        /* The counter can lag the records (imports, fixture and backfilled
-           rows), so never show fewer interactions than the records prove —
-           a "Returning" customer with "1 interaction" contradicts itself. */
-        interactionCount: Math.max(
-          customer.interactionCount,
-          customer._count.calls,
-          customer._count.leads,
-          customer._count.jobs,
-        ),
+        /* Never show fewer interactions than the records prove — a
+           "Returning" customer with "1 interaction" contradicts itself. */
+        interactionCount: interactionFloor(customer.interactionCount, customer._count),
         firstSeenAt: customer.firstSeenAt.toISOString(),
         lastSeenAt: customer.lastSeenAt.toISOString(),
         business: customer.business,

@@ -19,6 +19,7 @@ import { recordWorkflowDecision, recordWorkflowProgress } from "@/lib/workflow-e
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
 import { forbiddenResponse, requireEntitledSession } from "@/lib/tenant";
+import { interactionFloor } from "@/lib/customer";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -74,8 +75,22 @@ export async function GET(_request: Request, { params }: Params) {
     ? textDelivery({ sid: job.customerConfirmSid, deliveryStatus: confirmText?.deliveryStatus, sentAt: job.customerConfirmSentAt })
     : null;
 
+  const serialized = serializeJob(job);
+  if (serialized.customer) {
+    const counts = await prisma.customer.findUnique({
+      where: { id: serialized.customer.id },
+      select: { _count: { select: { calls: true, leads: true, jobs: true } } },
+    });
+    if (counts) {
+      serialized.customer = {
+        ...serialized.customer,
+        interactionCount: interactionFloor(serialized.customer.interactionCount, counts._count),
+      };
+    }
+  }
+
   return NextResponse.json({
-    job: { ...serializeJob(job), customerConfirmDelivery },
+    job: { ...serialized, customerConfirmDelivery },
     deposit: deposit
       ? {
           id: deposit.id,

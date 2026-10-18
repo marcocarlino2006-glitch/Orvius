@@ -102,7 +102,7 @@ function AheadStrip({ tomorrow, money }: { tomorrow?: CommandTomorrow | null; mo
         <span className="cmd-money-label">Tomorrow</span>
         <span className="cmd-money-value">{tomorrow ? plural(tomorrow.jobCount, "job") : "—"}</span>
         <span className="cmd-money-note">
-          {tomorrow?.firstJobAt ? `First at ${formatWhen(tomorrow.firstJobAt).replace(/^Tomorrow,?\s*/i, "")}` : "Nothing booked yet"}
+          {tomorrow?.firstJobAt ? `First job ${formatWhen(tomorrow.firstJobAt)}` : "Nothing booked yet"}
         </span>
       </Link>
       <Link href="/dashboard/schedule" className={`cmd-money-cell${tomorrow?.unassigned ? " is-owed" : ""}`}>
