@@ -59,6 +59,8 @@ test("the end-of-call report stores the caller's wait on the call", async () => 
 
     const rollup = await voiceLatencyRollup(new Date(Date.now() - 60_000));
     assert.ok(rollup.calls >= 1);
+    assert.equal(rollup.budgetMs, 800);
+    assert.equal(rollup.withinBudget, rollup.slowReplyMs <= 800, "the budget verdict follows the slow reply, not the typical one");
     assert.ok(["endpointing", "model", "voice", "transcriber"].includes(rollup.slowestStage));
   } finally {
     await drop(shop.id);
