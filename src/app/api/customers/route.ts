@@ -78,7 +78,15 @@ export async function GET(request: Request) {
         phone: customer.phone,
         email: customer.email,
         address: customer.address,
-        interactionCount: customer.interactionCount,
+        /* The counter can lag the records (imports, fixture and backfilled
+           rows), so never show fewer interactions than the records prove —
+           a "Returning" customer with "1 interaction" contradicts itself. */
+        interactionCount: Math.max(
+          customer.interactionCount,
+          customer._count.calls,
+          customer._count.leads,
+          customer._count.jobs,
+        ),
         firstSeenAt: customer.firstSeenAt.toISOString(),
         lastSeenAt: customer.lastSeenAt.toISOString(),
         business: customer.business,
