@@ -106,6 +106,7 @@ export type Ring1Data = {
   };
   flow?: CommandFlow;
   money?: CommandMoney;
+  tomorrow?: import("@/lib/command-tomorrow").CommandTomorrow | null;
   crewBoard?: CrewBoard;
   technicians?: Array<{ id: string; name: string }>;
   health?: ShopHealth;

@@ -11,6 +11,9 @@ import { SupportContact } from "@/components/support-contact";
 import { TestAlertButton } from "@/components/test-alert-button";
 import { WorkCard } from "@/components/work-card";
 import { buildCommandSignals, groupWorkItems, weekResultLine } from "@/lib/command-model";
+import type { CommandTomorrow } from "@/lib/command-tomorrow";
+import { formatCents } from "@/lib/money";
+import type { CommandMoney } from "@/lib/command-depth";
 import type { Handled } from "@/lib/autopilot";
 import { useRing1, type Ring1Data } from "@/lib/ring1-context";
 import { formatWhen } from "@/lib/when";
@@ -83,6 +86,47 @@ function TodaySchedule({ jobs }: { jobs: TodayJob[] }) {
         </div>
       ))}
     </div>
+  );
+}
+
+/**
+ * The forward strip: tomorrow's load before it becomes today's fire, the
+ * dormant-customer prize while it can still be acted on, and the week's
+ * money pulse. Everything links to the screen that does the work.
+ */
+function AheadStrip({ tomorrow, money }: { tomorrow?: CommandTomorrow | null; money?: CommandMoney }) {
+  if (!tomorrow && !money) return null;
+  return (
+    <section className="cmd-money cmd-ahead" aria-label="Ahead">
+      <Link href="/dashboard/schedule" className="cmd-money-cell">
+        <span className="cmd-money-label">Tomorrow</span>
+        <span className="cmd-money-value">{tomorrow ? plural(tomorrow.jobCount, "job") : "—"}</span>
+        <span className="cmd-money-note">
+          {tomorrow?.firstJobAt ? `First at ${formatWhen(tomorrow.firstJobAt).replace(/^Tomorrow,?\s*/i, "")}` : "Nothing booked yet"}
+        </span>
+      </Link>
+      <Link href="/dashboard/schedule" className={`cmd-money-cell${tomorrow?.unassigned ? " is-owed" : ""}`}>
+        <span className="cmd-money-label">Unassigned tomorrow</span>
+        <span className="cmd-money-value">{tomorrow ? tomorrow.unassigned : "—"}</span>
+        <span className="cmd-money-note">{tomorrow?.unassigned ? "Assign before the day starts" : "Everyone has a name"}</span>
+      </Link>
+      <Link href="/dashboard/customers" className="cmd-money-cell">
+        <span className="cmd-money-label">Dormant customers</span>
+        <span className="cmd-money-value">{tomorrow ? tomorrow.dormantCustomers : "—"}</span>
+        <span className="cmd-money-note">
+          {tomorrow?.dormantEstimatedCents
+            ? `Quiet 6+ months · about ${formatCents(tomorrow.dormantEstimatedCents)} in work`
+            : "Quiet 6+ months · win-back lives on Customers"}
+        </span>
+      </Link>
+      <Link href="/dashboard/work" className={`cmd-money-cell${money?.outstandingCents ? " is-owed" : ""}`}>
+        <span className="cmd-money-label">Collected · {money?.windowDays ?? 7} days</span>
+        <span className="cmd-money-value">{money ? formatCents(money.collectedCents) : "—"}</span>
+        <span className="cmd-money-note">
+          {money?.outstandingCents ? `${formatCents(money.outstandingCents)} still owed` : "Nothing outstanding"}
+        </span>
+      </Link>
+    </section>
   );
 }
 
@@ -259,6 +303,8 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
       ) : null}
 
       <CommandSignals signals={signals} loading={loading} />
+
+      {data ? <AheadStrip tomorrow={data.tomorrow} money={data.money} /> : null}
 
       <div className="cmd-ask">
         <AskBar onChange={() => void refresh()} below={setup} />
