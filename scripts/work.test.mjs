@@ -101,45 +101,47 @@ test("a request's stage and next action follow its status", () => {
   assert.deepEqual(item.responsible, { kind: "owner", label: "You", email: null });
 });
 
+const jobItem = (j) => work.jobWorkItem(j, now.getTime());
+
 test("a job's stage and next action follow the visit", () => {
-  assert.equal(work.jobWorkItem(job({ scheduledAt: null })).stage, "needs_time");
-  assert.equal(work.jobWorkItem(job({ scheduledAt: null })).nextAction, "Set the time");
-  assert.equal(work.jobWorkItem(job()).nextAction, "Assign a technician");
+  assert.equal(jobItem(job({ scheduledAt: null })).stage, "needs_time");
+  assert.equal(jobItem(job({ scheduledAt: null })).nextAction, "Set the time");
+  assert.equal(jobItem(job()).nextAction, "Assign a technician");
 
   const tech = { id: "t1", name: "Ray" };
-  assert.equal(work.jobWorkItem(job({ technician: tech })).nextAction, "Confirm the time with the customer");
-  const unanswered = work.jobWorkItem(job({ technician: tech, customerConfirmedAt: now }));
+  assert.equal(jobItem(job({ technician: tech })).nextAction, "Confirm the time with the customer");
+  const unanswered = jobItem(job({ technician: tech, customerConfirmedAt: now }));
   assert.equal(unanswered.nextAction, "Waiting on Ray to accept");
   assert.equal(unanswered.waitingOn, "technician");
   assert.equal(unanswered.needsYou, false, "waiting on the technician isn't the owner's job until it goes stale");
-  assert.equal(work.jobWorkItem(job({ technician: tech, customerConfirmedAt: now, techAcceptedAt: now })).nextAction, null);
-  assert.equal(work.jobWorkItem(job({ status: "confirmed" })).nextAction, "Assign a technician");
-  assert.equal(work.jobWorkItem(job({ status: "en_route", technician: tech })).nextAction, "Mark arrived");
-  assert.equal(work.jobWorkItem(job({ status: "on_site", technician: tech })).nextAction, "Mark done");
+  assert.equal(jobItem(job({ technician: tech, customerConfirmedAt: now, techAcceptedAt: now })).nextAction, null);
+  assert.equal(jobItem(job({ status: "confirmed" })).nextAction, "Assign a technician");
+  assert.equal(jobItem(job({ status: "en_route", technician: tech })).nextAction, "Mark arrived");
+  assert.equal(jobItem(job({ status: "on_site", technician: tech })).nextAction, "Mark done");
 
-  const field = work.jobWorkItem(job({ status: "en_route", technician: tech }));
+  const field = jobItem(job({ status: "en_route", technician: tech }));
   assert.deepEqual(field.responsible, { kind: "technician", label: "Ray", email: null });
-  const assigned = work.jobWorkItem(job({ technician: tech, assigneeEmail: "office@example.test" }));
+  const assigned = jobItem(job({ technician: tech, assigneeEmail: "office@example.test" }));
   assert.equal(assigned.responsible.kind, "teammate");
 
-  const paid = work.jobWorkItem(job({ status: "completed", invoices: [{ status: "paid", paidAt: now, amountCents: 100 }] }));
+  const paid = jobItem(job({ status: "completed", invoices: [{ status: "paid", paidAt: now, amountCents: 100 }] }));
   assert.equal(paid.stage, "done");
   assert.equal(paid.open, false);
-  const owes = work.jobWorkItem(job({ status: "completed", invoices: [{ status: "sent", paidAt: null, amountCents: 100 }] }));
+  const owes = jobItem(job({ status: "completed", invoices: [{ status: "sent", paidAt: null, amountCents: 100 }] }));
   assert.equal(owes.open, true);
   assert.equal(owes.nextAction, "Waiting on Dana to pay");
   assert.equal(owes.waitingOn, "customer");
-  const draft = work.jobWorkItem(job({ status: "completed", invoices: [{ status: "draft", paidAt: null, amountCents: 100 }] }));
+  const draft = jobItem(job({ status: "completed", invoices: [{ status: "draft", paidAt: null, amountCents: 100 }] }));
   assert.equal(draft.nextAction, "Send the invoice");
   assert.equal(draft.needsYou, true);
-  assert.equal(work.jobWorkItem(job({ status: "completed", invoices: [{ status: "void", paidAt: null, amountCents: 1 }] })).open, false);
-  assert.equal(work.jobWorkItem(job({ status: "cancelled" })).open, false);
+  assert.equal(jobItem(job({ status: "completed", invoices: [{ status: "void", paidAt: null, amountCents: 1 }] })).open, false);
+  assert.equal(jobItem(job({ status: "cancelled" })).open, false);
 });
 
 test("urgent work sorts first, then work with a next step, then earlier stages", () => {
   const items = [
-    work.jobWorkItem(job({ id: "confirmed", status: "confirmed", technician: { id: "t", name: "R" } })),
-    work.jobWorkItem(job({ id: "scheduled" })),
+    jobItem(job({ id: "confirmed", status: "confirmed", technician: { id: "t", name: "R" } })),
+    jobItem(job({ id: "scheduled" })),
     work.requestWorkItem(lead({ id: "callback" })),
     work.requestWorkItem(lead({ id: "emergency", urgency: "emergency", createdAt: new Date(now.getTime() + 1000) })),
   ];
@@ -370,6 +372,37 @@ test("/api/work/item returns the work, its history and who can take it — only 
   const other = await makeShop();
   signedInAs = other.ownerEmail;
   assert.equal((await get(`kind=request&id=${request.id}`)).status, 404);
+  signedInAs = null;
+});
+
+test("a plan waiting on approval shows on the work's own page, not just in the queues", async () => {
+  const route = await import("../src/app/api/work/item/route.ts");
+  const shop = await makeShop();
+  const request = await prisma.lead.create({ data: { businessId: shop.id, phone: phone(), status: "new", name: "Pam", serviceType: "Leak" } });
+  const proposal = await prisma.copilotAction.create({
+    data: {
+      businessId: shop.id,
+      action: "book_window",
+      paramsJson: JSON.stringify({ leadId: request.id, at: new Date(Date.now() + 86_400_000).toISOString() }),
+      preview: "Book Pam — Leak — Thu at 1:00 PM. Nothing changes until you approve.",
+      status: "proposed",
+    },
+  });
+  signedInAs = shop.ownerEmail;
+  try {
+    const res = await route.GET(new Request(`http://localhost/api/work/item?kind=request&id=${request.id}`));
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    assert.equal(body.item.approvalId, proposal.id);
+    assert.deepEqual(body.approval, { proposalId: proposal.id, preview: proposal.preview });
+
+    await prisma.copilotAction.update({ where: { id: proposal.id }, data: { status: "executed" } });
+    const after = await (await route.GET(new Request(`http://localhost/api/work/item?kind=request&id=${request.id}`))).json();
+    assert.equal(after.item.approvalId, null);
+    assert.equal(after.approval, null, "a decided plan leaves the page");
+  } finally {
+    signedInAs = null;
+  }
 });
 
 test("a time typed on a request or a job is read on the shop's clock, not the browser's", async () => {
@@ -425,4 +458,70 @@ test("teammates are named, not shown as email addresses", async () => {
   assert.equal(teammateLabel("sam.lee@shop.com", team), "sam.lee@shop.com", "two Sams keep their emails apart");
   assert.equal(actorName("Ana@Shop.com", "ana@shop.com"), "You");
   assert.equal(actorName("ana@shop.com", "boss@shop.com"), "Ana");
+});
+
+test("a move or reassignment that clashes is refused with the reason; an override goes through and is on the record", async () => {
+  const jobRoute = await import("../src/app/api/jobs/[id]/route.ts");
+  const shop = await makeShop();
+  await prisma.business.update({ where: { id: shop.id }, data: { timezone: "America/Chicago" } });
+  signedInAs = shop.ownerEmail;
+  const ana = await prisma.technician.create({ data: { businessId: shop.id, name: "Ana Ruiz", isActive: true } });
+  const ben = await prisma.technician.create({ data: { businessId: shop.id, name: "Ben Okafor", isActive: true } });
+  await prisma.technicianTimeOff.create({
+    data: { businessId: shop.id, technicianId: ana.id, startsAt: new Date("2026-11-10T14:00:00Z"), endsAt: new Date("2026-11-10T23:00:00Z") },
+  });
+  const busy = await prisma.job.create({ data: { businessId: shop.id, title: "Water heater", status: "scheduled", technicianId: ben.id, scheduledAt: new Date("2026-11-11T15:00:00Z"), durationMin: 120 } });
+  const job = await prisma.job.create({ data: { businessId: shop.id, title: "Leak repair", status: "scheduled", technicianId: ana.id, scheduledAt: new Date("2026-11-09T15:00:00Z"), durationMin: 60 } });
+  const patch = (body) =>
+    jobRoute.PATCH(new Request(`http://localhost/api/jobs/${job.id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }), { params: Promise.resolve({ id: job.id }) });
+
+  const intoTimeOff = await patch({ scheduledLocal: "2026-11-10T10:00" });
+  assert.equal(intoTimeOff.status, 409);
+  const why = await intoTimeOff.json();
+  assert.equal(why.clash, true);
+  assert.match(why.error, /Ana Ruiz is on time off/);
+  assert.equal((await prisma.job.findUnique({ where: { id: job.id } })).scheduledAt.toISOString(), "2026-11-09T15:00:00.000Z", "nothing moved");
+
+  const onBen = await patch({ scheduledLocal: "2026-11-11T09:30", technicianId: ben.id });
+  assert.equal(onBen.status, 409);
+  assert.match((await onBen.json()).error, /Ben Okafor already has a job then/);
+
+  const sameSlotOwnJob = await patch({ scheduledLocal: "2026-11-09T09:00", technicianId: ana.id, notes: "gate code 1234" });
+  assert.equal(sameSlotOwnJob.status, 200, "a job never clashes with itself");
+
+  const forced = await patch({ scheduledLocal: "2026-11-10T10:00", allowClash: true, reason: "Ana swapped her day off" });
+  assert.equal(forced.status, 200);
+  const override = await prisma.auditEvent.findFirst({ where: { businessId: shop.id, action: "job.schedule_override", entityId: job.id } });
+  assert.match(override.summary, /Booked over a clash: Ana Ruiz is on time off then\. Reason: Ana swapped her day off/);
+  assert.ok(busy);
+});
+
+test("status moves are the server's rule: skip ahead and reopen freely, never cancel a paid job or finish a cancelled one", async () => {
+  const jobRoute = await import("../src/app/api/jobs/[id]/route.ts");
+  const shop = await makeShop();
+  signedInAs = shop.ownerEmail;
+  const job = await prisma.job.create({ data: { businessId: shop.id, title: "Drain clear", status: "scheduled", scheduledAt: new Date("2026-11-12T15:00:00Z") } });
+  const patch = (body) =>
+    jobRoute.PATCH(new Request(`http://localhost/api/jobs/${job.id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }), { params: Promise.resolve({ id: job.id }) });
+
+  assert.equal((await patch({ status: "on_site" })).status, 200, "booked straight to on site");
+  assert.equal((await patch({ status: "completed" })).status, 422, "done needs what happened");
+  assert.equal((await patch({ status: "completed", completion: { resolutionCode: "repaired", noCharge: true } })).status, 200);
+  await prisma.invoice.create({ data: { businessId: shop.id, jobId: job.id, amountCents: 18_000, status: "paid", paidAt: new Date(), publicToken: `tok-${uid()}` } });
+  const cancelPaid = await patch({ status: "cancelled" });
+  assert.equal(cancelPaid.status, 409);
+  assert.match((await cancelPaid.json()).error, /paid invoice/);
+  assert.equal((await prisma.job.findUnique({ where: { id: job.id } })).status, "completed");
+
+  assert.equal((await patch({ status: "scheduled", reason: "Came back, still dripping" })).status, 200, "reopening is allowed");
+  const reopened = await prisma.job.findUnique({ where: { id: job.id } });
+  assert.ok(reopened.completedAt, "reopening keeps when it was first finished");
+  assert.equal((await prisma.invoice.findFirst({ where: { jobId: job.id } })).status, "paid", "the paid invoice stands");
+
+  const other = await prisma.job.create({ data: { businessId: shop.id, title: "Faucet", status: "cancelled" } });
+  const finishCancelled = await jobRoute.PATCH(
+    new Request(`http://localhost/api/jobs/${other.id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status: "completed", completion: { resolutionCode: "repaired", noCharge: true } }) }),
+    { params: Promise.resolve({ id: other.id }) },
+  );
+  assert.equal(finishCancelled.status, 409);
 });

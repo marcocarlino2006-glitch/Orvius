@@ -6,6 +6,7 @@ import { company } from "@/lib/company";
 import { HELP_ARTICLES, HELP_CATEGORIES } from "@/lib/help-center";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/help" },
   title: "Help center",
   description: `Set up your line, forward calls, and get the most from ${company.productName}.`,
 };
@@ -14,7 +15,7 @@ export default function HelpPage() {
   return (
     <MarketingShell>
       <section className="tier1-hero tier1-hero-compact">
-        <div className="editorial-wrap max-w-3xl">
+        <div className="editorial-wrap max-w-3xl ov-help">
           <ShellPageIntro
             label="Help center"
             title="How can we help?"
@@ -22,8 +23,8 @@ export default function HelpPage() {
           />
         </div>
       </section>
-      <section className="tier1-story">
-        <div className="editorial-wrap max-w-3xl">
+      <section className="tier1-story ov-surface-canvas">
+        <div className="editorial-wrap max-w-3xl ov-help">
           <HelpSearch
             categories={HELP_CATEGORIES}
             articles={HELP_ARTICLES.map(({ slug, title, summary, category, keywords }) => ({

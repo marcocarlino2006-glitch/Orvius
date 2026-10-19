@@ -44,7 +44,12 @@ export function buildWeeklyReportEmail(outcomes: ShopOutcomes, shopName: string,
   }
 
   const moneyLines: string[] = [];
-  if (outcomes.collectedCents > 0) moneyLines.push(`• ${money(outcomes.collectedCents)} in payments you recorded`);
+  const refunded = outcomes.money?.refundedCents ?? 0;
+  if (refunded > 0) {
+    moneyLines.push(`• ${money(outcomes.money!.grossCents)} in payments you recorded, ${money(refunded)} refunded, ${money(outcomes.collectedCents)} kept`);
+  } else if (outcomes.collectedCents > 0) {
+    moneyLines.push(`• ${money(outcomes.collectedCents)} in payments you recorded`);
+  }
   if (outcomes.capturedDemandEstimatedValueCents != null && outcomes.capturedDemandJobs > 0) {
     moneyLines.push(
       `• About ${money(outcomes.capturedDemandEstimatedValueCents)} in work from calls Orvius answered (${plural(outcomes.capturedDemandJobs, "job")} at your average ticket)`,
@@ -133,7 +138,8 @@ export function buildWeeklyValueText(outcomes: ShopOutcomes, shopName: string) {
   }
   const parts = [`${plural(outcomes.calls, "call")} answered`, `${plural(outcomes.jobsBooked, "job")} booked`];
   if (outcomes.afterHoursBooked > 0) parts.push(`${outcomes.afterHoursBooked} of them after hours`);
-  if (outcomes.collectedCents > 0) parts.push(`${money(outcomes.collectedCents)} collected`);
+  if ((outcomes.money?.refundedCents ?? 0) > 0) parts.push(`${money(outcomes.collectedCents)} kept after ${money(outcomes.money!.refundedCents)} refunded`);
+  else if (outcomes.collectedCents > 0) parts.push(`${money(outcomes.collectedCents)} collected`);
   const lines = [`Orvius · ${shopName}, last ${outcomes.windowDays} days: ${parts.join(", ")}.`];
   if (outcomes.openInvoiceCents > 0) lines.push(`${money(outcomes.openInvoiceCents)} in bills still unpaid.`);
   if (outcomes.unassignedJobs > 0) lines.push(`${plural(outcomes.unassignedJobs, "job")} still ${outcomes.unassignedJobs === 1 ? "needs" : "need"} a tech.`);

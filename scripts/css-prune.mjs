@@ -2,10 +2,15 @@
 /**
  * Remove the rules that nothing can ever match.
  *
- * A selector needs every class it names to exist before it can match, so a
- * selector holding a class no component renders is unreachable — however many
- * live classes sit beside it. Selector lists are pruned entry by entry rather
- * than whole, because `.live, .dead { }` is half alive.
+ * A plain selector needs every class it names to exist before it can match,
+ * so a selector holding a class no component renders is unreachable — however
+ * many live classes sit beside it. Selector lists are pruned entry by entry
+ * rather than whole, because `.live, .dead { }` is half alive.
+ *
+ * :is() and :where() are any-of: one live mate still matches, so only the
+ * dead mates are dropped (deleting the whole rule once removed live :active,
+ * tag and day-theme styles). :not(.dead) matches everything once the class
+ * is gone, so it is stripped.
  *
  * Parsed with postcss rather than regex: a stylesheet this size has nested
  * at-rules, and a regex that gets one brace wrong silently deletes a working
@@ -18,6 +23,65 @@ import { analyzeCssUsage, repoRoot, requiredClasses } from "./lib/css-usage.mjs"
 
 const write = process.argv.includes("--write");
 const { cssFiles, dead } = analyzeCssUsage();
+
+const classesOf = (s) => [...s.matchAll(/\.([a-zA-Z][a-zA-Z0-9_-]*)/g)].map((m) => m[1]);
+const hasDead = (s) => classesOf(s).some((cls) => dead.has(cls));
+
+/* Split top-level commas (parens-aware) of an :is(/:where(/:not( argument. */
+function splitMates(inner) {
+  const mates = [];
+  let depth = 0;
+  let cur = "";
+  for (const ch of inner) {
+    if (ch === "(") depth++;
+    if (ch === ")") depth--;
+    if (ch === "," && depth === 0) {
+      mates.push(cur);
+      cur = "";
+    } else cur += ch;
+  }
+  mates.push(cur);
+  return mates;
+}
+
+/* Find `fn(` at idx, return [fullEnd, inner]. */
+function parenBlock(s, idx) {
+  const open = s.indexOf("(", idx);
+  let depth = 0;
+  for (let i = open; i < s.length; i++) {
+    if (s[i] === "(") depth++;
+    if (s[i] === ")") {
+      depth--;
+      if (depth === 0) return [i + 1, s.slice(open + 1, i)];
+    }
+  }
+  return [s.length, s.slice(open + 1)];
+}
+
+/* Narrow one selector: drop dead :is/:where mates, strip dead :not. Null = unmatchable. */
+function narrowSelector(sel) {
+  let out = sel;
+  for (const fn of ["is", "where"]) {
+    let at = out.indexOf(`:${fn}(`);
+    while (at !== -1) {
+      const [end, inner] = parenBlock(out, at);
+      const kept = splitMates(inner).filter((m) => !hasDead(m));
+      if (!kept.length) return null;
+      out = `${out.slice(0, at)}:${fn}(${kept.join(", ")})${out.slice(end)}`;
+      at = out.indexOf(`:${fn}(`, at + 1);
+    }
+  }
+  let at = out.indexOf(":not(");
+  while (at !== -1) {
+    const [end, inner] = parenBlock(out, at);
+    const kept = splitMates(inner).filter((m) => !hasDead(m));
+    if (!kept.length) out = `${out.slice(0, at)}${out.slice(end)}`;
+    else out = `${out.slice(0, at)}:not(${kept.join(", ")})${out.slice(end)}`;
+    at = out.indexOf(":not(", at + 1);
+  }
+  if (hasDead(out)) return null;
+  return out;
+}
 
 let totalRules = 0;
 let totalSelectors = 0;
@@ -34,8 +98,9 @@ for (const file of cssFiles) {
     /* Keyframe steps are percentages, not selectors. */
     if (rule.parent?.type === "atrule" && /keyframes$/.test(rule.parent.name)) return;
 
-    const live = rule.selectors.filter(
-      (selector) => !requiredClasses(selector).some((cls) => dead.has(cls)),
+    const narrowed = rule.selectors.map((selector) => narrowSelector(selector));
+    const live = narrowed.filter(
+      (selector) => selector !== null && !requiredClasses(selector).some((cls) => dead.has(cls)),
     );
 
     if (live.length === rule.selectors.length) return;
@@ -47,6 +112,7 @@ for (const file of cssFiles) {
     }
 
     removedSelectors += rule.selectors.length - live.length;
+    removedSelectors += narrowed.filter((s, i) => s !== null && s !== rule.selectors[i]).length;
     rule.selectors = live;
   });
 

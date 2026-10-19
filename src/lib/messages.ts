@@ -225,6 +225,15 @@ export type ThreadEntry =
       summary: string | null;
     };
 
+function parseDetail(raw: string | null): { author?: string; body?: string } {
+  try {
+    const value = JSON.parse(raw ?? "{}") as { author?: unknown; body?: unknown };
+    return { author: typeof value.author === "string" ? value.author : undefined, body: typeof value.body === "string" ? value.body : undefined };
+  } catch {
+    return {};
+  }
+}
+
 export async function getThread(businessId: string, phone: string) {
   const phoneNormalized = normalizePhone(phone);
   if (!phoneNormalized) return null;
@@ -269,7 +278,51 @@ export async function getThread(businessId: string, phone: string) {
     },
   });
 
+  /*
+    Texts that never became a message row still belong in the thread: one
+    held before sending (carrier registration, someone took over) and one
+    whose submission is unknown (it may or may not have reached them).
+  */
+  const since = new Date(Date.now() - 30 * 86_400_000);
+  const [held, unknown] = await Promise.all([
+    prisma.auditEvent.findMany({
+      where: { businessId, entityType: "notification", entityId: phoneNormalized, action: { in: ["sms.held_sender_unverified", "sms.held_for_human"] }, createdAt: { gte: since } },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      select: { id: true, action: true, createdAt: true, detailJson: true },
+    }),
+    prisma.smsIntent.findMany({
+      where: { businessId, recipientNormalized: phoneNormalized, audience: "customer", status: "unknown_submission", createdAt: { gte: since } },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      select: { id: true, createdAt: true, eventType: true },
+    }),
+  ]);
+
   const entries: ThreadEntry[] = [
+    ...held.map((h): ThreadEntry => {
+      const detail = parseDetail(h.detailJson);
+      return {
+        kind: "text",
+        id: `held-${h.id}`,
+        at: h.createdAt.toISOString(),
+        direction: "out",
+        author: detail.author === "owner" ? "owner" : "orvius",
+        body: detail.body || "A text",
+        deliveryStatus: h.action === "sms.held_for_human" ? "held_for_human" : "held",
+        photos: 0,
+      };
+    }),
+    ...unknown.map((u): ThreadEntry => ({
+      kind: "text",
+      id: `intent-${u.id}`,
+      at: u.createdAt.toISOString(),
+      direction: "out",
+      author: "orvius",
+      body: `A text (${u.eventType.replace(/[._]/g, " ")})`,
+      deliveryStatus: "unknown_submission",
+      photos: 0,
+    })),
     ...messages.map(
       (m): ThreadEntry => ({
         kind: "text",

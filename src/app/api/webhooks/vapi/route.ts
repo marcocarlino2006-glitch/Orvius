@@ -13,7 +13,7 @@ import { isProduction } from "@/lib/runtime";
 import { isDatabaseBusy, recordWebhookEvent } from "@/lib/webhook-events";
 import { verifyVapiWebhookSecret } from "@/lib/webhook-auth";
 import { tooManyRequests, webhookAuthFailureLimited } from "@/lib/rate-limit";
-import { resolveBusinessByInboundPhone } from "@/lib/resolve-shop-line";
+import { pickTenant, resolveBusinessByInboundPhone } from "@/lib/resolve-shop-line";
 import {
   buildPreviewAssistant,
   claimPreviewCall,
@@ -27,6 +27,7 @@ import { loadCallerContextNote, sendCallerContext } from "@/lib/caller-context";
 import { backstopLateSweeps } from "@/lib/cron-backstop";
 import { isVapiBillingRefusal, pagePlatform } from "@/lib/platform-pager";
 import { alertSpendCut, callSpendCut, endCallWith } from "@/lib/call-spend-guard";
+import { releaseDemoSlot } from "@/lib/demo-load";
 import { isDemoPlatformLine } from "@/lib/demo-business";
 import { endWebDemo, isLineWebCall, WEB_DEMO_CHANNEL } from "@/lib/web-demo";
 import { isLineEntitled } from "@/lib/billing-entitlement";
@@ -64,9 +65,13 @@ async function findBusinessForCall(
   }
 
   if (assistantId) {
-    const byAssistant = await prisma.business.findFirst({
-      where: { vapiAssistantId: assistantId, isActive: true },
-    });
+    const byAssistant = pickTenant(
+      await prisma.business.findMany({
+        where: { vapiAssistantId: assistantId, isActive: true },
+        orderBy: { createdAt: "asc" },
+      }),
+      { kind: "assistant", key: assistantId },
+    );
     if (byAssistant) return byAssistant;
   }
 
@@ -309,7 +314,7 @@ export async function POST(request: NextRequest) {
           if (!(await isLineWebCall(vapiCallId))) await endCallWith(controlUrl, "This demo starts from the Orvius website. Goodbye.");
           return;
         }
-        const cut = await callSpendCut({ shop: business, callerPhone, demo: isDemoPlatformLine(inboundNumber ?? business.vapiPhoneNumber ?? business.twilioPhone) });
+        const cut = await callSpendCut({ shop: business, callerPhone, vapiCallId, demo: isDemoPlatformLine(inboundNumber ?? business.vapiPhoneNumber ?? business.twilioPhone) });
         if (cut) {
           await endCallWith(controlUrl, cut.say);
           if (cut.reason === "caller_repeat" || cut.reason === "shop_ceiling") {
@@ -346,6 +351,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: true, duplicate: true });
     }
     after(() => backstopLateSweeps("vapi.end_of_call"));
+    after(() => releaseDemoSlot(vapiCallId));
     if (webCall) after(() => endWebDemo({ vapiCallId }));
     if (isVapiBillingRefusal(message.endedReason)) {
       after(() => pagePlatform("vapi_billing", { vapiCallId, businessId: business.id, endedReason: message.endedReason }));

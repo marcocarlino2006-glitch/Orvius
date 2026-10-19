@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { SIGNUP_HREF } from "@/lib/signup-href";
-import { isHipaaTrade, TRADES } from "@/lib/trades";
+import { isHipaaTrade, isLaunchTrade, TRADES } from "@/lib/trades";
 
 const TRADE_CHOICES = TRADES.filter((t) => !isHipaaTrade(t));
 type Capture = { name?: string; phone?: string; serviceType?: string; urgency?: string; address?: string };
@@ -39,7 +39,7 @@ type VapiClient = {
 };
 
 const CLOSED_COPY: Record<"daily" | "limit" | "off", string> = {
-  daily: "Today's browser demo calls are used up. Call the live line or watch a real call instead.",
+  daily: "Today's browser demo calls are used up. Call the live line or watch how a call flows instead.",
   limit: "You've tried it a few times this hour. Call the live line or come back later.",
   off: "The browser demo isn't open right now.",
 };
@@ -284,7 +284,7 @@ export function TalkInBrowser({
 
   const fallback = (
     <p className="tib-fallback font-sans">
-      Or <a href={phoneHref}>call {phoneDisplay}</a> from your phone, or <Link href="/watch">watch a real call</Link>.
+      Or <a href={phoneHref}>call {phoneDisplay}</a> from your phone, or <Link href="/watch">watch how a call flows</Link>.
     </p>
   );
 
@@ -316,6 +316,11 @@ export function TalkInBrowser({
                   </option>
                 ))}
               </select>
+              {isLaunchTrade(trade) ? null : (
+                <p className="tib-note font-sans">
+                  Demo only: {trade} shops can&apos;t sign up yet. <a href="/trades">Join the interest list</a>.
+                </p>
+              )}
               <input
                 className="tib-input font-sans"
                 value={city}
@@ -333,8 +338,8 @@ export function TalkInBrowser({
           </button>
           <p className="tib-note font-sans">
             {personal
-              ? "Talk to it like a customer, in your browser. Uses your microphone, no account. Calls end after 3 minutes."
-              : "Uses your microphone. You talk to a demo HVAC shop; calls end after 3 minutes."}
+              ? "Pressing this asks your browser for the microphone, used for this demo call only. It's an illustration built from the name you typed, not that shop's real line, and nothing you say books work. No account. Calls end after 3 minutes."
+              : "Pressing this asks your browser for the microphone, used for this demo call only. You talk to a sample HVAC shop, so nothing you say books real work. Calls end after 3 minutes."}
           </p>
         </form>
       )}
@@ -361,6 +366,7 @@ export function TalkInBrowser({
           <p className="tib-status font-sans">
             <strong>Your turn.</strong> Your slot is held for about a minute.
           </p>
+          <p className="tib-note font-sans">Start talking asks your browser for the microphone, used for this demo call only.</p>
           <button type="button" className="ov-btn ov-btn--solid tib-go" onClick={() => start(view.ticketId)}>
             <span className="tib-mic" aria-hidden /> Start talking
           </button>

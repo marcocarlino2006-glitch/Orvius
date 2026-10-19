@@ -1,5 +1,6 @@
 import { FieldError, jobLines } from "@/lib/job-field";
 import { signatureStatement } from "@/lib/job-signature-text";
+import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
 
 /* A finger-drawn PNG at phone width is 10–40 KB; anything far bigger was not drawn in the app. */
@@ -60,5 +61,21 @@ export async function saveJobSignature(params: { businessId: string; jobId: stri
     update: data,
     select: { signerName: true, signedAt: true, agreedCents: true, statement: true },
   });
+  if (existing) {
+    // The image is replaced; who signed for what, and when, stays on the job's history.
+    await recordAudit({
+      businessId: params.businessId,
+      entityType: "job",
+      entityId: job.id,
+      jobId: job.id,
+      action: "job.signature_replaced",
+      actor: "system",
+      summary: `Signature replaced: ${existing.signerName} (signed ${existing.signedAt.toISOString()}) → ${signerName}`,
+      detail: {
+        previous: { signerName: existing.signerName, signedAt: existing.signedAt.toISOString(), agreedCents: existing.agreedCents, statement: existing.statement },
+        next: { signerName, signedAt: row.signedAt.toISOString(), agreedCents, technicianId: params.technicianId },
+      },
+    });
+  }
   return { signature: toView(row), created: true };
 }

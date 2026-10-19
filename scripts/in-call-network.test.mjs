@@ -13,11 +13,19 @@ for (const key of ["TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_PHONE_NUMB
   delete process.env[key];
 }
 
-const { buildInCallTools, NETWORK_OFFER_REPLY, NO_SLOTS_REPLY, PASSED_TO_NETWORK_REPLY, NETWORK_UNAVAILABLE_REPLY, NETWORK_NOT_A_YES_REPLY } = await import(
+const {
+  buildInCallTools,
+  NETWORK_OFFER_REPLY,
+  NO_SLOTS_REPLY,
+  PASSED_TO_NETWORK_REPLY,
+  NETWORK_NOT_A_YES_REPLY,
+  NETWORK_NOT_OFFERED_REPLY,
+  NETWORK_DISCLOSURE_VERSION,
+} = await import(
   "../src/lib/in-call-tool-defs.ts"
 );
 const { handleInCallToolCalls } = await import("../src/lib/in-call-tools.ts");
-const { passConsentedCallLead } = await import("../src/lib/orvius-network.ts");
+const { passConsentedCallLead, takeNetworkJob } = await import("../src/lib/orvius-network.ts");
 const { answerVoiceSimToolCalls } = await import("../src/lib/voice-sim-tools.ts");
 
 const prisma = new PrismaClient();
@@ -70,34 +78,53 @@ const toolsShop = (s) => ({
   address: s.address,
 });
 
-const ask = (s, callId, name, args = {}) =>
-  handleInCallToolCalls({ shop: toolsShop(s), callId, toolCalls: [{ id: "t1", name, args }] }).then(([r]) => r.result);
+const ask = (s, callId, name, args = {}, callerWords = null) =>
+  handleInCallToolCalls({ shop: toolsShop(s), callId, callerWords, toolCalls: [{ id: "t1", name, args }] }).then(([r]) => r.result);
 
 test("the receptionist has the tool, and the sim answers it with the production words", () => {
   assert.ok(buildInCallTools({ webhookUrl: "https://x" }).some((t) => t.function.name === "pass_to_network"));
+  // The sandbox never offers the network, so it never claims a pass either.
   const [r] = answerVoiceSimToolCalls([{ id: "p", name: "pass_to_network", args: { callerSaid: "Yes please" } }]);
-  assert.equal(r.result, PASSED_TO_NETWORK_REPLY);
-  const [none] = answerVoiceSimToolCalls([{ id: "p", name: "pass_to_network", args: {} }]);
-  assert.equal(none.result, NETWORK_NOT_A_YES_REPLY, "no words, no yes");
+  assert.equal(r.result, NETWORK_NOT_OFFERED_REPLY);
 });
 
 test("booked solid: offer a nearby pro only when one is on the network", async () => {
   const booked = await shop();
   const call = await prisma.call.create({ data: { businessId: booked.id, vapiCallId: `icn-${stamp()}`, status: "in-progress" } });
+  const before = "Hi, my kitchen faucet is leaking \n Yes, it's the kitchen one";
 
-  assert.equal(await ask(booked, call.id, "check_availability", { serviceType: "leaky faucet", urgency: "flexible" }), NO_SLOTS_REPLY, "no partner yet");
-  assert.equal(await ask(booked, call.id, "pass_to_network", { callerSaid: "yes" }), NETWORK_UNAVAILABLE_REPLY);
+  assert.equal(await ask(booked, call.id, "check_availability", { serviceType: "leaky faucet", urgency: "flexible" }, before), NO_SLOTS_REPLY, "no partner yet");
+  assert.equal(await ask(booked, call.id, "pass_to_network", { callerSaid: "yes" }, `${before} \n yes`), NETWORK_NOT_OFFERED_REPLY);
   assert.equal((await prisma.call.findUnique({ where: { id: call.id } })).networkConsentAt, null);
 
   await shop({ hoursJson: "{}" });
-  assert.equal(await ask(booked, call.id, "check_availability", { serviceType: "leaky faucet", urgency: "flexible" }), NETWORK_OFFER_REPLY);
+  assert.equal(await ask(booked, call.id, "check_availability", { serviceType: "leaky faucet", urgency: "flexible" }, before), NETWORK_OFFER_REPLY);
   assert.match(NETWORK_OFFER_REPLY, /Ask once/);
   assert.match(NETWORK_OFFER_REPLY, /share your name, number and what you need with another local company/);
-  assert.equal(await ask(booked, call.id, "pass_to_network"), NETWORK_NOT_A_YES_REPLY);
-  assert.equal(await ask(booked, call.id, "pass_to_network", { callerSaid: "No thanks, I'll wait" }), NETWORK_NOT_A_YES_REPLY);
+  const offer = JSON.parse((await prisma.call.findUnique({ where: { id: call.id } })).networkOfferJson);
+  assert.equal(offer.disclosureVersion, NETWORK_DISCLOSURE_VERSION);
+  assert.equal(offer.callerLinesBefore, 2);
+
+  assert.equal(await ask(booked, call.id, "pass_to_network", { callerSaid: "Yes" }, before), NETWORK_NOT_A_YES_REPLY, "a yes said before the question is not an answer to it");
+  assert.equal(await ask(booked, call.id, "pass_to_network", { callerSaid: "Yeah, go ahead" }, `${before} \n No thanks, I'll wait`), NETWORK_NOT_A_YES_REPLY, "the model's yes does not override the caller's no");
+  assert.equal(await ask(booked, call.id, "pass_to_network", { callerSaid: "yes" }), NETWORK_NOT_A_YES_REPLY, "no caller words, no evidence");
   assert.equal((await prisma.call.findUnique({ where: { id: call.id } })).networkConsentAt, null, "a no is never recorded as a yes");
-  assert.equal(await ask(booked, call.id, "pass_to_network", { callerSaid: "Yeah, go ahead" }), PASSED_TO_NETWORK_REPLY);
-  assert.ok((await prisma.call.findUnique({ where: { id: call.id } })).networkConsentAt, "the caller's yes is on the call");
+
+  assert.equal(await ask(booked, call.id, "pass_to_network", {}, `${before} \n Yeah, go ahead`), PASSED_TO_NETWORK_REPLY);
+  const row = await prisma.call.findUnique({ where: { id: call.id } });
+  assert.ok(row.networkConsentAt, "the caller's yes is on the call");
+  const evidence = JSON.parse(row.networkConsentJson);
+  assert.equal(evidence.callerLine, "Yeah, go ahead");
+  assert.equal(evidence.disclosureVersion, NETWORK_DISCLOSURE_VERSION);
+  assert.deepEqual(evidence.shares, ["name", "callback number", "what they need"]);
+  const audit = await prisma.auditEvent.findFirst({ where: { businessId: booked.id, action: "network.consent" } });
+  assert.equal(audit.actor, "customer");
+
+  const stale = await prisma.call.create({ data: { businessId: booked.id, vapiCallId: `icn-${stamp()}`, status: "in-progress" } });
+  assert.equal(await ask(booked, stale.id, "check_availability", { serviceType: "leaky faucet", urgency: "flexible" }), NETWORK_OFFER_REPLY);
+  const expired = { ...JSON.parse((await prisma.call.findUnique({ where: { id: stale.id } })).networkOfferJson), expiresAt: new Date(Date.now() - 1000).toISOString() };
+  await prisma.call.update({ where: { id: stale.id }, data: { networkOfferJson: JSON.stringify(expired) } });
+  assert.equal(await ask(booked, stale.id, "pass_to_network", {}, "yes please"), NETWORK_NOT_OFFERED_REPLY, "an expired offer is not consent");
 
   const off = await shop({ networkOn: false });
   const offCall = await prisma.call.create({ data: { businessId: off.id, vapiCallId: `icn-${stamp()}`, status: "in-progress" } });
@@ -120,6 +147,19 @@ test("after the call, a consented lead goes straight to nearby shops, once", asy
   assert.ok(owner.every((m) => !m.body.includes(lead.phone)), "the caller's number is never in the offer");
   const handoff = await prisma.networkHandoff.findUnique({ where: { leadId: lead.id } });
   assert.equal(handoff.status, "offered");
+
+  assert.deepEqual(JSON.parse(handoff.sharesJson), ["name", "phone", "serviceType"]);
+
+  // The caller agreed to name, number and what they need; the partner gets nothing more.
+  await prisma.lead.update({ where: { id: lead.id }, data: { email: "rosa@example.com", notes: "Gate code 4411, dog in yard" } });
+  const taken = await takeNetworkJob({ id: partner.id, name: partner.name }, new Date(), texts);
+  assert.ok(typeof taken === "string");
+  const theirs = await prisma.lead.findFirst({ where: { businessId: partner.id, source: "network" } });
+  assert.equal(theirs.name, "Rosa Diaz");
+  assert.equal(theirs.serviceType, "Burst pipe");
+  assert.equal(theirs.email, null);
+  assert.equal(theirs.address, null);
+  assert.doesNotMatch(theirs.notes ?? "", /Gate code/);
 
   assert.deepEqual(await passConsentedCallLead(ref, { ...lead, job: null }, new Date(), texts), { skipped: "already" });
   assert.deepEqual(await passConsentedCallLead({ ...ref, networkOn: false }, { ...lead, job: null }, new Date(), texts), { skipped: "network_off" });

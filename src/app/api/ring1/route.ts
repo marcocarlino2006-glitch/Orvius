@@ -9,6 +9,7 @@ import { isAfterHours } from "@/lib/business";
 import { getShopLineForBusiness, isDemoBusiness } from "@/lib/demo-business";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { getCommandFlow, getCommandMoney } from "@/lib/command-depth";
+import { getCommandTomorrow } from "@/lib/command-tomorrow";
 import { getDispatchBoard } from "@/lib/field";
 import { parseSince } from "@/lib/personal-brief";
 import { loadPersonalBrief } from "@/lib/personal-brief-data";
@@ -104,6 +105,7 @@ export async function GET(request: Request) {
     upcomingJobs,
     flow,
     money,
+    tomorrow,
   ] = await Promise.all([
     prisma.call.count({ where: { ...businessFilter, createdAt: { gte: today } } }),
     prisma.lead.count({ where: { ...businessFilter, createdAt: { gte: today } } }),
@@ -189,6 +191,7 @@ export async function GET(request: Request) {
     }),
     getCommandFlow(business.id, now),
     getCommandMoney(business.id, now),
+    getCommandTomorrow(business.id, now).catch(() => null),
   ]);
   const crew = dispatchBoard.crew;
   const boardJobs = [...dispatchBoard.unassigned, ...dispatchBoard.columns.flatMap((c) => c.jobs)];
@@ -271,6 +274,8 @@ export async function GET(request: Request) {
       pilotEndsAt: business.pilotEndsAt?.toISOString() ?? null,
       depositEnabled: business.depositEnabled,
       referenceImplementation: isDemoBusiness(business),
+      demoWorkspace: business.environment === "demo" && business.slug.startsWith("demo-"),
+      sampleFrom: business.createdAt.toISOString(),
       testMode: isSetupSandbox(business),
     },
     coverage: {
@@ -361,6 +366,7 @@ export async function GET(request: Request) {
     },
     flow,
     money,
+    tomorrow,
     crewBoard: crewBoard(dispatchBoard, boardJobs),
     technicians: crew.map((tech) => ({ id: tech.id, name: tech.name })),
     health,

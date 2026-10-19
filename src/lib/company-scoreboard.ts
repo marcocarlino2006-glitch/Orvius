@@ -12,7 +12,7 @@ import { countChannels, signupChannelText } from "@/lib/acquisition";
 import { cancelReasonCounts, cancelReasonText } from "@/lib/cancel-signal";
 import { relianceLines } from "@/lib/reliance-lines";
 import { payingShopReliance, type RelianceVerdict } from "@/lib/shop-reliance";
-import { payingShopValue, planMonthlyCents, type ValueVerdict } from "@/lib/value-check";
+import { ORVIUS_CAPTURED_LEAD, payingShopValue, planMonthlyCents, type ValueVerdict } from "@/lib/value-check";
 import { densityClusters, densityText, networkReadyAreas, zip3FromAddress, type DensityCluster } from "@/lib/network-density";
 
 /**
@@ -81,6 +81,8 @@ export type CompanyScoreboard = {
   /** Paying shops getting less than they pay for, or no calls at all, last 30 days. */
   valueAtRisk: ValueVerdict[];
   reliance?: RelianceVerdict[];
+  /** Replies to the shared sender that two shops could own and the customer never pointed at one. */
+  heldTexts?: { count: number; oldestAt: string | null };
 };
 
 
@@ -110,7 +112,7 @@ const pct = (part: number, whole: number) => (whole > 0 ? Math.round((part / who
 async function week(start: Date, end: Date, now: Date): Promise<ScoreboardWeek> {
   const inWindow = { gte: start, lt: end };
   const stuckBefore = new Date(Math.min(end.getTime(), now.getTime() - STUCK_CALL_MS));
-  const fromOrvius = { lead: { is: { OR: [{ callId: { not: null } }, { source: "sms" }] } } };
+  const fromOrvius = { lead: { is: ORVIUS_CAPTURED_LEAD } };
   const [
     newShops,
     churnedShops,
@@ -139,7 +141,7 @@ async function week(start: Date, end: Date, now: Date): Promise<ScoreboardWeek> 
       prisma.job.count({ where: { business: realShop, createdAt: inWindow } }),
       prisma.payment.aggregate({
         where: { business: realShop, createdAt: inWindow, status: { in: COLLECTED_STATUSES } },
-        _sum: { amountCents: true },
+        _sum: { amountCents: true, refundedCents: true },
       }),
       prisma.job.count({ where: { business: realShop, createdAt: inWindow, ...fromOrvius } }),
       prisma.job.count({ where: { business: realShop, customerConfirmedAt: inWindow } }),
@@ -168,7 +170,7 @@ async function week(start: Date, end: Date, now: Date): Promise<ScoreboardWeek> 
     jobsFromOrvius,
     jobsCustomerConfirmed,
     jobsCompleted,
-    collectedCents: collected._sum.amountCents ?? 0,
+    collectedCents: (collected._sum.amountCents ?? 0) - (collected._sum.refundedCents ?? 0),
     platformFeeCents: (invoiceFees._sum.applicationFeeCents ?? 0) + (depositFees._sum.applicationFeeCents ?? 0),
   };
 }
@@ -222,8 +224,9 @@ export async function getCompanyScoreboard(now = new Date()): Promise<CompanySco
     prisma.networkHandoff.count({ where: { status: "taken", takenAt: { gte: new Date(now.getTime() - 30 * DAY_MS) } } }),
   ]);
   const signedUp30d = { ...realShop, createdAt: { gte: new Date(now.getTime() - 30 * DAY_MS) } };
-  const orvJob = { lead: { is: { OR: [{ callId: { not: null } }, { source: "sms" }] } } };
-  const [plans, calls30d, value, reliance, leaving, payers, signedUp, lineAnswered, numberProven, withFirstJob, firstJobs] = await Promise.all([
+  const orvJob = { lead: { is: ORVIUS_CAPTURED_LEAD } };
+  const heldWhere = { source: "twilio-sms", eventType: "inbound-held", status: "held" };
+  const [plans, calls30d, value, reliance, leaving, payers, signedUp, lineAnswered, numberProven, withFirstJob, firstJobs, heldCount, oldestHeld] = await Promise.all([
     prisma.business.groupBy({
       by: ["billingPlan", "billingInterval"],
       where: { ...realShop, isActive: true, billingStatus: { in: ["active", "past_due"] } },
@@ -252,6 +255,8 @@ export async function getCompanyScoreboard(now = new Date()): Promise<CompanySco
       orderBy: { createdAt: "desc" },
       take: 1000,
     }),
+    prisma.webhookEvent.count({ where: heldWhere }),
+    prisma.webhookEvent.findFirst({ where: heldWhere, orderBy: { createdAt: "asc" }, select: { createdAt: true } }),
   ]);
   const revenue = revenueFrom({
     byPlan: plans.map((p) => ({ planId: p.billingPlan, interval: p.billingInterval, shops: p._count._all })),
@@ -289,6 +294,7 @@ export async function getCompanyScoreboard(now = new Date()): Promise<CompanySco
     cancelReasons30d: cancelReasonCounts(leaving.map((shop) => ({ reason: shop.cancelReason }))),
     valueAtRisk: value.filter((v) => v.verdict === "short" || v.verdict === "idle"),
     reliance,
+    heldTexts: { count: heldCount, oldestAt: oldestHeld?.createdAt.toISOString() ?? null },
   };
 }
 
@@ -325,7 +331,13 @@ export function scoreboardLines(board: CompanyScoreboard): string[] {
     ...revenueLines(board.revenue),
     ...valueLines(board.valueAtRisk ?? []),
     ...relianceLines(board.reliance ?? []),
+    heldTextsText(board.heldTexts),
   ];
+}
+
+export function heldTextsText(held: CompanyScoreboard["heldTexts"]) {
+  if (!held?.count) return "Texts held because two shops could own them: none";
+  return `Texts held because two shops could own them: ${held.count}, oldest ${held.oldestAt?.slice(0, 10) ?? "unknown"}. Route them by hand (WebhookEvent inbound-held)`;
 }
 
 

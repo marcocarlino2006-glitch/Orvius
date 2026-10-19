@@ -4,7 +4,9 @@ import { teammateLabel } from "@/lib/people";
 import Link from "next/link";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { toast } from "@/components/toaster";
+import { OutcomeCard } from "@/components/outcome-card";
 import { WorkCard } from "@/components/work-card";
+import type { Outcome } from "@/lib/outcome";
 import type { WorkItem, WorkStage } from "@/lib/work";
 import { WorkHistory } from "@/components/work-history-view";
 import type { HistoryEvent } from "@/lib/work-history";
@@ -15,6 +17,7 @@ type Payload = {
   assignees: Array<{ email: string; role: string }>;
   technicians: Array<{ id: string; name: string }>;
   timezone: string | null;
+  approval?: { proposalId: string; preview: string } | null;
 };
 
 const TRACK = ["Request", "Booked", "Confirmed", "On the way", "On site", "Done"] as const;
@@ -75,10 +78,17 @@ export function WorkPanel({
   beforeHistory?: ReactNode;
 }) {
   const [data, setData] = useState<Payload | null>(null);
+  const [outcome, setOutcome] = useState<Outcome | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const res = await fetch(`/api/work/item?kind=${kind}&id=${encodeURIComponent(id)}`);
+    const [res, view] = await Promise.all([
+      fetch(`/api/work/item?kind=${kind}&id=${encodeURIComponent(id)}`),
+      fetch(`/api/work/outcome?kind=${kind}&id=${encodeURIComponent(id)}`)
+        .then(async (r) => (r.ok ? ((await r.json()) as { outcome?: Outcome | null }).outcome ?? null : null))
+        .catch(() => null),
+    ]);
+    setOutcome(view);
     if (!res.ok) {
       setError("Couldn't load where this work stands.");
       return;
@@ -167,10 +177,21 @@ export function WorkPanel({
         </div>
         {kind === "job" && !item.problems.length && !item.urgent ? null : (
           <ul className="wc-list">
-            <WorkCard item={item} technicians={data.technicians} onChange={changed} variant="page" />
+            <WorkCard item={item} approval={data.approval ?? null} technicians={data.technicians} onChange={changed} variant="page" />
           </ul>
         )}
       </section>
+      {outcome && !movedOn ? (
+        <section className="wp" aria-label="From booking to payment">
+          <OutcomeCard
+            outcome={outcome}
+            onChange={(next) => {
+              setOutcome(next);
+              changed();
+            }}
+          />
+        </section>
+      ) : null}
       {children}
       {beforeHistory}
       <WorkHistory events={data.history} timezone={data.timezone} />

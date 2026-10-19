@@ -82,7 +82,7 @@ function Chat() {
       <header className="wc-head">
         <div>
           <strong>{name || " "}</strong>
-          <span>Typically replies by text in minutes</span>
+          <span>Send a message — the shop replies by text</span>
         </div>
         {embedded ? (
           <button type="button" className="wc-x" onClick={close} aria-label="Close chat">

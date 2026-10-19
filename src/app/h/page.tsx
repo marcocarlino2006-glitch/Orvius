@@ -20,7 +20,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const { name } = await read(searchParams);
   if (!name) return { title: "Hear your business answer" };
   const title = `Hear Orvius answer the phone as ${name}`;
-  const description = "Tap and talk to it like one of your customers would. 20 seconds, no signup.";
+  const description = "Tap and talk to it like one of your customers would. A couple of minutes, no signup.";
   return { title, description, robots: { index: false }, openGraph: { title, description }, twitter: { card: "summary", title, description } };
 }
 

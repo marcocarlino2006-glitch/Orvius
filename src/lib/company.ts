@@ -3,6 +3,7 @@ import {
   formationGoverningLawLabel,
   resolveFormationStateConfirmed,
 } from "@/lib/formation-state";
+import { LAUNCH_TRADES } from "@/lib/trades";
 
 const formationStateConfirmed = resolveFormationStateConfirmed();
 const governingLawState = formationGoverningLawLabel(formationStateConfirmed);
@@ -17,7 +18,9 @@ export const company = {
   securityEmail: "support@orvius.im",
   dmcaEmail: "support@orvius.im",
   foundedYear: 2026,
-  trades: ["HVAC"] as const,
+  trades: LAUNCH_TRADES.map((trade) => (trade === "HVAC" ? trade : trade.toLowerCase())),
+  /** Payouts, phone numbers, texting registration and tax all assume U.S. businesses today. */
+  serviceCountry: "the United States",
   /**
    * Mission (founder decision 2026-10-01). Public copy states it as the goal
    * we work toward, never as a guarantee about today's product: calls can
@@ -46,10 +49,10 @@ export const company = {
   searchTitle: "Orvius — AI Receptionist for HVAC, Plumbing & Electrical",
   /** The caption under it. Google cuts at about 155 characters. */
   searchDescription:
-    "Orvius answers your calls, books the work on your real schedule, sends your people, follows up with customers and shows you what happened.",
+    "Orvius answers your calls, books work on your schedule and shows what happened. Texts start once your number is registered. Dispatch on Pro and Fleet.",
   categoryClaim:
-    "For heating & cooling, plumbing and electrical businesses: the receptionist answers and brings in the work; Command qualifies it, schedules it, assigns your people, keeps the customer updated, records the finished job and follows up. Callers who want a person are transferred to the owner's phone when a transfer number is set; otherwise they land on the board for a callback.",
-  proofLine: "Missed calls become booked customers.",
+    "For heating & cooling, plumbing and electrical businesses: the receptionist answers and brings in the work; Command qualifies it, schedules it, assigns your people on Pro and Fleet plans, keeps the customer updated, records the finished job and follows up. Callers who want a person are transferred to the owner's phone when a transfer number is set; otherwise they land on the board for a callback.",
+  proofLine: "Missed calls get answered — and booked when they qualify.",
   strategy: [
     "Win home services first — the deepest packs, the most urgent calls.",
     "Add an industry only when its pack passes the voice simulator.",

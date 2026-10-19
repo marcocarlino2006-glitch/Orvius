@@ -2,11 +2,8 @@ import { invoiceCompletedJob } from "@/lib/invoice-pay";
 import { logWarn } from "@/lib/logger";
 import { NextResponse } from "next/server";
 import { ensureJobTechToken, techLinkExpired } from "@/lib/ensure-tech-token";
-import {
-  completeJobWithOutcome,
-  isJobStatus,
-  updateJobStatus,
-} from "@/lib/job";
+import { JobTransitionError, isJobStatus } from "@/lib/job";
+import { transitionJob } from "@/lib/job-transition";
 import { isJobOutcomeCode } from "@/lib/job-outcome";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
@@ -75,6 +72,7 @@ const patchSchema = z.object({
   resolutionCode: z.string().optional(),
   resolutionSummary: z.string().max(500).optional(),
   finalAmountCents: z.number().int().min(0).max(5_000_000).nullable().optional(),
+  noCharge: z.boolean().optional(),
 });
 
 export async function PATCH(request: Request, { params }: Params) {
@@ -121,10 +119,19 @@ export async function PATCH(request: Request, { params }: Params) {
             { status: 400 },
           );
         }
-        await completeJobWithOutcome(job.id, {
-          resolutionCode: body.resolutionCode,
-          resolutionSummary: body.resolutionSummary,
-          finalAmountCents: body.finalAmountCents,
+        await transitionJob({
+          businessId: job.businessId,
+          jobId: job.id,
+          to: "completed",
+          actor: { kind: "technician" },
+          via: "tech_link",
+          completion: {
+            path: "field",
+            resolutionCode: body.resolutionCode,
+            resolutionSummary: body.resolutionSummary,
+            finalAmountCents: body.finalAmountCents,
+            noCharge: body.noCharge,
+          },
         });
         await invoiceCompletedJob(job.id).catch((error) =>
           logWarn("invoice.on_complete_failed", {
@@ -133,7 +140,7 @@ export async function PATCH(request: Request, { params }: Params) {
           }),
         );
       } else {
-        await updateJobStatus(job.id, body.status);
+        await transitionJob({ businessId: job.businessId, jobId: job.id, to: body.status, actor: { kind: "technician" }, via: "tech_link" });
         if (job.technician && body.status === "en_route") await acceptJob({ job: answering, technician: job.technician });
       }
     }
@@ -148,6 +155,7 @@ export async function PATCH(request: Request, { params }: Params) {
     });
   } catch (error) {
     if (error instanceof FieldError) return NextResponse.json({ error: error.message }, { status: error.status });
+    if (error instanceof JobTransitionError) return NextResponse.json({ error: error.message }, { status: error.status });
     const message =
       error instanceof z.ZodError
         ? error.errors.map((e) => e.message).join(", ")

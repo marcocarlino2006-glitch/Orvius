@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { CHECKING, runCheckedWrite } from "@/lib/checked-write";
+import { sendWrite } from "@/lib/client-write";
 
 const MAX = 200;
 
@@ -16,24 +18,40 @@ export function CorrectReceptionist({ callId }: { callId: string }) {
     if (busy || !text.trim()) return;
     setBusy(true);
     setNote(null);
+    const wanted = text.trim().replace(/\s+/g, " ").toLowerCase();
     try {
-      const res = await fetch("/api/account/receptionist-rules", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, callId }),
+      type Saved = { synced: boolean | null; next: string | null };
+      const result = await runCheckedWrite<Saved>({
+        send: () => sendWrite("/api/account/receptionist-rules", "POST", { text, callId }),
+        accept: (data) => {
+          const d = data as { rule?: { id?: unknown }; synced?: unknown; receptionistApply?: { next?: string | null } | null } | null;
+          if (typeof d?.rule?.id !== "string" || typeof d.synced !== "boolean") return null;
+          return { synced: d.synced, next: d.receptionistApply?.next ?? null };
+        },
+        readBack: async () => {
+          const res = await fetch("/api/account/receptionist-rules", { cache: "no-store" });
+          if (!res.ok) return null;
+          const rules = ((await res.json().catch(() => null)) as { rules?: { text?: string }[] } | null)?.rules;
+          if (!Array.isArray(rules)) return null;
+          return rules.some((r) => (r.text ?? "").replace(/\s+/g, " ").toLowerCase().startsWith(wanted.slice(0, 40))) ? { synced: null, next: null } : "absent";
+        },
+        onChecking: () => setNote({ tone: "ok", text: CHECKING }),
       });
-      const data = (await res.json().catch(() => ({}))) as { error?: string; synced?: boolean };
-      if (!res.ok) throw new Error(data.error ?? "Could not save the correction. Try again.");
+      if (result.kind !== "confirmed") {
+        setNote({ tone: "error", text: result.message });
+        return;
+      }
       setText("");
       setOpen(false);
+      const { synced, next } = result.value;
       setNote({
-        tone: "ok",
-        text: data.synced
-          ? "Saved. The receptionist follows it from the next call."
-          : "Saved. It reaches the receptionist the next time your line syncs.",
+        tone: synced ? "ok" : "error",
+        text: synced
+          ? "Saved, and the receptionist confirmed it. It follows it from the next call."
+          : synced === null
+            ? "Saved. Settings shows whether the receptionist has your latest changes."
+            : `Saved, but the receptionist hasn't confirmed it. ${next ?? "Settings shows whether it has your latest changes."}`,
       });
-    } catch (error) {
-      setNote({ tone: "error", text: error instanceof Error ? error.message : "Could not save the correction." });
     } finally {
       setBusy(false);
     }

@@ -9,8 +9,16 @@ export const FORGOTTEN = "Deleted at the customer's request";
 
 type RemoteDelete = (id: string) => Promise<"deleted" | "missing">;
 
+/**
+ * Deleting here and deleting at the providers are separate facts. "scrubbed"
+ * is our database; provider copies (Vapi call records, Twilio recordings) are
+ * "confirmed" only once each delete call succeeded, else "pending" until the
+ * retention sweep finishes them and records provider_deletion_confirmed.
+ */
+export type ForgetState = { local: "scrubbed"; provider: "confirmed" | "pending" | "not_needed" };
+
 export type ForgetResult =
-  | { ok: true; calls: number; requests: number; jobs: number; texts: number; remotePending: number }
+  | ({ ok: true; calls: number; requests: number; jobs: number; texts: number; remotePending: number } & ForgetState)
   | { ok: false; reason: "not_found" | "active_plan" };
 
 const VOICEMAIL_LINES = /^Voicemail \(\d+s\): \S*\/Recordings\/RE[0-9a-f]{32}\S*$/gim;
@@ -160,9 +168,13 @@ export async function forgetCustomer(
     entityId: params.businessId,
     action: "customer.forgotten",
     ...personActor({ role: params.role, email: params.actorEmail }),
-    summary: `${params.actorEmail} deleted a customer's personal data at their request`,
-    detail: { calls: calls.length, requests: leads.length, jobs: jobs.length, texts, remotePending },
+    summary: remotePending
+      ? `${params.actorEmail} deleted a customer's personal data at their request; ${remotePending} provider ${remotePending === 1 ? "copy is" : "copies are"} still being deleted`
+      : `${params.actorEmail} deleted a customer's personal data at their request`,
+    detail: { calls: calls.length, requests: leads.length, jobs: jobs.length, texts, remotePending, provider: remotePending ? "pending" : "confirmed" },
   });
 
-  return { ok: true, calls: calls.length, requests: leads.length, jobs: jobs.length, texts, remotePending };
+  const remoteCopies = calls.filter((c) => c.vapiCallId).length + leads.filter((l) => (l.notes ?? "").match(VOICEMAIL_LINES)).length;
+  const provider = remotePending ? "pending" : remoteCopies ? "confirmed" : "not_needed";
+  return { ok: true, calls: calls.length, requests: leads.length, jobs: jobs.length, texts, remotePending, local: "scrubbed", provider };
 }

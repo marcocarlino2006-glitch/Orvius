@@ -1,5 +1,6 @@
 "use client";
 
+import { askConfirm } from "@/components/ask-dialog";
 import { RecordLink } from "@/components/record-drawer";
 import { BookJobQuickButton } from "@/components/today-priority-leads";
 import { ProFilterBar, ProEmptyState } from "@/components/pro-page-chrome";
@@ -78,7 +79,7 @@ function InboxRow({ lead, shop, onChanged }: { lead: LeadRow; shop: string; onCh
   const open = inbox.view !== "resolved";
 
   async function close() {
-    if (!window.confirm("Close this request without booking? It moves to Resolved.")) return;
+    if (!(await askConfirm({ title: "Close this request without booking?", body: "It moves to Resolved.", confirmLabel: "Close request" }))) return;
     setClosing(true);
     try {
       const res = await fetch(`/api/leads/${lead.id}`, {

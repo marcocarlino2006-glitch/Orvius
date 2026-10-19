@@ -167,6 +167,39 @@ What Orvius copies, in order:
 | I6 | **Watch the power users.** On the scoreboard, list businesses over their included calls and what they use most; that picks the next pack and the next tier. | open |
 | I7 | **Price the outcome.** Test a per-booked-job tier next to the flat plans once booking rate is measured for 30 days. | later — needs data |
 
+## Operating-loop review (2026-10-14)
+
+Branch `cursor/operating-loop-review-10f0` off main `39b17d7`; reviewed against
+PR #269 at `5929ed1`. The Manus patch was not available, so nothing from it is
+included. "Verified" means a test on a disposable SQLite database with mocked
+providers, not production. Status: `verified` · `open` · `needs owner`.
+
+| ID | Item | Where | Status |
+|----|------|-------|--------|
+| R1 | Callback number trusted only when the caller said the full number, or it is the caller ID; else withheld and audited. Same rule on the live `alert_team_now` path. | `src/lib/callback-number.ts`, `in-call-tools.ts`, `call-ingest.ts` | verified |
+| R2 | Gas smell plus a CO alarm keeps the 911 contact. | `trade-playbooks.ts` `classifyRequest` | verified |
+| R3 | Post-call review checks evacuation, the right contact, and unsafe re-entry instructions. | `safety-guidance.ts`, `call-quality.ts` | verified |
+| R4 | Readiness evidence that is stale or future-dated doesn't count. | `readiness.ts` | verified |
+| R5 | Demo shops can't reach live providers: QuickBooks revoke, port requests, push, Stripe Connect, plan checkout, schedule reads. | `assertLiveActionAllowed` callers | verified (push fence test is weak without VAPID keys) |
+| R6 | Demo phone line cap is an atomic slot reservation, released at end of call. | `demo-load.ts`, `call-spend-guard.ts` | verified |
+| R7 | One invoice per job and one checkout per invoice/deposit under concurrency (lease plus Stripe idempotency key). Payments that land on a demo shop are held and the founder paged; no refunds issued. | `checkout-guard.ts`, `invoice-pay.ts`, `estimate-pay.ts`, `booking-deposit.ts` | verified (mocked Stripe) |
+| R8 | One scheduling policy: online booking claims capacity in its transaction; owner moves (screen, text, booking a request) get a clash check, a confirmation and an override audit; server-defined status moves. | `job.ts`, `job-status.ts`, `api/jobs`, `owner-text-commands.ts` | verified; shop hours added in R19 |
+| R9 | Command approvals need `command.approve` (owner, manager, dispatcher: same as their manual rights). A failure after a change starts is flagged "needs a check", never re-run; a person marks it done or not done. | `copilot-execute.ts`, `api/copilot`, `command-board.ts` | verified; SMS has no provider idempotency key, so protection is the single claim: open |
+| R10 | Claims: `/watch` says its calls are scripted; an accepted email is not called delivered; previews and the terms keep to the launch trades; plumbing and electrical samples run through the shared engine. | `watch/page.tsx`, `activation.ts`, `api/preview`, `company.ts`, `demo-workspace.ts` | verified |
+| R11 | Paid voice gate runs only on the `run-voice-gate` label or a confirmed manual run. | `.github/workflows/voice-gate.yml` | verified (workflow not executed); create the label: needs owner |
+| R12 | `turso-migrate` refuses Preview and unknown builds pointing at a remote database unless `TURSO_MIGRATE_CONFIRM` names the host. | `scripts/turso-migrate.mjs`, `docs/DEPLOY-VERCEL.md` | verified (no real migration run); scope Vercel env vars: needs owner |
+| R13 | Should dispatchers approve AI-proposed customer texts? Today they can, matching their manual texting rights. | `workspace-access-labels.ts` | needs owner |
+| R14 | `voice-nightly.yml` still places billed calls every night when its secrets are set. | `.github/workflows/voice-nightly.yml` | needs owner |
+| R15 | Every sitemap page names itself as canonical; `/press` redirects to `/about`; closed-trade pages send visitors to `/trades`. | page `metadata`, `next.config.ts` | verified |
+| R16 | Daily sweep: one run at a time (lease), each step's last success recorded, housekeeping runs longest-waiting first, and a failed or cut-short run answers 500/503 instead of 200. | `cron-runs.ts`, `api/cron/notifications` | verified |
+| R17 | Shop export is paged with totals and a completeness flag instead of cutting off at 5,000/20,000 rows; Settings downloads every part. | `api/account/export`, `settings-center.tsx` | verified |
+| R18 | Forgetting a customer reports "deleted here" and "provider copies pending" separately; the retention sweep records each provider confirmation. | `forget-customer.ts`, `retention.ts`, customers pages | verified |
+| R19 | Owner clash check covers shop hours. Overrides record policy version, role, reason and the conflict, including dashboard bookings without a lead (which recorded nothing before). | `job.ts`, `api/jobs`, `owner-text-commands.ts` | verified; travel buffer needs a per-shop setting: needs owner |
+| R20 | The founders' value check credits only work traced to a call or text Orvius handled, not every job with a lead or every paid invoice. | `value-check.ts`, `company-scoreboard.ts` | verified |
+| R21 | `/api/health` names the commit, ref and environment serving it; `prod:verify` fails when it is missing or differs from `EXPECTED_COMMIT`. | `release.ts`, `api/health`, `prod-verify.mjs` | verified (not run against production) |
+| R22 | Pricing and the Terms say Orvius is for U.S. businesses only. | `company.ts`, `pricing/page.tsx`, `terms/page.tsx` | verified |
+| R23 | One invoice per job enforced in the database (needs a migration), and $0.50 overage against per-minute cost. | `prisma/schema.prisma`, `pricing-plans.ts` | needs owner |
+
 ## Still needs Marco
 
 Where production actually stands is whatever `npm run prod:verify` says, not

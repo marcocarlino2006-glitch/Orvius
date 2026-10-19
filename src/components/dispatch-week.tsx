@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "@/components/toaster";
 import type { DispatchSchedule, ScheduleBlock } from "@/lib/dispatch-schedule";
+import { patchJob } from "@/lib/job-patch-client";
 
 type WeekDay = { day: string; schedule: DispatchSchedule };
 type Week = { days: WeekDay[]; today: string; timezone: string; crew: { id: string; name: string }[] };
@@ -58,11 +59,7 @@ export function DispatchWeek({ anchor, onOpenDay }: { anchor: string; onOpenDay:
 
   async function move(d: Drag, laneId: string | null, laneName: string, day: string, undo = true) {
     try {
-      const res = await fetch(`/api/jobs/${d.jobId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ technicianId: laneId, scheduledLocal: `${day}T${hhmm(d.startMin)}` }),
-      });
+      const res = await patchJob(d.jobId, { technicianId: laneId, scheduledLocal: `${day}T${hhmm(d.startMin)}` });
       if (!res.ok) throw new Error();
       const data = (await res.json().catch(() => ({}))) as { techSms?: { sent: boolean } };
       const when = `${dayHead(day).weekday} ${clock(d.startMin)}`;

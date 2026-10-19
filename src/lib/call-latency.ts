@@ -55,6 +55,9 @@ export function latencyFromReport(message: { artifact?: { performanceMetrics?: {
   return summarizeTurnLatencies(message.artifact?.performanceMetrics?.turnLatencies);
 }
 
+/** Callers forgive about this much silence before they talk over the agent. */
+export const REPLY_BUDGET_MS = 800;
+
 export function latencyColumns(latency: CallLatency | null) {
   return latency
     ? { replyP50Ms: latency.p50, replyP90Ms: latency.p90, latencyJson: JSON.stringify({ turns: latency.turns, stages: latency.stages }) }
@@ -94,12 +97,15 @@ export async function voiceLatencyRollup(since: Date) {
   const slowest = (Object.entries(stages) as Array<[keyof CallLatency["stages"], number | null]>)
     .filter((e): e is [keyof CallLatency["stages"], number] => e[1] != null)
     .sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+  const slowReplyMs = quantile(p90s, 0.5);
   return {
     since: since.toISOString(),
     calls: calls.length,
     turns,
     typicalReplyMs: quantile(p50s, 0.5),
-    slowReplyMs: quantile(p90s, 0.5),
+    slowReplyMs,
+    budgetMs: REPLY_BUDGET_MS,
+    withinBudget: slowReplyMs != null && slowReplyMs <= REPLY_BUDGET_MS,
     stages,
     slowestStage: slowest,
   };

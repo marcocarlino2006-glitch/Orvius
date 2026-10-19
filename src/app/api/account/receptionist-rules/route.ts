@@ -4,20 +4,27 @@ import { recordAudit } from "@/lib/audit";
 import { logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { addRule, MAX_RULE_CHARS, parseRules, removeRule } from "@/lib/receptionist-rules";
-import { syncBusinessAssistant } from "@/lib/sync-business-assistant";
+import { applyReceptionistSettings, receptionistApplyStatus, type ReceptionistApply } from "@/lib/assistant-apply";
 import { requirePermission } from "@/lib/tenant";
 
 const addSchema = z.object({ text: z.string().min(1).max(MAX_RULE_CHARS * 2), callId: z.string().max(64).optional() });
 
-async function saveAndSync(businessId: string, rulesJson: string) {
-  const saved = await prisma.business.update({ where: { id: businessId }, data: { receptionistRulesJson: rulesJson } });
-  try {
-    await syncBusinessAssistant(saved);
-    return true;
-  } catch (error) {
+const CHANGED_ELSEWHERE = "The corrections changed in another window. Reopen them and try again.";
+
+/**
+ * Saved first, and only over the list this request read, so two windows can't
+ * silently undo each other; `synced` is true only when the provider confirmed
+ * the receptionist took this version.
+ */
+async function saveAndSync(businessId: string, readJson: string, rulesJson: string, by: { actor: "owner" | "teammate"; email: string }) {
+  const swapped = await prisma.business.updateMany({ where: { id: businessId, receptionistRulesJson: readJson }, data: { receptionistRulesJson: rulesJson } });
+  if (!swapped.count) return null;
+  const saved = await prisma.business.findUniqueOrThrow({ where: { id: businessId } });
+  const receptionistApply = await applyReceptionistSettings(saved, by).catch((error: unknown): ReceptionistApply => {
     logWarn("receptionist_rules.sync_failed", { businessId, error: error instanceof Error ? error.message : "unknown" });
-    return false;
-  }
+    return { state: "unconfirmed", appliedAt: null, error: null, next: "Saved, but Orvius couldn't check the receptionist. Apply it again from Settings.", canApply: true };
+  });
+  return { synced: receptionistApply.state === "applied", receptionistApply };
 }
 
 export async function GET() {
@@ -37,10 +44,17 @@ export async function POST(request: Request) {
   const callId = parsed.data.callId
     ? (await prisma.call.findFirst({ where: { id: parsed.data.callId, businessId: business.id }, select: { id: true } }))?.id
     : undefined;
-  const result = addRule(parseRules(business.receptionistRulesJson), parsed.data.text, { callId });
+  const before = parseRules(business.receptionistRulesJson);
+  const result = addRule(before, parsed.data.text, { callId });
   if (!result.ok) return NextResponse.json({ error: result.error }, { status: 400 });
-
-  const synced = await saveAndSync(business.id, JSON.stringify(result.rules));
+  if (result.rules === before) {
+    // Already on the list (a repeated press): nothing is written, and the reply says where the receptionist stands.
+    const receptionistApply = await receptionistApplyStatus(business);
+    return NextResponse.json({ rules: before, rule: result.rule, synced: receptionistApply.state === "applied", receptionistApply, unchanged: true });
+  }
+  const outcome = await saveAndSync(business.id, business.receptionistRulesJson, JSON.stringify(result.rules), { actor: role === "owner" ? "owner" : "teammate", email });
+  if (!outcome) return NextResponse.json({ error: CHANGED_ELSEWHERE, reason: "changed_elsewhere" }, { status: 409 });
+  const { synced, receptionistApply } = outcome;
   await recordAudit({
     businessId: business.id,
     entityType: "shop",
@@ -50,7 +64,7 @@ export async function POST(request: Request) {
     actorEmail: email,
     summary: `${email} corrected the receptionist: “${result.rule.text}”`,
   });
-  return NextResponse.json({ rules: result.rules, rule: result.rule, synced });
+  return NextResponse.json({ rules: result.rules, rule: result.rule, synced, receptionistApply });
 }
 
 export async function DELETE(request: Request) {
@@ -61,7 +75,9 @@ export async function DELETE(request: Request) {
   const before = parseRules(business.receptionistRulesJson);
   const rules = removeRule(before, id);
   if (rules.length === before.length) return NextResponse.json({ error: "That correction is already gone." }, { status: 404 });
-  const synced = await saveAndSync(business.id, JSON.stringify(rules));
+  const outcome = await saveAndSync(business.id, business.receptionistRulesJson, JSON.stringify(rules), { actor: role === "owner" ? "owner" : "teammate", email });
+  if (!outcome) return NextResponse.json({ error: CHANGED_ELSEWHERE, reason: "changed_elsewhere" }, { status: 409 });
+  const { synced, receptionistApply } = outcome;
   await recordAudit({
     businessId: business.id,
     entityType: "shop",
@@ -71,5 +87,5 @@ export async function DELETE(request: Request) {
     actorEmail: email,
     summary: `${email} removed a receptionist correction.`,
   });
-  return NextResponse.json({ rules, synced });
+  return NextResponse.json({ rules, synced, receptionistApply });
 }

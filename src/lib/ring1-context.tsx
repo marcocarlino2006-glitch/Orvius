@@ -71,6 +71,10 @@ export type Ring1Data = {
     billingStatus?: string | null;
     depositEnabled?: boolean;
     referenceImplementation?: boolean;
+    /** The signed-in person's own disposable demo shop. */
+    demoWorkspace?: boolean;
+    /** When the demo's sample week was dated from. */
+    sampleFrom?: string;
     /** Still in setup: settings saved, no line, every text simulated. */
     testMode?: boolean;
   } | null;
@@ -102,6 +106,7 @@ export type Ring1Data = {
   };
   flow?: CommandFlow;
   money?: CommandMoney;
+  tomorrow?: import("@/lib/command-tomorrow").CommandTomorrow | null;
   crewBoard?: CrewBoard;
   technicians?: Array<{ id: string; name: string }>;
   health?: ShopHealth;

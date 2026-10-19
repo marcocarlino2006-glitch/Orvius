@@ -135,21 +135,81 @@ test("load-test percentiles are nearest-rank", () => {
   assert.equal(percentile([], 50), null);
 });
 
-test("nightly voice run skips honestly without secrets and never uploads shop data", () => {
-  const wf = readFileSync(".github/workflows/voice-nightly.yml", "utf8");
-  assert.match(wf, /schedule:/);
-  assert.match(wf, /VOICE_SIM_RECEPTIONIST_PHONE_ID/);
-  assert.match(wf, /run=false/);
-  assert.match(wf, /sim:voice -- --trade HVAC .*--json voice-results-hvac\.json/);
-  assert.doesNotMatch(wf, /backups\/|db-backup/);
+test("paid voice runs are manual only, in a protected environment, bound to an authorization; labels and PR events never run them", () => {
+  for (const file of [".github/workflows/voice-nightly.yml", ".github/workflows/voice-gate.yml"]) {
+    const wf = readFileSync(file, "utf8");
+    assert.doesNotMatch(wf, /schedule:/, `${file} has no schedule`);
+    assert.doesNotMatch(wf, /pull_request_target|issue_comment|workflow_run|labeled|run-voice-gate/, `${file} has no trusted-event or label trigger`);
+    assert.match(wf, /workflow_dispatch:\s*\n\s*inputs:\s*\n\s*authorization:/);
+    const paid = wf.slice(wf.search(/\n  (gate|voice):/));
+    assert.match(paid, /if: github\.event_name == 'workflow_dispatch'|^\n  voice:/);
+    assert.match(paid, /environment: paid-voice-tests/);
+    assert.match(paid, /ref: \$\{\{ fromJSON\(inputs\.authorization\)\.commit \}\}/, "checks out the authorized commit");
+    assert.match(paid, /VOICE_TEST_AUTHORIZATION: \$\{\{ inputs\.authorization \}\}/);
+    const install = paid.slice(paid.indexOf("npm ci"), paid.indexOf("npm ci") + 40);
+    assert.doesNotMatch(install, /secrets\./, "no secret is in scope while dependencies install");
+    assert.doesNotMatch(paid.slice(0, paid.indexOf("- name: Run authorized")), /secrets\./, "secrets appear only on the authorized run step");
+    assert.doesNotMatch(wf, /backups\/|db-backup/);
+  }
+  const gate = readFileSync(".github/workflows/voice-gate.yml", "utf8");
+  assert.match(gate, /reminder:[\s\S]*if: github\.event_name == 'pull_request'[\s\S]*::warning::/);
+  const reminder = gate.slice(gate.indexOf("reminder:"), gate.indexOf("\n  gate:"));
+  assert.doesNotMatch(reminder, /checkout|secrets\./, "the PR reminder neither checks out PR code nor sees secrets");
 });
 
-test("voice gate runs on receptionist changes and says loudly when it was skipped", () => {
-  const wf = readFileSync(".github/workflows/voice-gate.yml", "utf8");
-  assert.match(wf, /pull_request:/);
-  for (const path of ["src/lib/vapi.ts", "src/lib/ai-policy.ts", "src/lib/business.ts", "scripts/voice-scenarios.mjs"]) assert.ok(wf.includes(path), path);
-  assert.match(wf, /::warning::Voice gate NOT run/);
-  assert.match(wf, /npm run sim:gate/);
+test("the paid voice authorization refuses anything the budget owner did not name", async () => {
+  const { checkVoiceAuthorization, planWithinAuthorization } = await import("./lib/voice-authorization.mjs");
+  const commit = "c".repeat(40);
+  const ctx = { headCommit: commit, environment: "paid-voice-tests", receptionistPhoneId: "rec-test", callerPhoneId: "caller-test", transferNumber: null, now: Date.parse("2026-10-15T00:00:00Z") };
+  const auth = {
+    id: "VOICE-1",
+    approvedBy: "owner@example.com",
+    commit,
+    environment: "paid-voice-tests",
+    receptionistPhoneId: "rec-test",
+    callerPhoneId: "caller-test",
+    destinationAllowlist: ["+15555550100"],
+    scenarioProfile: ["gate"],
+    maxCalls: 9,
+    maxMinutesPerCall: 3,
+    budgetUsd: 12,
+    abortOwner: "owner@example.com",
+    cleanup: "restore-assistant-and-delete-test-assistant",
+    evidence: "redacted",
+    reconciliation: "budget owner compares the Vapi call log and bill with the results",
+    expiresAt: "2026-10-16T00:00:00Z",
+  };
+  assert.equal(checkVoiceAuthorization(auth, ctx).ok, true);
+  assert.deepEqual(checkVoiceAuthorization(null, ctx).problems, ["no authorization was given; paid voice tests are off"]);
+  for (const field of ["maxCalls", "maxMinutesPerCall", "budgetUsd", "abortOwner", "destinationAllowlist", "scenarioProfile", "cleanup", "evidence", "reconciliation", "expiresAt", "approvedBy"]) {
+    const { [field]: _, ...missing } = auth;
+    assert.equal(checkVoiceAuthorization(missing, ctx).ok, false, `${field} is required, never defaulted`);
+  }
+  assert.equal(checkVoiceAuthorization({ ...auth, commit: "d".repeat(40) }, ctx).ok, false, "another commit");
+  assert.equal(checkVoiceAuthorization(auth, { ...ctx, environment: null }).ok, false, "outside the protected environment");
+  assert.equal(checkVoiceAuthorization(auth, { ...ctx, receptionistPhoneId: "prod-line" }).ok, false, "not the test-only number");
+  assert.equal(checkVoiceAuthorization(auth, { ...ctx, now: Date.parse("2026-10-17T00:00:00Z") }).ok, false, "expired");
+  assert.equal(checkVoiceAuthorization(auth, { ...ctx, transferNumber: "+15555550199" }).ok, false, "transfer stays off unless authorized");
+  assert.equal(
+    checkVoiceAuthorization({ ...auth, transfer: true, transferAuthorizedBy: "owner@example.com", destinationAllowlist: ["+15555550100", "+15555550199"] }, { ...ctx, transferNumber: "+15555550199" }).ok,
+    true,
+  );
+  const gateScenario = { id: "gas-leak", gate: true };
+  assert.deepEqual(planWithinAuthorization(auth, { destination: "+15555550100", scenarios: [gateScenario] }), []);
+  assert.match(planWithinAuthorization(auth, { destination: "+15555550100", scenarios: [{ id: "chit-chat", gate: false }] })[0], /outside the authorized profile/);
+  assert.match(planWithinAuthorization(auth, { destination: "+15555550111", scenarios: [gateScenario] })[0], /not on the consented destination allowlist/);
+  assert.match(planWithinAuthorization({ ...auth, maxCalls: 1 }, { destination: "+15555550100", scenarios: [gateScenario, gateScenario] })[0], /allows 1/);
+});
+
+test("the simulator checks the authorization before any provider or app request", () => {
+  const sim = readFileSync("scripts/voice-sim.mjs", "utf8");
+  const check = sim.indexOf("checkVoiceAuthorization(raw");
+  assert.ok(check > 0);
+  for (const effect of ["await learnedScenarios()", 'vapi("/assistant"', "vapi(`/phone-number/${FROM_ID}`"]) {
+    assert.ok(sim.indexOf(effect) > check, `${effect} comes after the authorization check`);
+  }
+  assert.match(sim, /spentUsd >= authorization\.budgetUsd/);
+  assert.match(sim, /planWithinAuthorization\(authorization/);
 });
 
 test("porting steps ask for what a carrier needs and promise no date", () => {
@@ -159,4 +219,30 @@ test("porting steps ask for what a carrier needs and promise no date", () => {
   assert.match(panel, /latest bill/);
   assert.match(panel, /Don&apos;t cancel your current service/);
   assert.doesNotMatch(panel, /\d+\s*(business )?days/);
+});
+
+test("the release identity names the built commit and never invents one", async () => {
+  const { releaseIdentity } = await import("../src/lib/release.ts");
+  const sha = "0123456789abcdef0123456789abcdef01234567";
+  assert.deepEqual(releaseIdentity({ VERCEL_GIT_COMMIT_SHA: sha.toUpperCase(), VERCEL_GIT_COMMIT_REF: "main", VERCEL_ENV: "production", VERCEL_DEPLOYMENT_ID: "dpl_1" }), {
+    commit: sha,
+    ref: "main",
+    environment: "production",
+    deploymentId: "dpl_1",
+  });
+  const unknown = releaseIdentity({ NODE_ENV: "production", VERCEL_GIT_COMMIT_SHA: "not a sha" });
+  assert.equal(unknown.commit, null);
+  assert.equal(unknown.environment, "production-unknown-host");
+});
+
+test("prod:verify needs the promoted release's full commit and compares it to what production serves", async () => {
+  const source = readFileSync(new URL("./prod-verify.mjs", import.meta.url), "utf8");
+  assert.match(source, /releaseCheck\(json\?\.release, process\.env\.EXPECTED_COMMIT\)/, "the comparison reads the serving deployment, not the local checkout");
+  assert.doesNotMatch(source, /git rev-parse/);
+  const { releaseCheck } = await import("./lib/release-check.mjs");
+  const sha = "a".repeat(40);
+  assert.match(releaseCheck({ commit: sha }, "").detail, /EXPECTED_COMMIT must name the full 40-character commit/);
+  assert.equal(releaseCheck({ commit: null }, sha).ok, false);
+  assert.equal(releaseCheck({ commit: "b".repeat(40) }, sha).ok, false);
+  assert.equal(releaseCheck({ commit: sha, environment: "production" }, sha.toUpperCase()).ok, true);
 });

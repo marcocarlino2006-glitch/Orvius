@@ -1,5 +1,6 @@
 "use client";
 
+import { askConfirm } from "@/components/ask-dialog";
 import { useEffect, useState } from "react";
 import { displayPhone } from "@/lib/customer";
 import type { SettingsSectionId } from "@/lib/settings-center";
@@ -59,7 +60,7 @@ export function IntegrationsSection({
   }, []);
 
   async function disconnectQuickBooks() {
-    if (!window.confirm("Disconnect QuickBooks? New payments stop going to QuickBooks. Receipts already there stay.")) return;
+    if (!(await askConfirm({ title: "Disconnect QuickBooks?", body: "New payments stop going to QuickBooks. Receipts already there stay.", confirmLabel: "Disconnect", danger: true }))) return;
     setQbBusy(true);
     setQbNote(null);
     try {
@@ -87,7 +88,7 @@ export function IntegrationsSection({
   }, []);
 
   async function disconnectJobber() {
-    if (!window.confirm("Disconnect Jobber? New calls stop going to Jobber. Requests already there stay.")) return;
+    if (!(await askConfirm({ title: "Disconnect Jobber?", body: "New calls stop going to Jobber. Requests already there stay.", confirmLabel: "Disconnect", danger: true }))) return;
     setJobberBusy(true);
     setJobberNote(null);
     try {
@@ -125,7 +126,7 @@ export function IntegrationsSection({
   }
 
   async function disconnectHousecall() {
-    if (!window.confirm("Disconnect Housecall Pro? New calls stop going to Housecall Pro. Leads already there stay.")) return;
+    if (!(await askConfirm({ title: "Disconnect Housecall Pro?", body: "New calls stop going to Housecall Pro. Leads already there stay.", confirmLabel: "Disconnect", danger: true }))) return;
     setHcpBusy(true);
     setHcpNote(null);
     try {
@@ -163,7 +164,7 @@ export function IntegrationsSection({
   }
 
   async function disconnectServiceTitan() {
-    if (!window.confirm("Disconnect ServiceTitan? New calls stop going to its booking queue. Bookings already there stay.")) return;
+    if (!(await askConfirm({ title: "Disconnect ServiceTitan?", body: "New calls stop going to its booking queue. Bookings already there stay.", confirmLabel: "Disconnect", danger: true }))) return;
     setStBusy(true);
     setStNote(null);
     try {
@@ -179,7 +180,7 @@ export function IntegrationsSection({
   }
 
   async function resetFeed() {
-    if (!window.confirm("Reset the calendar link? Calendars subscribed to the old link stop updating until you add the new one.")) return;
+    if (!(await askConfirm({ title: "Reset the calendar link?", body: "Calendars subscribed to the old link stop updating until you add the new one.", confirmLabel: "Reset link", danger: true }))) return;
     setFeedBusy(true);
     setFeedNote(null);
     try {
@@ -207,6 +208,11 @@ export function IntegrationsSection({
             [servicetitan?.status === "active", "ServiceTitan"],
           ] as const
         ).find(([on]) => on)?.[1] ?? null;
+
+  const unread = (key: string, name: string, link: unknown) =>
+    link == null && account.integrationStatusErrors?.includes(key)
+      ? { name, mark: (key === "quickbooks" ? "billing" : "jobs") as SettingsIconName, on: false, detail: `Couldn't read ${name}'s status just now, so this doesn't say whether it's connected. Reload Settings to check.` }
+      : null;
 
   const rows: Array<{
     name: string;
@@ -267,10 +273,10 @@ export function IntegrationsSection({
       copy: feedUrl ?? undefined,
       reset: Boolean(feedUrl),
     },
-    jobberRow(jobber, jobberNote, scheduleLine(schedule, "jobber")),
-    housecallRow(housecall, hcpNote, scheduleLine(schedule, "housecall")),
-    serviceTitanRow(servicetitan, stNote, scheduleLine(schedule, "servicetitan")),
-    quickbooksRow(quickbooks, qbNote),
+    unread("jobber", "Jobber", jobber) ?? jobberRow(jobber, jobberNote, scheduleLine(schedule, "jobber")),
+    unread("housecall", "Housecall Pro", housecall) ?? housecallRow(housecall, hcpNote, scheduleLine(schedule, "housecall")),
+    unread("servicetitan", "ServiceTitan", servicetitan) ?? serviceTitanRow(servicetitan, stNote, scheduleLine(schedule, "servicetitan")),
+    unread("quickbooks", "QuickBooks", quickbooks) ?? quickbooksRow(quickbooks, qbNote),
   ];
   return (
     <>
@@ -472,14 +478,25 @@ function scheduleLine(schedule: Account["fsmSchedule"], source: string) {
   return " Orvius reads its schedule and won't offer a time already booked there.";
 }
 
+/** Refused calls and calls whose send reply was lost are different: the second may already be there. */
+function sendAttention(link: { needsAttention: number; checking?: number; failed?: number }, name: string, where: string) {
+  const checking = link.checking ?? 0;
+  const failed = link.failed ?? link.needsAttention - checking;
+  const them = (n: number) => (n === 1 ? "it" : "them");
+  return [
+    failed > 0 ? ` ${failed} did not go through. Your alert texts still have ${them(failed)}.` : "",
+    checking > 0
+      ? ` ${checking} may already be in ${name}: the send went out but no reply came back. Look in your ${name} ${where} before entering ${them(checking)} by hand; Orvius won't send ${them(checking)} again.`
+      : "",
+  ].join("");
+}
+
 function jobberRow(jobber: JobberLink, note: string | null, schedule: string) {
   const base = { name: "Jobber", mark: "jobs" as const };
   const connect = { label: "Connect", url: "/api/integrations/jobber/connect" };
   if (jobber?.status === "active") {
     const sent = jobber.sentLast30Days === 1 ? "1 call" : `${jobber.sentLast30Days} calls`;
-    const attention = jobber.needsAttention
-      ? ` ${jobber.needsAttention} did not go through. Your alert texts still have them.`
-      : "";
+    const attention = sendAttention(jobber, "Jobber", "requests");
     return {
       ...base,
       on: true,
@@ -500,7 +517,7 @@ function housecallRow(hcp: HousecallLink, note: string | null, schedule: string)
   const base = { name: "Housecall Pro", mark: "jobs" as const };
   if (hcp?.status === "active") {
     const sent = hcp.sentLast30Days === 1 ? "1 call" : `${hcp.sentLast30Days} calls`;
-    const attention = hcp.needsAttention ? ` ${hcp.needsAttention} did not go through. Your alert texts still have them.` : "";
+    const attention = sendAttention(hcp, "Housecall Pro", "leads");
     return {
       ...base,
       on: true,
@@ -521,7 +538,7 @@ function serviceTitanRow(st: ServiceTitanLink, note: string | null, schedule: st
   const base = { name: "ServiceTitan", mark: "jobs" as const };
   if (st?.status === "active") {
     const sent = st.sentLast30Days === 1 ? "1 call" : `${st.sentLast30Days} calls`;
-    const attention = st.needsAttention ? ` ${st.needsAttention} did not go through. Your alert texts still have them.` : "";
+    const attention = sendAttention(st, "ServiceTitan", "booking queue");
     return {
       ...base,
       on: true,

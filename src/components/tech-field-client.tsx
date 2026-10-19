@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { sendWrite } from "@/lib/client-write";
 import { JOB_OUTCOMES, jobOutcomeLabel } from "@/lib/job-outcome";
 import { isEmergency, notableUrgency } from "@/lib/urgency";
 import "@/app/public-field.css";
@@ -102,13 +103,7 @@ export function TechFieldClient({ token }: { token: string }) {
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch(`/api/public/tech/${token}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "That didn't go through — nothing changed");
+      const data = await sendWrite<{ declined?: boolean; job: TechJob; error?: string }>(`/api/public/tech/${token}`, "PATCH", body);
       if (data.declined) {
         setDeclined(true);
         return true;
@@ -117,7 +112,7 @@ export function TechFieldClient({ token }: { token: string }) {
       if (data.job?.etaText != null) setEtaText(data.job.etaText);
       return true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "That didn't go through — nothing changed");
+      setError(err instanceof Error ? err.message : "That wasn't accepted.");
       return false;
     } finally {
       setBusy(false);
@@ -165,11 +160,16 @@ export function TechFieldClient({ token }: { token: string }) {
       setError("Final amount must be between $0 and $50,000.");
       return;
     }
+    if (dollars == null) {
+      setError("Enter what you charged, or 0 for no charge.");
+      return;
+    }
     void patch({
       status: "completed",
       resolutionCode,
       resolutionSummary,
-      finalAmountCents: dollars == null ? null : Math.round(dollars * 100),
+      finalAmountCents: Math.round(dollars * 100),
+      noCharge: dollars === 0,
     });
   }
 

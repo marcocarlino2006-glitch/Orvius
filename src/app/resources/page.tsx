@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/resources" },
   title: "Resources",
   description: `Guides, security and privacy, status, and how to reach us: everything an HVAC, plumbing or electrical shop needs to run on ${company.productName}.`,
 };

@@ -15,6 +15,7 @@ import {
   listVapiNumbers,
 } from "@/lib/vapi";
 import { resolveVoiceId } from "@/lib/voices";
+import { isOwnerDemoWorkspace } from "@/lib/demo-fence";
 import type { Business } from "@prisma/client";
 
 export type AssistantSyncResult = {
@@ -58,6 +59,9 @@ export function buildBusinessAssistantConfig(business: Business) {
 export async function syncBusinessAssistant(
   business: Business,
 ): Promise<AssistantSyncResult> {
+  if (isOwnerDemoWorkspace(business)) {
+    return { assistantUpdated: false, lineAttached: false, line: null, warning: "The demo shop has no real line — its calls are simulated" };
+  }
   if (!business.vapiAssistantId) {
     return {
       assistantUpdated: false,
@@ -160,6 +164,7 @@ export async function ensureAssistantCurrent(
       return "updated";
     }
     confirmed.set(assistantId, expected);
+    await (await import("@/lib/assistant-apply")).recordLiveMatch(business, expected);
     return "current";
   } catch (error) {
     logWarn("vapi.assistant.resync_failed", {

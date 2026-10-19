@@ -8,9 +8,11 @@ import { isShopDaytime } from "@/lib/lead-follow-up";
 import { logWarn } from "@/lib/logger";
 import { enqueueOwnerAlert } from "@/lib/notifications";
 import { getPlatformFeeBps, isChargeableAmount } from "@/lib/platform-fee";
+import { isOwnerDemoWorkspace } from "@/lib/demo-fence";
 import { prisma } from "@/lib/prisma";
 import { getAppBaseUrl, getStripe } from "@/lib/stripe";
 import { getConnectStatus } from "@/lib/stripe-connect";
+import { textingHeld } from "@/lib/twilio-sms";
 
 /**
  * Maintenance plans: the shop sells a monthly or yearly plan, the customer
@@ -140,6 +142,7 @@ export async function createPlanCheckout(
 ): Promise<{ ok: true; url: string } | { ok: false; reason: "unavailable" | "invalid"; message: string }> {
   const found = await publicPlansShop(slug);
   if (!found) return { ok: false, reason: "unavailable", message: "This business isn't selling plans online right now." };
+  if (isOwnerDemoWorkspace(found.shop)) return { ok: false, reason: "unavailable", message: "The demo shop doesn't take real card payments." };
   const plan = found.plans.find((p) => p.id === input.planId);
   if (!plan) return { ok: false, reason: "invalid", message: "Pick a plan." };
   const phoneNormalized = normalizePhone(input.phone);
@@ -252,6 +255,7 @@ export async function activatePlanMember(session: Stripe.Checkout.Session, now =
   await sendCustomerSms({
     businessId,
     to: member.phone,
+    intent: { eventType: "plan.joined", eventId: member.id },
     body: `You're on ${member.business.name}'s ${member.plan.name}. ${cycle ? "We'll text you when your next included visit is due." : "Thanks for joining."} Reply STOP to opt out.`,
   }).catch(() => null);
   return { ok: true as const };
@@ -336,7 +340,8 @@ export async function runVisitReminders(options: { now?: Date; budgetMs?: number
   const now = options.now ?? new Date();
   const stopAt = Date.now() + (options.budgetMs ?? 20_000);
   const send = options.send ?? sendCustomerSms;
-  const tally = { sent: 0, rolled: 0, skipped: 0 };
+  const tally = { sent: 0, rolled: 0, skipped: 0, held: 0 };
+  const heldShops = new Map<string, boolean>();
   const zones = await prisma.business.groupBy({ by: ["timezone"], where: { isActive: true, environment: { not: "test" } } });
   const daytime = zones.map((z) => z.timezone).filter((tz) => isShopDaytime(now, tz));
   if (!daytime.length) return tally;
@@ -380,6 +385,13 @@ export async function runVisitReminders(options: { now?: Date; budgetMs?: number
       if (jobs.length) {
         tally.skipped += 1;
         continue;
+      }
+      if (!options.send) {
+        if (!heldShops.has(member.businessId)) heldShops.set(member.businessId, Boolean(await textingHeld(member.businessId)));
+        if (heldShops.get(member.businessId)) {
+          tally.held += 1;
+          continue;
+        }
       }
       const claim = await prisma.planMember.updateMany({
         where: { id: member.id, visitReminderSentAt: null },

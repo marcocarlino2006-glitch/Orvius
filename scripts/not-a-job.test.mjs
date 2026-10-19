@@ -21,3 +21,14 @@ test("not_a_job is a board kind with dismiss strategy", () => {
   assert.equal(attentionKindLabel("not_a_job"), "Not a job");
   assert.equal(attentionActionStrategy("not_a_job"), "dismiss");
 });
+
+test("a request flagged not a job has a one-tap clear on the card Command renders", async () => {
+  const { readFileSync } = await import("node:fs");
+  const read = (rel) => readFileSync(new URL(`../${rel}`, import.meta.url), "utf8");
+  const card = read("src/components/work-card.tsx");
+  assert.match(card, /kinds\.has\("not_a_job"\)/);
+  assert.match(card, /<MarkNotAJobButton leadId=\{notAJob\}/);
+  assert.match(read("src/components/mark-not-a-job-button.tsx"), /sendWrite\(`\/api\/leads\/\$\{leadId\}`, "PATCH", \{ status: "spam" \}\)/);
+  assert.match(read("src/components/ring1-command-center.tsx"), /<WorkCard\b/);
+  assert.match(read("src/app/api/leads/[id]/route.ts"), /z\.enum\(\["new", "contacted", "booked", "lost", "spam"\]\)/);
+});

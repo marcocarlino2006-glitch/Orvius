@@ -353,7 +353,8 @@ export const HELP_ARTICLES: HelpArticle[] = [
           </li>
           <li>
             <strong>Manager</strong>: everything except billing and deleting the workspace, including settings, the
-            team, exports and the activity log.
+            team, exports and the activity log. Money actions (changing a bill the customer already has, accepting an
+            &ldquo;I paid&rdquo;, editing prices) need a grant from the owner for that one action.
           </li>
           <li>
             <strong>Dispatcher</strong>: calls, leads, jobs, customers and dispatch. Can&apos;t change settings or the

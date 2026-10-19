@@ -1,5 +1,6 @@
 "use client";
 
+import { LoadFailure, SESSION_EXPIRED } from "@/components/load-failure";
 import { JobTable } from "@/components/job-card";
 import { ProEmptyState } from "@/components/pro-page-chrome";
 import { OsShell } from "@/components/os-shell";
@@ -54,11 +55,13 @@ export default function JobsPage() {
   const [tabId, setTabId] = useState<Tab["id"]>("open");
   const [query, setQuery] = useState("");
   const [timeZone, setTimeZone] = useState<string | undefined>();
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
+    setError(null);
     Promise.all([
       fetch("/api/jobs").then(async (res) => {
-        if (!res.ok) throw new Error(res.status === 401 ? "Your session expired. Sign in again." : "Jobs didn't load. Nothing changed; try again.");
+        if (!res.ok) throw new Error(res.status === 401 ? SESSION_EXPIRED : "Jobs didn't load. Nothing changed; try again.");
         return res.json();
       }),
       fetch("/api/leads?limit=1").then(async (res) =>
@@ -72,7 +75,7 @@ export default function JobsPage() {
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [attempt]);
 
   const withState = useMemo(() => jobs.map((job) => ({ job, state: jobLifecycle(job).state })), [jobs]);
 
@@ -158,7 +161,14 @@ export default function JobsPage() {
         <>
           {error ? (
             <div className="mb-6">
-              <ShellAlert tone="error">{error}</ShellAlert>
+              <LoadFailure
+                title="Jobs not updated"
+                error={error}
+                onRetry={() => {
+                  setLoading(true);
+                  setAttempt((n) => n + 1);
+                }}
+              />
             </div>
           ) : null}
 

@@ -4,6 +4,7 @@ import { runAutopilot } from "@/lib/autopilot";
 import { ensureAssistantCurrent } from "@/lib/sync-business-assistant";
 import { prisma } from "@/lib/prisma";
 import { sweepUnfinishedCallReports } from "@/lib/call-ingest";
+import { sweepUntoldAssignments } from "@/lib/notify-tech-assign";
 import { getBearerToken, secretsMatch, verifyAdminRequest } from "@/lib/env";
 import { releaseLapsedLines, suspendUnpaidLines } from "@/lib/line-lifecycle";
 import { sweepPausedPlans } from "@/lib/plan-pause";
@@ -25,6 +26,7 @@ import { drainServiceTitanSyncs } from "@/lib/servicetitan";
 import { drainQuickBooksSyncs } from "@/lib/quickbooks";
 import { purgeStaleVisitorShops } from "@/lib/public-demo";
 import { forEachShop } from "@/lib/for-each-shop";
+import { claimDailyRun, dailyStepSuccesses, markDailyStep, oldestFirst } from "@/lib/cron-runs";
 
 /*
   The daily sweep, not the thing that makes the retry ladder work.
@@ -84,6 +86,10 @@ export async function GET(request: NextRequest) {
     whatever came last. The per-shop loops start at a random shop and wrap, so
     a cut-off day still reaches different shops than yesterday.
   */
+  if (!(await claimDailyRun())) {
+    return NextResponse.json({ ok: false, error: "The daily sweep is already running" }, { status: 409 });
+  }
+
   const started = Date.now();
   const pastDeadline = () => Date.now() - started > DEADLINE_MS;
   const failed: string[] = [];
@@ -94,7 +100,9 @@ export async function GET(request: NextRequest) {
       return null;
     }
     try {
-      return await run();
+      const result = await run();
+      await markDailyStep(name).catch(() => {});
+      return result;
     } catch (error) {
       failed.push(name);
       logError("cron.step_failed", { step: name, error: error instanceof Error ? error.message : String(error) });
@@ -112,9 +120,10 @@ export async function GET(request: NextRequest) {
     }
   };
 
-  const [strandedTextLeads, lateCallReports] = await Promise.all([
+  const [strandedTextLeads, lateCallReports, untoldAssignments] = await Promise.all([
     step("stranded_text_leads", () => alertStrandedTextLeads()),
     step("unfinished_call_reports", () => sweepUnfinishedCallReports()),
+    step("untold_assignments", () => sweepUntoldAssignments()),
   ]);
   const notifications = await step("notifications", () => processNotificationQueue(50));
 
@@ -127,20 +136,30 @@ export async function GET(request: NextRequest) {
   const weeklyReports = await step("weekly_reports", () => sendDueWeeklyReports());
   const founderScoreboard = await step("founder_scoreboard", () => sendFounderScoreboard());
   const billingReconcile = await step("billing_reconcile", () => runBillingReconcile());
-  const retention = await step("call_content_retention", () => purgeExpiredCallContent({ budgetMs: 10_000 }));
-  const prunedLogs = await step("log_retention", () => pruneOperationalLogs({ budgetMs: 5_000 }));
-  const visitorShops = await step("visitor_demo_purge", () => purgeStaleVisitorShops());
-  const jobber = await step("jobber_sync", () => drainJobberSyncs({ limit: 100, budgetMs: 10_000 }));
-  const housecall = await step("housecall_sync", () => drainHousecallSyncs({ limit: 100, budgetMs: 10_000 }));
-  const servicetitan = await step("servicetitan_sync", () => drainServiceTitanSyncs({ limit: 100, budgetMs: 10_000 }));
-  const quickbooks = await step("quickbooks_sync", () => drainQuickBooksSyncs({ limit: 100, budgetMs: 10_000 }));
-  const voiceLatency = await step("voice_latency", async () => {
-    const rollup = await voiceLatencyRollup(new Date(Date.now() - 24 * 60 * 60 * 1000));
-    logInfo("voice.latency_daily", rollup);
-    return rollup;
-  });
-  // Lost calls and line health have their own 30-minute sweep; this is the daily backstop.
-  const lines = await step("line_watch", () => watchAllLines());
+
+  /* Housekeeping and syncs share what is left of the deadline, longest-waiting first. */
+  const housekeeping = {
+    call_content_retention: () => purgeExpiredCallContent({ budgetMs: 10_000 }),
+    log_retention: () => pruneOperationalLogs({ budgetMs: 5_000 }),
+    visitor_demo_purge: () => purgeStaleVisitorShops(),
+    jobber_sync: () => drainJobberSyncs({ limit: 100, budgetMs: 10_000 }),
+    housecall_sync: () => drainHousecallSyncs({ limit: 100, budgetMs: 10_000 }),
+    servicetitan_sync: () => drainServiceTitanSyncs({ limit: 100, budgetMs: 10_000 }),
+    quickbooks_sync: () => drainQuickBooksSyncs({ limit: 100, budgetMs: 10_000 }),
+    voice_latency: async () => {
+      const rollup = await voiceLatencyRollup(new Date(Date.now() - 24 * 60 * 60 * 1000));
+      logInfo("voice.latency_daily", rollup);
+      return rollup;
+    },
+    // Lost calls and line health have their own 30-minute sweep; this is the daily backstop.
+    line_watch: () => watchAllLines(),
+  } as const;
+  type Housekeeping = keyof typeof housekeeping;
+  const names = Object.keys(housekeeping) as Housekeeping[];
+  const order = oldestFirst(names, await dailyStepSuccesses(names).catch(() => new Map())) as Housekeeping[];
+  const done: Partial<Record<Housekeeping, unknown>> = {};
+  for (const name of order) done[name] = await step<unknown>(name, housekeeping[name]);
+  const { call_content_retention: retention, log_retention: prunedLogs, visitor_demo_purge: visitorShops, jobber_sync: jobber, housecall_sync: housecall, servicetitan_sync: servicetitan, quickbooks_sync: quickbooks, voice_latency: voiceLatency, line_watch: lines } = done;
 
   let autopilotShops = 0;
   let autopilotAssigned = 0;
@@ -169,7 +188,11 @@ export async function GET(request: NextRequest) {
   if (!autopilotDone) skipped.push("autopilot:rest");
   if (!assistantsDone) skipped.push("assistants:rest");
   if (skipped.length) logError("cron.daily_deadline", { skipped, elapsedMs: Date.now() - started });
+  const ok = failed.length === 0 && skipped.length === 0;
+  /* "daily:all" ages only when every step succeeded inside the deadline. */
+  if (ok) await markDailyStep("all").catch(() => {});
 
+  /* A failed or cut-short run is not a 200: Vercel and any monitor read the status, not the body. */
   return NextResponse.json({
     ...notifications,
     ok: failed.length === 0 && skipped.length === 0,
@@ -184,6 +207,7 @@ export async function GET(request: NextRequest) {
     overage,
     strandedTextLeads,
     lateCallReports,
+    untoldAssignments,
     lapsedLines,
     unpaidLines,
     pausedPlans,
@@ -197,7 +221,7 @@ export async function GET(request: NextRequest) {
     quickbooks,
     voiceLatency,
     autopilot: { shops: autopilotShops, assigned: autopilotAssigned, confirmations: autopilotConfirmations },
-  });
+  }, { status: ok ? 200 : failed.length ? 500 : 503 });
 }
 
 export async function POST(request: NextRequest) {

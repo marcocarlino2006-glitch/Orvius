@@ -18,12 +18,14 @@ jobs:
     timeout-minutes: 2
     env:
       CRON_SECRET: ${{ secrets.CRON_SECRET }}
-      APP_URL: ${{ secrets.LINE_WATCH_URL || 'https://api.orvius.im' }}
+      # No default target: the sweep runs only on the deployment named here,
+      # listed in ops/drain-targets.json, serving the approved release.
+      DRAIN_TARGET_URL: ${{ vars.DRAIN_TARGET_URL }}
+      DRAIN_TARGET_ENV: ${{ vars.DRAIN_TARGET_ENV }}
+      DRAIN_EXPECTED_RELEASE: ${{ vars.APPROVED_RELEASE_COMMIT }}
     steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Drain owner alerts
-        run: |
-          if [ -z "$CRON_SECRET" ]; then
-            echo "::error::CRON_SECRET is not set in repo secrets; owner-alert retries on quiet lines wait for the daily cron."
-            exit 1
-          fi
-          curl -fsS --max-time 60 -H "Authorization: Bearer $CRON_SECRET" "$APP_URL/api/cron/alert-drain"
+        run: node scripts/scheduled-drain.mjs alert-drain 60

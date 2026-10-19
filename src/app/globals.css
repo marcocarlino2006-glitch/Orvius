@@ -792,12 +792,6 @@ h3 {
   justify-content: center;
 }
 
-.billing-lock-checkout .inst-btn,
-.billing-lock-cta {
-  width: 100%;
-  justify-content: center;
-}
-
 /* Copy on the left, the one action on the right, wrapping on a phone. */
 
 /*
@@ -1001,10 +995,6 @@ h3 {
 }
 
 /* Ring 1 — Front door mastery */
-
-.call-ai-confidence strong {
-  font-variant-numeric: tabular-nums;
-}
 
 .pro-economics-grid dt {
   font-size: 0.75rem;
@@ -1525,7 +1515,9 @@ h3 {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem 1rem;
-  margin-top: 1rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
 }
 
 .pricing-wizard-step {
@@ -2819,16 +2811,6 @@ button.btn {
 
 /* —— Frictionless owner setup —— */
 
-.capture-setup-mode strong {
-  font-size: 1rem;
-}
-
-.capture-setup-mode span {
-  font-size: 0.8125rem;
-  color: var(--ash);
-  line-height: 1.35;
-}
-
 /* Settings — secondary panels stay collapsed so ritual leads */
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -2911,15 +2893,6 @@ button.btn {
   display: grid;
   gap: 0.75rem;
   align-content: start;
-}
-
-.mkt-footer-entity {
-  margin: 0;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
-  color: color-mix(in srgb, #f1f1f1 72%, transparent);
 }
 
 .mkt-footer-tagline {
@@ -3159,8 +3132,7 @@ label:has(> input[type="radio"]) {
   color: var(--signal) !important;
 }
 
-.pro-panel,
-.capture-setup {
+.pro-panel {
   border-radius: var(--radius-box, var(--radius-lg)) !important;
 }
 
@@ -3203,7 +3175,6 @@ label:has(> input[type="radio"]) {
 .os-shell-pro .pro-panel,
 .os-shell-pro .attention-queue,
 .os-shell-pro .shop-outcomes,
-.os-shell-pro .lead-inbox-card,
 .os-shell-pro .job-card,
 .os-shell-pro .customer-record-card,
 .os-shell-pro .pro-signal-bar,
@@ -3216,7 +3187,6 @@ label:has(> input[type="radio"]) {
   background: var(--os-panel) !important;
 }
 
-.os-shell-pro .lead-inbox-card:hover,
 .os-shell-pro .job-card:hover,
 .os-shell-pro .customer-record-card:hover {
   transform: none !important;
@@ -3228,7 +3198,6 @@ label:has(> input[type="radio"]) {
 .os-shell-pro .btn,
 .os-shell-pro .inst-btn,
 .os-shell-pro button.btn,
-.os-shell-pro .attention-item-btn,
 .os-shell-pro .assign-tech-btn,
 .os-shell-pro .pro-filter-bar .btn,
 .os-shell-pro input,
@@ -3715,7 +3684,6 @@ label:has(> input[type="radio"]) {
 }
 
 /* OwnerAlertCard / soft marketing embeds on night pages */
-.mkt-page .owner-alert-card,
 .mkt-page .panel {
   background: #13100a !important;
   border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
@@ -3844,7 +3812,6 @@ label:has(> input[type="radio"]) {
 .os-shell-pro .live-dot-flare {
 }
 
-.os-shell-pro .lead-inbox-card,
 .os-shell-pro .job-card,
 .os-shell-pro .call-record-card {
   background: var(--os-panel) !important;
@@ -3857,10 +3824,7 @@ label:has(> input[type="radio"]) {
 .os-shell-pro .call-record-card,
 .os-shell-pro .account-billing-plan,
 .os-shell-pro .pro-economics-panel,
-.os-shell-pro .owner-alert-card,
-.os-shell-pro .transcript-cinema,
-.os-shell-pro .capture-setup-panel,
-.os-shell-pro .os-shell-pro .os-ask-dock-panel {
+.os-shell-pro .transcript-cinema {
   border-radius: var(--os-radius) !important;
   border: 1px solid var(--os-line) !important;
   box-shadow: none !important;
@@ -3886,7 +3850,6 @@ label:has(> input[type="radio"]) {
   color: var(--ox-day-ink, #f7f7f7) !important;
 }
 
-.os-shell-pro .lead-inbox-card,
 .os-shell-pro .job-card,
 .os-shell-pro .call-record-card {
   background: var(--os-panel) !important;
@@ -3904,7 +3867,6 @@ label:has(> input[type="radio"]) {
 .os-shell-night .pro-panel,
 .os-shell-night .attention-queue,
 .os-shell-night .shop-outcomes,
-.os-shell-night .lead-inbox-card,
 .os-shell-night .job-card,
 .os-shell-night .customer-record-card,
 .os-shell-night .call-record-card,
@@ -3913,10 +3875,7 @@ label:has(> input[type="radio"]) {
 .os-shell-night .live-status-bar,
 .os-shell-night .account-billing-plan,
 .os-shell-night .pro-economics-panel,
-.os-shell-night .owner-alert-card,
-.os-shell-night .os-shell-night .os-ask-dock-panel,
-.os-shell-night .pro-empty-state,
-.os-shell-night .capture-setup-panel {
+.os-shell-night .pro-empty-state {
   background: var(--ox-day-sunk, #14120c) !important;
   border: 1px solid color-mix(in srgb, #fff 10%, transparent) !important;
   border-radius: 0.25rem !important;
@@ -3926,8 +3885,6 @@ label:has(> input[type="radio"]) {
 
 /* Dense attention board — Cursor row density */
 
-.os-shell-night .attention-item-btn,
-.os-shell-night .attention-item-btn-primary,
 .os-shell-night .btn,
 .os-shell-night button.btn {
   border-radius: 0.25rem !important;
@@ -3940,20 +3897,7 @@ label:has(> input[type="radio"]) {
   box-shadow: none !important;
 }
 
-.os-shell-night .attention-item-btn-primary {
-  background: #f6f6f6 !important;
-  color: #0c0903 !important;
-  border: 1px solid #f6f6f6 !important;
-}
-
-.os-shell-night .attention-item-btn {
-  background: transparent !important;
-  color: var(--ox-day-ink, #ececec) !important;
-  border: 1px solid color-mix(in srgb, #fff 18%, transparent) !important;
-}
-
 /* Inbox / job cards — dense night tiles */
-.os-shell-night .lead-inbox-card,
 .os-shell-night .job-card,
 .os-shell-night .call-record-card,
 .os-shell-night .customer-record-card {
@@ -4204,14 +4148,6 @@ label:has(> input[type="radio"]) {
   box-shadow: none !important;
 }
 
-.os-shell-night .capture-setup-panel {
-  background: var(--ox-day-surface, #1a1c20) !important;
-  border: 1px solid var(--ox-day-line, #2a2e35) !important;
-  border-radius: 0.25rem !important;
-  padding: 0.75rem !important;
-  box-shadow: none !important;
-}
-
 .os-shell-night .cookie-consent,
 .cookie-consent {
   border-radius: 0.25rem !important;
@@ -4237,11 +4173,6 @@ label:has(> input[type="radio"]) {
 .os-shell-night .pro-panel--dense .pro-panel-body .mt-5,
 .os-shell-night .pro-panel--dense .pro-panel-body .mt-4 {
   margin-top: 0.65rem !important;
-}
-
-.os-shell-night .os-kv dd,
-.os-shell-night .os-kv .text-void {
-  color: var(--ox-legacy-text, #e9e9e9) !important;
 }
 
 /* The dim red is tuned for paper; the night shell needs the lighter step. */
@@ -4295,7 +4226,6 @@ label:has(> input[type="radio"]) {
 }
 
 /* Owner alert / transcript on night details */
-.os-shell-night .owner-alert-card,
 .os-shell-night .transcript-cinema {
   background: var(--ox-day-surface, #1a1c20) !important;
   border: 1px solid var(--ox-day-line, #2a2e35) !important;
@@ -4387,120 +4317,7 @@ label:has(> input[type="radio"]) {
   color: var(--ox-legacy-text, #e9e9e9);
 }
 
-.owner-alert--chalk {
-  background: var(--ox-day-surface, #1a1c20);
-  color: var(--ox-legacy-text, #e9e9e9);
-}
-
-.owner-alert--critical {
-  border-left: 2px solid #f4212e;
-}
-
-.owner-alert-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.45rem 0.65rem;
-  border-bottom: 1px solid var(--ox-day-line, #2a2e35);
-  background: var(--ox-day-sunk, #121316);
-}
-
-.owner-alert-kicker {
-  margin: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--ox-day-soft, #9aa1ab);
-}
-
-.owner-alert--critical .owner-alert-kicker {
-  color: #f87171;
-}
-
-.owner-alert-dot {
-  width: 0.4rem;
-  height: 0.4rem;
-  border-radius: 0;
-  background: #f4212e;
-  box-shadow: none;
-}
-
-.owner-alert-time {
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--ox-day-soft, #9aa1ab);
-}
-
-.owner-alert-body {
-  padding: 0.65rem;
-}
-
-.owner-alert--compact .owner-alert-body {
-  padding: 0.55rem 0.65rem;
-}
-
-.owner-alert-title {
-  margin: 0;
-  font-size: 1.125rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  color: var(--ox-legacy-text, #e9e9e9);
-  line-height: 1.25;
-}
-
-.owner-alert-channel {
-  margin: 0.2rem 0 0;
-  font-size: 0.75rem;
-  color: var(--ox-day-soft, #9aa1ab);
-}
-
-.owner-alert-kv {
-  display: grid;
-  grid-template-columns: 5.5rem 1fr;
-  gap: 0.4rem 0.75rem;
-  margin: 0.75rem 0 0 !important;
-}
-
-.owner-alert-kv > div {
-  display: contents;
-}
-
-.owner-alert-kv dt {
-  margin: 0;
-  font-size: 0.75rem;
-  line-height: 1.4;
-  color: var(--ox-day-soft, #9aa1ab);
-}
-
-.owner-alert-kv dd {
-  margin: 0;
-  font-size: 0.8125rem;
-  line-height: 1.4;
-  color: var(--ox-legacy-text, #e9e9e9);
-}
-
-.owner-alert-kv-accent dd {
-  color: #f87171 !important;
-}
-
-.owner-alert-foot {
-  margin: 0.55rem 0 0;
-  padding-top: 0.45rem;
-  border-top: 1px solid var(--ox-day-line, #2a2e35);
-  font-size: 0.75rem;
-  color: var(--ox-day-soft, #9aa1ab);
-  line-height: 1.4;
-}
-
-.os-shell-night .owner-alert,
-.os-shell-night .owner-alert-card {
+.os-shell-night .owner-alert {
   background: var(--ox-day-surface, #1a1c20) !important;
   border: 1px solid var(--ox-day-line, #2a2e35) !important;
   border-radius: 0.25rem !important;
@@ -4526,12 +4343,6 @@ label:has(> input[type="radio"]) {
   border: 1px solid var(--ox-day-line, #2a2e35) !important;
 }
 
-.billing-lock-cta,
-.billing-lock-checkout .btn,
-.billing-lock-checkout .inst-btn {
-  border-radius: 0.25rem !important;
-}
-
 /* Ask page densify */
 
 .os-shell-night .ask-input {
@@ -4543,9 +4354,7 @@ label:has(> input[type="radio"]) {
 }
 
 /* Lead status chips on detail */
-.os-shell-night .ring1-lead-status .btn,
-.os-shell-night .lead-status-actions .btn,
-.os-shell-night .ring1-lead-status button {
+.os-shell-night .lead-status-actions .btn {
   border-radius: 0.25rem !important;
   min-height: 1.85rem !important;
   padding: 0.25rem 0.55rem !important;
@@ -4657,39 +4466,6 @@ label:has(> input[type="radio"]) {
   border-radius: 0.25rem;
   overflow: hidden;
   background: var(--ox-day-sunk, #121316);
-}
-
-.os-shell-night .customer-timeline-item {
-  display: block;
-  margin: 0;
-  padding: 0;
-  border-bottom: 1px solid var(--ox-day-line, #2a2e35);
-}
-
-.os-shell-night .customer-timeline-item:last-child {
-  border-bottom: 0;
-}
-
-.os-shell-night .customer-timeline-marker,
-.os-shell-night .customer-timeline-line {
-  display: none !important;
-}
-
-.os-shell-night .customer-timeline-card {
-  margin: 0 !important;
-  padding: 0.55rem 0.65rem !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-}
-
-.os-shell-night .customer-timeline-card .text-void {
-  color: var(--ox-legacy-text, #e9e9e9) !important;
-}
-
-.os-shell-night .customer-timeline-card .text-ash {
-  color: var(--ox-day-soft, #9aa1ab) !important;
 }
 
 .os-shell-night .customer-timeline-link {
@@ -5076,7 +4852,7 @@ label:has(> input[type="radio"]) {
 .mkt-page .pricing-needs-result {
   background: var(--ov-paper-raised) !important;
   border: 1px solid var(--ov-line) !important;
-  border-radius: 0.5rem !important;
+  border-radius: 0.25rem !important;
   color: var(--ov-headline) !important;
 }
 
@@ -5241,7 +5017,6 @@ html[data-theme="night"] .mkt-footer--institution {
   border-top-color: #2a2a2e !important;
 }
 
-html[data-theme="night"] .mkt-footer-entity,
 html[data-theme="night"] .mkt-footer-heading,
 html[data-theme="night"] .mkt-footer .orvius-logo,
 html[data-theme="night"] .mkt-footer .orvius-logo-word,
@@ -5357,7 +5132,6 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night .pro-filter-bar .btn,
 .os-shell-night .pro-page-filters .btn,
 .os-shell-night .pro-panel .btn,
-.os-shell-night .capture-setup .btn,
 .os-shell-night .pro-filter-tab {
   font-size: 0.75rem !important;
   font-weight: 500 !important;
@@ -5703,7 +5477,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 }
 
 /* Headings and bold tags use the same semibold as every other title, not the browser's 700. */
-:where(h1, h2, h3, h4, h5, h6, strong, b, th) {
+:where(h1,  h2,  h3,  h4,  h5,  h6,  strong,  b,  th) {
   font-weight: 600;
 }
 
@@ -5714,7 +5488,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 */
 @media (pointer: coarse) {
   /* :not(#no-zoom) lends ID weight, so no themed class rule can shrink a field back under 16px. */
-  :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]), select, textarea):not(#no-zoom) {
+  :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),  select,  textarea):not(#no-zoom) {
     font-size: 16px !important;
   }
 
@@ -5726,7 +5500,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
     min-height: 40px !important;
   }
 
-  html body .os-shell .sc-dialog :is(.sc-btn, .ox-btn, .btn, .btn-secondary, .btn-void) {
+  html body .os-shell .sc-dialog :is(.sc-btn,  .ox-btn,  .btn,  .btn-secondary,  .btn-void) {
     min-height: 40px !important;
     height: auto !important;
   }
@@ -5862,15 +5636,15 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   audit fails CI on any button under 44px on a touch viewport.
 */
 @media (pointer: coarse) {
-  html body :is(button, [role="button"], [role="tab"], summary, select, input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]):not([type="file"]):not([type="color"]), a.btn, a[class*="btn"], .mkt-nav-links a, .mkt-nav-login, .mkt-nav-sheet-nav a, .mkt-footer-col a, .ov-signin-foot nav a, .os-sidebar-brand, .wc-more-item):not(.sc-switch):not(.hd-pills > button):not(#tap-floor) {
+  html body :is(button,  [role="button"],  [role="tab"],  summary,  select,  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]):not([type="file"]):not([type="color"]),  a.btn,  a[class*="btn"],  .mkt-nav-links a,  .mkt-nav-login,  .mkt-nav-sheet-nav a,  .mkt-footer-col a,  .ov-signin-foot nav a,  .os-sidebar-brand,  .wc-more-item):not(.sc-switch):not(.hd-pills > button):not(#tap-floor) {
     min-height: 44px !important;
   }
 
-  html body :is(button, [role="button"], [role="tab"], summary, a.btn, a[class*="btn"], .mx-bar-icon, .os-topbar-search):not(.sc-switch):not(.hd-pills > button):not(#tap-floor) {
+  html body :is(button,  [role="button"],  [role="tab"],  summary,  a.btn,  a[class*="btn"],  .mx-bar-icon,  .os-topbar-search):not(.sc-switch):not(.hd-pills > button):not(#tap-floor) {
     min-width: 44px !important;
   }
 
-  html body :is(.mx-bar-icon, .os-topbar-search, .cb-ask-send, .mkt-footer-col a, .ov-signin-foot nav a, .mkt-nav-links a, .mkt-nav-login):not(#tap-floor) {
+  html body :is(.mx-bar-icon,  .os-topbar-search,  .cb-ask-send,  .mkt-footer-col a,  .ov-signin-foot nav a,  .mkt-nav-links a,  .mkt-nav-login):not(#tap-floor) {
     display: inline-flex !important;
     align-items: center;
     justify-content: center;
@@ -5885,11 +5659,11 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   }
 
   /* Title links in lists keep their line; the tap area grows around the text. */
-  html body :is(.wc-title, .dt-row-link, .dt-link, .cmd-section-link, .cmd-feed-text, .hf-link):not(#tap-floor) {
+  html body :is(.wc-title,  .dt-row-link,  .dt-link,  .cmd-section-link,  .cmd-feed-text,  .hf-link):not(#tap-floor) {
     position: relative;
   }
 
-  html body :is(.wc-title, .dt-row-link, .dt-link, .cmd-section-link, .cmd-feed-text, .hf-link):not(#tap-floor)::before {
+  html body :is(.wc-title,  .dt-row-link,  .dt-link,  .cmd-section-link,  .cmd-feed-text,  .hf-link):not(#tap-floor)::before {
     content: "";
     position: absolute;
     inset: -12px -4px;
@@ -5897,6 +5671,6 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 }
 
 /* The night shell's light reds read under 3:1 on the day theme's white. */
-html[data-theme="day"] .os-shell-night :is(.status-pill-flare, .text-flare-dim, .owner-alert--critical .owner-alert-kicker) {
+html[data-theme="day"] .os-shell-night :is(.status-pill-flare,  .text-flare-dim) {
   color: var(--os-flare, #b42318) !important;
 }

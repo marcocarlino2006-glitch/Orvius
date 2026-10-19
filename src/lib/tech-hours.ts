@@ -52,9 +52,12 @@ export function slotHasRoom(input: {
   start: Date;
   durationMin: number;
   timezone: string;
+  /** The shop's required minutes between one technician's jobs; a job that close uses that person up. */
+  gapMin?: number;
 }): boolean {
-  const startMs = input.start.getTime();
-  const endMs = startMs + input.durationMin * 60_000;
+  const gapMs = Math.max(0, input.gapMin ?? 0) * 60_000;
+  const startMs = input.start.getTime() - gapMs;
+  const endMs = input.start.getTime() + input.durationMin * 60_000 + gapMs;
   const overlapping = input.booked.filter((w) => {
     const otherStart = w.scheduledAt.getTime();
     const otherEnd = otherStart + Math.max(SLOT_STEP_MIN, w.durationMin ?? DEFAULT_JOB_DURATION_MIN) * 60_000;

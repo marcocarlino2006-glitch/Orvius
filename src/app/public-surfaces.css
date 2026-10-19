@@ -1,0 +1,1118 @@
+/*
+ * PUBLIC SURFACES AND CHAPTERS
+ *
+ * Public pages used to sit on one pale field, so after the first message every
+ * section carried the same weight. Three warm roles and one anchor fix that
+ * without shadows or new colours:
+ *
+ *   paper   the page itself (--ov-paper)
+ *   canvas  the warmer alternate paper a new chapter starts on
+ *   stone   an inset inside a chapter (--ov-paper-raised)
+ *   anchor  ink, used once or twice a page for the moment that matters
+ *
+ * The anchor re-scopes the --ov-* palette instead of restyling its children,
+ * so headings, muted copy, rules and buttons inside it invert on their own.
+ *
+ * Spacing has two steps: a module gap (24-32px) between things in one chapter,
+ * and a chapter gap (48-72px) or a surface change between chapters. The
+ * selected/locator state takes the one status accent (green); copper stays the
+ * brand signal and is not used for selection.
+ */
+
+.ov-public {
+  --ov-canvas: color-mix(in srgb, var(--ov-paper) 55%, var(--ov-paper-raised));
+  --ov-stone: var(--ov-paper-raised);
+  --ov-select: var(--ov-emerald-text);
+  --ov-gap-module: clamp(1.5rem, 1.3rem + 0.5vw, 2rem);
+  --ov-gap-chapter: clamp(3rem, 2.2rem + 2.6vw, 4.5rem);
+  --ov-measure: 47.5rem;
+  --ov-rail: 2rem;
+}
+
+html[data-theme="day"] .ov-public {
+  --ov-canvas: var(--ui-bg);
+}
+
+/* ── Surfaces ── */
+
+.ov-public .ov-surface-canvas {
+  background: var(--ov-canvas) !important;
+}
+
+.ov-public .ov-surface-stone {
+  background: var(--ov-stone) !important;
+}
+
+.ov-public .ov-surface-anchor {
+  --ov-paper: #242427;
+  --ov-paper-raised: #2c2c30;
+  --ov-stone: #2c2c30;
+  background: var(--ov-paper) !important;
+  border-block: 1px solid var(--ov-hairline) !important;
+  color: var(--ov-ink) !important;
+}
+
+html[data-theme="day"] .ov-public .ov-surface-anchor {
+  --ov-paper: #26251e;
+  --ov-paper-raised: #33322a;
+  --ov-stone: #33322a;
+  --ov-ink: #edecec;
+  --ov-headline: #f7f7f4;
+  --ov-muted: #bdbab0;
+  --ov-line: #3b3a33;
+  --ov-line-strong: #4a4840;
+  --ov-hairline: rgb(255 255 255 / 0.14);
+  --ov-hairline-strong: rgb(255 255 255 / 0.26);
+  --ov-hairline-hover: rgb(255 255 255 / 0.45);
+  --ov-accent-text: #ff8a4c;
+  --ov-emerald-text: #6ee7a8;
+  --ov-select: #6ee7a8;
+  border-block-color: transparent !important;
+}
+
+/* ── Chapters ── */
+
+.ov-public .ov-chapter {
+  padding-block: var(--ov-gap-chapter) !important;
+}
+
+.ov-public .ov-chapter + .ov-chapter:not([class*="ov-surface-"]) {
+  border-top: 1px solid var(--ov-line) !important;
+}
+
+/* ── Indexed ruled rows: a number rail and one line of rhythm ── */
+
+.ov-public .ov-rows {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--ov-line);
+}
+
+.ov-public .ov-row {
+  display: grid;
+  grid-template-columns: var(--ov-rail) minmax(0, 1fr);
+  column-gap: 1rem;
+  padding-block: 1.125rem 1.375rem;
+  border-bottom: 1px solid var(--ov-line);
+}
+
+.ov-public .ov-row-index {
+  padding-top: 0.2rem;
+  color: var(--ov-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ov-public .ov-row-title {
+  margin: 0;
+  color: var(--ov-headline);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+
+.ov-public .ov-row-body {
+  margin: 0.375rem 0 0;
+  color: var(--ov-muted);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+/* ── Labelled illustration: a specimen, never a live result ── */
+
+.ov-public .ov-specimen-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.875rem;
+  color: var(--ov-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.ov-public .ov-specimen-label::before {
+  content: "";
+  width: 0.5rem;
+  height: 0.5rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+}
+
+/* ── Header call button: one ink control in both header states ── */
+
+html[data-theme="day"] .ov-public .mkt-nav .mkt-nav-cta,
+html[data-theme="day"] .ov-public .mkt-nav.mkt-nav--elevated .mkt-nav-cta {
+  border: 1px solid var(--ov-charcoal) !important;
+  background: var(--ov-charcoal) !important;
+  color: var(--ov-paper) !important;
+}
+
+.ov-public .mkt-nav .mkt-nav-cta {
+  gap: 0.5rem;
+  min-height: 36px !important;
+  padding-inline: 0.875rem !important;
+  font-weight: 600 !important;
+}
+
+.ov-public .mkt-nav .mkt-nav-cta::before {
+  content: "";
+  flex: none;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 999px;
+  background: var(--ov-green);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ov-green) 22%, transparent);
+}
+
+html[data-theme="day"] .ov-public .mkt-nav .mkt-nav-cta::before {
+  --ov-live-dot: #6ee7a8;
+  background: var(--ov-live-dot);
+}
+
+.ov-public .mkt-nav .mkt-nav-cta:hover {
+  filter: brightness(1.12);
+}
+
+/* ── Watch: a lighter scenario list, a decisive selection, a labelled preview ── */
+
+.ov-public .pd-scenarios {
+  gap: 0;
+  border-top: 1px solid var(--ov-line);
+}
+
+.ov-public .pd-scenario {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr);
+  column-gap: 0.5rem;
+  row-gap: 0.25rem;
+  position: relative;
+  padding: 0.875rem 0.875rem 0.875rem 1.125rem;
+  border: 0;
+  border-bottom: 1px solid var(--ov-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+.ov-public .pd-scenario::before {
+  content: "";
+  position: absolute;
+  inset: 0.625rem auto 0.625rem 0;
+  width: 3px;
+  border-radius: 999px;
+  background: transparent;
+}
+
+.ov-public .pd-scenario:hover:not(:disabled) {
+  background: var(--ov-stone);
+}
+
+.ov-public .pd-scenario[aria-pressed="true"] {
+  background: var(--ov-stone);
+}
+
+.ov-public .pd-scenario[aria-pressed="true"]::before {
+  background: var(--ov-select);
+}
+
+.ov-public .pd-scenario:focus-visible {
+  outline: 2px solid var(--ov-select);
+  outline-offset: -2px;
+}
+
+.ov-public .pd-scenario-title,
+.ov-public .pd-scenario-sub {
+  grid-column: 2;
+}
+
+.ov-public .pd-scenario-sub a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.ov-public .pd-scenario-num {
+  grid-row: span 2;
+  padding-top: 0.15rem;
+  color: var(--ov-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ov-public .pd-stage {
+  background: var(--ov-paper);
+}
+
+.ov-public .pd-grid:has(.pd-preview) {
+  align-items: start;
+}
+
+.ov-public .pd-stage:has(.pd-preview) {
+  min-height: 0;
+  background: var(--ov-stone);
+}
+
+.ov-public .pd-preview {
+  display: grid;
+  gap: var(--ov-gap-module);
+}
+
+.ov-public .pd-preview-prompt {
+  margin: 0;
+  color: var(--ov-headline);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.ov-public .pd-preview-prompt span {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--ov-muted);
+  font-size: 0.9375rem;
+  font-weight: 400;
+}
+
+.ov-public .pd-preview-sample {
+  padding: 1rem 1.125rem;
+  border: 1px dashed var(--ov-line-strong);
+  border-radius: 0.5rem;
+  background: var(--ov-paper);
+}
+
+.ov-public .pd-preview-sample .pd-transcript {
+  margin-bottom: 1rem;
+}
+
+.ov-public .pd-preview-steps {
+  display: grid;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0.875rem 0 0;
+  border-top: 1px solid var(--ov-line);
+  list-style: none;
+  color: var(--ov-muted);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.ov-public .pd-preview-steps li {
+  display: grid;
+  grid-template-columns: 1.5rem minmax(0, 1fr);
+}
+
+.ov-public .pd-preview-steps li span {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 720px) {
+  .ov-public .pd-preview-sample {
+    display: none;
+  }
+
+  .ov-public .pd-stage:has(.pd-preview) {
+    padding: 1rem;
+  }
+}
+
+/* ── Split hero: 7:5 claim and proof on desktop; the proof steps aside on a phone ── */
+
+@media (min-width: 1024px) {
+  .ov-public .ov-hero-split {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    column-gap: clamp(2.5rem, 5vw, 5rem);
+    align-items: end;
+  }
+}
+
+.ov-public .ov-hero-aside {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .ov-public .ov-hero-aside {
+    display: block;
+  }
+}
+
+/* ── Multi-location board (illustration) ── */
+
+.ov-public .ov-board {
+  margin: 0;
+  padding: 1.125rem 1.25rem 1rem;
+  border: 1px solid var(--ov-line);
+  border-radius: 0.75rem;
+  background: var(--ov-paper);
+}
+
+.ov-public .ov-board-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.ov-public .ov-board-table th,
+.ov-public .ov-board-table td {
+  padding: 0.625rem 0.5rem;
+  border-bottom: 1px solid var(--ov-line);
+  text-align: right;
+}
+
+.ov-public .ov-board-table th:first-child {
+  text-align: left;
+}
+
+.ov-public .ov-board-table thead th {
+  padding-top: 0;
+  color: var(--ov-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.ov-public .ov-board-table tbody th {
+  color: var(--ov-headline);
+  font-weight: 600;
+}
+
+.ov-public .ov-board-table td {
+  color: var(--ov-ink);
+}
+
+.ov-public .ov-board-table tr[data-attention] th,
+.ov-public .ov-board-table tr[data-attention] td {
+  background: var(--ov-stone);
+}
+
+.ov-public .ov-board-table tr[data-attention] th {
+  box-shadow: inset 3px 0 0 var(--ov-select);
+}
+
+.ov-public .ov-board-table tr[data-attention] td:last-child {
+  color: var(--ov-headline);
+  font-weight: 700;
+}
+
+.ov-public .ov-board-flag {
+  display: block;
+  margin-top: 0.125rem;
+  color: var(--ov-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.ov-public .ov-board-foot {
+  margin: 0.75rem 0 0;
+  color: var(--ov-muted);
+  font-size: 0.8125rem;
+}
+
+/* ── Lead module, then the rest as quieter rows ── */
+
+.ov-public .ov-lead-module {
+  display: grid;
+  grid-template-columns: var(--ov-rail) minmax(0, 1fr);
+  column-gap: 1rem;
+  margin-bottom: var(--ov-gap-chapter);
+  padding: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+  border-radius: 0.75rem;
+  background: var(--ov-stone);
+}
+
+.ov-public .ov-lead-title {
+  margin: 0;
+  max-width: 24ch;
+  color: var(--ov-headline);
+  font-size: var(--fs-display-sm);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+.ov-public .ov-lead-body {
+  margin: 0.875rem 0 0;
+  max-width: 40rem;
+  color: var(--ov-muted);
+  font-size: var(--fs-lead);
+  line-height: 1.6;
+}
+
+@media (max-width: 599px) {
+  .ov-public .ov-lead-module {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 0.5rem;
+  }
+}
+
+@media (min-width: 900px) {
+  .ov-public .ov-rows--three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: clamp(1.5rem, 3vw, 2.5rem);
+    border-top: 0;
+  }
+
+  .ov-public .ov-rows--three .ov-row {
+    border-top: 1px solid var(--ov-line-strong);
+    border-bottom: 0;
+  }
+}
+
+/* A closing band is a decision, not a chapter: compact, and the ink anchor. */
+.ov-public .ov-surface-anchor.tier1-bridge .tier1-story-grid {
+  align-items: center;
+}
+
+/* ── Editorial annotation: a ruled column of facts beside a hero ── */
+
+.ov-public .ov-annotation {
+  display: grid;
+  margin: 0;
+  border-top: 1px solid var(--ov-line-strong);
+}
+
+.ov-public .ov-annotation > div {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+  column-gap: 1rem;
+  padding-block: 0.875rem;
+  border-bottom: 1px solid var(--ov-line);
+}
+
+.ov-public .ov-annotation dt {
+  color: var(--ov-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.ov-public .ov-annotation dd {
+  margin: 0;
+  color: var(--ov-headline);
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+
+/* ── Chapter split: a heading column and a body column on desktop ── */
+
+@media (min-width: 960px) {
+  .ov-public .ov-chapter-split {
+    display: grid;
+    grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+    column-gap: clamp(2rem, 5vw, 5rem);
+    align-items: start;
+  }
+
+  .ov-public .ov-chapter-split > .tier1-section-title {
+    margin-top: 0 !important;
+  }
+}
+
+@media (max-width: 959px) {
+  .ov-public .ov-chapter-split > .tier1-section-title {
+    margin-bottom: var(--ov-gap-module);
+  }
+}
+
+/* ── Coverage panel: which trades pass the five checks ── */
+
+.ov-public .ov-coverage {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ov-public .ov-coverage li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 4rem;
+  align-items: center;
+  column-gap: 0.875rem;
+  padding-block: 0.5rem;
+  border-bottom: 1px solid var(--ov-line);
+  font-size: 0.875rem;
+}
+
+.ov-public .ov-coverage li:last-child {
+  border-bottom: 0;
+}
+
+.ov-public .ov-coverage-name {
+  color: var(--ov-muted);
+}
+
+.ov-public .ov-coverage li[data-open] .ov-coverage-name {
+  color: var(--ov-headline);
+  font-weight: 600;
+}
+
+.ov-public .ov-coverage-meter {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.ov-public .ov-coverage-meter i {
+  width: 0.875rem;
+  height: 0.375rem;
+  border-radius: 0.125rem;
+  background: var(--ov-line);
+}
+
+.ov-public .ov-coverage-meter i[data-on] {
+  background: var(--ov-muted);
+}
+
+.ov-public .ov-coverage li[data-open] .ov-coverage-meter i {
+  background: var(--ov-select);
+}
+
+.ov-public .ov-coverage-state {
+  color: var(--ov-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.ov-public .ov-coverage li[data-open] .ov-coverage-state {
+  color: var(--ov-select);
+}
+
+/* ── Two-column indexed rows ── */
+
+@media (min-width: 720px) {
+  .ov-public .ov-rows--two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: clamp(1.5rem, 3vw, 2.5rem);
+  }
+}
+
+.ov-public .ov-rows--two .ov-row-title {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+/* ── Trade sections: 3/12 lead, 4.5/12 + 4.5/12 detail ── */
+
+.ov-public .ov-trade + .ov-trade {
+  border-top: 1px solid var(--ov-line) !important;
+}
+
+.ov-public .ov-trade-grid {
+  display: grid;
+  gap: var(--ov-gap-module);
+}
+
+@media (min-width: 1024px) {
+  .ov-public .ov-trade-grid {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 4.5fr) minmax(0, 4.5fr);
+    column-gap: clamp(1.5rem, 3vw, 3rem);
+    align-items: start;
+  }
+
+  .ov-public .ov-trade-lead {
+    position: sticky;
+    top: 6rem;
+  }
+}
+
+.ov-public .ov-trade-lead .tier1-section-title {
+  margin-top: 0.375rem !important;
+}
+
+.ov-public .ov-trade-customers {
+  margin: 0.625rem 0 0;
+  color: var(--ov-muted);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+.ov-public .ov-col-label {
+  margin: 0 0 0.625rem;
+  color: var(--ov-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.ov-public .ov-trade-col .tier1-plan-list {
+  margin-top: 0 !important;
+}
+
+.ov-public .ov-trade-col .tier1-plan-list + .ov-col-label {
+  margin-top: var(--ov-gap-module);
+}
+
+/* A small trailing cue on a link that leads somewhere to scan next. */
+.ov-public .ov-scan-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-top: 1rem;
+  color: var(--ov-headline);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.ov-public .ov-scan-link::after {
+  content: "→";
+  color: var(--ov-muted);
+  transition: transform 140ms ease;
+}
+
+.ov-public .ov-scan-link:hover::after {
+  transform: translateX(2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-public .ov-scan-link::after {
+    transition: none;
+  }
+}
+
+/* ── End-cap: a contained close, not another chapter ── */
+
+.ov-public .ov-endcap {
+  max-width: 42rem !important;
+}
+
+/*
+ * ── Pricing: one plan speaks, the others stay quiet ──
+ * The highlighted plan (featured, or the Plan Finder's pick, never both) gets
+ * an ink header band above its price and the stone inset; the rest are hairline
+ * outlines on the page. Empty badges keep the band's height so prices align.
+ * `html` lifts these over the night-theme card rules in globals.css.
+ */
+
+html .ov-public .tier1-pricing-plans .tier1-plan {
+  --plan-pad-x: 1.5rem;
+  --plan-pad-top: 0rem;
+  overflow: hidden;
+  padding: var(--plan-pad-top) var(--plan-pad-x) 1.5rem !important;
+}
+
+html .ov-public .tier1-pricing-plans .tier1-plan-quiet {
+  background: transparent !important;
+  border-color: var(--ov-line) !important;
+}
+
+html .ov-public .tier1-pricing-plans .tier1-plan-featured {
+  background: var(--ov-stone) !important;
+  border-color: var(--ov-line-strong) !important;
+}
+
+html .ov-public .tier1-pricing-plans .tier1-plan-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+  margin: 0 calc(var(--plan-pad-x) * -1) 0.75rem !important;
+  padding: 0.5rem var(--plan-pad-x);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+html .ov-public .tier1-pricing-plans .tier1-plan-featured .tier1-plan-badge {
+  --plan-dot: #6ee7a8;
+  background: var(--ov-charcoal);
+  color: var(--ov-paper) !important;
+}
+
+html[data-theme="night"] .ov-public .tier1-pricing-plans .tier1-plan-featured .tier1-plan-badge {
+  --plan-dot: #167d5e;
+  background: var(--ov-headline);
+}
+
+html .ov-public .tier1-pricing-plans .tier1-plan-featured .tier1-plan-badge::before {
+  content: "";
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 999px;
+  background: var(--plan-dot);
+}
+
+html .ov-public .pricing-multi-row:not(.pricing-multi-row--recommended) {
+  background: transparent !important;
+}
+
+@media (max-width: 1099px) {
+  html .ov-public .tier1-pricing-plans .tier1-plan-badge--empty {
+    display: none;
+  }
+
+  html .ov-public .tier1-pricing-plans .tier1-plan-quiet {
+    padding-top: 1.5rem !important;
+  }
+}
+
+html .ov-public .pricing-chapter-compare .pricing-matrix-scroll {
+  background: var(--ov-paper) !important;
+}
+
+/*
+ * ── Documents: a reading measure, ruled sections, scan rows ──
+ * Legal and trust pages read best at 720-780px, left on the site grid rather
+ * than centred. Numbered sections hang their number in the rail; dense lists
+ * become term rows (.legal-rows) or check rows (.legal-checks).
+ */
+
+.ov-public .ov-doc > * {
+  max-width: var(--ov-measure);
+}
+
+.ov-public .legal-prose section {
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--ov-line);
+}
+
+.ov-public .legal-prose section:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.ov-public .legal-prose section + section {
+  margin-top: 2.25rem;
+}
+
+.ov-public .legal-prose h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 0;
+  margin-bottom: 0.875rem;
+}
+
+.ov-public .legal-prose .legal-index {
+  flex: none;
+  width: var(--ov-rail);
+  color: var(--ov-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ov-public .legal-prose .legal-lead {
+  max-width: 40rem;
+  color: var(--ov-headline);
+  font-size: 1.0625rem;
+  line-height: 1.55;
+}
+
+.ov-public .legal-prose ul.legal-rows,
+.ov-public .legal-prose ul.legal-checks {
+  display: grid;
+  margin: 1rem 0 1.25rem;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--ov-line);
+}
+
+.ov-public .legal-prose ul.legal-rows > li,
+.ov-public .legal-prose ul.legal-checks > li {
+  margin: 0;
+  padding-block: 0.875rem;
+  border-bottom: 1px solid var(--ov-line);
+}
+
+.ov-public .legal-prose ul.legal-rows > li {
+  display: grid;
+  gap: 0.25rem 1.5rem;
+}
+
+.ov-public .legal-prose ul.legal-rows > li > strong {
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+
+@media (min-width: 720px) {
+  .ov-public .legal-prose ul.legal-rows > li {
+    grid-template-columns: 13rem minmax(0, 1fr);
+  }
+}
+
+.ov-public .legal-prose ul.legal-checks > li {
+  display: grid;
+  grid-template-columns: var(--ov-rail) minmax(0, 1fr);
+}
+
+.ov-public .legal-prose ul.legal-checks > li::before {
+  content: "✓";
+  color: var(--ov-muted);
+  font-weight: 600;
+}
+
+@media (max-width: 719px) {
+  .ov-public .legal-prose section + section {
+    margin-top: 1.75rem;
+  }
+
+  .ov-public .legal-prose ul.legal-rows > li,
+  .ov-public .legal-prose ul.legal-checks > li {
+    padding-block: 0.625rem;
+  }
+}
+
+/*
+ * ── Help: a capped index on one calm tier ──
+ * The index sits on canvas; each group is one paper panel divided by hairlines,
+ * with the arrow trailing at the row's end so the eye scans titles, not cards.
+ */
+
+.ov-public .ov-help > * {
+  max-width: 57.5rem;
+}
+
+.ov-public .ov-help .help-search input {
+  background: var(--ov-paper);
+}
+
+.ov-public .ov-help .help-list {
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--ov-line);
+  border-radius: 0.5rem;
+  background: var(--ov-paper);
+}
+
+.ov-public .ov-help .help-list > li + li {
+  border-top: 1px solid var(--ov-line);
+}
+
+.ov-public .ov-help .help-card {
+  grid-template-columns: minmax(0, 1fr) 1.25rem;
+  column-gap: 1rem;
+  border: 0;
+  border-radius: 0;
+}
+
+.ov-public .ov-help .help-card > span {
+  grid-column: 1;
+}
+
+.ov-public .ov-help .help-card-title::after {
+  content: none;
+}
+
+.ov-public .ov-help .help-card::after {
+  content: "→" / "";
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  justify-self: end;
+  color: var(--ov-muted);
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.ov-public .ov-help .help-card:hover,
+.ov-public .ov-help .help-card:focus-visible {
+  background: var(--ov-stone);
+}
+
+.ov-public .ov-help .help-card:hover::after,
+.ov-public .ov-help .help-card:focus-visible::after {
+  transform: translateX(2px);
+  color: var(--ov-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-public .ov-help .help-card::after {
+    transition: none;
+  }
+}
+
+/*
+ * ── Product: the sequence hangs on a number rail ──
+ * Each step's number sits in a 30px chip in the console's copper, rows breathe
+ * more below than above so each reads as a step, not a cell, and the close is
+ * the ink anchor. On small phones the hero gives back 24px so the console
+ * starts sooner; gutters and 44px actions are untouched.
+ */
+
+.ov-public .ov-product-sequence .mkt-law--ruled {
+  grid-template-columns: 1.875rem minmax(0, 1fr);
+  column-gap: 1.125rem;
+  padding: 1.25rem 0 2rem;
+}
+
+.ov-public .ov-product-sequence .mkt-law-index {
+  display: inline-grid;
+  place-items: center;
+  width: 1.875rem;
+  height: 1.875rem;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--ov-accent-text) 45%, transparent);
+  border-radius: 999px;
+  color: var(--ov-accent-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  opacity: 1;
+}
+
+.ov-public .ov-product-sequence .mkt-law-title {
+  margin-top: 0.25rem;
+}
+
+@media (min-width: 900px) {
+  .ov-public .ov-product-sequence .mkt-law--ruled:nth-child(even) {
+    padding-top: 2rem;
+    padding-bottom: 1.25rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .ov-public .ov-product-hero-grid {
+    gap: 1rem;
+  }
+
+  .ov-public .ov-product-stage {
+    padding-top: 0.5rem;
+  }
+}
+
+/*
+ * ── Sign in: canvas, lifted card, inward field ──
+ * Three luminance steps, no gradient: the page, a card one step lighter with a
+ * top highlight, and fields one step darker than the card. The newest board
+ * row is the one specimen, marked with the status green. On phones a small
+ * status echo sits beside the wordmark, the card's inner measure widens, and
+ * the lead-in above the form is 32px shorter.
+ */
+
+.ov-signin {
+  --ov-auth-card: #232326;
+  --ov-auth-field: #161618;
+  --ov-auth-signal: #6ee7a8;
+}
+
+.ov-signin .ov-signin-card {
+  background: var(--ov-auth-card);
+  border-color: rgb(255 255 255 / 0.12);
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.07),
+    0 30px 80px -30px rgb(0 0 0 / 0.9);
+}
+
+.ov-signin .ov-signin-or span {
+  background: var(--ov-auth-card);
+}
+
+.ov-signin .ov-signin-input {
+  background: var(--ov-auth-field);
+}
+
+.ov-signin .ov-signin-row.is-newest {
+  background: rgb(255 255 255 / 0.05);
+  box-shadow: inset 2px 0 0 0 var(--ov-auth-signal);
+}
+
+.ov-signin-mobile-head {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .ov-signin-mobile-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .ov-signin-mobile-head .ov-signin-brand--mobile {
+    margin-bottom: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .ov-signin .ov-signin-panel {
+    padding-top: 1.5rem;
+  }
+
+  .ov-signin .ov-signin-card {
+    padding: 1.75rem 1.25rem;
+  }
+}
+
+/*
+ * ── Claim your front door ──
+ * The claim form is deliberately small: a name, a trade, and a shareable link.
+ * The card it returns is stone, the link itself is the artifact owners pass on.
+ */
+
+.ov-public .ov-claim-form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.ov-public .ov-claim-field {
+  display: grid;
+  gap: 0.375rem;
+  color: var(--ov-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.ov-public .ov-claim-field input,
+.ov-public .ov-claim-field select {
+  min-height: 44px;
+  padding: 0 0.875rem;
+  border: 1px solid var(--ov-line-strong);
+  border-radius: 0.5rem;
+  background: var(--ov-paper);
+  color: var(--ov-ink);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.ov-public .ov-claim-submit {
+  justify-self: start;
+  min-height: 44px;
+  white-space: nowrap;
+}
+
+.ov-public .ov-claim-card {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--ov-line);
+  border-radius: 0.75rem;
+  background: var(--ov-stone);
+}
+
+.ov-public .ov-claim-shop {
+  margin: 0;
+  color: var(--ov-headline);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.ov-public .ov-claim-link {
+  margin: 0;
+  color: var(--ov-accent-text);
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+
+.ov-public .ov-claim-note {
+  margin: 0;
+  color: var(--ov-muted);
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.ov-public .ov-claim-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.ov-public .ov-claim-band {
+  border-top: 1px solid var(--ov-line);
+}

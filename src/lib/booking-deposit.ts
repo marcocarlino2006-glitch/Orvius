@@ -1,15 +1,19 @@
+import { withLease } from "@/lib/provision-attempt";
 import type { Business, Deposit } from "@prisma/client";
-import { checkoutSessionPaid, refundDuplicateCheckout, reuseOpenCheckoutSession, sessionPaymentIntentId } from "@/lib/checkout-guard";
+import { checkoutSessionPaid, holdDemoPayment, holdLatePayment, reserveCheckout, sessionPaymentIntentId } from "@/lib/checkout-guard";
 import type Stripe from "stripe";
 
+import { normalizePhone } from "@/lib/customer";
 import { sendCustomerSms } from "@/lib/customer-sms";
 import {
   STRIPE_MIN_CHARGE_CENTS,
   calculatePlatformFeeCents,
   isChargeableAmount,
 } from "@/lib/platform-fee";
+import { assertLiveActionAllowed } from "@/lib/demo-fence";
 import { prisma } from "@/lib/prisma";
 import { mintPublicToken } from "@/lib/public-tokens";
+import { nextIntentVersion } from "@/lib/sms-intent";
 import { withSmsOptOutFooter } from "@/lib/sms-keywords";
 import { getAppBaseUrl, getStripe } from "@/lib/stripe";
 import { getConnectStatus } from "@/lib/stripe-connect";
@@ -131,28 +135,40 @@ export async function createDepositForLead(params: {
   if (!isDepositAmountValid(params.amountCents)) {
     throw new Error(`Deposit amount out of range: ${params.amountCents}`);
   }
+  const obligation = params.leadId ? `lead:${params.leadId}` : params.jobId ? `job:${params.jobId}` : null;
+  if (!obligation) return createDepositRow(params);
+  // One active deposit per booking: a double tap or a webhook retry racing the booker reuses it.
+  return withLease(`deposit:${params.businessId}:${obligation}`, () => createDepositForLeadHeld(params), { forget: true });
+}
 
-  if (params.leadId) {
-    const existing = await prisma.deposit.findFirst({
-      where: {
-        businessId: params.businessId,
-        leadId: params.leadId,
-        status: { in: ["pending", "paid"] },
-      },
-      orderBy: { createdAt: "desc" },
-    });
-    if (existing) {
-      if (params.jobId && !existing.jobId) {
-        const linked = await prisma.deposit.update({
-          where: { id: existing.id },
-          data: { jobId: params.jobId },
-        });
-        return { deposit: linked, created: false };
-      }
-      return { deposit: existing, created: false };
+async function createDepositForLeadHeld(params: {
+  businessId: string;
+  leadId: string | null;
+  jobId?: string | null;
+  amountCents: number;
+}): Promise<{ deposit: Deposit; created: boolean }> {
+  const existing = await prisma.deposit.findFirst({
+    where: {
+      businessId: params.businessId,
+      ...(params.leadId ? { leadId: params.leadId } : { jobId: params.jobId }),
+      status: { in: ["pending", "paid"] },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+  if (existing) {
+    if (params.jobId && !existing.jobId) {
+      const linked = await prisma.deposit.update({
+        where: { id: existing.id },
+        data: { jobId: params.jobId },
+      });
+      return { deposit: linked, created: false };
     }
+    return { deposit: existing, created: false };
   }
+  return createDepositRow(params);
+}
 
+async function createDepositRow(params: { businessId: string; leadId: string | null; jobId?: string | null; amountCents: number }) {
   const deposit = await prisma.deposit.create({
     data: {
       businessId: params.businessId,
@@ -191,6 +207,7 @@ export async function sendDepositLink(params: {
         `please pay your $${dollars} deposit here: ` +
         depositPayUrl(params.deposit.publicToken),
     ),
+    intent: { eventType: "deposit.pay_link", eventId: params.deposit.id, ...(await nextIntentVersion({ businessId: params.business.id, eventType: "deposit.pay_link", eventId: params.deposit.id, to: normalizePhone(params.toPhone) ?? params.toPhone })) },
   });
 
   if (result.sent) {
@@ -313,6 +330,7 @@ export async function createDepositCheckoutSession(params: {
   business: Pick<Business, "id" | "name"> &
     Parameters<typeof getConnectStatus>[0];
 }) {
+  await assertLiveActionAllowed(params.business.id, "Card checkout");
   const connect = getConnectStatus(params.business);
   if (!connect.canAcceptPayments || !connect.accountId) {
     throw new Error("Shop is not cleared to accept card payments");
@@ -325,13 +343,6 @@ export async function createDepositCheckoutSession(params: {
       `Deposit below Stripe minimum: ${params.deposit.amountCents}`,
     );
   }
-
-  const reused = await reuseOpenCheckoutSession({
-    sessionId: params.deposit.stripeSessionId,
-    stripeAccount: connect.accountId,
-    amountCents: params.deposit.amountCents,
-  });
-  if (reused) return reused;
 
   const stripe = getStripe();
   const baseUrl = getAppBaseUrl();
@@ -347,7 +358,18 @@ export async function createDepositCheckoutSession(params: {
     publicToken: token,
   };
 
-  const session = await stripe.checkout.sessions.create(
+  const accountId = connect.accountId;
+  return reserveCheckout({
+    scope: `deposit:${params.deposit.id}`,
+    stripeAccount: accountId,
+    amountCents: params.deposit.amountCents,
+    businessId: params.business.id,
+    entity: { type: "deposit", id: params.deposit.id },
+    currentSessionId: async () =>
+      (await prisma.deposit.findUnique({ where: { id: params.deposit.id }, select: { stripeSessionId: true } }))?.stripeSessionId,
+    remember: (session) =>
+      prisma.deposit.update({ where: { id: params.deposit.id }, data: { stripeSessionId: session.id, applicationFeeCents } }),
+    create: (idempotencyKey) => stripe.checkout.sessions.create(
     {
       mode: "payment",
       line_items: [
@@ -372,15 +394,9 @@ export async function createDepositCheckoutSession(params: {
       cancel_url: `${baseUrl}/d/${token}?canceled=1`,
       metadata,
     },
-    { stripeAccount: connect.accountId },
-  );
-
-  await prisma.deposit.update({
-    where: { id: params.deposit.id },
-    data: { stripeSessionId: session.id, applicationFeeCents },
+    { stripeAccount: accountId, idempotencyKey },
+  ),
   });
-
-  return session;
 }
 
 /**
@@ -432,18 +448,24 @@ export async function fulfillDepositCheckoutSession(
     return settledDeposit(now, session, businessId);
   }
 
+  if (await holdDemoPayment({ businessId, entityType: "deposit", entityId: deposit.id, sessionId: session.id, amountCents: session.amount_total ?? deposit.amountCents, held: "follow_ups" })) {
+    return { ok: true, reason: "held_in_demo", depositId: deposit.id };
+  }
   return { ok: true, depositId: deposit.id };
 }
 
-/** A paid deposit seen again: the same session is a replay, any other is a second charge to hand back. */
+/** A paid deposit seen again: the same session is a replay, any other is a second charge held for the owner. */
 async function settledDeposit(
   deposit: Pick<Deposit, "id" | "stripeSessionId">,
   session: Stripe.Checkout.Session,
   businessId: string,
 ): Promise<{ ok: boolean; reason?: string; depositId?: string }> {
   if (deposit.stripeSessionId === session.id) return { ok: true, reason: "already_paid", depositId: deposit.id };
-  await refundDuplicateCheckout({ session, businessId, entityType: "deposit", entityId: deposit.id, what: "deposit" });
-  return { ok: true, reason: "duplicate_refunded", depositId: deposit.id };
+  if (await holdDemoPayment({ businessId, entityType: "deposit", entityId: deposit.id, sessionId: session.id, amountCents: session.amount_total, held: "duplicate_refund" })) {
+    return { ok: true, reason: "duplicate_held", depositId: deposit.id };
+  }
+  await holdLatePayment({ session, businessId, entityType: "deposit", entityId: deposit.id, what: "deposit" });
+  return { ok: true, reason: "late_payment_held", depositId: deposit.id };
 }
 
 /**

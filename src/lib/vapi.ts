@@ -20,7 +20,7 @@ type VapiAssistantPayload = {
     tools?: Array<Record<string, unknown>>;
   };
   /** `orviusConfig` is a fingerprint of everything else, so drift from the deployed code is detectable. */
-  metadata?: { orviusConfig: string };
+  metadata?: { orviusConfig: string; orviusEffect?: string };
   voice: {
     provider: string;
     voiceId: string;

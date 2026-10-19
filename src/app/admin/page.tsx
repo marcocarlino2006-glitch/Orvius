@@ -1,5 +1,6 @@
 "use client";
 
+import { askConfirm } from "@/components/ask-dialog";
 import { OsShell } from "@/components/os-shell";
 import { TollFreeForm } from "@/components/toll-free-form";
 import { LiveStatusBar } from "@/components/live-status-bar";
@@ -13,6 +14,10 @@ import { hearLink } from "@/lib/hear-link";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { CompanyScoreboard, ScoreboardWeek } from "@/lib/company-scoreboard";
+import type { LaunchFunnel } from "@/lib/launch-funnel";
+import type { ProofKit } from "@/lib/proof-kit";
+import type { Density } from "@/lib/density";
+import type { PaymentsAttach } from "@/lib/payments-attach";
 import { activationText, retentionText } from "@/lib/scoreboard-text";
 import { revenueLines, valueLines } from "@/lib/revenue-lines";
 import { signupChannelText } from "@/lib/acquisition";
@@ -49,6 +54,7 @@ type LaunchGate = {
   signupOpen: boolean;
   blockers: number;
   items: Array<{ key: string; label: string; ready: boolean; blocksSignup: boolean; fix: string[]; canSubmit?: boolean }>;
+  sequence?: Array<{ key: string; label: string; why: string }>;
 };
 
 const PIPELINE_STATUSES = [
@@ -108,6 +114,11 @@ export default function AdminPage() {
   const [health, setHealth] = useState<HealthStatus | null>(null);
   const [gate, setGate] = useState<LaunchGate | null>(null);
   const [board, setBoard] = useState<CompanyScoreboard | null>(null);
+  const [funnel, setFunnel] = useState<LaunchFunnel | null>(null);
+  const [density, setDensity] = useState<Density | null>(null);
+  const [attach, setAttach] = useState<PaymentsAttach | null>(null);
+  const [kit, setKit] = useState<ProofKit | null>(null);
+  const [kitShopId, setKitShopId] = useState("");
   const [ownerEdits, setOwnerEdits] = useState<Record<string, string>>({});
   const [prospects, setProspects] = useState<Prospect[]>([]);
   const [prospectCounts, setProspectCounts] = useState<Record<string, number>>({});
@@ -178,7 +189,29 @@ export default function AdminPage() {
       .then((res) => (res.ok ? res.json() : null))
       .then(setBoard)
       .catch(() => null);
+    fetch("/api/admin/launch-funnel")
+      .then((res) => (res.ok ? res.json() : null))
+      .then(setFunnel)
+      .catch(() => null);
+    fetch("/api/admin/density")
+      .then((res) => (res.ok ? res.json() : null))
+      .then(setDensity)
+      .catch(() => null);
+    fetch("/api/admin/payments-attach")
+      .then((res) => (res.ok ? res.json() : null))
+      .then(setAttach)
+      .catch(() => null);
   }, []);
+
+  async function loadProofKit(businessId: string) {
+    setKitShopId(businessId);
+    if (!businessId) {
+      setKit(null);
+      return;
+    }
+    const res = await fetch(`/api/admin/proof-kit?businessId=${encodeURIComponent(businessId)}`).catch(() => null);
+    setKit(res && res.ok ? await res.json() : null);
+  }
 
   async function updateProspect(
     id: string,
@@ -300,7 +333,7 @@ export default function AdminPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Delete this business and its Vapi assistant?")) return;
+    if (!(await askConfirm({ title: "Delete this business and its Vapi assistant?", body: "This can't be undone from here.", confirmLabel: "Delete", danger: true }))) return;
 
     const res = await fetch(`/api/businesses?id=${id}`, { method: "DELETE" });
     if (!res.ok) {
@@ -357,6 +390,15 @@ export default function AdminPage() {
       <LiveStatusBar />
 
       {board ? <ScoreboardCard board={board} /> : null}
+      {funnel ? <LaunchFunnelCard funnel={funnel} /> : null}
+      {density ? <DensityCard density={density} /> : null}
+      {attach ? <PaymentsAttachCard attach={attach} /> : null}
+      <ProofKitCard
+        businesses={businesses}
+        kit={kit}
+        shopId={kitShopId}
+        onPick={(id) => void loadProofKit(id)}
+      />
       {gate ? <LaunchGateCard gate={gate} /> : null}
 
       <section className="card mb-8 p-6">
@@ -824,6 +866,192 @@ function firstJobText(minutes: number | null) {
 }
 
 /** The weekly board: the same numbers every Monday, this week against last. */
+function LaunchFunnelCard({ funnel }: { funnel: LaunchFunnel }) {
+  const steps: Array<{ label: string; value: number }> = [
+    { label: "Previews started (hear your shop)", value: funnel.previewsStarted },
+    { label: "Previews that took a call", value: funnel.previewsCalled },
+    { label: "Calls shared as replays", value: funnel.replaysShared },
+    { label: "Replay views by other owners", value: funnel.replayViews },
+    { label: "Shops signed up", value: funnel.shopsTotal },
+    { label: "Shops paying", value: funnel.shopsPaying },
+  ];
+  return (
+    <section className="card mb-8 p-6" aria-label="Launch funnel">
+      <p className="home-os-kicker">Launch funnel</p>
+      <h2 className="mt-2 font-serif text-xl tracking-[-0.03em] text-void">
+        Claim → hear it → share the call → sign up → pay
+      </h2>
+      <table className="mt-4 w-full font-sans text-sm">
+        <tbody>
+          {steps.map((step) => (
+            <tr key={step.label} className="border-t border-black/5">
+              <td className="py-1.5 text-void">{step.label}</td>
+              <td className="py-1.5 text-right tabular-nums text-void">{step.value}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="mt-3 font-sans text-xs text-ash">
+        All-time counts from preview, replay and shop records. Front-door claims are link clicks and are not
+        stored, so they are not counted here.
+      </p>
+      {funnel.cohort.capacity != null ? (
+        <p className="mt-2 font-sans text-sm text-void">
+          Founding cohort, {funnel.cohort.month}: {funnel.cohort.taken} of {funnel.cohort.capacity} spots
+          taken{funnel.cohort.left != null ? ` · ${funnel.cohort.left} left` : ""}. Demand above the line,
+          capacity here — when previews outrun spots, the queue is the story; when spots outrun previews,
+          distribution is the problem.
+        </p>
+      ) : (
+        <p className="mt-2 font-sans text-xs text-ash">
+          No monthly shop capacity set (ORVIUS_MONTHLY_SHOP_CAPACITY), so no cohort count is shown.
+        </p>
+      )}
+    </section>
+  );
+}
+
+function DensityCard({ density }: { density: Density }) {
+  return (
+    <section className="card mb-8 p-6" aria-label="Shop density">
+      <p className="home-os-kicker">Density</p>
+      <h2 className="mt-2 font-serif text-xl tracking-[-0.03em] text-void">
+        Production shops by trade and metro
+      </h2>
+      <p className="mt-2 font-sans text-sm text-void">
+        {density.total} production shops across {density.metros} readable metros
+        {density.densest
+          ? ` · densest cell: ${density.densest.trade} in ${density.densest.metro} (${density.densest.shops})`
+          : ""}
+        .
+      </p>
+      <table className="mt-4 w-full font-sans text-sm">
+        <tbody>
+          {density.rows.map((row) => (
+            <tr key={`${row.trade}-${row.metro}`} className="border-t border-black/5">
+              <td className="py-1.5 text-void">{row.trade}</td>
+              <td className="py-1.5 text-void">{row.metro}</td>
+              <td className="py-1.5 text-right tabular-nums text-void">{row.shops}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="mt-3 font-sans text-xs text-ash">
+        Metro is read from the city in the shop address; addresses without a readable city are counted as
+        Metro not set, never guessed. Density is won metro by metro: one trade owning one metro beats thin
+        coverage everywhere.
+        {density.concentrated && density.densest
+          ? ` ${density.densest.trade} in ${density.densest.metro} is at ${density.densest.shops} shops — concentrate selling there; that cell compounds first.`
+          : " No cell is at 5 shops yet, so density has not formed anywhere — pick the leading cell and feed it."}
+      </p>
+    </section>
+  );
+}
+
+function PaymentsAttachCard({ attach }: { attach: PaymentsAttach }) {
+  const money = (cents: number) => `$${(cents / 100).toLocaleString()}`;
+  return (
+    <section className="card mb-8 p-6" aria-label="Payments attach">
+      <p className="home-os-kicker">Money through Orvius</p>
+      <h2 className="mt-2 font-serif text-xl tracking-[-0.03em] text-void">
+        The rake, measured
+      </h2>
+      <p className="mt-2 font-sans text-sm text-void">
+        {attach.shopsCollecting} of {attach.productionShops} production shops collect through Orvius ·{" "}
+        {money(attach.collectedKeptCents)} kept all-time · {money(attach.openBilledCents)} billed and still
+        open.
+      </p>
+      <p className="mt-3 font-sans text-xs text-ash">
+        Kept means recorded payments and paid deposits, gross less refunds. Money shops collect outside
+        Orvius is not visible and is never estimated — shops not yet collecting here, and billed work still
+        open, are the attach opportunity.
+      </p>
+    </section>
+  );
+}
+
+function ProofKitCard({
+  businesses,
+  kit,
+  shopId,
+  onPick,
+}: {
+  businesses: Business[];
+  kit: ProofKit | null;
+  shopId: string;
+  onPick: (id: string) => void;
+}) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <section className="card mb-8 p-6" aria-label="Proof kit">
+      <p className="home-os-kicker">Proof kit</p>
+      <h2 className="mt-2 font-serif text-xl tracking-[-0.03em] text-void">
+        One shop&apos;s proof, ready to show the next shop
+      </h2>
+      <label className="mt-4 block font-sans text-sm text-void">
+        Shop
+        <select
+          className="mt-1 block w-full max-w-md rounded-lg border border-black/10 bg-white px-3 py-2"
+          value={shopId}
+          onChange={(event) => onPick(event.target.value)}
+        >
+          <option value="">Pick a shop…</option>
+          {businesses.map((business) => (
+            <option key={business.id} value={business.id}>
+              {business.name}
+            </option>
+          ))}
+        </select>
+      </label>
+      {kit ? (
+        <div className="mt-4 font-sans text-sm text-void">
+          <p>
+            Last {kit.outcomes.windowDays} days: {kit.outcomes.calls} calls · {kit.outcomes.leads} leads ·{" "}
+            {kit.outcomes.jobsBooked} jobs booked
+            {kit.outcomes.bookingRate != null ? ` · ${kit.outcomes.bookingRate}% booking rate` : ""} · $
+            {(kit.outcomes.collectedCents / 100).toLocaleString()} collected.
+          </p>
+          <p className="mt-2">
+            Dormant customers: {kit.reactivation.audience3} quiet 3+ months · {kit.reactivation.audience6}{" "}
+            at 6+ · {kit.reactivation.audience12} at 12+
+            {kit.reactivation.estimatedCents != null
+              ? ` — waking the 6-month group is worth about $${(kit.reactivation.estimatedCents / 100).toLocaleString()} at their average ticket (estimate, owner sends from Win-back).`
+              : " — set an average ticket to size the win-back prize."}
+          </p>
+          {kit.replays.length ? (
+            <ul className="mt-3 space-y-1">
+              {kit.replays.map((replay) => (
+                <li key={replay.id}>
+                  <a className="underline" href={replay.href} target="_blank" rel="noreferrer">
+                    Hear a real {replay.trade} call
+                  </a>{" "}
+                  <span className="text-ash">({replay.views} views)</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-ash">
+              No listed gallery calls yet — a call only appears here after the owner shares it and it is
+              listed.
+            </p>
+          )}
+          <pre className="mt-4 whitespace-pre-wrap rounded-lg bg-black/[0.03] p-4 text-xs">{kit.proofText}</pre>
+          <button
+            type="button"
+            className="btn btn-void mt-3 text-sm"
+            onClick={() => {
+              void navigator.clipboard?.writeText(kit.proofText).catch(() => null);
+              setCopied(true);
+            }}
+          >
+            {copied ? "Proof copied" : "Copy the proof"}
+          </button>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 function ScoreboardCard({ board }: { board: CompanyScoreboard }) {
   const rows: Array<{ label: string; value: (week: ScoreboardWeek) => string }> = [
     { label: "New shops", value: (w) => String(w.newShops) },
@@ -936,6 +1164,18 @@ function LaunchGateCard({ gate }: { gate: LaunchGate }) {
         </div>
         <ShellBadge tone={gate.signupOpen ? "live" : "flare"}>{gate.signupOpen ? "Open" : "Closed"}</ShellBadge>
       </div>
+      {gate.sequence?.length ? (
+        <div className="mt-4 rounded-lg bg-black/[0.03] p-4">
+          <p className="font-sans text-sm font-medium text-void">Open the portal, in this order</p>
+          <ol className="mt-2 list-decimal space-y-1.5 pl-5 font-sans text-sm text-void">
+            {gate.sequence.map((step) => (
+              <li key={step.key}>
+                {step.label} <span className="text-ash">— {step.why}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      ) : null}
       <ul className="mt-4 space-y-3">
         {gate.items.map((item) => (
           <li key={item.key} className="font-sans text-sm">

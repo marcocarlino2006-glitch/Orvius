@@ -15,6 +15,8 @@ import {
   type ReactNode,
 } from "react";
 import type { RecordType, RecordView } from "@/lib/record-types";
+import { CHECKING, runCheckedWrite } from "@/lib/checked-write";
+import { sendWrite } from "@/lib/client-write";
 
 type OpenArgs = { type: RecordType; id: string };
 
@@ -419,7 +421,7 @@ function LeadMoreActions({ record }: { record: RecordView }) {
   );
 }
 
-type FollowUpPreview = { mode: "off" | "ask" | "auto"; message: string; sentAt: string | null; canSend: boolean; reason: string | null };
+type FollowUpPreview = { mode: "off" | "ask" | "auto"; message: string; sentAt: string | null; canSend: boolean; reason: string | null; uncertain?: boolean };
 
 /** The one follow-up text Orvius drafts for a caller nobody has reached. */
 function FollowUpText({ leadId }: { leadId: string }) {
@@ -440,17 +442,42 @@ function FollowUpText({ leadId }: { leadId: string }) {
     };
   }, [leadId]);
 
+  const readPreview = async (): Promise<FollowUpPreview | null> => {
+    const res = await fetch(`/api/leads/${leadId}/follow-up`, { cache: "no-store" });
+    if (!res.ok) return null;
+    const data = (await res.json().catch(() => null)) as FollowUpPreview | null;
+    return data && typeof data.mode === "string" ? data : null;
+  };
+
   async function send() {
     setBusy(true);
     setNote(null);
     try {
-      const res = await fetch(`/api/leads/${leadId}/follow-up`, { method: "POST" });
-      const data = (await res.json().catch(() => null)) as { error?: string } | null;
-      if (!res.ok) throw new Error(data?.error ?? "The text did not go out. Try again.");
-      setPreview((prev) => (prev ? { ...prev, canSend: false, sentAt: new Date().toISOString(), reason: null } : prev));
-      toast({ title: "Follow-up sent" });
-    } catch (err) {
-      setNote(err instanceof Error ? err.message : "The text did not go out. Try again.");
+      const result = await runCheckedWrite<FollowUpPreview | true>({
+        send: () => sendWrite(`/api/leads/${leadId}/follow-up`, "POST"),
+        accept: (data) => ((data as { ok?: unknown; leadId?: unknown } | null)?.ok === true && (data as { leadId?: unknown }).leadId === leadId ? true : null),
+        readBack: async () => {
+          const found = await readPreview();
+          if (!found) return null;
+          if (found.sentAt) return found;
+          return "absent";
+        },
+        onChecking: () => setNote(CHECKING),
+      });
+      if (result.kind === "confirmed") {
+        setNote(null);
+        if (result.value === true) {
+          setPreview((prev) => (prev ? { ...prev, canSend: false, sentAt: new Date().toISOString(), reason: null } : prev));
+          toast({ title: "Follow-up sent" });
+        } else {
+          setPreview(result.value);
+        }
+        return;
+      }
+      if (result.kind === "failed" && result.reason === "unknown_submission") {
+        setPreview((prev) => (prev ? { ...prev, canSend: false, sentAt: prev.sentAt ?? new Date().toISOString(), reason: null, uncertain: true } : prev));
+      }
+      setNote(result.message);
     } finally {
       setBusy(false);
     }
@@ -462,7 +489,11 @@ function FollowUpText({ leadId }: { leadId: string }) {
     <section className="rd-section" aria-label="Follow-up text">
       <p className="rd-section-label">Follow-up text</p>
       <p className="rd-meta">{preview.message}</p>
-      {preview.sentAt ? (
+      {preview.sentAt && preview.uncertain ? (
+        <p className="rd-meta">
+          Tried <time dateTime={preview.sentAt}>{formatWhen(preview.sentAt)}</time>, but the carrier never said whether it left. Orvius won&apos;t send it again; check the conversation before texting.
+        </p>
+      ) : preview.sentAt ? (
         <p className="rd-meta">
           Sent <time dateTime={preview.sentAt}>{formatWhen(preview.sentAt)}</time>. Replies come to you.
         </p>

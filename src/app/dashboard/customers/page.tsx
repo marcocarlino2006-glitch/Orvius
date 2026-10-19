@@ -1,5 +1,6 @@
 "use client";
 
+import { LoadFailure, SESSION_EXPIRED } from "@/components/load-failure";
 import { CustomerPanel } from "@/components/customer-panel";
 import { CustomerRecordCard } from "@/components/customer-record-card";
 import { ProLead } from "@/components/pro-lead";
@@ -30,6 +31,7 @@ type CustomerRow = {
   returning: boolean;
   collectedCents: number;
   owedCents: number;
+  refundedCents?: number;
 };
 
 export default function CustomersPage() {
@@ -38,11 +40,14 @@ export default function CustomersPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [forgotten, setForgotten] = useState(false);
+  const [forgotten, setForgotten] = useState<"done" | "pending" | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  const [more, setMore] = useState({ hasMore: false, moneyPartial: false });
 
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("forgotten") !== "1") return;
-    setForgotten(true);
+    const state = new URLSearchParams(window.location.search).get("forgotten");
+    if (state !== "1" && state !== "pending") return;
+    setForgotten(state === "pending" ? "pending" : "done");
     window.history.replaceState(null, "", "/dashboard/customers");
   }, []);
 
@@ -57,13 +62,16 @@ export default function CustomersPage() {
       setError(null);
       fetch(url, { signal: controller.signal })
         .then(async (res) => {
-          if (!res.ok) throw new Error("Failed to load customers");
+          if (!res.ok) throw new Error(res.status === 401 ? SESSION_EXPIRED : "Customers didn't load. Nothing changed; try again.");
           return res.json();
         })
-        .then((data) => setCustomers(data.customers ?? []))
+        .then((data) => {
+          setCustomers(Array.isArray(data?.customers) ? data.customers : []);
+          setMore({ hasMore: data?.hasMore === true, moneyPartial: data?.moneyPartial === true });
+        })
         .catch((err) => {
           if (err instanceof DOMException && err.name === "AbortError") return;
-          setError(err instanceof Error ? err.message : "Failed to load customers");
+          setError(err instanceof Error ? err.message : "Customers didn't load. Nothing changed; try again.");
         })
         .finally(() => {
           if (!controller.signal.aborted) setLoading(false);
@@ -74,7 +82,7 @@ export default function CustomersPage() {
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [query]);
+  }, [query, attempt]);
 
   const tally = useMemo(() => {
     const returning = customers.filter((c) => c.returning).length;
@@ -100,11 +108,17 @@ export default function CustomersPage() {
       title="Customers"
     >
       <PlanUpgradeGate module="customers">
-      {forgotten ? <ShellAlert tone="success">Their data is deleted. Calls and jobs stay in your records without their details.</ShellAlert> : null}
-      {loading && !customers.length ? (
+      {forgotten === "done" ? <ShellAlert tone="success">Their data is deleted here and at our call providers. Calls and jobs stay in your records without their details.</ShellAlert> : null}
+      {forgotten === "pending" ? (
+        <ShellAlert tone="success">
+          Their data is deleted from Orvius. Copies at our call providers are still being deleted; Orvius retries daily and records it in the activity log when each one is confirmed.
+        </ShellAlert>
+      ) : null}
+      {loading && !customers.length && !error ? (
         <DashboardSkeleton />
       ) : (
         <>
+          {error && !customers.length ? null : (
           <ProLead
             loading={loading && !customers.length}
             figure={tally.repeatRate ?? String(customers.length)}
@@ -118,6 +132,7 @@ export default function CustomersPage() {
                 : [{ label: "Returning", value: tally.returning }]
             }
           />
+          )}
 
           <ProSearchBar
             value={query}
@@ -128,13 +143,13 @@ export default function CustomersPage() {
 
           {error ? (
             <div className="mb-4">
-              <ShellAlert tone="error">{error}</ShellAlert>
+              <LoadFailure title="Customers not loaded" error={error} onRetry={() => setAttempt((n) => n + 1)} />
             </div>
           ) : null}
 
           {loading ? (
             <DashboardSkeleton />
-          ) : !customers.length ? (
+          ) : error && !customers.length ? null : !customers.length ? (
             <ProEmptyState
               title="No customers yet"
               body="They appear automatically when someone calls or texts your shop line."
@@ -165,16 +180,27 @@ export default function CustomersPage() {
                     returning={customer.returning}
                     collectedCents={customer.collectedCents}
                     owedCents={customer.owedCents}
+                    refundedCents={customer.refundedCents ?? 0}
                   />
                 </li>
               ))}
+              {more.hasMore || more.moneyPartial ? (
+                <li className="cp-list-note" role="note">
+                  {[
+                    more.hasMore ? `Showing the ${customers.length} most recent. Search to find anyone else.` : null,
+                    more.moneyPartial ? "Paid and owed amounts here leave out older jobs. Open a customer for their full record." : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                </li>
+              ) : null}
             </ul>
             <div className="cp-side">
               {activeId ? <CustomerPanel customerId={activeId} /> : null}
             </div>
             </div>
           )}
-          {customers.length ? (
+          {customers.length && !more.hasMore ? (
             <ProListEnd count={customers.length} noun="customer" />
           ) : null}
           {!query ? <WinBackCard /> : null}

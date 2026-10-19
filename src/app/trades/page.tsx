@@ -20,11 +20,17 @@ export default function TradesPage() {
   const open = LAUNCH_TRADES.map((trade) => tradeScope(trade)).filter((s) => s !== null);
   const waiting = results.filter((r) => !LAUNCH_TRADES.includes(r.trade));
   const interestTrades = TRADES.filter((t) => !LAUNCH_TRADES.includes(t));
+  const coverage = results
+    .map((r) => {
+      const checks = LAUNCH_CRITERIA.map((c) => r.criteria[c.key].length === 0);
+      return { trade: r.trade, open: LAUNCH_TRADES.includes(r.trade), checks, passed: checks.filter(Boolean).length };
+    })
+    .sort((a, b) => Number(b.open) - Number(a.open) || b.passed - a.passed);
 
   return (
     <MarketingShell>
       <section className="tier1-hero tier1-hero-compact">
-        <div className="editorial-wrap">
+        <div className="editorial-wrap ov-hero-split">
           <ShellPageIntro
             label="Trades we support"
             title="Open for the work we've tested. Nothing else is promised."
@@ -36,15 +42,38 @@ export default function TradesPage() {
               </a>
             }
           />
+          <aside className="ov-hero-aside">
+            <figure className="ov-board" aria-label="Which trades pass the five checks">
+              <figcaption className="ov-specimen-label">Coverage · rechecked on every change</figcaption>
+              <ul className="ov-coverage">
+                {coverage.map((c) => (
+                  <li key={c.trade} data-open={c.open || undefined}>
+                    <span className="ov-coverage-name">{c.trade}</span>
+                    <span className="ov-coverage-meter" aria-hidden>
+                      {LAUNCH_CRITERIA.map((k, i) => (
+                        <i key={k.key} data-on={c.checks[i] || undefined} title={k.label} />
+                      ))}
+                    </span>
+                    <span className="ov-coverage-state">{c.open ? "Open" : `${c.passed} of ${LAUNCH_CRITERIA.length}`}</span>
+                  </li>
+                ))}
+              </ul>
+            </figure>
+          </aside>
         </div>
       </section>
 
-      <section className="tier1-story">
-        <div className="editorial-wrap">
+      <section className="tier1-story ov-chapter ov-surface-canvas">
+        <div className="editorial-wrap ov-chapter-split">
           <h2 className="tier1-section-title type-headline">The five checks</h2>
-          <ol className="tier1-plan-list font-sans">
-            {LAUNCH_CRITERIA.map((c) => (
-              <li key={c.key}>{c.label}</li>
+          <ol className="ov-rows ov-rows--two font-sans">
+            {LAUNCH_CRITERIA.map((c, i) => (
+              <li key={c.key} className="ov-row">
+                <span className="ov-row-index" aria-hidden>
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <p className="ov-row-title">{c.label}</p>
+              </li>
             ))}
           </ol>
         </div>
@@ -53,20 +82,30 @@ export default function TradesPage() {
       {open.map((scope) => {
         const page = TRADE_PAGES.find((p) => p.trade === scope.trade);
         return (
-          <section key={scope.trade} className="tier1-story tier1-story-muted" id={page?.slug}>
-            <div className="editorial-wrap">
-              <p className="tier1-eyebrow type-eyebrow">Open · passes all five</p>
-              <h2 className="tier1-section-title type-headline">{scope.trade}</h2>
-              <p className="tier1-section-lead font-sans">{scope.customers}.</p>
+          <section key={scope.trade} className="tier1-story ov-chapter ov-trade" id={page?.slug}>
+            <div className="editorial-wrap ov-trade-grid">
+              <div className="ov-trade-lead">
+                <p className="tier1-eyebrow type-eyebrow">Open · passes all five</p>
+                <h2 className="tier1-section-title type-headline">{scope.trade}</h2>
+                <p className="ov-trade-customers font-sans">{scope.customers}.</p>
+                {page ? (
+                  <Link href={`/for/${page.slug}`} className="ov-scan-link">
+                    More about Orvius for {page.noun}
+                  </Link>
+                ) : null}
+              </div>
 
-              <h3 className="tier1-section-title type-headline mt-8">Jobs it books</h3>
+              <div className="ov-trade-col">
+              <h3 className="ov-col-label">Jobs it books</h3>
               <ul className="tier1-plan-list font-sans">
                 {scope.workflows.map((w) => (
                   <li key={w.key}>{w.label}</li>
                 ))}
               </ul>
+              </div>
 
-              <h3 className="tier1-section-title type-headline mt-8">Handed to you right away, never booked</h3>
+              <div className="ov-trade-col">
+              <h3 className="ov-col-label">Handed to you right away, never booked</h3>
               <ul className="tier1-plan-list font-sans">
                 {TRADE_PLAYBOOKS[scope.trade].safety.map((rule) => (
                   <li key={rule.key}>{rule.label}</li>
@@ -74,26 +113,20 @@ export default function TradesPage() {
                 <li>Callers who ask for a person</li>
               </ul>
 
-              <h3 className="tier1-section-title type-headline mt-8">Not covered yet: taken as a message for you to call back</h3>
+              <h3 className="ov-col-label">Not covered yet: taken as a message for you to call back</h3>
               <ul className="tier1-plan-list font-sans">
                 {scope.notCovered.map((n) => (
                   <li key={n.key}>{n.label}</li>
                 ))}
               </ul>
-              {page ? (
-                <p className="tier1-section-lead font-sans">
-                  <Link href={`/for/${page.slug}`} className="customer-timeline-link">
-                    More about Orvius for {page.noun} →
-                  </Link>
-                </p>
-              ) : null}
+              </div>
             </div>
           </section>
         );
       })}
 
-      <section className="tier1-story" id="interest">
-        <div className="editorial-wrap" style={{ maxWidth: "40rem" }}>
+      <section className="tier1-story ov-chapter ov-surface-stone" id="interest">
+        <div className="editorial-wrap ov-endcap">
           <p className="tier1-eyebrow type-eyebrow">Interest list</p>
           <h2 className="tier1-section-title type-headline">Not open yet</h2>
           <p className="tier1-section-lead font-sans">

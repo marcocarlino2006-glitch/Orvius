@@ -4,11 +4,7 @@ import { CustomerTimeline } from "@/components/customer-timeline";
 import { RecordFetchError, recordFailureFrom } from "@/lib/dashboard-fetch";
 import { RecordLoadFailure } from "@/components/record-load-failure";
 import { OsShell } from "@/components/os-shell";
-import {
-  ShellAlert,
-  ShellLoading,
-  ShellPanel,
-} from "@/components/shell-primitives";
+import { ShellAlert, ShellLoading } from "@/components/shell-primitives";
 import { displayPhone } from "@/lib/customer";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -49,6 +45,7 @@ type TimelineEvent = {
   urgency: string | null;
   status: string | null;
   amountCents?: number | null;
+  refundedCents?: number;
 };
 
 export default function CustomerDetailPage() {
@@ -104,11 +101,13 @@ export default function CustomerDetailPage() {
   }
 
   const paidCents = timeline.filter((e) => e.type === "payment" && !["failed", "claimed", "refunded"].includes((e.status ?? "").toLowerCase())).reduce((sum, e) => sum + (e.amountCents ?? 0), 0);
+  const refundedCents = timeline.filter((e) => e.type === "payment").reduce((sum, e) => sum + (e.refundedCents ?? 0), 0);
   const summary = [
     `Customer since ${formatDay(customer.firstSeenAt)}`,
     `${customer.callCount} call${customer.callCount === 1 ? "" : "s"}`,
     `${customer.jobCount ?? 0} job${customer.jobCount === 1 ? "" : "s"}`,
     paidCents ? `${usd(paidCents)} paid` : null,
+    refundedCents ? `${usd(refundedCents)} refunded` : null,
   ]
     .filter(Boolean)
     .join(" · ");
@@ -143,9 +142,13 @@ export default function CustomerDetailPage() {
         ) : null
       }
     >
-      <div className="os-detail-grid">
+      <div className="os-detail-grid rec-page">
         <div className="os-detail-primary">
-          <ShellPanel title="Profile" dense action={customer.returning ? <span className="ct-kind ct-kind--money">Returning</span> : null}>
+          <section className="rec">
+            <header className="rec-head">
+              <h2 className="rec-title">Profile</h2>
+              {customer.returning ? <span className="ct-kind ct-kind--money">Returning</span> : null}
+            </header>
             <dl className="jv-facts font-sans">
               <div>
                 <dt>Phone</dt>
@@ -198,15 +201,23 @@ export default function CustomerDetailPage() {
                 </div>
               ) : null}
             </dl>
-          </ShellPanel>
-          <CustomerRecordEditor customerId={customer.id} addresses={customer.addresses ?? []} equipment={customer.equipment ?? []} onSaved={(next) => setCustomer((c) => (c ? { ...c, ...next } : c))} />
+            <CustomerRecordEditor
+              customerId={customer.id}
+              addresses={customer.addresses ?? []}
+              equipment={customer.equipment ?? []}
+              onSaved={(next) => setCustomer((c) => (c ? { ...c, ...next } : c))}
+            />
+          </section>
           {canForget ? <ForgetCustomerPanel customerId={customer.id} name={customer.displayName} /> : null}
         </div>
 
         <div className="os-detail-side">
-          <ShellPanel title="History" dense>
+          <section className="rec">
+            <header className="rec-head">
+              <h2 className="rec-title">History</h2>
+            </header>
             <CustomerTimeline events={timeline} />
-          </ShellPanel>
+          </section>
         </div>
       </div>
     </OsShell>
@@ -224,12 +235,22 @@ function CustomerRecordEditor({
   equipment: Array<{ name: string; brand: string; model: string; notes: string }>;
   onSaved: (next: { addresses: Array<{ label: string; line: string }>; equipment: Array<{ name: string; brand: string; model: string; notes: string }> }) => void;
 }) {
+  const [open, setOpen] = useState<null | "address" | "equipment">(null);
   const [line, setLine] = useState("");
   const [label, setLabel] = useState("Rental");
   const [name, setName] = useState("");
   const [brand, setBrand] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  function close() {
+    setOpen(null);
+    setLine("");
+    setLabel("Rental");
+    setName("");
+    setBrand("");
+    setError(null);
+  }
 
   async function save(body: Record<string, unknown>) {
     setBusy(true);
@@ -239,6 +260,7 @@ function CustomerRecordEditor({
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error ?? "That didn't save.");
       onSaved({ addresses: data.addresses ?? addresses, equipment: data.equipment ?? equipment });
+      close();
     } catch (err) {
       setError(err instanceof Error ? err.message : "That didn't save.");
     } finally {
@@ -247,53 +269,81 @@ function CustomerRecordEditor({
   }
 
   return (
-    <ShellPanel title="Add to this record" dense>
-      <form
-        className="jv-facts font-sans"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (!line.trim()) return;
-          void save({ addresses: [...addresses, { label, line: line.trim() }] }).then(() => setLine(""));
-        }}
-      >
-        <label>
-          Another address
-          <input className="sc-input" value={line} onChange={(e) => setLine(e.target.value)} placeholder="4120 Duval St, Austin" />
-        </label>
-        <label>
-          What it is
-          <input className="sc-input" value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Rental" />
-        </label>
-        <button type="submit" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy || !line.trim()}>
-          Save address
-        </button>
-      </form>
-      <form
-        className="jv-facts font-sans"
-        style={{ marginTop: "1rem" }}
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (!name.trim()) return;
-          void save({ equipment: [...equipment, { name: name.trim(), brand: brand.trim(), model: "", notes: "" }] }).then(() => {
-            setName("");
-            setBrand("");
-          });
-        }}
-      >
-        <label>
-          Equipment
-          <input className="sc-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Furnace" />
-        </label>
-        <label>
-          Brand
-          <input className="sc-input" value={brand} onChange={(e) => setBrand(e.target.value)} placeholder="Carrier" />
-        </label>
-        <button type="submit" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy || !name.trim()}>
-          Save equipment
-        </button>
-      </form>
+    <div className="rec-add">
+      {open === "address" ? (
+        <form
+          className="rec-inline font-sans"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!line.trim()) return;
+            void save({ addresses: [...addresses, { label, line: line.trim() }] });
+          }}
+        >
+          <input
+            className="rec-field"
+            value={line}
+            onChange={(e) => setLine(e.target.value)}
+            placeholder="4120 Duval St, Austin"
+            aria-label="Address"
+            autoFocus
+          />
+          <input
+            className="rec-field rec-field--short"
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            placeholder="Home, rental…"
+            aria-label="What this address is"
+          />
+          <button type="submit" className="ox-btn ox-btn--primary ox-btn--sm" disabled={busy || !line.trim()}>
+            Save
+          </button>
+          <button type="button" className="rec-cancel" onClick={close}>
+            Cancel
+          </button>
+        </form>
+      ) : open === "equipment" ? (
+        <form
+          className="rec-inline font-sans"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!name.trim()) return;
+            void save({ equipment: [...equipment, { name: name.trim(), brand: brand.trim(), model: "", notes: "" }] });
+          }}
+        >
+          <input
+            className="rec-field rec-field--short"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Furnace"
+            aria-label="Equipment"
+            autoFocus
+          />
+          <input
+            className="rec-field rec-field--short"
+            value={brand}
+            onChange={(e) => setBrand(e.target.value)}
+            placeholder="Carrier"
+            aria-label="Brand"
+          />
+          <button type="submit" className="ox-btn ox-btn--primary ox-btn--sm" disabled={busy || !name.trim()}>
+            Save
+          </button>
+          <button type="button" className="rec-cancel" onClick={close}>
+            Cancel
+          </button>
+        </form>
+      ) : (
+        <p className="rec-add-links">
+          <button type="button" className="rec-add-link" onClick={() => setOpen("address")}>
+            Add address
+          </button>
+          <button type="button" className="rec-add-link" onClick={() => setOpen("equipment")}>
+            Add equipment
+          </button>
+        </p>
+      )}
       {error ? <p className="cb-error">{error}</p> : null}
-    </ShellPanel>
+    </div>
   );
 }
 
@@ -312,7 +362,7 @@ function ForgetCustomerPanel({ customerId, name }: { customerId: string; name: s
       const res = await fetch(`/api/customers/${customerId}`, { method: "DELETE" });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error ?? "Nothing was deleted. Try again.");
-      router.replace("/dashboard/customers?forgotten=1");
+      router.replace(data.provider === "pending" ? "/dashboard/customers?forgotten=pending" : "/dashboard/customers?forgotten=1");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Nothing was deleted. Try again.");
       setBusy(false);
@@ -320,7 +370,10 @@ function ForgetCustomerPanel({ customerId, name }: { customerId: string; name: s
   }
 
   return (
-    <ShellPanel title="Privacy" dense>
+    <section className="rec">
+      <header className="rec-head">
+        <h2 className="rec-title">Privacy</h2>
+      </header>
       {open ? (
         <div className="font-sans">
           <p style={{ margin: "0 0 0.5rem", color: "var(--ox-text-2)" }}>
@@ -332,7 +385,7 @@ function ForgetCustomerPanel({ customerId, name }: { customerId: string; name: s
             Type DELETE to confirm
           </label>
           <div className="flex flex-wrap gap-2">
-            <input id="forget-confirm" className="sc-input" value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" />
+            <input id="forget-confirm" className="rec-field rec-field--short" value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" />
             <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm ox-btn--danger" disabled={busy || typed.trim() !== "DELETE"} onClick={() => void forget()}>
               {busy ? "Deleting…" : "Delete their data"}
             </button>
@@ -358,6 +411,6 @@ function ForgetCustomerPanel({ customerId, name }: { customerId: string; name: s
           </div>
         </div>
       )}
-    </ShellPanel>
+    </section>
   );
 }

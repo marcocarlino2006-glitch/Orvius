@@ -16,7 +16,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { splitStatements } from "./turso-migrate.mjs";
+import { migrationAuthorization, migrationPlanSha256, splitStatements } from "./turso-migrate.mjs";
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 const migrationSql = readFileSync(join(repoRoot, "prisma/turso-migrate.sql"), "utf8");
@@ -185,6 +185,168 @@ test("a database built from the baseline plus every migration matches schema.pri
     }
     assert.deepEqual(problems, [], `schema.prisma and the production migrations disagree:\n${diff}`);
   } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+const SHA = "a".repeat(40);
+const PLAN = migrationPlanSha256(migrationSql);
+const approved = {
+  MIGRATION_APPROVAL: "APPROVAL-1",
+  MIGRATION_RELEASE_COMMIT: SHA,
+  MIGRATION_TARGET: "production",
+  MIGRATION_PLAN_SHA256: PLAN,
+  MIGRATION_BACKUP_REF: "turso-pitr-2026-10-15T20:00Z",
+};
+const context = { headCommit: SHA, planSha256: PLAN, allowlist: { production: ["orvius-prod.turso.io"], preview: ["preview-iso.turso.io"] } };
+
+test("a remote migration needs approval, the exact release, an allow-listed target, the reviewed checksum and a backup", () => {
+  const prod = "libsql://orvius-prod.turso.io?authToken=x";
+  assert.equal(migrationAuthorization(null, {}, context).action, "skip");
+  assert.equal(migrationAuthorization("file:./dev.db", {}, context).action, "skip");
+  assert.equal(migrationAuthorization(prod, approved, context).action, "migrate");
+  const refusals = [
+    [{ ...approved, VERCEL: "1" }, /never run inside a build/],
+    [{ ...approved, VERCEL_ENV: "production", VERCEL: "1" }, /never run inside a build/],
+    [{ ...approved, MIGRATION_APPROVAL: "" }, /MIGRATION_APPROVAL/],
+    [{ ...approved, MIGRATION_RELEASE_COMMIT: "abc123" }, /full 40-character/],
+    [{ ...approved, MIGRATION_RELEASE_COMMIT: "b".repeat(40) }, /not the approved release/],
+    [{ ...approved, MIGRATION_TARGET: "" }, /MIGRATION_TARGET/],
+    [{ ...approved, MIGRATION_TARGET: "preview" }, /not listed for preview/],
+    [{ ...approved, MIGRATION_PLAN_SHA256: "0".repeat(64) }, /not the reviewed/],
+    [{ ...approved, MIGRATION_BACKUP_REF: "" }, /MIGRATION_BACKUP_REF/],
+  ];
+  for (const [env, why] of refusals) {
+    const result = migrationAuthorization(prod, env, context);
+    assert.equal(result.action, "refuse", JSON.stringify(env));
+    assert.match(result.reason, why);
+  }
+  assert.match(migrationAuthorization(prod, approved, { ...context, headCommit: null }).reason, /could not read the commit/);
+  assert.match(migrationAuthorization("libsql://unknown.turso.io", approved, context).reason, /not listed for production/);
+  const shared = { ...context, allowlist: { production: ["orvius-prod.turso.io"], preview: ["orvius-prod.turso.io"] } };
+  assert.match(migrationAuthorization(prod, approved, shared).reason, /each environment needs its own database/);
+  assert.equal(
+    migrationAuthorization("libsql://preview-iso.turso.io", { ...approved, MIGRATION_TARGET: "preview" }, context).action,
+    "migrate",
+    "an isolated preview database is migrated under its own identity",
+  );
+});
+
+test("builds are pure: the Vercel build command generates and compiles, and never migrates", () => {
+  const vercel = JSON.parse(readFileSync(join(repoRoot, "vercel.json"), "utf8"));
+  assert.doesNotMatch(vercel.buildCommand, /migrate|db push|seed|turso/i);
+  const allow = JSON.parse(readFileSync(join(repoRoot, "ops/migration-targets.json"), "utf8"));
+  assert.deepEqual(Object.values(allow).flat(), [], "no database is allow-listed until the owner adds it");
+});
+
+test("a trigger body stays one statement", () => {
+  const sql = `CREATE TRIGGER IF NOT EXISTS "t" BEFORE UPDATE ON "X" BEGIN SELECT RAISE(ABORT, 'no; never'); END;\nCREATE INDEX "i" ON "X"("a");`;
+  assert.deepEqual(splitStatements(sql), [
+    `CREATE TRIGGER IF NOT EXISTS "t" BEFORE UPDATE ON "X" BEGIN SELECT RAISE(ABORT, 'no; never'); END`,
+    `CREATE INDEX "i" ON "X"("a")`,
+  ]);
+});
+
+test("the migration refuses before it opens a connection", () => {
+  const source = readFileSync(join(repoRoot, "scripts/turso-migrate.mjs"), "utf8");
+  const main = source.slice(source.indexOf("async function main()"));
+  assert.ok(main.indexOf('target.action === "refuse"') < main.indexOf("createClient("));
+});
+
+test("the remote target comes only from the environment, never a local .env file", () => {
+  const source = readFileSync(join(repoRoot, "scripts/turso-migrate.mjs"), "utf8");
+  assert.doesNotMatch(source, /resolve\(root, "\.env"\)|\.env"/);
+});
+
+test("only reviewed plan files can be applied, and the checksum binds the chosen file", async () => {
+  const { migrationPlanFile, MIGRATION_PLAN_FILES } = await import("./turso-migrate.mjs");
+  assert.equal(migrationPlanFile({}), "prisma/turso-migrate.sql");
+  assert.equal(migrationPlanFile({ MIGRATION_PLAN_FILE: "prisma/prepared/receivables-v1.sql" }), "prisma/prepared/receivables-v1.sql");
+  assert.equal(migrationPlanFile({ MIGRATION_PLAN_FILE: "/tmp/anything.sql" }), null);
+  assert.equal(migrationPlanFile({ MIGRATION_PLAN_FILE: "prisma/turso-schema.sql" }), null);
+  for (const file of MIGRATION_PLAN_FILES) {
+    const sql = readFileSync(join(repoRoot, file), "utf8");
+    const reviewed = migrationPlanSha256(sql);
+    const prod = "libsql://orvius-prod.turso.io";
+    const env = { ...approved, MIGRATION_PLAN_SHA256: reviewed };
+    assert.equal(migrationAuthorization(prod, env, { ...context, planSha256: reviewed }).action, "migrate", file);
+    assert.equal(migrationAuthorization(prod, env, { ...context, planSha256: migrationPlanSha256(sql + "\n") }).action, "refuse", `${file}: one changed byte refuses`);
+  }
+});
+
+test("the merge-all release delta only adds, and a second run changes nothing", async () => {
+  const { applyMigrationPlan, MIGRATION_LEDGER_TABLE } = await import("./turso-migrate.mjs");
+  const { createClient } = await import("@libsql/client");
+  const { mkdtempSync, rmSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const planFile = "prisma/releases/2026-10-16-merge-all.sql";
+  const sql = readFileSync(join(repoRoot, planFile), "utf8");
+  const statements = splitStatements(sql);
+  assert.equal(statements.length, 36);
+  for (const s of statements) {
+    assert.match(s, /^(ALTER TABLE "\w+" ADD COLUMN "\w+" TEXT|CREATE TABLE IF NOT EXISTS|CREATE (UNIQUE )?INDEX IF NOT EXISTS)/, s.slice(0, 80));
+  }
+  const dir = mkdtempSync(join(tmpdir(), "migrate-release-"));
+  const client = createClient({ url: `file:${join(dir, "disposable.db")}` });
+  try {
+    await client.executeMultiple(`CREATE TABLE "Call" ("id" TEXT PRIMARY KEY); CREATE TABLE "CopilotAction" ("id" TEXT PRIMARY KEY); CREATE TABLE "NetworkHandoff" ("id" TEXT PRIMARY KEY); INSERT INTO "Call" VALUES ('c1');`);
+    const tuple = { sql, planFile, planSha256: migrationPlanSha256(sql), release: SHA, target: "staging", host: "disposable", approval: "TEST-2", backupRef: "none-disposable" };
+    await applyMigrationPlan(client, tuple);
+    const shape = async () => (await client.execute(`SELECT type, name, sql FROM sqlite_master WHERE name <> '${MIGRATION_LEDGER_TABLE}' AND name NOT LIKE 'sqlite_%' ORDER BY type, name`)).rows.map((r) => `${r.type}:${r.name}:${r.sql}`);
+    const first = await shape();
+    await applyMigrationPlan(client, tuple);
+    assert.deepEqual(await shape(), first);
+    assert.equal(first.filter((s) => s.startsWith("table:")).length, 3 + 11);
+    const { rows } = await client.execute(`SELECT "id", "slotOfferJson" FROM "Call"`);
+    assert.deepEqual(rows.map((r) => ({ ...r })), [{ id: "c1", slotOfferJson: null }]);
+    const ledger = await client.execute(`SELECT "status" FROM "${MIGRATION_LEDGER_TABLE}"`);
+    assert.deepEqual(ledger.rows.map((r) => r.status), ["applied", "applied"]);
+  } finally {
+    client.close();
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("the release schema check passes only when the live gap is the plan", async () => {
+  const { compareToPlan } = await import("./release-schema-check.mjs");
+  const plan = `-- c\nALTER TABLE "Call" ADD COLUMN "x" TEXT;\nCREATE TABLE IF NOT EXISTS "T" ("id" TEXT NOT NULL PRIMARY KEY);\n`;
+  const gap = `-- CreateTable\nCREATE TABLE "T" (\n  "id" TEXT NOT NULL PRIMARY KEY\n);\n-- AlterTable\nALTER TABLE "Call" ADD COLUMN "x" TEXT;\n`;
+  assert.deepEqual(compareToPlan(gap, plan), { unexpected: [], alreadyPresent: [] });
+  assert.deepEqual(compareToPlan("-- This is an empty migration.", null), { unexpected: [], alreadyPresent: [] });
+  assert.deepEqual(compareToPlan(`${gap}DROP TABLE "Leftover";`, plan).unexpected, ['DROP TABLE "Leftover"']);
+  assert.deepEqual(compareToPlan(`ALTER TABLE "Call" ADD COLUMN "x" TEXT;`, plan).alreadyPresent, ['CREATE TABLE "T" ("id" TEXT NOT NULL PRIMARY KEY)']);
+  const source = readFileSync(join(repoRoot, "scripts/release-schema-check.mjs"), "utf8");
+  assert.doesNotMatch(source, /SELECT \* FROM|loadEnvFile|\.env"/, "reads definitions only, and never a local .env");
+});
+
+test("the receivables SQL, split by this step, builds the same guards on a disposable database and records the applied release", async () => {
+  const { applyMigrationPlan, MIGRATION_LEDGER_TABLE } = await import("./turso-migrate.mjs");
+  const { createClient } = await import("@libsql/client");
+  const { mkdtempSync, rmSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const dir = mkdtempSync(join(tmpdir(), "migrate-plan-"));
+  const client = createClient({ url: `file:${join(dir, "disposable.db")}` });
+  try {
+    await client.execute("PRAGMA foreign_keys = ON");
+    await client.executeMultiple(`CREATE TABLE "Business" ("id" TEXT PRIMARY KEY); CREATE TABLE "Job" ("id" TEXT PRIMARY KEY, "businessId" TEXT); INSERT INTO "Business" VALUES ('b'); INSERT INTO "Job" VALUES ('j','b');`);
+    const sql = readFileSync(join(repoRoot, "prisma/prepared/receivables-v1.sql"), "utf8");
+    const triggers = splitStatements(sql).filter((s) => /^CREATE TRIGGER/i.test(s));
+    assert.equal(triggers.length, 5);
+    for (const t of triggers) assert.match(t, /\bEND$/, "each trigger is one whole statement");
+    const tuple = { sql, planFile: "prisma/prepared/receivables-v1.sql", planSha256: migrationPlanSha256(sql), release: SHA, target: "staging", host: "disposable", approval: "TEST-1", backupRef: "none-disposable" };
+    await applyMigrationPlan(client, tuple);
+    await applyMigrationPlan(client, tuple);
+    const { rows: names } = await client.execute(`SELECT name FROM sqlite_master WHERE type='trigger' ORDER BY name`);
+    assert.equal(names.length, 5);
+    await client.execute(`INSERT INTO "JobReceivable" ("id","businessId","jobId","canonical") VALUES ('r1','b','j',1)`);
+    await assert.rejects(client.execute(`INSERT INTO "JobReceivable" ("id","businessId","jobId","canonical") VALUES ('r2','b','j',1)`), /UNIQUE/);
+    await client.execute(`INSERT INTO "ReceivableFact" ("id","businessId","receivableId","revision","kind","amountCents","occurredAt") VALUES ('f1','b','r1',1,'payment',100,'2026-10-15')`);
+    await assert.rejects(client.execute(`UPDATE "ReceivableFact" SET "amountCents"=1`), /append-only/);
+    const { rows } = await client.execute(`SELECT "releaseCommit","target","planFile","planSha256","approval","backupRef","status" FROM "${MIGRATION_LEDGER_TABLE}" ORDER BY "id"`);
+    assert.equal(rows.length, 2);
+    assert.deepEqual({ ...rows[0] }, { releaseCommit: SHA, target: "staging", planFile: tuple.planFile, planSha256: tuple.planSha256, approval: "TEST-1", backupRef: "none-disposable", status: "applied" });
+  } finally {
+    client.close();
     rmSync(dir, { recursive: true, force: true });
   }
 });

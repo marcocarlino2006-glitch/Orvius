@@ -10,7 +10,7 @@
   font-feature-settings: "cv11", "ss01";
 }
 
-.os-shell.os-shell-night :where(time, .ms dd, .dt-num, .dt-when, .dt-mono, .cs-value, .wq-title-count) {
+.os-shell.os-shell-night :where(time,  .ms dd,  .dt-num,  .dt-when,  .dt-mono,  .cs-value) {
   font-variant-numeric: tabular-nums;
 }
 
@@ -395,64 +395,6 @@ a.dt-row:focus-visible,
 .sd--muted .sd-dot { background: var(--ox-s4); }
 
 /* Command: activity line, one metrics panel, the queue. */
-.os-shell.os-shell-night .cc-brief {
-  margin-bottom: 0;
-}
-
-.os-shell.os-shell-night .cc-brief-text {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.25rem 0;
-  margin: 0;
-  font-size: var(--cr-body);
-  font-weight: 400;
-  line-height: 1.5;
-  letter-spacing: 0;
-  color: var(--ox-text-2);
-}
-
-.cc-brief-window {
-  margin-right: 0.75rem;
-  color: var(--ox-mute);
-}
-
-.cc-brief-part + .cc-brief-part::before {
-  content: "·";
-  margin: 0 0.5rem;
-  color: var(--ox-s4);
-}
-
-.cc-brief-personal {
-  display: grid;
-  gap: 0.25rem;
-  max-width: 46rem;
-  margin-bottom: 0;
-}
-
-.cc-brief-detail {
-  margin: 0;
-  font-size: var(--cr-body);
-  line-height: 1.5;
-  color: var(--ox-text-2);
-}
-
-.cc-brief-headline {
-  margin: 0;
-  font-size: var(--fs-display-xs);
-  font-weight: 500;
-  line-height: 1.35;
-  letter-spacing: -0.015em;
-  color: var(--ox-text);
-}
-
-.cc-brief-detail {
-  display: grid;
-}
-
-.cc-brief-detail .cc-brief-part::before {
-  content: none;
-}
 
 .os-shell.os-shell-night .cs-grid {
   gap: 0;
@@ -514,42 +456,6 @@ a.dt-row:focus-visible,
   color: var(--ox-mute);
 }
 
-.os-shell.os-shell-night .wq-title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9375rem;
-  font-weight: 600;
-}
-
-.wq-title-count {
-  display: inline-grid;
-  place-items: center;
-  min-width: 1.375rem;
-  height: 1.375rem;
-  padding: 0 0.375rem;
-  border-radius: 999px;
-  background: var(--ox-s3);
-  font-size: var(--cr-label);
-  font-weight: 600;
-  color: var(--ox-text-2);
-}
-
-.os-shell.os-shell-night .wq-recommend,
-.os-shell.os-shell-night .wq-recommend.wq-sev--critical,
-.os-shell.os-shell-night .wq-recommend.wq-sev--high {
-  margin: 0;
-  border: 0;
-  border-top: 1px solid var(--ox-line);
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-}
-
-.os-shell.os-shell-night .wq-subject--lg {
-  font-size: 0.9375rem;
-}
-
 /* People are named, not colour-coded. */
 .os-shell.os-shell-night .record-avatar,
 .os-shell.os-shell-night .record-avatar.is-flare {
@@ -597,29 +503,6 @@ a.dt-row:focus-visible,
 }
 
 /* Ask opens from the header (⌘J); nothing floats over the tables. */
-.os-shell.os-shell-night .os-ask-dock-trigger {
-  display: none;
-}
-
-.os-sidebar-env {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 0 0.75rem 0.5rem;
-  padding: 0;
-  border: 0 !important;
-  background: none !important;
-  font-size: var(--cr-label);
-  color: var(--ox-mute) !important;
-}
-
-.os-sidebar-env::before {
-  content: "";
-  width: 0.375rem;
-  height: 0.375rem;
-  border-radius: 999px;
-  background: var(--ox-amber);
-}
 
 .dt--calls .dt-head,
 .dt--calls .dt-row {
@@ -857,7 +740,6 @@ a.dt-row:focus-visible,
   }
 
   /* Tabs that run past the edge fade out there, so the rest reads as a swipe away. */
-  .os-shell .cb-tabs,
   .os-shell.os-shell-night .pro-filter-bar {
     padding-right: 2rem;
     scrollbar-width: none;
@@ -865,7 +747,6 @@ a.dt-row:focus-visible,
     mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
   }
 
-  .os-shell .cb-tabs::-webkit-scrollbar,
   .os-shell.os-shell-night .pro-filter-bar::-webkit-scrollbar {
     display: none;
   }
@@ -980,22 +861,8 @@ a.dt-row:focus-visible,
 }
 
 /* A datetime field has a wide intrinsic size; in a phone-width card it must take the card's width instead. */
-.os-shell.os-shell-night .os-kv-actions > label {
-  min-width: 0;
-  max-width: 100%;
-}
-
-.os-shell.os-shell-night .os-kv-actions input {
-  max-width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
-}
 
 @media (max-width: 640px) {
-  .os-shell.os-shell-night .os-kv-actions > label,
-  .os-shell.os-shell-night .os-kv-actions input {
-    width: 100%;
-  }
 }
 
 /* The end-of-list line is a quiet sentence, not a label. */
@@ -1008,22 +875,8 @@ a.dt-row:focus-visible,
 }
 
 /* Carrier steps are done in order; the reset hid the numbers that say so. */
-.os-shell .capture-setup-steps {
-  list-style: decimal;
-  padding-left: 1.25rem;
-}
-
-.os-shell .capture-setup-steps li::marker {
-  color: var(--ox-mute);
-  font-variant-numeric: tabular-nums;
-}
 
 /* Command board — the daily workspace. */
-.cb {
-  display: grid;
-  gap: 0.875rem;
-  margin-bottom: 1.5rem;
-}
 
 .cb-ask-result {
   display: grid;
@@ -1032,17 +885,11 @@ a.dt-row:focus-visible,
 }
 
 .cb-ask-message,
-.cb-muted,
-.cb-empty {
+.cb-muted {
   margin: 0;
   font-size: 0.8125rem;
   line-height: 1.5;
   color: var(--ox-text-2);
-}
-
-.cb-empty {
-  padding: 1.25rem 0;
-  color: var(--ox-mute);
 }
 
 .cb-error {
@@ -1058,6 +905,41 @@ a.dt-row:focus-visible,
   border: 1px dashed var(--ox-line-strong);
   border-radius: var(--ox-radius);
   background: var(--ox-s1);
+}
+
+.cb-demo-bar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.75rem 1rem;
+  align-items: start;
+  margin-bottom: 1rem;
+  padding: 0.875rem 1rem;
+  border: 1px dashed var(--ox-line-strong);
+  border-radius: var(--ox-radius);
+  background: var(--ox-s1);
+}
+.cb-demo-bar.is-stale {
+  border-color: var(--ox-amber);
+}
+.cb-demo-bar-copy {
+  display: grid;
+  gap: 0.25rem;
+}
+.cb-demo-bar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+.cb-demo-bar-trail {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+.cb-demo-bar > .cb-demo {
+  grid-column: 1 / -1;
+  padding: 0;
+  border: 0;
+  background: none;
 }
 
 .cb-demo-title {
@@ -1107,133 +989,11 @@ a.dt-row:focus-visible,
   color: var(--ox-mute);
 }
 
-.cb-tabs {
-  display: flex;
-  gap: 0.25rem;
-  overflow-x: auto;
-  border-bottom: 1px solid var(--ox-line);
-}
-
-.cb-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.5rem 0.75rem;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  background: none;
-  color: var(--ox-mute);
-  font-size: 0.8125rem;
-  font-weight: 500;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-.cb-tab:hover {
-  color: var(--ox-text);
-}
-
-.cb-tab--on {
-  border-bottom-color: var(--ox-amber);
-  color: var(--ox-text);
-}
-
-.cb-tab-count {
-  min-width: 1.25rem;
-  padding: 0 0.35rem;
-  border-radius: 999px;
-  background: var(--ox-s3);
-  font-size: 0.75rem;
-  line-height: 1.25rem;
-  text-align: center;
-  color: var(--ox-text-2);
-}
-
-.cb-tab--alert .cb-tab-count {
-  background: var(--ox-red-soft);
-  color: var(--ox-red);
-}
-
-.cb-list {
-  display: grid;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.cb-item {
-  display: grid;
-  gap: 0.5rem;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid var(--ox-line);
-}
-
-.cb-item--urgent {
-  box-shadow: inset 2px 0 0 var(--ox-red);
-  padding-left: 0.75rem;
-}
-
-.cb-item-head {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.cb-item-main {
-  min-width: 0;
-}
-
-.cb-item-title {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.4rem;
-  margin: 0;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--ox-text);
-}
-
-.cb-item-detail {
-  margin: 0.2rem 0 0;
-  font-size: 0.8125rem;
-  line-height: 1.45;
-  color: var(--ox-text-2);
-}
-
-.cb-item-at,
 .cb-trace-at {
   flex-shrink: 0;
   font-size: 0.75rem;
   color: var(--ox-mute);
   font-variant-numeric: tabular-nums;
-}
-
-.cb-tag {
-  padding: 0.05rem 0.4rem;
-  border-radius: 0.25rem;
-  background: var(--ox-s3);
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--ox-text-2);
-}
-
-.cb-tag--emergency,
-.cb-tag--failed_message {
-  background: var(--ox-red-soft);
-  color: var(--ox-red);
-}
-
-.cb-tag--stale,
-.cb-tag--unconfirmed_soon,
-.cb-tag--duplicate {
-  background: var(--ox-yellow-soft);
-  color: var(--ox-yellow);
-}
-
-.cb-tag--takeover {
-  background: var(--ox-amber-soft);
-  color: var(--ox-amber);
 }
 
 .cb-actions,
@@ -1334,17 +1094,7 @@ a.dt-row:focus-visible,
   cursor: pointer;
 }
 
-.wq--bare {
-  border: 0;
-  border-radius: 0;
-  background: none;
-}
-
 @media (max-width: 640px) {
-  .cb-item-head {
-    flex-direction: column;
-    gap: 0.25rem;
-  }
 
   .cb-trace-row {
     grid-template-columns: 0.5rem 1fr;
@@ -1431,9 +1181,6 @@ a.dt-row:focus-visible,
 
 /* A phone shows the board's work first; the call simulator follows it, one line per scenario. */
 @media (max-width: 720px) {
-  .cb > .cb-demo {
-    order: 1;
-  }
 
   .cb-demo-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

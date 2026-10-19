@@ -82,7 +82,8 @@ test("hardcoded colors never grow (migrate to tokens, don't add hex)", () => {
      Until it lands, no file may gain a new one. To move the ceiling down,
      migrate a file and lower its number here. */
   const ceiling = {
-    "src/app/b/[slug]/book.css": 8,
+    "src/app/ask-dialog.css": 0,
+    "src/app/b/[slug]/book.css": 0,
     "src/app/dashboard/dashboard.css": 121,
     "src/app/dashboard/inbox/messages/messages.css": 0,
     "src/app/dashboard/onboarding/turn-on.css": 1,
@@ -100,14 +101,15 @@ test("hardcoded colors never grow (migrate to tokens, don't add hex)", () => {
     "src/app/dashboard/work.css": 0,
     "src/app/globals.css": 132,
     "src/app/home-sections.css": 0,
-    "src/app/m/[slug]/plans.css": 5,
+    "src/app/m/[slug]/plans.css": 0,
     "src/app/p/[id]/replay.css": 0,
-    "src/app/public-field.css": 34,
+    "src/app/public-field.css": 0,
     "src/app/public-polish.css": 6,
+    "src/app/public-surfaces.css": 0,
     "src/app/public-v2.css": 111,
-    "src/app/tech/tech-app.css": 29,
+    "src/app/tech/tech-app.css": 0,
     "src/app/theme-tokens.css": 0,
-    "src/app/w/[slug]/chat.css": 16,
+    "src/app/w/[slug]/chat.css": 0,
   };
   const count = (file) =>
     (readFileSync(file, "utf8").match(/[^-][a-z-]*: *#[0-9a-fA-F]{3,8}/g) ?? []).filter((m) => !m.trimStart().startsWith("--")).length;

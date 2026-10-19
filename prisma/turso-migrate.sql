@@ -1148,3 +1148,216 @@ ALTER TABLE "Job" ADD COLUMN "techAcceptedAt" DATETIME;
 ALTER TABLE "Job" ADD COLUMN "techDeclinedAt" DATETIME;
 ALTER TABLE "Job" ADD COLUMN "techDeclinedBy" TEXT;
 ALTER TABLE "Job" ADD COLUMN "techDeclineReason" TEXT;
+
+
+-- Command grants: owner-issued, expiring, action-scoped approval rights; who proposed and how each plan was approved (2026-10-15)
+ALTER TABLE "CopilotAction" ADD COLUMN "approvalKind" TEXT;
+ALTER TABLE "CopilotAction" ADD COLUMN "approvedByEmail" TEXT;
+ALTER TABLE "CopilotAction" ADD COLUMN "grantId" TEXT;
+ALTER TABLE "CopilotAction" ADD COLUMN "proposedByEmail" TEXT;
+ALTER TABLE "CopilotAction" ADD COLUMN "proposedByRole" TEXT;
+CREATE TABLE IF NOT EXISTS "CommandGrant" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "granteeEmail" TEXT NOT NULL,
+    "action" TEXT NOT NULL,
+    "effect" TEXT NOT NULL,
+    "conditionsJson" TEXT NOT NULL DEFAULT '{}',
+    "expiresAt" DATETIME NOT NULL,
+    "policyVersion" TEXT NOT NULL,
+    "grantedByEmail" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "revokedAt" DATETIME,
+    "revokedByEmail" TEXT,
+    CONSTRAINT "CommandGrant_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE INDEX IF NOT EXISTS "CommandGrant_businessId_granteeEmail_idx" ON "CommandGrant"("businessId", "granteeEmail");
+
+
+-- Per-shop scheduling policy (travel gap, remote completion). Additive; no row = legacy shop, unchanged.
+CREATE TABLE IF NOT EXISTS "ShopOperatingPolicy" (
+    "businessId" TEXT NOT NULL PRIMARY KEY,
+    "travelMode" TEXT NOT NULL DEFAULT 'not_configured',
+    "travelGapMin" INTEGER,
+    "remoteCompletionAllowed" BOOLEAN NOT NULL DEFAULT false,
+    "version" INTEGER NOT NULL DEFAULT 1,
+    "updatedByEmail" TEXT,
+    "updatedByRole" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "ShopOperatingPolicy_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+
+-- SMS intent ledger: one row per operational text before the provider call. Additive.
+CREATE TABLE IF NOT EXISTS "SmsIntent" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "eventType" TEXT NOT NULL,
+    "eventId" TEXT NOT NULL,
+    "recipientNormalized" TEXT NOT NULL,
+    "channel" TEXT NOT NULL DEFAULT 'sms',
+    "messageVersion" INTEGER NOT NULL DEFAULT 1,
+    "priorIntentId" TEXT,
+    "authorizedBy" TEXT,
+    "audience" TEXT NOT NULL,
+    "severity" TEXT NOT NULL DEFAULT 'routine',
+    "status" TEXT NOT NULL DEFAULT 'pending',
+    "leaseUntil" DATETIME,
+    "attempts" INTEGER NOT NULL DEFAULT 0,
+    "attemptsJson" TEXT NOT NULL DEFAULT '[]',
+    "providerAccount" TEXT,
+    "providerSid" TEXT,
+    "receiptsJson" TEXT NOT NULL DEFAULT '[]',
+    "lastError" TEXT,
+    "exceptionRaisedAt" DATETIME,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "SmsIntent_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE INDEX IF NOT EXISTS "SmsIntent_providerSid_idx" ON "SmsIntent"("providerSid");
+CREATE INDEX IF NOT EXISTS "SmsIntent_businessId_status_idx" ON "SmsIntent"("businessId", "status");
+CREATE UNIQUE INDEX IF NOT EXISTS "SmsIntent_businessId_eventType_eventId_recipientNormalized_channel_messageVersion_key" ON "SmsIntent"("businessId", "eventType", "eventId", "recipientNormalized", "channel", "messageVersion");
+
+
+-- Operating-platform proof loop: per-shop system-of-record contract (versioned), immutable external correlations, reconciliation exceptions
+CREATE TABLE IF NOT EXISTS "ShopRecordContract" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "version" INTEGER NOT NULL,
+    "domainsJson" TEXT NOT NULL,
+    "createdByEmail" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "ShopRecordContract_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE TABLE IF NOT EXISTS "ExternalCorrelation" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "entityType" TEXT NOT NULL,
+    "entityId" TEXT NOT NULL,
+    "system" TEXT NOT NULL,
+    "externalId" TEXT NOT NULL,
+    "contractVersion" INTEGER NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "ExternalCorrelation_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE TABLE IF NOT EXISTS "ReconciliationException" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "kind" TEXT NOT NULL,
+    "entityType" TEXT NOT NULL,
+    "entityId" TEXT NOT NULL,
+    "system" TEXT NOT NULL,
+    "externalId" TEXT,
+    "expectedJson" TEXT NOT NULL,
+    "observedJson" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'open',
+    "dedupeKey" TEXT NOT NULL,
+    "resolvedBy" TEXT,
+    "resolution" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "resolvedAt" DATETIME,
+    CONSTRAINT "ReconciliationException_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "ShopRecordContract_businessId_version_key" ON "ShopRecordContract"("businessId", "version");
+CREATE UNIQUE INDEX IF NOT EXISTS "ExternalCorrelation_businessId_system_entityType_externalId_key" ON "ExternalCorrelation"("businessId", "system", "entityType", "externalId");
+CREATE UNIQUE INDEX IF NOT EXISTS "ExternalCorrelation_businessId_system_entityType_entityId_key" ON "ExternalCorrelation"("businessId", "system", "entityType", "entityId");
+CREATE UNIQUE INDEX IF NOT EXISTS "ReconciliationException_dedupeKey_key" ON "ReconciliationException"("dedupeKey");
+CREATE INDEX IF NOT EXISTS "ReconciliationException_businessId_status_idx" ON "ReconciliationException"("businessId", "status");
+
+
+-- In-call offers: the network question and the times a call was offered, the caller's own consent evidence, and what a call-consented handoff may share
+ALTER TABLE "Call" ADD COLUMN "networkConsentJson" TEXT;
+ALTER TABLE "Call" ADD COLUMN "networkOfferJson" TEXT;
+ALTER TABLE "Call" ADD COLUMN "slotOfferJson" TEXT;
+ALTER TABLE "NetworkHandoff" ADD COLUMN "sharesJson" TEXT;
+
+
+-- Activation acknowledgement: the notice, permissions, versions, actor and time an owner approved when turning a shop on
+CREATE TABLE IF NOT EXISTS "ActivationAcknowledgement" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "actorEmail" TEXT NOT NULL,
+    "noticeVersion" TEXT NOT NULL,
+    "noticeText" TEXT NOT NULL,
+    "setupVersion" TEXT NOT NULL,
+    "permissionsJson" TEXT NOT NULL,
+    "termsVersion" TEXT NOT NULL,
+    "acceptedRecording" BOOLEAN NOT NULL,
+    "approvedTurnOn" BOOLEAN NOT NULL,
+    "acceptedTerms" BOOLEAN NOT NULL,
+    "acceptedSms" BOOLEAN NOT NULL,
+    "checkoutSessionId" TEXT,
+    "actorKind" TEXT NOT NULL DEFAULT 'owner',
+    "attestationJson" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "ActivationAcknowledgement_checkoutSessionId_key" ON "ActivationAcknowledgement"("checkoutSessionId");
+CREATE INDEX IF NOT EXISTS "ActivationAcknowledgement_businessId_createdAt_idx" ON "ActivationAcknowledgement"("businessId", "createdAt");
+
+
+-- Replicas the owner allows beside each record of truth; provider effects written before a Stripe or Vapi call; scoped money authority
+ALTER TABLE "ShopRecordContract" ADD COLUMN "replicasJson" TEXT NOT NULL DEFAULT '{}';
+CREATE TABLE IF NOT EXISTS "ProviderEffect" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT,
+    "provider" TEXT NOT NULL,
+    "operation" TEXT NOT NULL,
+    "correlationKey" TEXT NOT NULL,
+    "idempotencyKey" TEXT NOT NULL,
+    "entityType" TEXT,
+    "entityId" TEXT,
+    "status" TEXT NOT NULL DEFAULT 'pending',
+    "providerId" TEXT,
+    "attempts" INTEGER NOT NULL DEFAULT 0,
+    "lastError" TEXT,
+    "exceptionId" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    "finalizedAt" DATETIME
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "ProviderEffect_provider_correlationKey_key" ON "ProviderEffect"("provider", "correlationKey");
+CREATE INDEX IF NOT EXISTS "ProviderEffect_businessId_status_idx" ON "ProviderEffect"("businessId", "status");
+CREATE INDEX IF NOT EXISTS "ProviderEffect_status_updatedAt_idx" ON "ProviderEffect"("status", "updatedAt");
+CREATE TABLE IF NOT EXISTS "FinancialGrant" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "granteeEmail" TEXT NOT NULL,
+    "scope" TEXT NOT NULL,
+    "maxCents" INTEGER,
+    "expiresAt" DATETIME NOT NULL,
+    "policyVersion" TEXT NOT NULL,
+    "grantedByEmail" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "revokedAt" DATETIME,
+    "revokedByEmail" TEXT,
+    CONSTRAINT "FinancialGrant_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE INDEX IF NOT EXISTS "FinancialGrant_businessId_granteeEmail_idx" ON "FinancialGrant"("businessId", "granteeEmail");
+
+-- Shared-sender eligibility: customer and technician texts on a shared sender need a verified row for that sender
+CREATE TABLE IF NOT EXISTS "MessagingSender" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "identity" TEXT NOT NULL,
+    "kind" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'unknown',
+    "evidence" TEXT,
+    "checkedAt" DATETIME NOT NULL,
+    "recordedBy" TEXT NOT NULL,
+    "updatedAt" DATETIME NOT NULL
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "MessagingSender_identity_key" ON "MessagingSender"("identity");
+
+-- Sign-up drafts kept on the server per signed-in email
+CREATE TABLE IF NOT EXISTS "SetupDraft" (
+    "email" TEXT NOT NULL PRIMARY KEY,
+    "json" TEXT NOT NULL,
+    "updatedAt" DATETIME NOT NULL
+);
+
+-- Refund ledger: Stripe's cumulative refund recorded on the payment or deposit it was for.
+ALTER TABLE "Payment" ADD COLUMN "refundedCents" INTEGER NOT NULL DEFAULT 0;
+ALTER TABLE "Deposit" ADD COLUMN "refundedCents" INTEGER NOT NULL DEFAULT 0;
+
+-- Outbound sender: the number each text left from, so a reply to a pool member is attributed to the shop that used it.
+ALTER TABLE "OutboundSms" ADD COLUMN "fromNormalized" TEXT;

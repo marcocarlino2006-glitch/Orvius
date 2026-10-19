@@ -1,5 +1,6 @@
 "use client";
 
+import { askConfirm } from "@/components/ask-dialog";
 import { useState } from "react";
 import { TechScheduleEditor, type TechTimeOff } from "@/components/tech-schedule-editor";
 import { toast } from "@/components/toaster";
@@ -39,7 +40,7 @@ function TechAppLink({ tech, onChanged }: { tech: Tech; onChanged: () => void })
       headers: body ? { "Content-Type": "application/json" } : undefined,
       body: body ? JSON.stringify(body) : undefined,
     });
-    const data = (await res.json().catch(() => ({}))) as { url?: string | null; sent?: boolean; reason?: string | null; error?: string };
+    const data = (await res.json().catch(() => ({}))) as { url?: string | null; sent?: boolean; reason?: string | null; detail?: string | null; error?: string };
     if (!res.ok) throw new Error(data.error ?? "That didn't work.");
     return data;
   }
@@ -60,9 +61,21 @@ function TechAppLink({ tech, onChanged }: { tech: Tech; onChanged: () => void })
   const send = () =>
     run("Sending", async () => {
       const data = await call("POST", { send: true });
-      if (data.sent) return `Texted to ${tech.name}.`;
-      if (data.url) await navigator.clipboard?.writeText(data.url).catch(() => undefined);
-      return data.reason === "no_phone" ? "No mobile on file, so the link was copied instead." : "Texting is off, so the link was copied instead.";
+      if (data.sent) return `Text sent to ${tech.name}. The old link is off.`;
+      const copied = data.url
+        ? await navigator.clipboard?.writeText(data.url).then(() => true, () => false) ?? false
+        : false;
+      const why =
+        data.reason === "no_phone"
+          ? "No mobile on file"
+          : data.reason === "texting_held"
+            ? `Texting isn't ready${data.detail ? ` (${data.detail})` : ""}`
+            : data.reason === "send_unknown"
+              ? "The text may or may not have gone out, so it won't be resent"
+              : data.reason === "send_failed"
+                ? "The text service refused it"
+                : "Texting isn't available";
+      return `${why}. ${copied ? "The new link is copied — hand it over another way." : "Use Copy link to hand it over another way."}`;
     });
 
   const copy = () =>
@@ -74,8 +87,8 @@ function TechAppLink({ tech, onChanged }: { tech: Tech; onChanged: () => void })
       return "Link copied.";
     });
 
-  const turnOff = () => {
-    if (!window.confirm(`Turn off ${tech.name}'s app link? It stops working right away.`)) return;
+  const turnOff = async () => {
+    if (!(await askConfirm({ title: `Turn off ${tech.name}'s app link?`, body: "It stops working right away.", confirmLabel: "Turn off", danger: true }))) return;
     void run("Turning off", async () => {
       await call("DELETE");
       return "Link turned off.";
@@ -221,12 +234,13 @@ function RemoveFromTeam({ tech, onDone }: { tech: Tech; onDone: () => void }) {
   const [error, setError] = useState<string | null>(null);
 
   async function remove() {
-    if (
-      !window.confirm(
-        `Take ${tech.name} off the team? Their upcoming jobs come off them and go to someone else when one person clearly fits; the rest show as "Needs a tech". Their app link stops working.`,
-      )
-    )
-      return;
+    const confirmed = await askConfirm({
+      title: `Take ${tech.name} off the team?`,
+      body: 'Their upcoming jobs come off them and go to someone else when one person clearly fits; the rest show as "Needs a tech". Their app link stops working.',
+      confirmLabel: "Take off team",
+      danger: true,
+    });
+    if (!confirmed) return;
     setBusy(true);
     setError(null);
     try {

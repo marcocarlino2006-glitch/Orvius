@@ -45,6 +45,13 @@ export type ShopHealth = {
   }>;
   /** Whether the shop's own calls are proven to reach the line, not just that a line exists. */
   connection?: ConnectionHealth;
+  /** The owner said forwarding is on — configured, not proof. */
+  forwardConfirmedAt?: string | null;
+  /** A call came through the owner's own number — proof. */
+  forwardProvenAt?: string | null;
+  lastForwardTest?: { state: string; at: string } | null;
+  /** Newest alert that reached no one, at any age. */
+  lastFailedAlertAt?: string | null;
 };
 
 export async function getShopHealth(businessId: string): Promise<ShopHealth> {
@@ -60,6 +67,7 @@ export async function getShopHealth(businessId: string): Promise<ShopHealth> {
       twilioPhone: true,
       lineVerifiedAt: true,
       overflowProvedAt: true,
+      overflowForwardConfirmedAt: true,
       environment: true,
       setupJson: true,
       createdAt: true,
@@ -78,7 +86,7 @@ export async function getShopHealth(businessId: string): Promise<ShopHealth> {
 
   const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-  const [lastCall, lastLead, failedRows, lastSuccess, alertMetrics, lastTest] =
+  const [lastCall, lastLead, failedRows, lastSuccess, alertMetrics, lastTest, latestFailed] =
     await Promise.all([
       prisma.call.findFirst({
         where: { businessId, status: "completed" },
@@ -103,9 +111,16 @@ export async function getShopHealth(businessId: string): Promise<ShopHealth> {
       }),
       getAlertMetrics(businessId),
       latestForwardTest(businessId),
+      prisma.ownerNotification.findMany({
+        where: { businessId, status: "failed" },
+        orderBy: { createdAt: "desc" },
+        take: 20,
+        select: { dedupeKey: true, createdAt: true },
+      }),
     ]);
 
   const unreached = await failuresThatReachedNoOne(businessId, failedRows);
+  const [lastUnreached] = await failuresThatReachedNoOne(businessId, latestFailed);
   const failedAlerts = unreached.length;
   const recentFailures = unreached.slice(0, 3);
   const smsEnabled = process.env.ENABLE_OWNER_SMS === "true";
@@ -244,6 +259,10 @@ export async function getShopHealth(businessId: string): Promise<ShopHealth> {
       provenAt: business.overflowProvedAt,
       lastTest: lastTest ? { state: lastTest.state, title: lastTest.title ?? "", at: lastTest.startedAt } : null,
     }),
+    forwardConfirmedAt: business.overflowForwardConfirmedAt?.toISOString() ?? null,
+    forwardProvenAt: business.overflowProvedAt?.toISOString() ?? null,
+    lastForwardTest: lastTest ? { state: lastTest.state, at: lastTest.startedAt.toISOString() } : null,
+    lastFailedAlertAt: lastUnreached?.createdAt.toISOString() ?? null,
     recentFailures: recentFailures.map((item) => ({
       channel: item.channel,
       error: item.error,

@@ -1,6 +1,8 @@
 import { recordAudit } from "@/lib/audit";
 import { displayPhone, normalizePhone } from "@/lib/customer";
+import { textingHeld } from "@/lib/twilio-sms";
 import { sendCustomerSms } from "@/lib/customer-sms";
+import { classifySendError, nextIntentVersion } from "@/lib/sms-intent";
 import { afterResponse } from "@/lib/after-response";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { logError, logInfo, logWarn } from "@/lib/logger";
@@ -168,6 +170,8 @@ export type FollowUpPreview = {
   sentAt: string | null;
   canSend: boolean;
   reason: string | null;
+  /** The send may have left but the provider never said; it is never sent again from here. */
+  uncertain?: boolean;
 };
 
 const REASONS: Record<string, string> = {
@@ -193,12 +197,14 @@ export async function previewFollowUp(businessId: string, leadId: string, now = 
     followUpBlock(lead, now, { ignoreTooSoon: true }) ??
     (await laterBlock(businessId, lead, now)) ??
     (isShopDaytime(now, lead.business.timezone) ? null : "night");
+  const uncertain = lead.followUpSentAt ? await followUpUncertain(businessId, lead.id) : false;
   return {
     mode,
     message: messageFor(lead),
     sentAt: lead.followUpSentAt?.toISOString() ?? null,
     canSend: !block,
     reason: block ? REASONS[block] ?? null : null,
+    uncertain,
   };
 }
 
@@ -213,7 +219,18 @@ function messageFor(lead: LoadedLead) {
 
 export type FollowUpResult =
   | { sent: true }
-  | { sent: false; reason: string };
+  | { sent: false; reason: string; uncertain?: true };
+
+export const FOLLOW_UP_UNCERTAIN = "Orvius couldn't tell whether the follow-up text left, so it won't send it again. Check the conversation before texting.";
+
+async function followUpUncertain(businessId: string, leadId: string) {
+  const latest = await prisma.smsIntent.findFirst({
+    where: { businessId, eventType: "lead.follow_up", eventId: leadId },
+    orderBy: { messageVersion: "desc" },
+    select: { status: true },
+  });
+  return latest?.status === "unknown_submission";
+}
 
 /**
  * Claim, then send. The claim is the stamp: two taps, a tap racing the cron,
@@ -245,10 +262,39 @@ export async function sendLeadFollowUp(params: {
   if (!claimed.count) return { sent: false, reason: REASONS.already_sent };
 
   const message = messageFor(lead);
+  const to = normalizePhone(lead.phone!) ?? lead.phone!;
   let result: Awaited<ReturnType<typeof sendCustomerSms>>;
   try {
-    result = await (params.send ?? sendCustomerSms)({ businessId: params.businessId, to: lead.phone!, body: message });
+    result = await (params.send ?? sendCustomerSms)({
+      businessId: params.businessId,
+      to: lead.phone!,
+      body: message,
+      intent: {
+        eventType: "lead.follow_up",
+        eventId: lead.id,
+        severity: "routine",
+        authorizedBy: params.by === "orvius" ? "orvius:auto_follow_up" : `${params.by.actor}:follow_up`,
+        ...(await nextIntentVersion({ businessId: params.businessId, eventType: "lead.follow_up", eventId: lead.id, to })),
+      },
+    });
   } catch (error) {
+    if (classifySendError(error) === "unknown_submission") {
+      // It may have reached the customer: the stamp stays, so neither a tap nor the cron sends it twice.
+      logWarn("follow_up.submission_unknown", { leadId: lead.id, error: error instanceof Error ? error.message : String(error) });
+      await recordAudit({
+        businessId: params.businessId,
+        entityType: "lead",
+        entityId: lead.id,
+        action: "lead.follow_up_unknown",
+        ...(params.by === "orvius" ? { actor: "orvius" as const } : params.by),
+        summary: `A follow-up text to ${lead.name ?? "the caller"} may or may not have left; Orvius won't resend it.`,
+        detail: { message },
+        leadId: lead.id,
+        customerId: lead.customerId,
+        idempotencyKey: `follow-up-unknown:${lead.id}`,
+      });
+      return { sent: false, reason: FOLLOW_UP_UNCERTAIN, uncertain: true };
+    }
     // Twilio refused the request, so nothing reached the customer; free the lead for another try.
     await prisma.lead.update({ where: { id: lead.id }, data: { followUpSentAt: null } });
     logWarn("follow_up.send_failed", { leadId: lead.id, error: error instanceof Error ? error.message : String(error) });
@@ -261,6 +307,7 @@ export async function sendLeadFollowUp(params: {
       invalid_customer_phone: REASONS.no_phone,
       unsupported_destination: "Orvius only texts US and Canadian numbers.",
       sms_not_configured: "Texting is not switched on for this shop yet.",
+      sender_not_verified: "Texting isn't verified with the carriers yet, so the text is held, not sent.",
       human_takeover: "Someone took this conversation over, so Orvius stayed quiet.",
     }[result.reason];
     return { sent: false, reason: why };
@@ -288,7 +335,7 @@ export async function sendLeadFollowUp(params: {
 export async function runAutoFollowUps(options: { now?: Date; perShop?: number; budgetMs?: number; send?: typeof sendCustomerSms } = {}) {
   const now = options.now ?? new Date();
   const stopAt = Date.now() + (options.budgetMs ?? 20_000);
-  const tally = { shops: 0, sent: 0, skipped: 0 };
+  const tally = { shops: 0, sent: 0, skipped: 0, held: 0 };
   let cursor: string | undefined;
   for (;;) {
     const shops = await prisma.business.findMany({
@@ -303,6 +350,11 @@ export async function runAutoFollowUps(options: { now?: Date; perShop?: number; 
       if (Date.now() > stopAt) return tally;
       if (!isShopDaytime(now, shop.timezone)) continue;
       tally.shops += 1;
+      /* Paused, not attempted: an unverified sender would hold every text and log a hold per lead per run. */
+      if (!options.send && (await textingHeld(shop.id))) {
+        tally.held += 1;
+        continue;
+      }
       const due = await prisma.lead.findMany({
         where: {
           businessId: shop.id,

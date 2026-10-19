@@ -1,5 +1,6 @@
 "use client";
 
+import { askConfirm } from "@/components/ask-dialog";
 import { useCallback, useEffect, useState } from "react";
 import { RecordAvatar } from "@/components/record-avatar";
 import { toast } from "@/components/toaster";
@@ -31,13 +32,15 @@ export function TeamAccessGroup() {
   const [role, setRole] = useState<MemberRole>("dispatcher");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ error: boolean; text: string } | null>(null);
+  const [loadError, setLoadError] = useState<"signed_out" | "error" | null>(null);
 
   const load = useCallback(async () => {
     const res = await fetch("/api/team", { cache: "no-store" }).catch(() => null);
     if (!res?.ok) {
-      setPeople([]);
+      setLoadError(res?.status === 401 ? "signed_out" : "error");
       return;
     }
+    setLoadError(null);
     const data = (await res.json()) as { people: Person[]; canManage: boolean };
     setPeople(data.people);
     setCanManage(data.canManage);
@@ -92,8 +95,12 @@ export function TeamAccessGroup() {
   }
 
   async function remove(person: Person) {
-    const verb = person.you ? "Leave this shop?" : `Remove ${person.email}? They lose access right away.`;
-    if (!window.confirm(verb)) return;
+    const confirmed = await askConfirm(
+      person.you
+        ? { title: "Leave this shop?", body: "You lose access right away.", confirmLabel: "Leave", danger: true }
+        : { title: `Remove ${person.email}?`, body: "They lose access right away.", confirmLabel: "Remove", danger: true },
+    );
+    if (!confirmed) return;
     const res = await fetch(`/api/team?id=${encodeURIComponent(person.id ?? "")}`, { method: "DELETE" }).catch(() => null);
     if (!res?.ok) {
       const data = (await res?.json().catch(() => ({}))) as { error?: string } | undefined;
@@ -110,7 +117,22 @@ export function TeamAccessGroup() {
 
   return (
     <ScGroup title={people ? `People with access · ${people.length}` : "People with access"}>
-      {people === null ? (
+      {loadError ? (
+        <p className="sc-banner sc-banner--error" role="alert">
+          {loadError === "signed_out" ? (
+            <>
+              You&apos;re signed out. <a href={`/login?callbackUrl=${encodeURIComponent("/dashboard?settings=team")}`}>Sign in</a> to see who has access.
+            </>
+          ) : (
+            <>
+              Couldn&apos;t load who has access. This isn&apos;t an empty team.{" "}
+              <button type="button" className="sc-btn" onClick={() => void load()}>
+                Try again
+              </button>
+            </>
+          )}
+        </p>
+      ) : people === null ? (
         <p className="sc-muted sc-pad">Loading…</p>
       ) : (
         people.map((person) => (

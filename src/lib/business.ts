@@ -285,7 +285,7 @@ SERVICES
 ${formatServicesForPrompt(business.servicesJson)}${tradeBlock}${formatPricesRule(business.servicesJson)}${formatRulesForPrompt(business.rulesJson)}
 
 BEFORE ENDING EVERY CALL
-Confirm: name, callback number (read it back), service needed, urgency, address.
+Confirm: name, callback number (read back only digits the caller said; if they said to use the number they're calling from, confirm that instead — never say digits), service needed, urgency, address.
 Mark urgency as: emergency | same-day | this-week | flexible`;
 }
 
@@ -376,6 +376,6 @@ ${formatServicesForPrompt(business.servicesJson)}
 ${tradePromptPack(trade)}${formatPricesRule(business.servicesJson)}${formatRulesForPrompt(business.rulesJson)}
 
 BEFORE ENDING EVERY CALL
-Confirm: name, callback number (read it back), what they need, urgency.
+Confirm: name, callback number (read back only digits the caller said; if they said to use the number they're calling from, confirm that instead — never say digits), what they need, urgency.
 Mark urgency as: emergency | same-day | this-week | flexible`;
 }

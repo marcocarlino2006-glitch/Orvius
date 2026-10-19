@@ -97,7 +97,8 @@ test("alert_team_now texts the owner once per call, with what the caller said", 
     const [first] = await run();
     await run();
 
-    assert.match(first.result, /owner has been texted/);
+    assert.match(first.result, /An alert to the owner is queued; it may not have arrived/);
+    assert.doesNotMatch(first.result, /has been texted/);
     assert.match(first.result, /transfer tool/);
     const sms = await prisma.ownerNotification.findMany({ where: { businessId: shop.id, channel: "sms" } });
     assert.equal(sms.length, 1, "a repeated tool call texts once");
@@ -106,6 +107,42 @@ test("alert_team_now texts the owner once per call, with what the caller said", 
     assert.match(sms[0].message, /12 Elm St/);
     assert.match(sms[0].message, /\+1 512 555 0123/);
     assert.match(sms[0].message, /connecting them to your transfer number/);
+  } finally {
+    await drop(shop.id);
+  }
+});
+
+test("alert_team_now: a model-supplied number never displaces caller ID unless the caller said every digit", async () => {
+  const shop = await makeShop();
+  const alertWith = async (callerPhone, callbackNumber, callerWords) => {
+    const call = await prisma.call.create({
+      data: { businessId: shop.id, vapiCallId: `danger-${stamp()}`, callerPhone, status: "in-progress" },
+    });
+    await handleInCallToolCalls({
+      shop: toolsShop(shop),
+      callId: call.id,
+      call,
+      toolCalls: [{ id: "t1", name: "alert_team_now", args: { hazard: "gas smell", callbackNumber } }],
+      callerWords,
+    });
+    const sms = await prisma.ownerNotification.findFirst({ where: { businessId: shop.id, channel: "sms", dedupeKey: `safety-live:${call.vapiCallId}` } });
+    return sms.message;
+  };
+  try {
+    const invented = await alertWith("+15125550123", "+11234567890", "I smell gas, just use the number I'm calling from");
+    assert.match(invented, /\+1 512 555 0123/);
+    assert.doesNotMatch(invented, /123 456 7890|1234567890/);
+
+    const collision = await alertWith("+15125550123", "+13125550123", "I smell gas. My number is five five five, oh one two three.");
+    assert.match(collision, /\+1 512 555 0123/, "same last seven digits, different area code: caller ID wins");
+    assert.doesNotMatch(collision, /312/);
+
+    const alternate = await alertWith("+15125550123", "+17735550199", "I smell gas. I'm on my wife's phone, call me at 773-555-0199.");
+    assert.match(alternate, /\+1 773 555 0199/, "the caller's own alternate number is kept");
+
+    const hidden = await alertWith(null, "+13125550199", "I smell gas in the basement");
+    assert.match(hidden, /number not confirmed, check the call/);
+    assert.doesNotMatch(hidden, /312 555 0199/);
   } finally {
     await drop(shop.id);
   }
@@ -121,7 +158,7 @@ test("without a transfer number the caller is told the team will call right back
       call,
       toolCalls: [{ id: "t1", name: "alert_team_now", args: { hazard: "CO alarm going off" } }],
     });
-    assert.match(result.result, /call you right back/);
+    assert.match(result.result, /so they can call you back/);
     assert.doesNotMatch(result.result, /transfer tool/);
     const sms = await prisma.ownerNotification.findFirst({ where: { businessId: shop.id, channel: "sms" } });
     assert.match(sms.message, /Call them back now\./);

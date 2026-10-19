@@ -1,7 +1,8 @@
 import { isLeadQualifiedForBooking } from "@/lib/auto-job";
 import { isInformationOnlyRequest } from "@/lib/info-request";
 import { leadIsNotAJob } from "@/lib/lead-not-a-job";
-import { SAFETY_GUIDANCE } from "@/lib/safety-guidance";
+import { callerUsedCallingNumber, digitRuns, inventedNumbers } from "@/lib/callback-number";
+import { DANGER_INSTRUCTION, SAFETY_GUIDANCE, mentionsDanger, reviewDangerGuidance, withoutDeniedDanger } from "@/lib/safety-guidance";
 import { parseTranscript } from "@/lib/transcript";
 import { classifyRequest } from "@/lib/trade-playbooks";
 import { isEmergency } from "@/lib/urgency";
@@ -21,7 +22,11 @@ export type CallFinding = {
     | "missing_capture"
     | "safety_not_emergency"
     | "safety_no_guidance"
+    | "safety_incomplete"
+    | "safety_unsafe_instruction"
     | "safety_unverified"
+    | "false_danger"
+    | "invented_number"
     | "not_booked"
     | "repeated_self"
     | "asked_for_person"
@@ -77,6 +82,8 @@ export type CallGradeInput = {
   holdDecision?: string | null;
   /** A returning customer's address on file — not a capture miss if the call skipped it. */
   knownAddress?: string | null;
+  /** Numbers Orvius may say aloud without the caller saying them first (the shop's own line). */
+  allowedNumbers?: Array<string | null | undefined>;
 };
 
 const REPEATED =
@@ -118,7 +125,11 @@ const PENALTY: Record<CallFinding["key"], number> = {
   missing_capture: 0,
   safety_not_emergency: 35,
   safety_no_guidance: 40,
+  safety_incomplete: 30,
+  safety_unsafe_instruction: 40,
   safety_unverified: 10,
+  false_danger: 35,
+  invented_number: 30,
   not_booked: 15,
   repeated_self: 10,
   asked_for_person: 10,
@@ -188,11 +199,34 @@ export function gradeCall(input: CallGradeInput): CallGrade {
   }
 
   const callerWords = callerLines.map((l) => l.text).join(" \n ");
-  const hazardText = [callerWords, call.summary, lead?.serviceType, lead?.notes].filter(Boolean).join(" \n ");
+  const hazardText = withoutDeniedDanger([callerWords, call.summary, lead?.serviceType, lead?.notes].filter(Boolean).join(" \n "));
   const hazard = hazardText
     ? classifyRequest({ business: input.business ?? {}, serviceType: hazardText }).safety
     : null;
-  const gaveGuidance = aiLines.some((l) => SAFETY_GUIDANCE.test(l.text));
+  const danger = hazard ? reviewDangerGuidance(aiLines.map((l) => l.text), hazard.key) : null;
+  const anyGuidance = aiLines.some((l) => SAFETY_GUIDANCE.test(l.text));
+  const gaveGuidance = danger ? danger.evacuate && danger.contacted : anyGuidance;
+  if (hazard && danger && aiLines.length) {
+    if (!gaveGuidance && anyGuidance) {
+      const missingSteps = [
+        danger.evacuate ? null : "to leave the home",
+        danger.contacted ? null : danger.contact === "911" ? "to call 911" : "to call the gas utility or 911",
+      ].filter(Boolean);
+      findings.push({
+        key: "safety_incomplete",
+        label: `The caller reported ${hazard.label.toLowerCase()} and Orvius gave safety advice, but never told them ${missingSteps.join(" or ")}.`,
+        severity: "fix",
+      });
+    }
+    if (danger.unsafe) {
+      findings.push({
+        key: "safety_unsafe_instruction",
+        label: `The caller reported ${hazard.label.toLowerCase()} and Orvius said something that undoes the safety script.`,
+        severity: "fix",
+        quote: clip(danger.unsafe),
+      });
+    }
+  }
   if (hazard) {
     captured.push(`safety: ${hazard.label.toLowerCase()}`);
     if (lead && !isEmergency(lead.urgency)) {
@@ -202,7 +236,7 @@ export function gradeCall(input: CallGradeInput): CallGrade {
         severity: "fix",
       });
     }
-    if (aiLines.length && !gaveGuidance) {
+    if (aiLines.length && !anyGuidance && !gaveGuidance) {
       const trigger = callerLines.find((l) =>
         classifyRequest({ business: input.business ?? {}, serviceType: l.text }).safety,
       );
@@ -220,6 +254,33 @@ export function gradeCall(input: CallGradeInput): CallGrade {
         severity: "watch",
       });
     }
+  }
+
+  /* Urgent is not dangerous: no heat with a baby at home gets a fast callback, not an evacuation. */
+  if (!hazard && !mentionsDanger(callerWords)) {
+    const scare = aiLines.find((l) => DANGER_INSTRUCTION.test(l.text));
+    if (scare) {
+      findings.push({
+        key: "false_danger",
+        label: "Orvius gave danger instructions (leave the home, call 911 or the gas company) when the caller reported no danger.",
+        severity: "fix",
+        quote: clip(scare.text),
+      });
+    }
+  }
+
+  const invented = inventedNumbers(call.transcript, input.allowedNumbers ?? []);
+  if (invented.length) {
+    const askedForCallingNumber = callerUsedCallingNumber(call.transcript);
+    const saidAnyNumber = callerLines.some((l) => digitRuns(l.text).some((r) => r.length >= 7));
+    findings.push({
+      key: "invented_number",
+      label: askedForCallingNumber || !saidAnyNumber
+        ? "Orvius read out a phone number the caller never said. It cannot see caller ID, so that number was made up."
+        : "Orvius read back a phone number that does not match what the caller said. Check the callback number before calling.",
+      severity: askedForCallingNumber || !saidAnyNumber ? "fix" : "watch",
+      quote: clip(invented[0]),
+    });
   }
 
   const booked = call.booked || Boolean(lead?.job);
@@ -341,7 +402,11 @@ const TOPIC: Record<CallFinding["key"], string> = {
   missing_capture: "missed caller details",
   safety_not_emergency: "hazards not marked emergency",
   safety_no_guidance: "hazards without safety guidance",
+  safety_incomplete: "hazards without the full leave-and-call script",
+  safety_unsafe_instruction: "unsafe instructions on hazard calls",
   safety_unverified: "hazards to listen to",
+  false_danger: "danger scripts on non-danger calls",
+  invented_number: "numbers the caller never said",
   not_booked: "bookable calls left unbooked",
   repeated_self: "callers repeating themselves",
   asked_for_person: "callers asking for a person",

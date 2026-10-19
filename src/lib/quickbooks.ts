@@ -1,7 +1,10 @@
 import { displayPhone } from "@/lib/customer";
 import { getAppUrl } from "@/lib/env";
 import { logError, logInfo, logWarn } from "@/lib/logger";
+import { assertLiveActionAllowed, isOwnerDemoWorkspaceId } from "@/lib/demo-fence";
 import { prisma } from "@/lib/prisma";
+import { mayWrite } from "@/lib/record-authority";
+import { correlate } from "@/lib/system-of-record";
 import { openSecret, sealSecret, secretBoxConfigured } from "@/lib/secret-box";
 
 /**
@@ -133,6 +136,7 @@ async function qboQuery<T>(token: string, realmId: string, sql: string): Promise
 
 /** Code and realm from the OAuth callback → a stored, sealed connection for this shop. */
 export async function connectQuickBooks(params: { businessId: string; code: string; realmId: string; now?: Date }) {
+  await assertLiveActionAllowed(params.businessId, "Connecting QuickBooks");
   const now = params.now ?? new Date();
   const tokens = await tokenRequest({ grant_type: "authorization_code", code: params.code, redirect_uri: quickbooksRedirectUri() });
   const info = await qboRequest<{ CompanyInfo?: { CompanyName?: string } }>(
@@ -170,6 +174,7 @@ async function needsReconnect(connectionId: string, reason: string) {
 
 /** A usable access token and realm. Refreshing is claimed first: Intuit rotates refresh tokens. */
 export async function quickbooksAccess(businessId: string, now = new Date()): Promise<{ token: string; realmId: string; connectionId: string } | null> {
+  if (await isOwnerDemoWorkspaceId(businessId)) return null;
   for (let attempt = 0; attempt < 6; attempt++) {
     const conn = await prisma.quickBooksConnection.findUnique({ where: { businessId } });
     if (!conn || conn.status !== "active") return null;
@@ -222,7 +227,8 @@ export async function quickbooksAccess(businessId: string, now = new Date()): Pr
 /** Disconnect from our side: revoke at Intuit (best effort), then forget the tokens. */
 export async function disconnectQuickBooks(businessId: string) {
   const conn = await prisma.quickBooksConnection.findUnique({ where: { businessId } });
-  const refresh = openSecret(conn?.refreshTokenEnc ?? null);
+  // A demo shop's token was never Intuit's to revoke: clearing it here is the whole disconnect.
+  const refresh = (await isOwnerDemoWorkspaceId(businessId)) ? null : openSecret(conn?.refreshTokenEnc ?? null);
   if (refresh) {
     await fetch(revokeUrl(), {
       method: "POST",
@@ -242,6 +248,7 @@ export async function disconnectQuickBooks(businessId: string) {
  * means a new payment path cannot be forgotten.
  */
 export async function enqueueQuickBooksPayments(businessId: string, since: Date, now = new Date()) {
+  if (await isOwnerDemoWorkspaceId(businessId)) return 0;
   const [invoices, deposits, existing] = await Promise.all([
     prisma.invoice.findMany({ where: { businessId, status: "paid", paidAt: { gte: since } }, select: { id: true, amountCents: true }, take: 200 }),
     prisma.deposit.findMany({ where: { businessId, status: "paid", paidAt: { gte: since } }, select: { id: true, amountCents: true }, take: 200 }),
@@ -442,6 +449,11 @@ async function processSync(syncId: string, now: Date) {
     await prisma.quickBooksSync.update({ where: { id: sync.id }, data: { status: "skipped", claimedAt: null, lastError: "No longer a paid payment in Orvius" } });
     return "skipped" as const;
   }
+  const authority = await mayWrite(sync.businessId, "quickbooks", "payment_receipt");
+  if (!authority.allowed) {
+    await prisma.quickBooksSync.update({ where: { id: sync.id }, data: { status: "skipped", claimedAt: null, lastError: authority.reason } });
+    return "skipped" as const;
+  }
   const access = await quickbooksAccess(sync.businessId, now);
   if (!access) {
     await prisma.quickBooksSync.update({ where: { id: sync.id }, data: { status: "skipped", claimedAt: null, lastError: "QuickBooks is not connected" } });
@@ -460,7 +472,8 @@ async function processSync(syncId: string, now: Date) {
     where: { id: sync.id },
     data: { status: "done", claimedAt: null, qbReceiptId: created.SalesReceipt.Id, lastError: null },
   });
-  logInfo("quickbooks.receipt_created", { businessId: sync.businessId, sourceType: sync.sourceType });
+  await correlate({ businessId: sync.businessId, entityType: sync.sourceType, entityId: sync.sourceId, system: "quickbooks", externalId: created.SalesReceipt.Id }).catch((error: unknown) => logWarn("quickbooks.correlation_failed", { syncId: sync.id, error: error instanceof Error ? error.message : String(error) }));
+  logInfo("quickbooks.receipt_created", { businessId: sync.businessId, sourceType: sync.sourceType, basis: authority.basis });
   return "done" as const;
 }
 

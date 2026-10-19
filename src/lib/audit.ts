@@ -41,6 +41,24 @@ function isUniqueConstraintError(error: unknown) {
  */
 export async function recordAudit(input: AuditInput): Promise<string | null> {
   try {
+    return await writeAudit(input);
+  } catch (error) {
+    logWarn("audit.write_failed", {
+      action: input.action,
+      entityId: input.entityId,
+      error: error instanceof Error ? error.message : "unknown",
+    });
+    return null;
+  }
+}
+
+/**
+ * The same write for a row something else depends on, such as an exception the
+ * owner must see: it throws when the row wasn't written. Null means a row with
+ * this idempotency key already exists.
+ */
+export async function writeAudit(input: AuditInput): Promise<string | null> {
+  try {
     const row = await prisma.auditEvent.create({
       data: {
         businessId: input.businessId,
@@ -62,12 +80,7 @@ export async function recordAudit(input: AuditInput): Promise<string | null> {
     return row.id;
   } catch (error) {
     if (isUniqueConstraintError(error)) return null;
-    logWarn("audit.write_failed", {
-      action: input.action,
-      entityId: input.entityId,
-      error: error instanceof Error ? error.message : "unknown",
-    });
-    return null;
+    throw error;
   }
 }
 
@@ -119,7 +132,7 @@ export async function listAuditFor(params: {
   ].filter((x): x is NonNullable<typeof x> => x !== null);
   if (!or.length) return [];
   const rows = await prisma.auditEvent.findMany({
-    where: { businessId: params.businessId, OR: or },
+    where: { businessId: params.businessId, OR: or, NOT: { action: { startsWith: "workflow." } } },
     orderBy: { createdAt: "desc" },
     take: params.take ?? 60,
   });

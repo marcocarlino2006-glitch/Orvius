@@ -6,6 +6,8 @@ import { CheckoutButton } from "@/components/checkout-button";
 import { getPlanById, isPaidPlanId, pricing, type PaidPlanId } from "@/lib/pricing-plans";
 import {
   getPayPromptDecision,
+  payPromptOpensNow,
+  PAY_PROMPT_FIRST_SEEN_KEY,
   PAY_PROMPT_SNOOZE_KEY,
   type PayPromptDecision,
 } from "@/lib/pay-prompt";
@@ -61,6 +63,7 @@ export function PayPromptModal() {
           pilotEndsAt: data.business?.pilotEndsAt ?? data.billing?.pilotEndsAt,
           shopCreatedAt: data.business?.createdAt,
           createdAt: data.business?.createdAt,
+          environment: data.business?.environment ?? null,
         });
 
         setEmail(data.user?.email ?? "");
@@ -83,6 +86,15 @@ export function PayPromptModal() {
         try {
           const until = Number(localStorage.getItem(PAY_PROMPT_SNOOZE_KEY) ?? "0");
           if (until > Date.now()) {
+            setOpen(false);
+            return;
+          }
+          const seenRaw = Number(localStorage.getItem(PAY_PROMPT_FIRST_SEEN_KEY) ?? "0");
+          const firstSeen = seenRaw > 0 ? seenRaw : null;
+          if (firstSeen == null) {
+            localStorage.setItem(PAY_PROMPT_FIRST_SEEN_KEY, String(Date.now()));
+          }
+          if (!payPromptOpensNow(next, firstSeen)) {
             setOpen(false);
             return;
           }

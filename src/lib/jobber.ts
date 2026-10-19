@@ -3,7 +3,10 @@ import { describeSlot } from "@/lib/in-call-tool-defs";
 import { displayPhone, normalizePhone } from "@/lib/customer";
 import { getAppUrl } from "@/lib/env";
 import { logError, logInfo, logWarn } from "@/lib/logger";
+import { assertLiveActionAllowed, isOwnerDemoWorkspaceId } from "@/lib/demo-fence";
 import { prisma } from "@/lib/prisma";
+import { mayWrite } from "@/lib/record-authority";
+import { correlate, raiseReconciliation } from "@/lib/system-of-record";
 import { openSecret, sealSecret, secretBoxConfigured } from "@/lib/secret-box";
 
 /**
@@ -127,6 +130,7 @@ export async function jobberGraphql<T>(accessToken: string, query: string, varia
 
 /** Code from the OAuth callback → a stored, sealed connection for this shop. */
 export async function connectJobber(params: { businessId: string; code: string; verifier: string; now?: Date }) {
+  await assertLiveActionAllowed(params.businessId, "Connecting Jobber");
   const now = params.now ?? new Date();
   const tokens = await tokenRequest({
     grant_type: "authorization_code",
@@ -166,6 +170,7 @@ async function needsReconnect(connectionId: string, reason: string) {
  * tokens, and two workers redeeming the same one would lose the connection.
  */
 export async function jobberAccessToken(businessId: string, now = new Date()): Promise<string | null> {
+  if (await isOwnerDemoWorkspaceId(businessId)) return null;
   for (let attempt = 0; attempt < 6; attempt++) {
     const conn = await prisma.jobberConnection.findUnique({ where: { businessId } });
     if (!conn || conn.status !== "active") return null;
@@ -254,7 +259,7 @@ const NOT_NEW_WORK = new Set(["existing_job", "follow_up", "complaint", "info_on
 export async function enqueueJobberSync(params: { businessId: string; leadId: string; skipReason?: string | null; nonService?: boolean }) {
   if (params.nonService || (params.skipReason && NOT_NEW_WORK.has(params.skipReason))) return false;
   const conn = await prisma.jobberConnection.findUnique({ where: { businessId: params.businessId }, select: { status: true } });
-  if (conn?.status !== "active") return false;
+  if (conn?.status !== "active" || (await isOwnerDemoWorkspaceId(params.businessId))) return false;
   try {
     await prisma.jobberSync.create({ data: { businessId: params.businessId, leadId: params.leadId } });
     return true;
@@ -330,6 +335,16 @@ async function processSync(syncId: string, now: Date) {
       where: { id: sync.id },
       data: { status: "check", claimedAt: null, lastError: "Sent to Jobber but the reply was lost. Check Jobber before sending again." },
     });
+    await raiseReconciliation({
+      businessId: sync.businessId,
+      kind: "create",
+      entityType: "lead",
+      entityId: sync.leadId,
+      system: "jobber",
+      externalId: sync.jobberClientId,
+      expected: { request: "created once in Jobber" },
+      observed: { reason: "response_lost", syncId: sync.id, sentAt: sync.requestSentAt.toISOString() },
+    }).catch(() => null);
     return "check" as const;
   }
   const lead = await prisma.lead.findUnique({
@@ -348,6 +363,11 @@ async function processSync(syncId: string, now: Date) {
   });
   if (!lead) {
     await prisma.jobberSync.update({ where: { id: sync.id }, data: { status: "skipped", claimedAt: null, lastError: "Lead no longer exists" } });
+    return "skipped" as const;
+  }
+  const authority = await mayWrite(sync.businessId, "jobber", "job_state");
+  if (!authority.allowed) {
+    await prisma.jobberSync.update({ where: { id: sync.id }, data: { status: "skipped", claimedAt: null, lastError: authority.reason } });
     return "skipped" as const;
   }
   const token = await jobberAccessToken(sync.businessId, now);
@@ -370,7 +390,9 @@ async function processSync(syncId: string, now: Date) {
     where: { id: sync.id },
     data: { status: "done", claimedAt: null, jobberRequestId: created.requestCreate.request.id, lastError: null },
   });
-  logInfo("jobber.request_created", { businessId: sync.businessId, leadId: sync.leadId });
+  await correlate({ businessId: sync.businessId, entityType: "lead", entityId: sync.leadId, system: "jobber", externalId: created.requestCreate.request.id }).catch((error: unknown) => logWarn("jobber.correlation_failed", { syncId: sync.id, error: error instanceof Error ? error.message : String(error) }));
+  if (lead.customer) await correlate({ businessId: sync.businessId, entityType: "customer", entityId: lead.customer.id, system: "jobber", externalId: clientId }).catch((error: unknown) => logWarn("jobber.correlation_failed", { syncId: sync.id, error: error instanceof Error ? error.message : String(error) }));
+  logInfo("jobber.request_created", { businessId: sync.businessId, leadId: sync.leadId, basis: authority.basis });
   return "done" as const;
 }
 
@@ -421,10 +443,11 @@ export async function drainJobberSyncs(options: { limit?: number; now?: Date; bu
 
 /** What Settings shows. */
 export async function jobberStatus(businessId: string) {
-  const [conn, recent, failing] = await Promise.all([
+  const [conn, recent, failing, checking] = await Promise.all([
     prisma.jobberConnection.findUnique({ where: { businessId }, select: { status: true, accountName: true, connectedAt: true, lastError: true } }),
     prisma.jobberSync.count({ where: { businessId, status: "done", createdAt: { gte: new Date(Date.now() - 30 * 86_400_000) } } }),
     prisma.jobberSync.count({ where: { businessId, status: { in: ["failed", "check"] } } }),
+    prisma.jobberSync.count({ where: { businessId, status: "check" } }),
   ]);
   return {
     available: jobberConfigured(),
@@ -434,6 +457,8 @@ export async function jobberStatus(businessId: string) {
     lastError: conn?.status === "reconnect" ? conn.lastError : null,
     sentLast30Days: recent,
     needsAttention: failing,
+    checking,
+    failed: failing - checking,
   };
 }
 

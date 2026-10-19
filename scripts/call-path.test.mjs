@@ -54,14 +54,17 @@ test("an emergency is never booked after the call, and the owner is told to call
   assert.equal(ownerAlertContextLine({ skipReason: "emergency_escalation", timezone: "America/Chicago" }), "Call them now · not booked");
 });
 
-test("the caller hears the owner was texted only when a text went out", () => {
-  assert.match(safetyAlertReply({ texted: true, reached: true, transferring: false }), /^The owner has been texted\./);
-  assert.match(safetyAlertReply({ texted: false, reached: true, transferring: false }), /^The owner has been alerted\./);
-  const none = safetyAlertReply({ texted: false, reached: false, transferring: false });
-  assert.doesNotMatch(none, /has been (texted|alerted)\./);
-  assert.match(none, /Do not say the team was alerted/);
-  assert.match(none, /911/);
-  assert.doesNotMatch(safetyAlertReply({ texted: false, reached: false, transferring: true }), /has been/);
+test("a queued alert is never told to the caller as sent, and the safety instruction never waits on it", () => {
+  for (const queued of [true, false]) {
+    for (const transferring of [true, false]) {
+      const reply = safetyAlertReply({ queued, transferring });
+      assert.doesNotMatch(reply, /has been (texted|alerted)|been notified|owner (was|is) texted\./i, reply);
+      assert.match(reply, /does not depend on this alert/);
+      assert.match(reply, /911/);
+    }
+  }
+  assert.match(safetyAlertReply({ queued: true, transferring: false }), /queued; it may not have arrived\. Never say the owner was texted/);
+  assert.match(safetyAlertReply({ queued: false, transferring: false }), /Do not say the team was alerted/);
   const tools = read("src/lib/in-call-tools.ts");
   assert.match(tools, /processNotificationQueue\(5, \{ businessId: shop\.id \}\)/, "the shop's safety text sends before the global drain");
   assert.doesNotMatch(tools, /texted: canReach/);

@@ -67,6 +67,8 @@ export function roleForbiddenResponse(permission: Permission) {
     "reports.view": "see the shop's money reports",
     "calls.publish": "share calls publicly",
     "customers.forget": "delete a customer's data",
+    "command.approve": "approve or dismiss Command plans",
+    "money.adjust": "change a bill the customer already has, accept a payment you didn't take, or edit prices",
   };
   return NextResponse.json({ error: `Your role can't ${what[permission]}. Ask the shop owner.` }, { status: 403 });
 }

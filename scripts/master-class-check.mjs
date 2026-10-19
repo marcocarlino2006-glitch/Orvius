@@ -390,7 +390,7 @@ try {
     } else {
       pass("Operate board language", "Board title uses items / need you");
     }
-  } else if (/items need you|Board is clear|items need"|Queue is clear|Needs you/.test(board)) {
+  } else if (/items need you|Board is clear|items need"|Queue is clear|Needs you|needs your attention|need your attention/.test(board)) {
     pass("Operate board language", "Board title uses items / need you");
   } else {
     fail("Operate board language", "Attention board must speak owner language");
@@ -412,11 +412,11 @@ try {
     fail("Operate action map", "attention-types missing ATTENTION_KINDS / strategy map");
   }
   const brain = read("src/lib/shop-brain.ts");
-  const askDock = read("src/components/os-ask-dock.tsx");
+  const askSuggestions = read("src/lib/ask-suggestions.ts");
   if (
     (/isNextActionQuestion/.test(brain) || /isNextActionQuestion/.test(operate)) &&
     /source: "operate"/.test(brain) &&
-    /What should I do now/.test(askDock)
+    /What should I do now/.test(askSuggestions)
   ) {
     pass("Cursor tunnel Ask", "Ask answers what-to-do from the same next gate");
   } else {
@@ -447,7 +447,8 @@ try {
   if (
     /leadIsNotAJob/.test(notAJob) &&
     /not_a_job/.test(kinds) &&
-    /MarkNotAJobButton/.test(board)
+    (/MarkNotAJobButton/.test(board) ||
+      (/<WorkCard\b/.test(board) && /<MarkNotAJobButton\b/.test(read("src/components/work-card.tsx")) && /status: "spam"/.test(read("src/components/mark-not-a-job-button.tsx"))))
   ) {
     pass("Not-a-job outcome", "Spam/OOA/wrong-trade clears with one tap");
   } else {

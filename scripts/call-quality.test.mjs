@@ -95,6 +95,38 @@ test("a gas smell without safety guidance or emergency urgency is a fix", () => 
   assert.match(handled.headline, /gas smell as an emergency and told the caller how to stay safe/i);
 });
 
+test("gas and CO calls need leave-plus-contact; generic advice or a step that undoes it is a fix", () => {
+  const graded = (callerLine, aiLine) =>
+    gradeCall({
+      call: call({ transcript: ["AI: Thanks for calling. What's going on?", `User: ${callerLine}`, `AI: ${aiLine}`].join("\n") }),
+      lead: lead({ urgency: "emergency", job: null, status: "new" }),
+      business: hvac,
+    });
+  const keys = (g) => g.findings.map((f) => f.key);
+
+  const generic = graded("I smell gas by the furnace.", "Okay, turn the furnace off and stay away from it.");
+  assert.ok(keys(generic).includes("safety_incomplete"));
+  assert.match(generic.findings.find((f) => f.key === "safety_incomplete").label, /to leave the home or to call the gas utility or 911/);
+  assert.ok(!keys(generic).includes("safety_no_guidance"), "one finding, not two");
+
+  const coUtilityOnly = graded("The carbon monoxide alarm is going off.", "Please get everyone outside and call the gas company.");
+  assert.match(coUtilityOnly.findings.find((f) => f.key === "safety_incomplete")?.label ?? "", /to call 911/, "CO needs 911");
+
+  const both = graded("I smell gas and the CO alarm is going off.", "Please leave the home now and call the gas company from outside.");
+  assert.match(both.findings.find((f) => f.key === "safety_incomplete")?.label ?? "", /gas smell and carbon monoxide alarm[\s\S]*to call 911/i, "gas plus CO keeps CO's 911");
+
+  const reentry = graded("I smell gas in the kitchen.", "Please leave the home now and call 911. Then go back inside and open the windows.");
+  assert.ok(keys(reentry).includes("safety_unsafe_instruction"));
+  assert.equal(reentry.verdict, "fix");
+
+  const prohibited = graded("I smell gas in the kitchen.", "Please leave the home now, call 911 from outside, and don't go back inside until they say it's safe.");
+  assert.deepEqual(keys(prohibited).filter((k) => k.startsWith("safety")), [], "a re-entry prohibition is the script, not a violation");
+  assert.equal(prohibited.verdict, "clean");
+
+  const spanish = graded("Huele a gas en la cocina.", "Por favor salgan de la casa ahora y llamen al nueve, uno, uno.");
+  assert.deepEqual(keys(spanish).filter((k) => k.startsWith("safety")), []);
+});
+
 test("the grade never claims what the transcript does not show", () => {
   const callerOnly = gradeCall({
     call: call({ transcript: "Caller: I smell gas near the furnace" }),

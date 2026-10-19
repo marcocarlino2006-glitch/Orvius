@@ -489,7 +489,6 @@ body {
 .ov-public .mkt-footer a,
 .ov-public .mkt-footer-copy,
 .ov-public .mkt-footer-mark,
-.ov-public .mkt-footer-entity,
 .ov-public .mkt-footer-tagline {
   color: var(--ov-muted) !important;
   font-family: var(--ov-font) !important;
@@ -569,6 +568,11 @@ body {
   border-top: 1px solid var(--ov-line) !important;
   background: var(--ov-paper) !important;
   color: var(--ov-ink) !important;
+}
+
+/* A closing bridge is a heading, a line and two buttons; it shouldn't take a full story band. */
+.ov-public .tier1-bridge {
+  padding-block: clamp(48px, 5vw, 64px) !important;
 }
 
 .ov-public .tier1-story-muted {
@@ -1065,6 +1069,10 @@ body {
 
 .ov-signin-switch a,
 .ov-signin-switch button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.5rem;
+  vertical-align: middle;
   padding: 0;
   border: 0;
   background: none;
@@ -1073,6 +1081,12 @@ body {
   text-decoration: underline;
   text-underline-offset: 2px;
   cursor: pointer;
+}
+@media (max-width: 720px) {
+  .ov-signin-switch a,
+  .ov-signin-switch button {
+    min-height: 2.75rem;
+  }
 }
 
 .ov-signin-status:empty {
@@ -1259,10 +1273,6 @@ body {
 
 /* Numbers, timestamps, and phone lines read as data, not prose. */
 
-.ov-public .mkt-footer-entity {
-  font-family: var(--ov-mono) !important;
-}
-
 .ov-public .tier1-plan-price {
   font-family: var(--ov-font) !important;
   font-variant-numeric: tabular-nums;
@@ -1382,6 +1392,10 @@ body {
   .ov-public .tier1-story,
   .ov-public .tier1-close {
     padding: 76px 20px !important;
+  }
+
+  .ov-public .tier1-bridge {
+    padding-block: 48px !important;
   }
 
   .ov-public .tier1-hero {
@@ -2215,6 +2229,8 @@ body {
 .ov-public .ov-player-track {
   position: relative;
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
   display: flex;
   align-items: flex-end;
   gap: 1px;
@@ -2265,6 +2281,30 @@ body {
   font-size: 0.75rem;
   letter-spacing: 0;
   font-variant-numeric: tabular-nums;
+}
+
+/* On a phone the waveform gets its own row, and bars give up their gap and
+   floor so all of them fit instead of pushing the time off the card. */
+@media (max-width: 520px) {
+  .ov-public .ov-console-player {
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+    padding: 0.6rem 0.75rem;
+  }
+
+  .ov-public .ov-player-time {
+    margin-left: auto;
+  }
+
+  .ov-public .ov-player-track {
+    order: 3;
+    flex: 1 1 100%;
+    gap: 0;
+  }
+
+  .ov-public .ov-player-bar {
+    min-width: 0;
+  }
 }
 
 .ov-public .ov-console-rail {
@@ -3386,7 +3426,8 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
   margin-top: 1.5rem;
 }
 
-.ov-public .shell-page-actions .ov-btn {
+.ov-public .shell-page-actions .ov-btn,
+.ov-public .tier1-actions .ov-btn {
   min-height: 44px !important;
   padding: 0 1.25rem !important;
   border-radius: 999px !important;
@@ -3395,13 +3436,15 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
   letter-spacing: 0 !important;
 }
 
-.ov-public .shell-page-actions .ov-btn--solid {
+.ov-public .shell-page-actions .ov-btn--solid,
+.ov-public .tier1-actions .ov-btn--solid {
   background: var(--ov-headline) !important;
   color: var(--ov-paper) !important;
   border: 1px solid var(--ov-headline) !important;
 }
 
-.ov-public .shell-page-actions .ov-btn--quiet {
+.ov-public .shell-page-actions .ov-btn--quiet,
+.ov-public .tier1-actions .ov-btn--quiet {
   background: transparent !important;
   color: var(--ov-headline) !important;
   border: 1px solid var(--ov-hairline-strong) !important;
@@ -3812,6 +3855,19 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
   font-family: var(--ov-font);
   font-size: 1rem;
   font-weight: 600;
+}
+.help-card-title::after {
+  content: "→";
+  content: "→" / "";
+  display: inline-block;
+  margin-left: 0.4em;
+  color: var(--ov-muted);
+  transition: transform 0.15s ease;
+}
+.help-card:hover .help-card-title::after,
+.help-card:focus-visible .help-card-title::after {
+  transform: translateX(2px);
+  color: var(--ov-ink);
 }
 
 .help-card-summary {
@@ -4453,6 +4509,9 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
 .tib-form .tib-go {
   width: 100%;
   justify-content: center;
+}
+.tib .tib-go.ov-btn {
+  min-height: 2.75rem;
 }
 .ov-hero--center .tib-form {
   text-align: left;

@@ -1,4 +1,5 @@
 import { cleanPriceBookEntry, FieldError, priceBook } from "@/lib/job-field";
+import { requireMoney } from "@/lib/money-authority";
 import { withOffice } from "@/lib/office-route";
 import { prisma } from "@/lib/prisma";
 
@@ -8,8 +9,10 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  return withOffice("jobs", async ({ business }) => {
+  return withOffice("jobs", async ({ business, role, email }) => {
     const entry = cleanPriceBookEntry((await request.json().catch(() => ({}))) as Record<string, unknown>);
+    const money = await requireMoney({ businessId: business.id, role, email }, "price_book", { amountCents: entry.unitCents, entityType: "price_book", entityId: entry.name });
+    if ("error" in money) return money.error;
     const existing = await prisma.priceBookItem.findUnique({ where: { businessId_name: { businessId: business.id, name: entry.name } } });
     if (existing?.isActive) throw new FieldError(`"${entry.name}" is already in your price book.`, 409);
     const item = existing

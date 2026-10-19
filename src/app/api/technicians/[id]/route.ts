@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { personActor, recordAudit } from "@/lib/audit";
+import { notifyTechPendingJobs } from "@/lib/notify-tech-assign";
 import { getPlanTechLimit } from "@/lib/plan-gate";
 import { handOffTechnicianJobs, type HandedOffJob } from "@/lib/tech-handoff";
 import { revokeTechAppLink } from "@/lib/tech-app";
@@ -7,14 +8,14 @@ import { publicTechnician } from "@/lib/tech-app-link";
 import { normalizePhone } from "@/lib/customer";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
-import { requireEntitledSession } from "@/lib/tenant";
+import { requirePermission, type requireEntitledSession } from "@/lib/tenant";
 import { skillOptions } from "@/lib/trade-playbooks";
 import { parseTechHours } from "@/lib/tech-hours";
 
 type Params = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: Request, { params }: Params) {
-  const authResult = await requireEntitledSession();
+  const authResult = await requirePermission("team.manage");
   if ("error" in authResult) return authResult.error;
   const { business } = authResult;
 
@@ -91,7 +92,14 @@ export async function PATCH(request: Request, { params }: Params) {
     data,
   });
 
-  return NextResponse.json({ technician: publicTechnician(technician) });
+  let pendingNotified: number | undefined;
+  if (!existing.phone && technician.phone) {
+    pendingNotified = (
+      await notifyTechPendingJobs({ businessId: business.id, technicianId: technician.id }).catch(() => ({ sent: 0, skipped: 0 }))
+    ).sent;
+  }
+
+  return NextResponse.json({ technician: publicTechnician(technician), ...(pendingNotified ? { pendingNotified } : {}) });
 }
 
 async function setActive(

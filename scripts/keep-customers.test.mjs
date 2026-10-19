@@ -13,6 +13,8 @@ import { PrismaClient } from "@prisma/client";
 const subscriptions = new Map();
 const posts = [];
 const portalConfigs = [];
+const replies = new Map();
+let loseReplies = 0;
 
 const server = createServer((req, res) => {
   let body = "";
@@ -40,8 +42,22 @@ const server = createServer((req, res) => {
       const form = Object.fromEntries(new URLSearchParams(body));
       posts.push({ id: sub[1], form });
       const current = subscriptions.get(sub[1]);
+      const key = req.headers["idempotency-key"];
+      if (key && replies.has(key)) {
+        if (loseReplies > 0) {
+          loseReplies -= 1;
+          return req.socket.destroy();
+        }
+        return send(200, replies.get(key));
+      }
       current.pause_collection =
         form["pause_collection[behavior]"] ? { behavior: "void", resumes_at: Number(form["pause_collection[resumes_at]"]) } : null;
+      if (form.billing_cycle_anchor === "now") current.newMonthsStarted = (current.newMonthsStarted ?? 0) + 1;
+      if (key) replies.set(key, { ...current });
+      if (loseReplies > 0) {
+        loseReplies -= 1;
+        return req.socket.destroy();
+      }
       return send(200, current);
     }
     send(404, { error: { type: "invalid_request_error", message: `unhandled ${req.method} ${url.pathname}` } });
@@ -246,6 +262,51 @@ test("resuming before the pause starts just calls it off; resuming inside it sta
   } finally {
     await drop(early.shop.id);
     await drop(inside.shop.id);
+  }
+});
+
+test("a resume whose reply is lost is flagged, and the retry doesn't start a second paid month", async () => {
+  const { shop, subId } = await monthlyShop();
+  try {
+    await prisma.business.update({
+      where: { id: shop.id },
+      data: { pauseStartsAt: new Date(Date.now() - DAY), pausedUntil: new Date(Date.now() + 20 * DAY) },
+    });
+    subscriptions.get(subId).pause_collection = { behavior: "void", resumes_at: Math.floor((Date.now() + 20 * DAY) / 1000) };
+    loseReplies = 5;
+    await assert.rejects(resumeShopPlan(shop.id, null), (error) => error.name === "UncertainEffectError");
+    loseReplies = 0;
+    assert.equal(subscriptions.get(subId).newMonthsStarted, 1, "Stripe did start the month");
+    const stuck = await prisma.providerEffect.findFirst({ where: { businessId: shop.id, operation: "plan.resume_now" } });
+    assert.equal(stuck.status, "uncertain");
+    assert.ok(stuck.exceptionId, "flagged for a person");
+    assert.ok((await prisma.business.findUnique({ where: { id: shop.id } })).pausedUntil, "still shown as paused until Stripe's answer is known");
+
+    const retry = await resumeShopPlan(shop.id, null);
+    assert.deepEqual(retry, { ok: true, chargedNow: true });
+    assert.equal(subscriptions.get(subId).newMonthsStarted, 1, "one paid month, not two");
+    assert.equal((await prisma.providerEffect.findUnique({ where: { id: stuck.id } })).status, "finalized");
+    assert.equal((await prisma.reconciliationException.findUnique({ where: { id: stuck.exceptionId } })).status, "resolved");
+  } finally {
+    await prisma.providerEffect.deleteMany({ where: { businessId: shop.id } });
+    await prisma.reconciliationException.deleteMany({ where: { businessId: shop.id } });
+    await drop(shop.id);
+  }
+});
+
+test("pause, call it off, and pause the same window again reaches Stripe each time", async () => {
+  const { shop, subId } = await monthlyShop();
+  try {
+    assert.equal((await pauseShopPlan(shop.id, 1, null)).ok, true);
+    assert.ok(subscriptions.get(subId).pause_collection);
+    assert.equal((await resumeShopPlan(shop.id, null)).ok, true);
+    assert.equal(subscriptions.get(subId).pause_collection, null);
+    assert.equal((await pauseShopPlan(shop.id, 1, null)).ok, true);
+    assert.ok(subscriptions.get(subId).pause_collection, "the second pause was sent, not skipped as already done");
+    assert.ok((await prisma.business.findUnique({ where: { id: shop.id } })).pausedUntil);
+  } finally {
+    await prisma.providerEffect.deleteMany({ where: { businessId: shop.id } });
+    await drop(shop.id);
   }
 });
 

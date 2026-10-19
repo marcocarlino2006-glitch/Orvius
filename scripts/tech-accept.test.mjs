@@ -12,7 +12,7 @@ import { PrismaClient } from "@prisma/client";
 
 import { buildCommandBoard, techIssue } from "../src/lib/command-board.ts";
 import { jobLifecycle, jobSteps } from "../src/lib/job-lifecycle.ts";
-import { notifyTechOnAssign } from "../src/lib/notify-tech-assign.ts";
+import { notifyTechOnAssign, notifyTechPendingJobs } from "../src/lib/notify-tech-assign.ts";
 import { techDay, techForToken, techJobDetail, techUpdateJob } from "../src/lib/tech-app.ts";
 import { listWork } from "../src/lib/work.ts";
 
@@ -129,16 +129,77 @@ test("a no takes the technician off, keeps why, tells the owner, and puts the jo
 });
 
 test("a technician who never answered is what Work tells the owner to fix, not the customer", async () => {
-  const { shop, job } = await shopWithJob({
+  const { shop, tech, job } = await shopWithJob({
     scheduledAt: new Date(Date.now() + 3 * HOUR),
     techAssignedAt: new Date(Date.now() - 3 * HOUR),
     techNotifiedAt: new Date(Date.now() - 3 * HOUR),
     customerConfirmSentAt: new Date(),
   });
+  await prisma.technician.update({ where: { id: tech.id }, data: { phone: "+15555550140" } });
   const item = (await listWork(shop.id)).items.find((i) => i.key === `job:${job.id}`);
   assert.ok(item.problems.some((p) => p.kind === "tech_unanswered"));
   assert.equal(item.nextAction, "Call Ana Ruiz");
   assert.equal(item.waitingOn, "you");
+});
+
+test("a technician with no number gets a Team fix, not a call that can't happen", async () => {
+  const { shop, job } = await shopWithJob({
+    scheduledAt: new Date(Date.now() + 3 * HOUR),
+    techAssignedAt: new Date(Date.now() - 3 * HOUR),
+    techNotifiedAt: null,
+    customerConfirmSentAt: new Date(),
+  });
+  const item = (await listWork(shop.id)).items.find((i) => i.key === `job:${job.id}`);
+  assert.ok(item.problems.some((p) => p.kind === "tech_unanswered"));
+  assert.equal(item.nextAction, "Add Ana Ruiz's mobile number in Team");
+  assert.equal(item.waitingOn, "you");
+
+  const board = await buildCommandBoard(shop.id);
+  const ex = board.lanes.exceptions.find((e) => e.jobId === job.id && e.exception === "tech_unanswered");
+  assert.ok(ex, "Command shows the missing number");
+  assert.match(ex.title, /has no number/);
+  assert.match(ex.detail, /add Ana Ruiz's mobile number in Team/);
+
+  const steps = jobSteps({ status: "scheduled", createdAt: new Date(), technician: { name: "Ana" }, techAssignedAt: new Date(Date.now() - HOUR), techNotifiedAt: null });
+  assert.match(steps.find((s) => s.key === "technician").detail, /Add it in Team/);
+});
+
+test("adding the number sends the job texts that were waiting on it", async () => {
+  const { shop, tech, job } = await shopWithJob({
+    scheduledAt: new Date(Date.now() + 5 * HOUR),
+    techAssignedAt: new Date(Date.now() - HOUR),
+    techNotifiedAt: null,
+  });
+  /* A demo shop with no real line simulates its texts, so the send is recorded without Twilio. */
+  await prisma.business.update({ where: { id: shop.id }, data: { environment: "demo" } });
+  const answered = await prisma.job.create({
+    data: {
+      businessId: shop.id,
+      technicianId: tech.id,
+      title: "Already answered",
+      status: "scheduled",
+      scheduledAt: new Date(Date.now() + 6 * HOUR),
+      techAssignedAt: new Date(Date.now() - HOUR),
+      techNotifiedAt: new Date(Date.now() - HOUR),
+      techAcceptedAt: new Date(Date.now() - 30 * 60_000),
+    },
+  });
+  await prisma.technician.update({ where: { id: tech.id }, data: { phone: "+15555550141" } });
+
+  const flush = await notifyTechPendingJobs({ businessId: shop.id, technicianId: tech.id });
+  assert.equal(flush.sent, 1, "the waiting job text goes out");
+  assert.equal(flush.skipped, 0);
+  const row = await prisma.job.findUnique({ where: { id: job.id } });
+  assert.ok(row.techNotifiedAt, "the send is recorded");
+  assert.equal(row.techAssignedAt.getTime(), job.techAssignedAt.getTime(), "the assignment time is untouched");
+  const text = await prisma.outboundSms.findFirst({ where: { businessId: shop.id, audience: "tech", jobId: job.id } });
+  assert.ok(text, "a tech text is logged against the job");
+  assert.match(text.body, /new job assigned/);
+
+  const again = await notifyTechPendingJobs({ businessId: shop.id, technicianId: tech.id });
+  assert.deepEqual(again, { sent: 0, skipped: 0 }, "nothing waits twice");
+  const untouched = await prisma.job.findUnique({ where: { id: answered.id } });
+  assert.equal(untouched.techNotifiedAt.getTime(), answered.techNotifiedAt.getTime());
 });
 
 test("a job already under way can't be declined from the field", async () => {
@@ -164,7 +225,7 @@ test("assigning someone new clears the last answer and the last decline", async 
 
 test("the owner sees an assignment nobody answered: no text out, a long wait, or a visit coming up", () => {
   const now = new Date("2026-10-13T15:00:00Z");
-  const tech = { name: "Ana Ruiz" };
+  const tech = { name: "Ana Ruiz", phone: "+15555550100" };
   const base = { technician: tech, techAcceptedAt: null, techDeclinedAt: null, techDeclinedBy: null, techDeclineReason: null };
   const ago = (ms) => new Date(now.getTime() - ms);
   const ahead = (ms) => new Date(now.getTime() + ms);
@@ -177,6 +238,14 @@ test("the owner sees an assignment nobody answered: no text out, a long wait, or
   assert.equal(techIssue({ ...base, scheduledAt: ahead(2 * HOUR), techAssignedAt: ago(3 * HOUR), techNotifiedAt: ago(3 * HOUR), techAcceptedAt: ago(HOUR) }, now), null);
   assert.equal(techIssue({ ...base, scheduledAt: ahead(HOUR), techAssignedAt: null, techNotifiedAt: null }, now), null, "jobs assigned before answers existed aren't flagged");
   assert.equal(techIssue({ ...base, technician: null, scheduledAt: ahead(HOUR), techAssignedAt: null, techNotifiedAt: null }, now), null);
+
+  const noNumber = { ...base, technician: { name: "Ana Ruiz", phone: null } };
+  const missing = techIssue({ ...noNumber, scheduledAt: ahead(48 * HOUR), techAssignedAt: ago(5 * 60_000), techNotifiedAt: null }, now);
+  assert.match(missing.title, /has no number/);
+  assert.match(missing.detail, /add Ana Ruiz's mobile number in Team/);
+  const silent = techIssue({ ...noNumber, scheduledAt: ahead(48 * HOUR), techAssignedAt: ago(3 * HOUR), techNotifiedAt: ago(3 * HOUR) }, now);
+  assert.match(silent.title, /has no number/);
+  assert.match(silent.detail, /add their mobile number in Team/);
   const declined = techIssue({ ...base, technician: null, scheduledAt: ahead(HOUR), techAssignedAt: null, techNotifiedAt: null, techDeclinedAt: ago(60_000), techDeclinedBy: "Ana Ruiz", techDeclineReason: "Sick" }, now);
   assert.equal(declined.kind, "tech_declined");
   assert.match(declined.detail, /"Sick"/);

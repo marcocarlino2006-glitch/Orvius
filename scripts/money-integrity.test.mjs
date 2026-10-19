@@ -164,3 +164,41 @@ test("the billing interval is read from the Stripe price and stored on the shop"
   assert.match(readFileSync("src/lib/billing-sync.ts", "utf8"), /billingInterval: resolveBillingInterval\(subscription\)/);
   assert.match(readFileSync("src/lib/company-scoreboard.ts", "utf8"), /by: \["billingPlan", "billingInterval"\]/);
 });
+
+test("the value check credits only work traced to a call or text Orvius handled", async () => {
+  const { PrismaClient } = await import("@prisma/client");
+  const { payingShopValue } = await import("../src/lib/value-check.ts");
+  const prisma = new PrismaClient();
+  const tag = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+  const business = await prisma.business.create({
+    data: {
+      name: `Value ${tag}`,
+      slug: `value-${tag}`,
+      environment: "production",
+      billingStatus: "active",
+      billingPlan: "pro",
+      avgTicketCents: 40_000,
+      timezone: "America/Chicago",
+      hoursJson: "{}",
+      servicesJson: "[]",
+      createdAt: new Date(Date.now() - 60 * 86_400_000),
+    },
+  });
+  try {
+    const call = await prisma.call.create({ data: { businessId: business.id, vapiCallId: `v-${tag}`, direction: "inbound" } });
+    const answered = await prisma.lead.create({ data: { businessId: business.id, phone: "+15550000001", callId: call.id } });
+    const typedIn = await prisma.lead.create({ data: { businessId: business.id, phone: "+15550000002", source: "manual" } });
+    const ours = await prisma.job.create({ data: { businessId: business.id, leadId: answered.id, title: "Ours", status: "scheduled" } });
+    const theirs = await prisma.job.create({ data: { businessId: business.id, leadId: typedIn.id, title: "Theirs", status: "scheduled" } });
+    const paidAt = new Date();
+    await prisma.invoice.create({ data: { businessId: business.id, jobId: theirs.id, amountCents: 900_000, status: "paid", paidAt, stripeSessionId: `cs_theirs_${tag}` } });
+    await prisma.invoice.create({ data: { businessId: business.id, jobId: ours.id, amountCents: 12_300, status: "paid", paidAt, stripeSessionId: `cs_ours_${tag}` } });
+    const verdict = (await payingShopValue()).find((v) => v.shopId === business.id);
+    assert.ok(verdict);
+    assert.equal(verdict.jobsBooked, 1, "the owner's typed-in job is not credited");
+    assert.equal(verdict.collectedCents, 12_300, "only the invoice on Orvius-captured work is credited");
+  } finally {
+    await prisma.business.delete({ where: { id: business.id } }).catch(() => {});
+    await prisma.$disconnect();
+  }
+});

@@ -70,7 +70,7 @@ export async function POST(request: Request) {
     } catch (error) {
       if (error instanceof WebDemoRefused) return NextResponse.json({ error: error.message }, { status: 409, headers: noStore });
       logError("web_demo.start_failed", { error: error instanceof Error ? error.message : String(error) });
-      return NextResponse.json({ error: "The demo didn't connect. Try again in a minute, or watch a real call instead." }, { status: 502, headers: noStore });
+      return NextResponse.json({ error: "The demo didn't connect. Try again in a minute, or watch how a call flows instead." }, { status: 502, headers: noStore });
     }
   }
   return NextResponse.json({ error: "Unknown request" }, { status: 400, headers: noStore });

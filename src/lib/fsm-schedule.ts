@@ -1,3 +1,4 @@
+import { isOwnerDemoWorkspaceId } from "@/lib/demo-fence";
 import { afterResponse } from "@/lib/after-response";
 import { MAX_SCHEDULE_DAYS, type BusyWindow } from "@/lib/availability";
 import { BUSY_REFRESH_MS, BUSY_STALE_MAX_MS } from "@/lib/busy-calendar";
@@ -7,6 +8,8 @@ import { jobberScheduledVisits } from "@/lib/jobber";
 import { logWarn } from "@/lib/logger";
 import { enqueueOwnerAlert } from "@/lib/notification-queue";
 import { prisma } from "@/lib/prisma";
+import { pickReadSource } from "@/lib/record-authority";
+import { getRecordContract } from "@/lib/system-of-record";
 import { serviceTitanScheduledVisits } from "@/lib/servicetitan";
 
 /**
@@ -32,10 +35,13 @@ async function connectedSource(businessId: string): Promise<FsmSource | null> {
     prisma.housecallConnection.findUnique({ where: { businessId }, select: { status: true } }),
     prisma.serviceTitanConnection.findUnique({ where: { businessId }, select: { status: true } }),
   ]);
-  if (servicetitan?.status === "active") return "servicetitan";
-  if (housecall?.status === "active") return "housecall";
-  if (jobber?.status === "active") return "jobber";
-  return null;
+  const connected: FsmSource[] = [];
+  if (servicetitan?.status === "active") connected.push("servicetitan");
+  if (housecall?.status === "active") connected.push("housecall");
+  if (jobber?.status === "active") connected.push("jobber");
+  if (connected.length < 2) return connected[0] ?? null;
+  // More than one tool connected: the record contract says whose schedule counts.
+  return pickReadSource(await getRecordContract(businessId), "availability", connected, ["servicetitan", "housecall", "jobber"]);
 }
 
 async function readVisits(source: FsmSource, businessId: string, from: Date, to: Date): Promise<Visit[] | null> {
@@ -61,6 +67,7 @@ async function withoutOrviusJobs(businessId: string, visits: Visit[], from: Date
 }
 
 export async function refreshFsmSchedule(businessId: string, now = new Date()): Promise<{ source: FsmSource | null; error: string | null; count: number }> {
+  if (await isOwnerDemoWorkspaceId(businessId)) return { source: null, error: null, count: 0 };
   const source = await connectedSource(businessId);
   if (!source) {
     await prisma.business.update({
@@ -126,14 +133,36 @@ function decode(json: string | null): Visit[] {
  * offer times the shop has since filled. A schedule that has never been read
  * blocks nothing; Settings shows why it isn't reading.
  */
+function bookedFrom(visits: Visit[], now: Date): ExternalBooking[] {
+  return visits
+    .filter((v) => v.end.getTime() > now.getTime())
+    .map((v) => ({
+      scheduledAt: v.start,
+      durationMin: Math.max(15, Math.round((v.end.getTime() - v.start.getTime()) / 60_000)),
+      technicianId: null,
+    }));
+}
+
 export async function getExternalSchedule(businessId: string, now = new Date()): Promise<{ booked: ExternalBooking[]; blocked: BusyWindow[] }> {
   const shop = await prisma.business.findUnique({
     where: { id: businessId },
     select: { fsmScheduleJson: true, fsmScheduleSyncedAt: true, fsmScheduleSource: true },
   });
-  if (!shop?.fsmScheduleSource) return { booked: [], blocked: [] };
+  if (!shop) return { booked: [], blocked: [] };
   const syncedAt = shop.fsmScheduleSyncedAt;
-  if (!syncedAt) return { booked: [], blocked: [] };
+  /*
+    Connected but never read successfully is unknown, not free: read it now,
+    and if that fails nothing in the horizon is offered as open.
+  */
+  if (!syncedAt) {
+    if (!shop.fsmScheduleSource && !(await connectedSource(businessId))) return { booked: [], blocked: [] };
+    const first = await refreshFsmSchedule(businessId, now);
+    if (!first.source) return { booked: [], blocked: [] };
+    if (first.error) return { booked: [], blocked: [{ start: now, end: new Date(now.getTime() + HORIZON_MS) }] };
+    const reread = await prisma.business.findUnique({ where: { id: businessId }, select: { fsmScheduleJson: true } });
+    return { booked: bookedFrom(decode(reread?.fsmScheduleJson ?? null), now), blocked: [] };
+  }
+  if (!shop.fsmScheduleSource) return { booked: [], blocked: [] };
   const age = now.getTime() - syncedAt.getTime();
   let visits: Visit[];
   if (age < BUSY_REFRESH_MS) {
@@ -147,16 +176,7 @@ export async function getExternalSchedule(businessId: string, now = new Date()):
     const reread = await prisma.business.findUnique({ where: { id: businessId }, select: { fsmScheduleJson: true } });
     visits = decode(reread?.fsmScheduleJson ?? null);
   }
-  return {
-    booked: visits
-      .filter((v) => v.end.getTime() > now.getTime())
-      .map((v) => ({
-        scheduledAt: v.start,
-        durationMin: Math.max(15, Math.round((v.end.getTime() - v.start.getTime()) / 60_000)),
-        technicianId: null,
-      })),
-    blocked: [],
-  };
+  return { booked: bookedFrom(visits, now), blocked: [] };
 }
 
 /** Keep every connected schedule inside the serve-stale window. Runs from the 30-minute line-watch sweep. */
@@ -191,6 +211,8 @@ export async function isFsmScheduleUnreadable(businessId: string, now = new Date
     where: { id: businessId },
     select: { fsmScheduleSource: true, fsmScheduleSyncedAt: true },
   });
-  if (!shop?.fsmScheduleSource || !shop.fsmScheduleSyncedAt) return false;
+  if (!shop) return false;
+  if (!shop.fsmScheduleSyncedAt) return Boolean(shop.fsmScheduleSource) || Boolean(await connectedSource(businessId));
+  if (!shop.fsmScheduleSource) return false;
   return now.getTime() - shop.fsmScheduleSyncedAt.getTime() >= BUSY_STALE_MAX_MS;
 }

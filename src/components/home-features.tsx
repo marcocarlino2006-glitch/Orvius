@@ -38,7 +38,7 @@ const features: Feature[] = [
     id: "field",
     scene: { time: "9:15 AM", label: "Out on the job" },
     title: "Your people and customers, coordinated.",
-    body: "Whoever is going gets the address and one tap to call. The customer gets the time with one tap to confirm, and callers nobody reached get a follow-up. When the work is done the bill goes out by text, and it counts as paid only once the money arrives. No app to install.",
+    body: "Whoever is going gets the address and one tap to call. The customer gets the time with one tap to confirm, and callers nobody reached get a follow-up. When the work is done the bill goes out by text, and it counts as paid only once the money arrives. No app to install. Coordinating a crew across jobs is a Pro and Fleet feature.",
     link: { href: "/help", label: "Read the help center" },
     art: "/marketing/art/on-the-job.webp",
     demo: <PhonesDemo />,

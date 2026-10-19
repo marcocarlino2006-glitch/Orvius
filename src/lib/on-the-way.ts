@@ -30,6 +30,7 @@ export async function notifyCustomerOnTheWay(jobId: string): Promise<{ sent: boo
       leadId: true,
       customerId: true,
       etaText: true,
+      dispatchedAt: true,
       business: { select: { name: true } },
       technician: { select: { name: true } },
       customer: { select: { phone: true, name: true } },
@@ -45,7 +46,12 @@ export async function notifyCustomerOnTheWay(jobId: string): Promise<{ sent: boo
   const body = onTheWayText({ shop: job.business.name, tech, eta: job.etaText, url: customerConfirmUrl(token) });
 
   try {
-    const result = await sendCustomerSms({ businessId: job.businessId, to, body });
+    const result = await sendCustomerSms({
+      businessId: job.businessId,
+      to,
+      body,
+      intent: { eventType: "job.on_the_way", eventId: `${job.id}@${job.dispatchedAt?.toISOString() ?? "undated"}`, severity: "severe" },
+    });
     if (!result.sent) return result;
     logInfo("customer.on_the_way_sent", { jobId: job.id, businessId: job.businessId, sid: result.sid });
     await recordAudit({

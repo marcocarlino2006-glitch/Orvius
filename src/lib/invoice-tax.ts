@@ -1,3 +1,4 @@
+import { moneyTotals } from "@/lib/payment-math";
 import { prisma } from "@/lib/prisma";
 import { clampBps, withSalesTax } from "@/lib/sales-tax";
 
@@ -17,14 +18,14 @@ export async function pricedInvoice(businessId: string, subtotalCents: number) {
   };
 }
 
-/** Booking deposits already paid toward a job, matched by the job or the lead it came from. */
+/** Booking deposit money the shop still holds toward a job, matched by the job or the lead it came from. */
 export async function paidDepositCents(businessId: string, jobId: string) {
   const job = await prisma.job.findFirst({ where: { id: jobId, businessId }, select: { leadId: true } });
   const deposits = await prisma.deposit.findMany({
     where: { businessId, status: "paid", OR: [{ jobId }, ...(job?.leadId ? [{ leadId: job.leadId }] : [])] },
-    select: { amountCents: true },
+    select: { amountCents: true, status: true, refundedCents: true },
   });
-  return deposits.reduce((sum, d) => sum + d.amountCents, 0);
+  return moneyTotals(deposits).netCents;
 }
 
 /**

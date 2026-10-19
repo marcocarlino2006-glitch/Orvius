@@ -1,3 +1,4 @@
+import { recordAudit } from "@/lib/audit";
 import { logInfo, logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { getTwilioClient } from "@/lib/twilio-client";
@@ -97,7 +98,7 @@ export async function purgeExpiredCallContent(
         contentPurgedAt: null,
         AND: [{ OR: [{ createdAt: { lt: cutoff } }, { forgetRequestedAt: { not: null } }] }, after(lastCall)],
       },
-      select: { id: true, vapiCallId: true, createdAt: true },
+      select: { id: true, businessId: true, vapiCallId: true, createdAt: true, forgetRequestedAt: true },
       orderBy: [{ createdAt: "asc" }, { id: "asc" }],
       take: BATCH,
     });
@@ -123,6 +124,17 @@ export async function purgeExpiredCallContent(
       });
       if (remoteGone) purged += 1;
       else remotePending += 1;
+      if (remoteGone && call.forgetRequestedAt && call.vapiCallId && call.businessId) {
+        await recordAudit({
+          businessId: call.businessId,
+          entityType: "call",
+          entityId: call.id,
+          action: "customer.provider_deletion_confirmed",
+          actor: "system",
+          summary: "The voice provider confirmed it deleted the call record a customer asked to be forgotten",
+          idempotencyKey: `forget-provider:${call.id}`,
+        }).catch(() => {});
+      }
     });
     if (calls.length < BATCH) break;
   }

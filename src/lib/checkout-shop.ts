@@ -10,6 +10,7 @@ import { parseAcquisition } from "@/lib/acquisition";
 import { attachAcquisition, creditReferralOnPayment } from "@/lib/referrals";
 import { TRADES } from "@/lib/trades";
 import { isSetupSandbox } from "@/lib/setup-flow";
+import { ActivationRequiredError, activationFromCheckoutMetadata, type ActivationClaim } from "@/lib/activation-ack";
 
 /*
   The owner types their shop once, before paying. The details ride on the
@@ -94,7 +95,8 @@ export class CheckoutNotPaidError extends Error {
 export type CheckoutShopResult =
   | { status: "created" | "exists"; business: NonNullable<Awaited<ReturnType<typeof findBusinessForOwner>>> }
   | { status: "needs_details" }
-  | { status: "busy" };
+  | { status: "busy" }
+  | { status: "needs_activation"; code: ActivationRequiredError["code"]; terms: ActivationRequiredError["terms"] };
 
 /**
  * Builds the shop a paid checkout was for. Safe to call from both the webhook
@@ -106,6 +108,8 @@ export async function provisionFromCheckout(params: {
   email: string;
   /** Typed on the form after paying, for a checkout that carried no details. */
   draft?: ShopDraft;
+  /** Approved on the form after paying, when the checkout's own approval doesn't match the shop being built. */
+  activation?: ActivationClaim | null;
   stripe?: Pick<Stripe, "checkout" | "subscriptions">;
 }): Promise<CheckoutShopResult> {
   const email = params.email.toLowerCase().trim();
@@ -130,6 +134,7 @@ export async function provisionFromCheckout(params: {
   }
   const draft = params.draft ?? shopDraftFromMetadata(session.metadata);
   if (!draft) return { status: "needs_details" };
+  const fromCheckout = activationFromCheckoutMetadata(session.metadata, { email, sessionId: session.id });
 
   try {
     const { business } = await provisionBusiness({
@@ -146,6 +151,10 @@ export async function provisionFromCheckout(params: {
       },
       billing,
       ...(existing ? { promoteBusinessId: existing.id } : {}),
+      activation: {
+        ...fromCheckout,
+        ...(params.activation ? { claim: params.activation, at: new Date() } : {}),
+      },
     });
     await linkPaidCheckoutToBusiness(billing, business.id).catch((error: unknown) => {
       logWarn("checkout_shop.link_failed", { error: error instanceof Error ? error.message : "unknown" });
@@ -167,6 +176,10 @@ export async function provisionFromCheckout(params: {
     return { status: "created", business };
   } catch (error) {
     if (error instanceof ProvisionBusyError) return { status: "busy" };
+    if (error instanceof ActivationRequiredError) {
+      logWarn("checkout_shop.activation_required", { code: error.code, sessionId: session.id });
+      return { status: "needs_activation", code: error.code, terms: error.terms };
+    }
     const raced = await findBusinessForOwner(email);
     if (raced && !isSetupSandbox(raced)) return { status: "exists", business: raced };
     throw error;

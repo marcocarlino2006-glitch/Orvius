@@ -140,7 +140,8 @@ test("Orvius won't dial its own line or start without a number", async () => {
 test("a ported-in number is never released, and Command shows whether calls reach Orvius", () => {
   assert.match(read("src/lib/line-lifecycle.ts"), /NOT: \{ portRequest: \{ is: \{ status: "done" \} \} \}/);
   const pulse = read("src/components/orvius-pulse.tsx");
-  assert.match(pulse, /label="Your calls"/);
+  assert.match(pulse, /shopReadiness\(/);
+  assert.match(read("src/lib/readiness.ts"), /label: "Your business number"/);
   assert.match(read("src/lib/shop-health.ts"), /connection: connectionHealth/);
   const ui = read("src/components/connect-number.tsx");
   assert.doesNotMatch(ui, /Twilio|Vapi/);

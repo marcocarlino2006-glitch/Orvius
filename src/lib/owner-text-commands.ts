@@ -1,9 +1,14 @@
+import { DEFAULT_JOB_DURATION_MIN } from "@/lib/availability";
 import { recordAudit } from "@/lib/audit";
 import { safeTimezone, shopDayBounds, zonedWallToUtc } from "@/lib/availability";
 import { normalizePhone } from "@/lib/customer";
 import { sendCustomerSms } from "@/lib/customer-sms";
 import { isDepositAmountValid, MAX_DEPOSIT_CENTS } from "@/lib/booking-deposit";
-import { createJobFromLead, updateJobStatus } from "@/lib/job";
+import { JobTransitionError, createJobFromLead, ownerScheduleClash } from "@/lib/job";
+import { transitionJob } from "@/lib/job-transition";
+import { outcomeFromWords, type JobOutcomeCode } from "@/lib/job-outcome";
+import { authorizeScheduleOverride, scheduleOverrideRecord } from "@/lib/scheduling-policy";
+import { classifyRequest } from "@/lib/trade-playbooks";
 import { invoiceCompletedJob } from "@/lib/invoice-pay";
 import { logError } from "@/lib/logger";
 import { formatCentsTidy } from "@/lib/money";
@@ -23,16 +28,16 @@ export { OWNER_REPLY_HINT } from "@/lib/owner-alert-message";
 */
 
 export type OwnerCommand =
-  | { kind: "book"; when: string | null }
-  | { kind: "move"; when: string }
+  | { kind: "book"; when: string | null; force?: boolean; reason?: string }
+  | { kind: "move"; when: string; force?: boolean; reason?: string }
   | { kind: "text"; body: string }
   | { kind: "contacted" }
   | { kind: "spam" }
-  | { kind: "assign"; tech: string }
+  | { kind: "assign"; tech: string; force?: boolean; reason?: string }
   | { kind: "today" }
   | { kind: "pass" }
   | { kind: "take" }
-  | { kind: "done"; amountCents: number | null }
+  | { kind: "done"; amountCents: number | null; noCharge?: true; outcome?: JobOutcomeCode }
   | { kind: "deposit"; on: boolean; amountCents: number | null }
   | { kind: "menu" };
 
@@ -46,7 +51,7 @@ export const OWNER_MENU = [
   "SPAM — not a job",
   "PASS — can't take it: offer it to a nearby Orvius shop",
   "TAKE — claim a job the Orvius Network offered you",
-  "DONE 450 — job finished: text them the $450 bill",
+  "DONE 450 FIXED — job finished: text them the $450 bill",
   "DEPOSIT 75 / DEPOSIT OFF — deposit asked at booking",
   "TODAY — today's jobs",
 ].join("\n");
@@ -73,11 +78,15 @@ export function parseOwnerCommand(raw: string): OwnerCommand | null {
   if (/^(pass|pass it|refer|refer it|can'?t take it|cant take it)$/.test(lower)) return { kind: "pass" };
   if (/^(take|take it|i'?ll take it|mine)$/.test(lower)) return { kind: "take" };
 
-  const done = lower.match(/^(?:done|all done|job done|finished|complete|completed)(?:\s+(?:for\s+|at\s+)?(\$?[\d,]+(?:\.\d{1,2})?))?$/);
+  const done = lower.match(/^(?:done|all done|job done|finished|complete|completed)(?:\s+(?:for\s+|at\s+)?(\$?[\d,]+(?:\.\d{1,2})?|no charge|free))?(?:\s+(.+))?$/);
   if (done) {
-    if (!done[1]) return { kind: "done", amountCents: null };
+    const outcome = done[2] ? outcomeFromWords(done[2]) : null;
+    if (done[2] && !outcome) return null;
+    const extra = outcome ? { outcome } : {};
+    if (!done[1]) return { kind: "done", amountCents: null, ...extra };
+    if (done[1] === "no charge" || done[1] === "free") return { kind: "done", amountCents: null, noCharge: true, ...extra };
     const amountCents = parseDollarsToCents(done[1]);
-    return amountCents ? { kind: "done", amountCents } : null;
+    return amountCents ? { kind: "done", amountCents, ...extra } : null;
   }
 
   const deposit = lower.match(/^deposits?\s+(off|stop|no|none|on|yes|\$?[\d,]+(?:\.\d{1,2})?)$/);
@@ -91,14 +100,19 @@ export function parseOwnerCommand(raw: string): OwnerCommand | null {
   const textMatch = text.match(/^(?:text|reply|tell them|send)\s*:?\s+([\s\S]+)$/i);
   if (textMatch && !/^(?:invoice|pay link)/i.test(textMatch[1])) return { kind: "text", body: textMatch[1].trim() };
 
-  const book = lower.match(/^book(?: it| them)?(?: for| at| on)?\s+(.+)$/);
-  if (book) return { kind: "book", when: book[1] };
+  // "ANYWAY <why>" at the end is the owner overriding a clash they were just told about.
+  const anyway = text.trim().match(/\s+anyway(?:\s*[:,-]?\s+(.+))?$/i);
+  const plain = anyway ? lower.slice(0, lower.length - anyway[0].length) : lower;
+  const force = anyway ? { force: true, ...(anyway[1]?.trim() ? { reason: anyway[1].trim().slice(0, 300) } : {}) } : {};
 
-  const move = lower.match(/^(?:move|reschedule|resched|change)(?: it| them)?(?: to)?\s+(.+)$/);
-  if (move) return { kind: "move", when: move[1] };
+  const book = plain.match(/^book(?: it| them)?(?: for| at| on)?\s+(.+)$/);
+  if (book) return { kind: "book", when: book[1], ...force };
 
-  const tech = lower.match(/^(?:tech|assign|give it to|send tech)\s+([a-z][a-z' -]*)$/);
-  if (tech) return { kind: "assign", tech: tech[1].trim() };
+  const move = plain.match(/^(?:move|reschedule|resched|change)(?: it| them)?(?: to)?\s+(.+)$/);
+  if (move) return { kind: "move", when: move[1], ...force };
+
+  const tech = plain.match(/^(?:tech|assign|give it to|send tech)\s+([a-z][a-z' -]*)$/);
+  if (tech) return { kind: "assign", tech: tech[1].trim(), ...force };
 
   return null;
 }
@@ -213,6 +227,25 @@ function when(at: Date | null, timezone: string) {
 
 const LEAD_WINDOW_MS = 48 * 60 * 60 * 1000;
 
+async function textClash(
+  shop: Shop,
+  lead: { serviceType: string | null; notes: string | null },
+  job: { id: string; durationMin: number | null } | null,
+  at: Date,
+  technicianId: string | null,
+) {
+  const service = classifyRequest({ business: shop, serviceType: lead.serviceType, notes: lead.notes, urgency: null }).service;
+  return ownerScheduleClash({
+    businessId: shop.id,
+    at,
+    durationMin: job?.durationMin ?? service.durationMin,
+    skill: service.skill,
+    timezone: shop.timezone,
+    technicianId,
+    excludeJobId: job?.id,
+  });
+}
+
 type Shop = {
   id: string;
   name: string;
@@ -293,7 +326,7 @@ export async function handleOwnerText(params: {
   }
 
   if (command.kind === "deposit") return await setDepositByText(shop, command);
-  if (command.kind === "done") return await finishJobByText(shop, command.amountCents, now);
+  if (command.kind === "done") return await finishJobByText(shop, command, now);
 
   const lead = await targetLead(shop.id, now);
   if (!lead) {
@@ -323,6 +356,34 @@ export async function handleOwnerText(params: {
             return `${who}'s job is already ${lead.job.status}. Nothing moved.`;
           }
           const previous = lead.job.scheduledAt;
+          const clash = at ? await textClash(shop, lead, lead.job, at, lead.job.technicianId) : null;
+          if (clash && !command.force) {
+            return `${clash} Nothing moved. Reply ${command.kind.toUpperCase()} ${command.when?.toUpperCase()} ANYWAY <why> to move it regardless.`;
+          }
+          if (clash) {
+            const authority = await authorizeScheduleOverride({ businessId: shop.id, actor: { role: "owner" }, reason: command.reason });
+            if (!authority.ok) return `${clash} Nothing moved. Add why: ${command.kind.toUpperCase()} ${command.when?.toUpperCase()} ANYWAY <why>.`;
+            await recordAudit({
+              ...audit,
+              entityType: "job",
+              entityId: lead.job.id,
+              jobId: lead.job.id,
+              action: "job.schedule_override",
+              summary: `Booked over a clash by text: ${clash} Reason: ${authority.reason}`,
+              detail: await scheduleOverrideRecord({
+                businessId: shop.id,
+                clash,
+                before: { at: previous, technicianId: lead.job.technicianId },
+                after: { at, technicianId: lead.job.technicianId },
+                durationMin: lead.job.durationMin ?? DEFAULT_JOB_DURATION_MIN,
+                excludeJobId: lead.job.id,
+                actor: { role: "owner" },
+                authority,
+                via: "owner_sms",
+                notify: { customer: "owner_texts_customer", technician: "none" },
+              }),
+            });
+          }
           await prisma.job.update({
             where: { id: lead.job.id },
             data: { scheduledAt: at, customerConfirmedAt: null, techAcceptedAt: null },
@@ -338,7 +399,37 @@ export async function handleOwnerText(params: {
           });
           return `Moved ${who} to ${when(at, shop.timezone)}. Reply TEXT <message> to tell them.`;
         }
+        const clash = at ? await textClash(shop, lead, null, at, null) : null;
+        if (clash && !command.force) {
+          return `${clash} Not booked. Reply BOOK ${command.when?.toUpperCase()} ANYWAY <why> to book it regardless.`;
+        }
+        const authority = clash
+          ? await authorizeScheduleOverride({ businessId: shop.id, actor: { role: "owner" }, reason: command.reason })
+          : null;
+        if (clash && authority && !authority.ok) return `${clash} Not booked. Add why: BOOK ${command.when?.toUpperCase()} ANYWAY <why>.`;
         const job = await createJobFromLead({ leadId: lead.id, scheduledAt: at, actor: "owner" });
+        if (clash && authority?.ok) {
+          await recordAudit({
+            ...audit,
+            entityType: "job",
+            entityId: job.id,
+            jobId: job.id,
+            action: "job.schedule_override",
+            summary: `Booked over a clash by text: ${clash} Reason: ${authority.reason}`,
+            detail: await scheduleOverrideRecord({
+              businessId: shop.id,
+              clash,
+              before: { at: null, technicianId: null },
+              after: { at, technicianId: job.technicianId ?? null },
+              durationMin: job.durationMin ?? DEFAULT_JOB_DURATION_MIN,
+              excludeJobId: job.id,
+              actor: { role: "owner" },
+              authority,
+              via: "owner_sms",
+              notify: { customer: "booking_confirmation", technician: job.technicianId ? "assignment_text" : "none" },
+            }),
+          });
+        }
         await prisma.lead.update({ where: { id: lead.id }, data: { status: "booked" } });
         const booked = await prisma.job.findUnique({
           where: { id: job.id },
@@ -362,6 +453,37 @@ export async function handleOwnerText(params: {
         }
         const tech = matches[0];
         if (lead.job.technicianId === tech.id) return `${tech.name} is already on ${who}'s job.`;
+        const clash =
+          lead.job.scheduledAt && lead.job.status !== "completed" && lead.job.status !== "cancelled"
+            ? await textClash(shop, lead, lead.job, lead.job.scheduledAt, tech.id)
+            : null;
+        if (clash && !command.force) {
+          return `${clash} ${tech.name} isn't on it. Reply TECH ${command.tech.toUpperCase()} ANYWAY <why> to assign them regardless.`;
+        }
+        if (clash) {
+          const authority = await authorizeScheduleOverride({ businessId: shop.id, actor: { role: "owner" }, reason: command.reason });
+          if (!authority.ok) return `${clash} ${tech.name} isn't on it. Add why: TECH ${command.tech.toUpperCase()} ANYWAY <why>.`;
+          await recordAudit({
+            ...audit,
+            entityType: "job",
+            entityId: lead.job.id,
+            jobId: lead.job.id,
+            action: "job.schedule_override",
+            summary: `Assigned over a clash by text: ${clash} Reason: ${authority.reason}`,
+            detail: await scheduleOverrideRecord({
+              businessId: shop.id,
+              clash,
+              before: { at: lead.job.scheduledAt, technicianId: lead.job.technicianId },
+              after: { at: lead.job.scheduledAt, technicianId: tech.id },
+              durationMin: lead.job.durationMin ?? DEFAULT_JOB_DURATION_MIN,
+              excludeJobId: lead.job.id,
+              actor: { role: "owner" },
+              authority,
+              via: "owner_sms",
+              notify: { customer: "none", technician: "assignment_text" },
+            }),
+          });
+        }
         await prisma.job.update({ where: { id: lead.job.id }, data: { technicianId: tech.id } });
         await recordAudit({
           ...audit,
@@ -386,7 +508,9 @@ export async function handleOwnerText(params: {
         if (!sent.sent) {
           return sent.reason === "customer_opted_out"
             ? `${who} has opted out of texts. Call them instead: ${lead.phone}.`
-            : `That didn't send. Call ${who} at ${lead.phone}.`;
+            : sent.reason === "sender_not_verified"
+              ? `Not sent: texting isn't verified with the carriers yet. Call ${who} at ${lead.phone}.`
+              : `That didn't send. Call ${who} at ${lead.phone}.`;
         }
         if (!lead.firstContactedAt) {
           await prisma.lead.update({
@@ -460,24 +584,38 @@ const DONE_JOB_SELECT = {
   customer: { select: { name: true, phone: true } },
 } as const;
 
+type DoneJob = NonNullable<Awaited<ReturnType<typeof findDoneJob>>>;
+
+function findDoneJob(id: string) {
+  return prisma.job.findUnique({ where: { id }, select: DONE_JOB_SELECT });
+}
+
 /*
-  The job a bare DONE means: the one from the owner's latest alert if it is
-  still open (or being re-billed), else the job a tech is on right now, else
-  the most recent one that was due. The reply names the customer either way.
+  The job a bare DONE means, only when there is one plain answer: the job a
+  tech is on right now, or the one from the owner's latest alert, or the most
+  recent one that was due. When the latest alert is for one job and a tech is
+  working another, or two techs are working, a bare DONE could be either, so
+  nothing is changed and the owner is asked.
 */
-async function jobToFinish(businessId: string, amountCents: number | null, now: Date) {
+async function jobToFinish(businessId: string, amountCents: number | null, now: Date): Promise<{ job: DoneJob | null } | { ambiguous: DoneJob[] }> {
   const lead = await targetLead(businessId, now);
   const alertJob = lead?.job;
-  if (alertJob && alertJob.status !== "cancelled" && (alertJob.status !== "completed" || amountCents)) {
-    return prisma.job.findUnique({ where: { id: alertJob.id }, select: DONE_JOB_SELECT });
-  }
-  const working = await prisma.job.findFirst({
+  const alertCounts = alertJob && alertJob.status !== "cancelled" && (alertJob.status !== "completed" || amountCents);
+  const working = await prisma.job.findMany({
     where: { businessId, status: { in: ["on_site", "en_route"] } },
     orderBy: [{ onSiteAt: "desc" }, { dispatchedAt: "desc" }],
     select: DONE_JOB_SELECT,
+    take: 5,
   });
-  if (working) return working;
-  return prisma.job.findFirst({
+  const candidates = new Map<string, DoneJob>();
+  if (alertCounts) {
+    const fromAlert = await findDoneJob(alertJob.id);
+    if (fromAlert) candidates.set(fromAlert.id, fromAlert);
+  }
+  for (const job of working) candidates.set(job.id, job);
+  if (candidates.size > 1) return { ambiguous: [...candidates.values()] };
+  if (candidates.size === 1) return { job: [...candidates.values()][0] };
+  const due = await prisma.job.findFirst({
     where: {
       businessId,
       status: { notIn: ["completed", "cancelled"] },
@@ -486,26 +624,66 @@ async function jobToFinish(businessId: string, amountCents: number | null, now: 
     orderBy: { scheduledAt: "desc" },
     select: DONE_JOB_SELECT,
   });
+  return { job: due };
 }
 
-async function finishJobByText(shop: Shop, amountCents: number | null, now: Date): Promise<string> {
-  const job = await jobToFinish(shop.id, amountCents, now);
+const STATUS_WORDS: Record<string, string> = { on_site: "on site now", en_route: "on the way", completed: "already done" };
+
+async function finishJobByText(
+  shop: Shop,
+  command: { amountCents: number | null; noCharge?: true; outcome?: JobOutcomeCode },
+  now: Date,
+): Promise<string> {
+  const { amountCents } = command;
+  const target = await jobToFinish(shop.id, amountCents, now);
+  if ("ambiguous" in target) {
+    const names = target.ambiguous.map(
+      (j) => `${j.customer?.name?.trim() || j.lead?.name?.trim() || j.lead?.phone || "a customer"} (${STATUS_WORDS[j.status] ?? "scheduled"})`,
+    );
+    return `Which job? ${names.join(" or ")}. Nothing was changed. Finish the right one in the app under Jobs.`;
+  }
+  const job = target.job;
   if (!job) return "No open job to finish right now. Reply TODAY to see the board.";
   const who = job.customer?.name?.trim() || job.lead?.name?.trim() || job.lead?.phone || "the customer";
 
   try {
-    if (job.status !== "completed") await updateJobStatus(job.id, "completed");
-    if (amountCents) await prisma.job.update({ where: { id: job.id }, data: { finalAmountCents: amountCents } });
-    await recordAudit({
-      businessId: shop.id,
-      entityType: "job",
-      entityId: job.id,
-      jobId: job.id,
-      actor: "owner",
-      action: "job.status_changed",
-      summary: `Owner marked the job done by text${amountCents ? ` at ${formatCentsTidy(amountCents)}` : ""}.`,
-      detail: { from: job.status, to: "completed", finalAmountCents: amountCents, via: "owner_sms" },
-    });
+    if (job.status !== "completed") {
+      if (!command.outcome || (amountCents == null && !command.noCharge)) {
+        return `To mark ${who}'s job done, say the total and what happened: DONE 450 FIXED, or DONE NO CHARGE DIAGNOSED. Reply DONE 450 with the total once it's done to text them the bill.`;
+      }
+      try {
+        await transitionJob({
+          businessId: shop.id,
+          jobId: job.id,
+          to: "completed",
+          actor: { kind: "owner" },
+          via: "owner_sms",
+          reason: job.status === "on_site" ? null : "Owner reported it done by text",
+          completion: {
+            path: job.status === "on_site" ? "field" : "correction",
+            evidenceSource: "owner_report",
+            resolutionCode: command.outcome,
+            finalAmountCents: amountCents,
+            noCharge: command.noCharge === true,
+          },
+        });
+      } catch (error) {
+        if (error instanceof JobTransitionError) return `${error.message} Nothing changed for ${who}.`;
+        throw error;
+      }
+    } else if (amountCents) {
+      await prisma.job.update({ where: { id: job.id }, data: { finalAmountCents: amountCents } });
+      await recordAudit({
+        businessId: shop.id,
+        entityType: "job",
+        entityId: job.id,
+        jobId: job.id,
+        actor: "owner",
+        action: "job.amount_set",
+        summary: `Owner set the total to ${formatCentsTidy(amountCents)} by text.`,
+        detail: { finalAmountCents: amountCents, via: "owner_sms" },
+      });
+    }
 
     const billed = await invoiceCompletedJob(job.id, { ownerAsked: true });
     if (!billed.invoiced) return `Marked ${who}'s job done. Reply DONE 450 with the total to text them the bill.`;

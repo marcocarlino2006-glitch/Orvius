@@ -1,11 +1,14 @@
 import { recordAudit } from "@/lib/audit";
+import { buildOutcome } from "@/lib/outcome";
+import { recordWorkflowProgress } from "@/lib/workflow-events";
 import { COLLECTED_STATUSES } from "@/lib/payment-math";
 import { safeTimezone, shopDayBounds, formatShopTime } from "@/lib/availability";
 import { firstName } from "@/lib/customer-confirm";
 import { sendCustomerSms } from "@/lib/customer-sms";
 import { techLinkExpired } from "@/lib/ensure-tech-token";
 import { balanceDueForJob, invoiceCompletedJob, invoicePayUrl, sendInvoiceLink, upsertJobInvoice } from "@/lib/invoice-pay";
-import { completeJobWithOutcome, updateJobStatus } from "@/lib/job";
+import { JobTransitionError } from "@/lib/job";
+import { transitionJob } from "@/lib/job-transition";
 import { FieldError, jobField, priceBook } from "@/lib/job-field";
 import { isJobOutcomeCode } from "@/lib/job-outcome";
 import { logWarn } from "@/lib/logger";
@@ -16,7 +19,8 @@ import { withSmsOptOutFooter } from "@/lib/sms-keywords";
 import { getConnectStatus } from "@/lib/stripe-connect";
 import { ensureTechAppToken, techAppUrl } from "@/lib/tech-app-link";
 import { acceptJob, declineJob } from "@/lib/tech-response";
-import { sendSms } from "@/lib/twilio-sms";
+import { classifySendError } from "@/lib/sms-intent";
+import { sendSms, textingHeld } from "@/lib/twilio-sms";
 
 /**
  * A fresh link for a technician, texted to their phone. The old link stops
@@ -30,21 +34,35 @@ export async function issueTechAppLink(params: { businessId: string; technicianI
   if (!tech) throw new FieldError("Technician not found", 404);
   if (!tech.isActive) throw new FieldError("This technician is inactive.", 409);
   const appToken = mintPublicToken();
-  await prisma.technician.update({ where: { id: tech.id }, data: { appToken, appTokenAt: new Date() } });
+  const issuedAt = new Date();
+  await prisma.technician.update({ where: { id: tech.id }, data: { appToken, appTokenAt: issuedAt } });
   const url = techAppUrl(appToken);
   let sent = false;
-  let reason: string | null = null;
+  let reason: TechLinkReason | null = null;
+  let detail: string | null = null;
   if (params.send) {
     if (!tech.phone) reason = "no_phone";
     else {
-      const result = await sendSms({
-        to: tech.phone,
-        businessId: params.businessId,
-        audience: "tech",
-        body: withSmsOptOutFooter(`${tech.business.name}: here's your Orvius app. Your jobs, directions, photos and payments are all in it. Save this link: ${url}`),
-      });
-      sent = Boolean(result);
-      if (!result) reason = "sms_unavailable";
+      try {
+        /* One text per issued link: a retried request for the same link can't text it twice. */
+        const result = await sendSms({
+          to: tech.phone,
+          businessId: params.businessId,
+          audience: "tech",
+          body: withSmsOptOutFooter(`${tech.business.name}: here's your Orvius app. Your jobs, directions, photos and payments are all in it. Save this link: ${url}`),
+          intent: { eventType: "tech.app_link", eventId: `${tech.id}@${issuedAt.toISOString()}` },
+        });
+        sent = Boolean(result);
+        if (!result) {
+          const held = await textingHeld(params.businessId);
+          reason = held ? "texting_held" : "sms_unavailable";
+          detail = held?.detail ?? null;
+        }
+      } catch (error) {
+        /* A send that may have left is not resent; the owner hands the link over another way. */
+        reason = classifySendError(error) === "unknown_submission" ? "send_unknown" : "send_failed";
+        detail = error instanceof Error ? error.message.slice(0, 200) : null;
+      }
     }
   }
   await recordAudit({
@@ -54,10 +72,19 @@ export async function issueTechAppLink(params: { businessId: string; technicianI
     action: "technician.app_link",
     actor: params.actor,
     actorEmail: params.actorEmail,
-    summary: sent ? `Texted ${tech.name} a new app link` : `Made ${tech.name} a new app link`,
+    summary: sent
+      ? `Texted ${tech.name} a new app link`
+      : reason === "send_unknown"
+        ? `Made ${tech.name} a new app link; the text may or may not have gone out`
+        : reason
+          ? `Made ${tech.name} a new app link; it wasn't texted (${reason.replace(/_/g, " ")})`
+          : `Made ${tech.name} a new app link`,
+    detail: { sent, reason },
   });
-  return { url, sent, reason };
+  return { url, sent, reason, detail };
 }
+
+export type TechLinkReason = "no_phone" | "texting_held" | "sms_unavailable" | "send_failed" | "send_unknown";
 
 export async function revokeTechAppLink(params: { businessId: string; technicianId: string; actorEmail: string; actor: "owner" | "teammate" }) {
   const gone = await prisma.technician.updateMany({ where: { id: params.technicianId, businessId: params.businessId }, data: { appToken: null, appTokenAt: null } });
@@ -279,11 +306,17 @@ export async function techJobDetail(tech: TechSession, jobId: string) {
 }
 
 async function customerText(jobId: string, businessId: string, body: string, action: string, summary: string) {
-  const job = await prisma.job.findUnique({ where: { id: jobId }, select: { leadId: true, customerId: true, customer: { select: { phone: true } }, lead: { select: { phone: true } } } });
+  const job = await prisma.job.findUnique({ where: { id: jobId }, select: { leadId: true, customerId: true, onSiteAt: true, completedAt: true, customer: { select: { phone: true } }, lead: { select: { phone: true } } } });
   const to = job?.customer?.phone?.trim() || job?.lead?.phone?.trim();
   if (!job || !to) return { sent: false as const, reason: "no_customer_phone" };
   try {
-    const result = await sendCustomerSms({ businessId, to, body: withSmsOptOutFooter(body) });
+    const at = action === "customer.arrived_sent" ? job.onSiteAt : job.completedAt;
+    const result = await sendCustomerSms({
+      businessId,
+      to,
+      body: withSmsOptOutFooter(body),
+      intent: { eventType: action, eventId: `${jobId}@${at?.toISOString() ?? "undated"}` },
+    });
     if (result.sent) {
       await recordAudit({ businessId, entityType: "job", entityId: jobId, action, actor: "orvius", summary, jobId, leadId: job.leadId, customerId: job.customerId });
     }
@@ -313,7 +346,7 @@ export function fieldTime(happenedAt: unknown, now = new Date()) {
 export async function techUpdateJob(
   tech: TechSession,
   jobId: string,
-  body: { status?: unknown; accept?: unknown; decline?: unknown; reason?: unknown; etaText?: unknown; resolutionCode?: unknown; resolutionSummary?: unknown; finalAmountCents?: unknown; happenedAt?: unknown },
+  body: { status?: unknown; accept?: unknown; decline?: unknown; reason?: unknown; etaText?: unknown; resolutionCode?: unknown; resolutionSummary?: unknown; finalAmountCents?: unknown; noCharge?: unknown; happenedAt?: unknown },
   now = new Date(),
 ) {
   const job = await techJob(tech, jobId);
@@ -348,13 +381,26 @@ export async function techUpdateJob(
     }
   } else if (status === "completed") {
     if (!isJobOutcomeCode(body.resolutionCode)) throw new FieldError("Choose what happened before finishing the job.");
-    const lines = await prisma.jobLineItem.count({ where: { jobId: job.id } });
-    const typed = typeof body.finalAmountCents === "number" ? body.finalAmountCents : null;
-    await completeJobWithOutcome(job.id, {
-      resolutionCode: body.resolutionCode,
-      resolutionSummary: typeof body.resolutionSummary === "string" ? body.resolutionSummary : null,
-      finalAmountCents: lines ? job.finalAmountCents : typed,
-    });
+    try {
+      await transitionJob({
+        businessId: tech.businessId,
+        jobId: job.id,
+        to: "completed",
+        actor: { kind: "technician" },
+        via: "tech_app",
+        at,
+        completion: {
+          path: "field",
+          resolutionCode: body.resolutionCode,
+          resolutionSummary: typeof body.resolutionSummary === "string" ? body.resolutionSummary : null,
+          finalAmountCents: typeof body.finalAmountCents === "number" ? body.finalAmountCents : null,
+          noCharge: body.noCharge === true,
+        },
+      });
+    } catch (error) {
+      if (error instanceof JobTransitionError) throw new FieldError(error.message, error.status);
+      throw error;
+    }
     await recordAudit({ businessId: tech.businessId, entityType: "job", entityId: job.id, jobId: job.id, action: "job.status", ...actor, summary: `${tech.name} finished the job${lateNote}` });
     const billed = await invoiceCompletedJob(job.id).catch((error) => {
       logWarn("invoice.on_complete_failed", { jobId: job.id, error: error instanceof Error ? error.message : String(error) });
@@ -372,7 +418,9 @@ export async function techUpdateJob(
       );
     }
   } else if (status) {
-    await updateJobStatus(job.id, "en_route", { at, notifyCustomer: !late });
+    await transitionJob({ businessId: tech.businessId, jobId: job.id, to: "en_route", actor: { kind: "technician" }, via: "tech_app", at, notifyCustomer: !late }).catch((error) => {
+      throw error instanceof JobTransitionError ? new FieldError(error.message, error.status) : error;
+    });
     await acceptJob({ job: { id: job.id, businessId: tech.businessId, technicianId: tech.id }, technician: tech, at });
     await recordAudit({
       businessId: tech.businessId,
@@ -383,6 +431,12 @@ export async function techUpdateJob(
       ...actor,
       summary: `${tech.name} is on the way${lateNote}`,
     });
+  }
+  if (status) {
+    /* What the technician reported is already saved; reporting it never turns into an error they retry. */
+    await buildOutcome(tech.businessId, { jobId: job.id })
+      .then((view) => (view ? recordWorkflowProgress(view, { actor: "technician" }) : undefined))
+      .catch(() => undefined);
   }
   return techJobDetail(tech, job.id);
 }
@@ -402,11 +456,17 @@ export async function techCollect(tech: TechSession, jobId: string, method: unkn
   } else if (method !== "cash" && method !== "check") {
     throw new FieldError("Pick how they're paying.");
   }
-  const { invoice } = await upsertJobInvoice({ businessId: tech.businessId, jobId: job.id, totalCents: total });
+  const { invoice, repriceHeld } = await upsertJobInvoice({ businessId: tech.businessId, jobId: job.id, totalCents: total });
+  if (repriceHeld) {
+    throw new FieldError(
+      `The customer already has this bill at ${formatCentsExact(repriceHeld.fromCents)}. The office has to approve changing it to ${formatCentsExact(repriceHeld.toCents)} before you collect.`,
+      409,
+    );
+  }
   if (method === "text") {
     const phone = detail.job.customerPhone;
     if (!phone) throw new FieldError("There's no customer phone on this job.", 409);
-    const sms = await sendInvoiceLink({ business: tech.business, invoice, toPhone: phone });
+    const sms = await sendInvoiceLink({ business: tech.business, invoice, toPhone: phone, authorizedBy: `technician:${tech.id}` });
     if (!sms.sent) throw new FieldError("The text didn't go through. Open the pay page on your phone instead.", 502);
     await recordAudit({ businessId: tech.businessId, entityType: "job", entityId: job.id, jobId: job.id, action: "invoice.sent", actor: "technician", summary: `${tech.name} texted the ${formatCentsExact(invoice.amountCents)} pay link` });
   } else if (method === "cash" || method === "check") {

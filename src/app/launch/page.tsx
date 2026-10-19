@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ClaimFrontDoor } from "@/components/claim-front-door";
 import { EarlyAccessForm } from "@/components/early-access-form";
 import { GalleryGrid } from "@/components/gallery-grid";
 import { MarketingShell } from "@/components/marketing-shell";
@@ -15,6 +16,7 @@ import "../p/[id]/replay.css";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/launch" },
   title: "Orvius: the phone answered, the job booked",
   description: "Talk to the Orvius receptionist in your browser, read real calls it answered for shops, and get your line.",
 };
@@ -53,6 +55,21 @@ export default async function LaunchPage() {
           <p className="lx-alt font-sans">
             Rather use your phone? Call <a href={demoLineHref()}>{DEMO_LINE_DISPLAY}</a>. You&apos;ll reach a demo HVAC shop.
           </p>
+        </div>
+      </section>
+
+      <section className="tier1-story" id="claim">
+        <div className="editorial-wrap lx-wrap">
+          <p className="tier1-eyebrow type-eyebrow">Claim yours</p>
+          <h2 className="tier1-section-title type-headline">Claim your front door.</h2>
+          <p className="tier1-section-lead font-sans">
+            Your front door is how customers — and the assistants they send — reach you when nobody can pick up.
+            Claiming gives you a shareable link in your shop&apos;s name: hear it answer, send the call to another
+            owner, and turn the same name into your live line when you sign up.
+          </p>
+          <div style={{ marginTop: "1.5rem", maxWidth: "36rem" }}>
+            <ClaimFrontDoor />
+          </div>
         </div>
       </section>
 

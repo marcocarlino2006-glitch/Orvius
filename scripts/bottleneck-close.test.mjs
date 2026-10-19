@@ -15,7 +15,8 @@ for (const key of ["TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_PHONE_NUMB
 }
 
 const { handOffTechnicianJobs } = await import("../src/lib/tech-handoff.ts");
-const { createJobFromLead, createOwnerJob, OwnerClashError, SlotTakenError } = await import("../src/lib/job.ts");
+const { createJobFromLead, createOwnerJob, OverrideRefusedError, OwnerClashError, SlotTakenError } = await import("../src/lib/job.ts");
+const { COMMAND_POLICY_VERSION } = await import("../src/lib/command-authority.ts");
 const { collectAttention } = await import("../src/lib/attention-queue.ts");
 const { sendLeadFollowUp } = await import("../src/lib/lead-follow-up.ts");
 
@@ -154,8 +155,56 @@ test("an owner booking on a technician who is busy is asked first, and can book 
     const booking = { businessId: business.id, phone: randomPhone(), serviceType: "AC repair", scheduledAt: at, technicianId: ray.id };
     await assert.rejects(createOwnerJob(booking), (error) => error instanceof OwnerClashError && /Ray already has a job/.test(error.message));
     assert.equal(await prisma.job.count({ where: { businessId: business.id } }), 1, "nothing booked before the owner decides");
-    const job = await createOwnerJob({ ...booking, allowClash: true });
+    await assert.rejects(createOwnerJob({ ...booking, allowClash: true }), (error) => error instanceof OverrideRefusedError && error.status === 422, "an override needs a reason");
+    const job = await createOwnerJob({ ...booking, allowClash: true, bookedBy: { actor: "owner", role: "owner", reason: "Ray finishes early on Fridays" } });
     assert.equal(job.technicianId, ray.id);
+  } finally {
+    await prisma.business.delete({ where: { id: business.id } }).catch(() => {});
+  }
+});
+
+test("an owner booking outside shop hours is asked first; a dispatcher needs a grant, and the override records who, why and which rules", async () => {
+  const closed = { open: "08:00", close: "17:00", closed: true };
+  const week = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+  const business = await shop({ hoursJson: JSON.stringify(Object.fromEntries(week.map((d) => [d, closed]))) });
+  try {
+    const booking = { businessId: business.id, phone: randomPhone(), serviceType: "AC repair", scheduledAt: futureHour(3) };
+    await assert.rejects(createOwnerJob(booking), (error) => error instanceof OwnerClashError && /outside your shop hours/.test(error.message));
+    const asDispatcher = { actor: "teammate", actorEmail: "disp@example.com", role: "dispatcher", reason: "Customer asked for after-hours" };
+    await assert.rejects(
+      createOwnerJob({ ...booking, allowClash: true, bookedBy: asDispatcher }),
+      (error) => error instanceof OverrideRefusedError && error.status === 403,
+      "a dispatcher without a grant cannot override",
+    );
+    const grant = await prisma.commandGrant.create({
+      data: {
+        businessId: business.id,
+        granteeEmail: "disp@example.com",
+        action: "schedule_override",
+        effect: "books or moves work over a schedule conflict",
+        expiresAt: new Date(Date.now() + 86_400_000),
+        policyVersion: COMMAND_POLICY_VERSION,
+        grantedByEmail: "owner@example.com",
+      },
+    });
+    const job = await createOwnerJob({ ...booking, allowClash: true, bookedBy: asDispatcher });
+    let override = null;
+    for (let i = 0; i < 20 && !override; i++) {
+      override = await prisma.auditEvent.findFirst({ where: { businessId: business.id, action: "job.schedule_override", entityId: job.id } });
+      if (!override) await new Promise((r) => setTimeout(r, 25));
+    }
+    assert.ok(override, "the override is on the record");
+    assert.equal(override.actor, "teammate");
+    assert.equal(override.actorEmail, "disp@example.com");
+    const detail = JSON.parse(override.detailJson);
+    assert.equal(detail.policyVersion, "scheduling-policy-1");
+    assert.equal(detail.policy.state, "legacy_no_travel_policy");
+    assert.deepEqual(detail.actor, { role: "dispatcher", email: "disp@example.com" });
+    assert.deepEqual(detail.authority, { kind: "grant", grantId: grant.id });
+    assert.equal(detail.reason, "Customer asked for after-hours");
+    assert.match(detail.clash, /outside your shop hours/);
+    assert.equal(detail.after.at, booking.scheduledAt.toISOString());
+    assert.ok("sourceFreshness" in detail && "notify" in detail && "adjacent" in detail);
   } finally {
     await prisma.business.delete({ where: { id: business.id } }).catch(() => {});
   }

@@ -1,4 +1,5 @@
 import { recordAudit } from "@/lib/audit";
+import { assertLiveActionAllowed, isOwnerDemoWorkspace } from "@/lib/demo-fence";
 import { company } from "@/lib/company";
 import { normalizePhone } from "@/lib/customer";
 import { isEmailConfigured, sendOwnerEmail } from "@/lib/email";
@@ -62,6 +63,7 @@ export async function submitPortRequest(
   business: { id: string; name: string; ownerEmail: string | null; twilioPhone: string | null },
   value: PortInput,
 ) {
+  await assertLiveActionAllowed(business.id, "Moving a phone number");
   const existing = await prisma.portRequest.findUnique({ where: { businessId: business.id } });
   if (existing && existing.status !== "failed") throw new Error("A port request is already in progress.");
   const data = {
@@ -123,7 +125,7 @@ export async function updatePortRequest(params: { id: string; status: PortStatus
       ...(params.portDate !== undefined ? { portDate: params.portDate } : {}),
       ...(params.note !== undefined ? { note: params.note?.slice(0, 500) ?? null } : {}),
     },
-    include: { business: { select: { id: true, name: true, ownerPhone: true, timezone: true } } },
+    include: { business: { select: { id: true, name: true, ownerPhone: true, timezone: true, environment: true, slug: true } } },
   });
   await recordAudit({
     businessId: row.businessId,
@@ -150,7 +152,8 @@ export async function updatePortRequest(params: { id: string; status: PortStatus
         : params.status === "failed"
           ? `Orvius: ${row.carrier} turned down the move of ${row.number}${row.note ? `: ${row.note}` : ""}. Fix it in Settings → Phone and send again.`
           : null;
-  if (body && row.business.ownerPhone) {
+  // A demo shop's request is never real, so neither is the news about it.
+  if (body && row.business.ownerPhone && !isOwnerDemoWorkspace(row.business)) {
     await sendSms({ to: row.business.ownerPhone, body, businessId: row.businessId, audience: "owner" }).catch(
       (error: unknown) => logWarn("port_request.owner_sms_failed", { error: error instanceof Error ? error.message : "unknown" }),
     );

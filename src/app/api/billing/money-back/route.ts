@@ -4,7 +4,9 @@ import type Stripe from "stripe";
 import { personActor, recordAudit } from "@/lib/audit";
 import { syncSubscriptionToBusiness } from "@/lib/billing-sync";
 import { logError } from "@/lib/logger";
-import { claimMoneyBack, moneyBackRefusal, readMoneyBack, type MoneyBackStripe } from "@/lib/money-back";
+import { moneyBackRefusal } from "@/lib/money-back";
+import { claimMoneyBack, readMoneyBack, type MoneyBackStripe } from "@/lib/money-back-claim";
+import { UncertainEffectError } from "@/lib/provider-effect";
 import { getStripe } from "@/lib/stripe";
 import { requirePermission } from "@/lib/tenant";
 
@@ -64,6 +66,9 @@ export async function POST() {
     return NextResponse.json({ ok: true, refundedCents: claim.refundedCents });
   } catch (error) {
     logError("billing.money_back_failed", { businessId: business.id, error: error instanceof Error ? error.message : String(error) });
+    if (error instanceof UncertainEffectError) {
+      return NextResponse.json({ error: error.message, code: "effect_uncertain", exceptionId: error.exceptionId }, { status: 502 });
+    }
     return NextResponse.json(
       { error: "Stripe didn't finish the refund. Try again in a minute; you won't be refunded twice. If it keeps failing, email support and we'll do it by hand." },
       { status: 502 },

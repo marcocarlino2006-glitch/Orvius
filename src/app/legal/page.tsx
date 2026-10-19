@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/legal" },
   title: "Legal",
   description: `Legal policies for ${company.productName}, operated by ${company.legalName}.`,
 };

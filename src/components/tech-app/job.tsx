@@ -1,5 +1,6 @@
 "use client";
 
+import { askConfirm } from "@/components/ask-dialog";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { JOB_OUTCOMES, jobOutcomeLabel } from "@/lib/job-outcome";
@@ -654,7 +655,7 @@ function Pay({ base, detail, onPaid }: { base: string; detail: Detail; onPaid: (
   const paid = m.invoice?.status === "paid";
 
   async function collect(method: "text" | "here" | "cash" | "check") {
-    if ((method === "cash" || method === "check") && !window.confirm(`Mark ${money(m.balanceCents)} paid by ${method}?`)) return;
+    if ((method === "cash" || method === "check") && !(await askConfirm({ title: `Mark ${money(m.balanceCents)} paid by ${method}?`, body: "Only if you have it in hand. This records the job as paid.", confirmLabel: `Paid by ${method}` }))) return;
     setBusy(method);
     setError(null);
     setDone(null);
@@ -864,7 +865,17 @@ export function TechJob({ token, jobId }: { token: string; jobId: string }) {
       setError("The amount must be between $0 and $50,000.");
       return;
     }
-    void update({ status: "completed", resolutionCode: outcome, resolutionSummary: summary, finalAmountCents: hasLines || dollars == null ? null : Math.round(dollars * 100) });
+    if (!hasLines && dollars == null) {
+      setError("Enter what you charged, or 0 for no charge.");
+      return;
+    }
+    void update({
+      status: "completed",
+      resolutionCode: outcome,
+      resolutionSummary: summary,
+      finalAmountCents: hasLines || dollars == null ? null : Math.round(dollars * 100),
+      noCharge: !hasLines && dollars === 0,
+    });
   }
 
   return (
@@ -1026,7 +1037,7 @@ export function TechJob({ token, jobId }: { token: string; jobId: string }) {
           {!hasLines ? (
             <>
               <label className="ta-label" htmlFor="ta-amount">
-                Final amount <em>Optional — or add the work above</em>
+                Final amount <em>Or add the work above · 0 for no charge</em>
               </label>
               <input id="ta-amount" className="ta-input" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="$0.00" />
             </>

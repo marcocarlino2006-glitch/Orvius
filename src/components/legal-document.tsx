@@ -21,7 +21,7 @@ export function LegalDocument({
   return (
     <MarketingShell cta={{ href: "/pilot", label: "Book a call audit" }}>
       <section className="tier1-hero tier1-hero-compact mkt-doc-hero">
-        <div className="editorial-wrap max-w-3xl">
+        <div className="editorial-wrap max-w-3xl ov-doc">
           <ShellPageIntro label={label} title={title} description={description} />
           <p className="mt-6 font-sans text-xs text-ash">
             Last updated {updated} · {company.legalName}
@@ -30,7 +30,7 @@ export function LegalDocument({
       </section>
 
       <section className="tier1-story mkt-doc-body">
-        <div className="editorial-wrap max-w-3xl">
+        <div className="editorial-wrap max-w-3xl ov-doc">
           <article className="legal-prose">{children}</article>
           <p className="mt-12 border-t border-rule pt-8 font-sans text-sm text-ash">
             Questions?{" "}
@@ -62,9 +62,16 @@ export function LegalSection({
   title: string;
   children: ReactNode;
 }) {
+  const numbered = /^(\d+)\.\s+(.+)$/.exec(title);
   return (
     <section>
-      <h2>{title}</h2>
+      {numbered ? (
+        <h2>
+          <span className="legal-index">{numbered[1]}.</span> {numbered[2]}
+        </h2>
+      ) : (
+        <h2>{title}</h2>
+      )}
       {children}
     </section>
   );

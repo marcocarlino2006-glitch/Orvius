@@ -14,8 +14,7 @@
 }
 
 /* Pressed, not just hovered. */
-.os-shell :is(.ox-btn, .btn, .btn-void, .btn-secondary, .attention-item-btn, .assign-tech-btn, .job-status-advance-btn):active:not(:disabled),
-.rd-root :is(.ox-btn, .job-status-advance-btn):active:not(:disabled) {
+.os-shell :is(.ox-btn,  .btn,  .btn-void,  .btn-secondary,  .assign-tech-btn,  .job-status-advance-btn):active:not(:disabled), .rd-root :is(.ox-btn,  .job-status-advance-btn):active:not(:disabled) {
   transform: scale(0.97);
 }
 
@@ -50,9 +49,6 @@
 }
 
 /* Optimistic rows settle in instead of flashing. */
-.is-instant-optimistic {
-  animation: instant-settle 300ms ease-out both;
-}
 
 @keyframes instant-settle {
   from {
@@ -65,12 +61,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .os-shell :is(.ox-btn, .btn, .btn-void, .btn-secondary, .attention-item-btn, .assign-tech-btn, .job-status-advance-btn):active:not(:disabled) {
+  .os-shell :is(.ox-btn,  .btn,  .btn-void,  .btn-secondary,  .assign-tech-btn,  .job-status-advance-btn):active:not(:disabled) {
     transform: none;
   }
 
-  .is-instant-pending::after,
-  .is-instant-optimistic {
+  .is-instant-pending::after {
     animation: none;
   }
 }

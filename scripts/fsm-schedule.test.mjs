@@ -170,15 +170,36 @@ test("a schedule that worked and then can't be read stops times being offered an
   }
 });
 
-test("a schedule that has never been read blocks nothing", async () => {
+test("a connected schedule that has never been read is unknown, not free, until the first read succeeds", async () => {
   const business = await shopWith("housecall");
   try {
     fake.fail = true;
+    // Connected, no read yet: the first read is tried on the spot and its failure blocks the horizon.
+    const unread = await getExternalSchedule(business.id);
+    assert.equal(unread.blocked.length, 1, "nothing is offered as open");
+    assert.equal(await isFsmScheduleUnreadable(business.id), true);
+    assert.deepEqual(await findOpenSlots(slotParams(business), { count: 1 }), []);
     const result = await refreshFsmSchedule(business.id);
     assert.ok(result.error);
+    assert.equal((await getExternalSchedule(business.id)).blocked.length, 1, "a failed first read stays unknown");
+
+    fake.fail = false;
+    const read = await getExternalSchedule(business.id);
+    assert.deepEqual(read.blocked, [], "the first successful read is the answer");
+    assert.equal(await isFsmScheduleUnreadable(business.id), false);
+    assert.equal((await findOpenSlots(slotParams(business), { count: 1 })).length, 1);
+  } finally {
+    await prisma.business.delete({ where: { id: business.id } }).catch(() => {});
+  }
+});
+
+test("a disconnected schedule blocks nothing", async () => {
+  const business = await prisma.business.create({
+    data: { name: "No FSM", slug: `nofsm-${Date.now()}-${Math.random().toString(16).slice(2, 6)}`, hoursJson: "{}", servicesJson: "[]", timezone: "America/Chicago" },
+  });
+  try {
     assert.deepEqual(await getExternalSchedule(business.id), { booked: [], blocked: [] });
     assert.equal(await isFsmScheduleUnreadable(business.id), false);
-    assert.equal((await findOpenSlots(slotParams(business), { count: 1 })).length, 1, "Orvius keeps offering from its own schedule");
   } finally {
     await prisma.business.delete({ where: { id: business.id } }).catch(() => {});
   }

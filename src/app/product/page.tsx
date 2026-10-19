@@ -6,6 +6,7 @@ import { getPublicLaunchReadiness } from "@/lib/public-launch-readiness";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/product" },
   title: "Product",
   description: `${company.productName} — ${company.categoryClaim} ${company.proofLine}`,
 };
@@ -54,7 +55,7 @@ export default function ProductPage() {
         </div>
       </section>
 
-      <section className="tier1-story">
+      <section className="tier1-story ov-product-sequence">
         <div className="editorial-wrap">
           <ol className="mkt-laws mkt-laws--ruled font-sans">
             {steps.map((c) => (
@@ -72,7 +73,7 @@ export default function ProductPage() {
         </div>
       </section>
 
-      <section className="tier1-story tier1-story-muted">
+      <section className="tier1-story tier1-story-muted tier1-bridge ov-surface-anchor">
         <div className="editorial-wrap tier1-story-grid">
           <div>
             <h2 className="tier1-section-title type-headline">

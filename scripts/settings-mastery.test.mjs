@@ -7,13 +7,16 @@ const { searchSettings, sectionFromAnchor } = await import("../src/lib/settings-
 
 const to = { phone: "+1 312 555 0100", email: "owner@shop.test" };
 
-test("a test alert only says it worked for the channels that delivered", () => {
+test("a test alert says sent, not delivered, and only for the channels a provider accepted", () => {
   assert.deepEqual(describeTestAlert({ sms: { status: "sent" }, email: { status: "sent" } }, to), {
     ok: true,
     partial: false,
-    message: "Texted +1 312 555 0100 and emailed owner@shop.test.",
+    message: "Sent a text to +1 312 555 0100 and an email to owner@shop.test. If it hasn't arrived in a minute, check the number and your spam folder.",
   });
-  assert.equal(describeTestAlert({ sms: { status: "sent" } }, to).message, "Texted +1 312 555 0100.");
+  assert.match(describeTestAlert({ sms: { status: "sent" } }, to).message, /^Sent a text to \+1 312 555 0100\. If it hasn't arrived/);
+  for (const out of [describeTestAlert({ sms: { status: "sent" }, email: { status: "sent" } }, to), describeTestAlert({ email: { status: "sent" } }, to)]) {
+    assert.doesNotMatch(out.message, /deliver|Texted|Emailed/, "provider acceptance is never reported as delivery");
+  }
 });
 
 test("a failed text with a delivered email is reported as a problem, not a success", () => {
@@ -30,10 +33,10 @@ test("texting switched off on Orvius's side is named, not blamed on a missing mo
   assert.match(describeTestAlert({ email: { status: "sent" } }, { phone: null, email: to.email }).message, /Add your mobile/);
 });
 
-test("nothing delivered is a failure with the reason", () => {
+test("nothing sent is a failure with the reason", () => {
   const out = describeTestAlert({ sms: { status: "failed" }, email: { status: "failed" } }, to);
   assert.equal(out.ok, false);
-  assert.match(out.message, /^Nothing was delivered/);
+  assert.match(out.message, /^Nothing went out/);
   assert.equal(describeTestAlert({ duplicate: true }, to).ok, true);
 });
 

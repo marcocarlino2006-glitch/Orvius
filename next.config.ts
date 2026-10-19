@@ -10,8 +10,9 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/demo", destination: "/product", permanent: true },
+      { source: "/press", destination: "/about", permanent: true },
       // Trades Orvius no longer advertises until each has its own tested playbook.
-      { source: "/for/:trade(roofing|garage-doors|pest-control|locksmith|appliance-repair)", destination: "/", permanent: true },
+      { source: "/for/:trade(roofing|garage-doors|pest-control|locksmith|appliance-repair)", destination: "/trades", permanent: true },
     ];
   },
   // Browsers, iOS and link unfurlers ask for these fixed paths without reading the page's icon tags.

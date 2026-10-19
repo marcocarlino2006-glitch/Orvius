@@ -45,7 +45,8 @@ export function usePlanAccess(): {
           data.business?.billingPlan ?? data.billing?.planId ?? null;
         const pilotEndsAt = data.business?.pilotEndsAt ?? null;
         const createdAt = data.business?.createdAt ?? null;
-        const fields = { billingStatus, billingPlan, pilotEndsAt, createdAt };
+        const environment = data.business?.environment ?? null;
+        const fields = { billingStatus, billingPlan, pilotEndsAt, createdAt, environment };
         const effectivePlan = getEffectivePlanId(fields);
         const ends = resolvePilotEndsAt(fields);
 

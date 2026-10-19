@@ -90,6 +90,9 @@ test("three callers want the same time: two technicians take two, the third is n
   );
   const booked = outcomes.filter((o) => o.status === "fulfilled").map((o) => o.value.job ?? o.value);
   const refused = outcomes.filter((o) => o.status === "rejected");
+  if (booked.length !== 2 || refused.length !== 1 || !(refused[0].reason instanceof SlotTakenError)) {
+    console.error(`race diag: ${JSON.stringify(outcomes.map((o) => (o.status === "fulfilled" ? "booked" : `${o.reason?.name}: ${o.reason?.message}`)))}`);
+  }
   assert.equal(booked.length, 2, "two technicians, two jobs at that time");
   assert.equal(refused.length, 1);
   assert.ok(refused[0].reason instanceof SlotTakenError, "the third is refused, not squeezed in");

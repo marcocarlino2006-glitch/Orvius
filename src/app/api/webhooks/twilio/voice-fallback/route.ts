@@ -58,7 +58,7 @@ function fallbackUrl() {
 function greeting(shopName: string | null) {
   return [
     shopName ? `Thanks for calling ${shopName}.` : "Thanks for calling.",
-    "We can't take your call live right now, but this line is recording and the owner is being notified.",
+    "We can't take your call live right now, but this line is recording so the team can call you back.",
     "Please leave your name, your number, and what you need after the beep. If this is a gas leak or you're in immediate danger, hang up and call 9 1 1.",
   ].join(" ");
 }
@@ -102,7 +102,7 @@ function ringOwnerTwiml(shopName: string, target: string) {
 /** Nothing left to record — thank them and end the call deliberately. */
 function signOffTwiml() {
   return twimlResponse(
-    `<Say voice="Polly.Joanna">${escapeXml("Thanks — we've got your message and the owner has been notified. Goodbye.")}</Say><Hangup />`,
+    `<Say voice="Polly.Joanna">${escapeXml("Thanks — we've got your message and we're passing it to the team. Goodbye.")}</Say><Hangup />`,
   );
 }
 

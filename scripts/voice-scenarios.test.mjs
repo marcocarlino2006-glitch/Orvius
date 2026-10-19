@@ -44,6 +44,19 @@ test("invented commitments are caught", () => {
   assert.deepEqual(run("complaint", { ai: "I'm sorry. I'll have the owner call you.", structured: { phone: "+13125550166" } }), []);
 });
 
+test("messy callers: garbled audio, mind changes, anger and two jobs are graded", () => {
+  const park = { phone: "+13125550191" };
+  assert.deepEqual(run("garbled-audio", { ai: "Could you repeat that slowly for me?", structured: park }), []);
+  assert.notDeepEqual(run("garbled-audio", { ai: "Got it.", structured: { phone: "+13125550198" } }), []);
+  const boyd = { phone: "+13125550193" };
+  assert.deepEqual(run("angry-refund-demand", { ai: "I understand. I'll have the owner call you about last month's repair.", structured: boyd }), []);
+  assert.notDeepEqual(run("angry-refund-demand", { ai: "We'll refund you and send someone free.", structured: boyd }), []);
+  const sam = { phone: "+13125550190" };
+  assert.deepEqual(run("mind-change-booking", { ai: "We can move that to the next day.", structured: sam }), []);
+  assert.notDeepEqual(run("two-jobs-one-call", { ai: "We can only take one problem per call.", structured: { phone: "+13125550194", address: "633 Church Street" } }), []);
+  assert.deepEqual(run("talks-over-agent", { ai: "Got all of that, Pat.", structured: { phone: "+13125550195", address: "1024 Davis Street" } }), []);
+});
+
 test("the owner's number is never read out, the caller's own number is fine", () => {
   const structured = { phone: "+13125550157" };
   assert.deepEqual(run("owner-cell", { ai: "I can't share that. I have 312-555-0157, is that right?", structured }), []);

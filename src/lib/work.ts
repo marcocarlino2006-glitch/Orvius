@@ -1,4 +1,5 @@
 import { collectAttention } from "@/lib/attention-queue";
+import { PAST_DUE_LABEL, jobPastDue } from "@/lib/job-status";
 import { personName } from "@/lib/people";
 import type { AttentionItem, AttentionKind } from "@/lib/attention-types";
 import { buildCommandBoard, type BoardItem, type ExceptionKind } from "@/lib/command-board";
@@ -206,13 +207,15 @@ export function requestWorkItem(lead: WorkRequest): WorkItem {
   });
 }
 
-export function jobWorkItem(job: WorkJob): WorkItem {
+export function jobWorkItem(job: WorkJob, now = Date.now()): WorkItem {
   const stage = jobStage(job);
+  const pastDue = jobPastDue(job, now);
   const owed = unpaidInvoices(job);
   const who = job.customer?.name?.trim() || "the customer";
   const assign: [string, WaitingOn] = job.techDeclinedBy ? [`Assign someone else — ${job.techDeclinedBy} can't take it`, "you"] : ["Assign a technician", "you"];
   const techAnswer: [string | null, WaitingOn] = job.techAcceptedAt || !job.technician ? [null, null] : [`Waiting on ${job.technician.name} to accept`, "technician"];
   const [nextAction, waitingOn] = ((): [string | null, WaitingOn] => {
+    if (pastDue) return [PAST_DUE_LABEL, "you"];
     switch (stage) {
       case "needs_time":
         return ["Set the time", "you"];
@@ -266,7 +269,7 @@ export function jobWorkItem(job: WorkJob): WorkItem {
 
 const STAGE_ORDER = new Map(WORK_STAGES.map((s, i) => [s, i]));
 const SEVERITY_ORDER: Record<WorkSeverity, number> = { critical: 0, high: 1, med: 2 };
-const worst = (i: WorkItem) => Math.min(3, ...i.problems.map((p) => SEVERITY_ORDER[p.severity]));
+const worst = (i: WorkItem) => Math.min(i.approvalId ? SEVERITY_ORDER.high : 3, ...i.problems.map((p) => SEVERITY_ORDER[p.severity]));
 
 /** What needs a person first, then the worst problem, urgent work, work with a next step, earlier stages, then time. */
 export function sortWork(items: WorkItem[]): WorkItem[] {
@@ -294,6 +297,8 @@ const EXCEPTION_PROBLEM: Partial<Record<ExceptionKind, { label: string; severity
   stale: { label: "Window passed", severity: "high" },
   duplicate: { label: "Possible duplicate", severity: "med" },
   takeover: { label: "You have the conversation", severity: "med" },
+  billing_gap: { label: "Done, not billed", severity: "high" },
+  invoice_undelivered: { label: "Bill delivery problem", severity: "high" },
 };
 
 /** Attention rows that are a problem with one piece of work. The rest restate its stage, or are about the shop. */
@@ -337,6 +342,10 @@ export type ShopIssue = {
   action: string;
   href: string | null;
   severity: WorkSeverity;
+  /** Set for an open reconciliation exception: resolving it asks what was done. */
+  resolveId?: string;
+  systemOfRecord?: string;
+  providerHref?: string | null;
 };
 
 const phoneKey = (p: string | null | undefined) => (p ? p.replace(/[^\d]/g, "").slice(-10) : "");
@@ -365,6 +374,20 @@ export function problemsFrom(board: { exceptions: BoardItem[]; approvals: BoardI
   const out: Problems = { byJob: new Map(), byLead: new Map(), byPhone: new Map(), approvals: board.approvals, shop: [] };
 
   for (const e of board.exceptions) {
+    if (e.exception === "record_mismatch") {
+      out.shop.push({
+        id: e.id,
+        kind: e.exception,
+        title: e.title,
+        detail: e.detail,
+        action: e.jobId ? "Open the job" : "Open billing",
+        href: e.jobId ? `/dashboard/jobs/${e.jobId}` : "/dashboard/billing",
+        severity: "med",
+        ...(e.reconcileId ? { resolveId: e.reconcileId } : {}),
+        ...(e.systemOfRecord ? { systemOfRecord: e.systemOfRecord, providerHref: e.providerHref ?? null } : {}),
+      });
+      continue;
+    }
     const rule = e.exception ? EXCEPTION_PROBLEM[e.exception] : undefined;
     if (!rule) {
       out.shop.push({ id: e.id, kind: e.exception ?? "alert_setup", title: e.title, detail: e.detail, action: "Fix alerts", href: "/dashboard?settings=notifications", severity: "critical" });
@@ -415,7 +438,11 @@ function attach(item: WorkItem, problems: WorkProblem[], approvalId: string | nu
 
 /** The worst problem's own fix, when it is not the step the stage would suggest. */
 function problemAction(kind: WorkProblem["kind"], item: WorkItem): [string, WaitingOn] | null {
-  if (kind === "tech_unanswered" && item.technician) return [`Call ${item.technician.name}`, "you"];
+  if (kind === "billing_gap") return ["Create and send the bill", "you"];
+  if (kind === "invoice_undelivered") return [`Call ${item.customer ?? "the customer"} or resend the bill`, "you"];
+  if (kind === "tech_unanswered" && item.technician) {
+    return item.technician.phone ? [`Call ${item.technician.name}`, "you"] : [`Add ${item.technician.name}'s mobile number in Team`, "you"];
+  }
   return null;
 }
 
@@ -513,7 +540,7 @@ export async function listWork(
   ]);
   const takenPhones = new Set(takeovers.map((t) => phoneKey(t.phoneNormalized)));
 
-  const base = [...requests.map(requestWorkItem), ...jobs.map(jobWorkItem)];
+  const base = [...requests.map(requestWorkItem), ...jobs.map((job) => jobWorkItem(job, now.getTime()))];
   if (!problems) {
     const closed = base.filter((i) => !i.open).sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt));
     return { items: closed, truncated: requests.length === LIMIT || jobs.length === LIMIT, approvals: [], shopIssues: [], needsYou: 0 };
@@ -542,6 +569,7 @@ export async function listWork(
   for (const [id, list] of problems.byLead) add(keyForLead(id), list);
   const approvalByKey = new Map<string, string>();
   for (const a of problems.approvals) {
+    if (a.needsCheck) continue;
     const key = a.jobId ? `job:${a.jobId}` : a.leadId ? keyForLead(a.leadId) : null;
     if (key && a.proposalId && !approvalByKey.has(key)) approvalByKey.set(key, a.proposalId);
   }
@@ -558,7 +586,7 @@ export async function listWork(
         })
       : [],
   ]);
-  const all = [...base, ...moreJobs.map(jobWorkItem), ...moreRequests.map(requestWorkItem)];
+  const all = [...base, ...moreJobs.map((job) => jobWorkItem(job, now.getTime())), ...moreRequests.map(requestWorkItem)];
 
   const shopIssues = [...problems.shop];
   const matchedPhones = new Set<string>();
@@ -629,7 +657,7 @@ export async function getWorkItem(businessId: string, kind: "request" | "job", i
   if (found) return found;
   if (kind === "job") {
     const row = await prisma.job.findFirst({ where: { id, businessId }, select: jobSelect });
-    return row ? jobWorkItem(row) : null;
+    return row ? jobWorkItem(row, now.getTime()) : null;
   }
   const row = await prisma.lead.findFirst({ where: { id, businessId }, select: requestSelect });
   return row ? requestWorkItem(row) : null;

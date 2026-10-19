@@ -40,6 +40,7 @@ export function getPayPromptDecision(
     shopCreatedAt?: string | Date | null;
   },
 ): PayPromptDecision | null {
+  if (params.environment === "demo") return null;
   const status = (params.billingStatus ?? "none").toLowerCase();
   const fields: BusinessBillingFields = {
     billingStatus: params.billingStatus,
@@ -105,5 +106,26 @@ export function getPayPromptDecision(
 }
 
 export const PAY_PROMPT_SNOOZE_KEY = "orvius-pay-prompt-snooze-until";
+export const PAY_PROMPT_FIRST_SEEN_KEY = "orvius-pay-prompt-first-seen";
+
+/** A soft trial ask waits until the owner has had a day with the product. */
+export const PAY_PROMPT_VALUE_DELAY_MS = 24 * HOUR;
+
+/**
+ * Whether the soft modal may open right now. Value first: on the owner's
+ * first day the product proves itself (calls, bookings, the Command brief)
+ * before any payment ask appears. Access-ending, locked and past-due
+ * states keep their urgency and are never deferred by this gate.
+ */
+export function payPromptOpensNow(
+  decision: PayPromptDecision | null,
+  firstSeenAtMs: number | null,
+  nowMs: number = Date.now(),
+): boolean {
+  if (!decision?.show || decision.hard) return false;
+  if (decision.tone !== "trial") return true;
+  if (firstSeenAtMs == null) return false;
+  return nowMs - firstSeenAtMs >= PAY_PROMPT_VALUE_DELAY_MS;
+}
 
 export { isBillingEntitled, isPilotExpired, resolvePilotEndsAt };

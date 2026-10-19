@@ -216,6 +216,9 @@ async function offerHandoff(
  * second question by text: the job goes straight to nearby shops, and the
  * shop's owner alert still arrives as usual.
  */
+/** The call disclosure (NETWORK_SHARES): their name, callback number and what they need. */
+export const CALL_CONSENT_SHARES = ["name", "phone", "serviceType"] as const;
+
 export async function passConsentedCallLead(
   shop: SenderShop,
   lead: PassLead,
@@ -231,7 +234,15 @@ export async function passConsentedCallLead(
   if (await prisma.networkHandoff.findUnique({ where: { leadId: lead.id } })) return { skipped: "already" };
 
   const handoff = await prisma.networkHandoff.create({
-    data: { fromBusinessId: shop.id, leadId: lead.id, callerPhone: lead.phone, callerPhoneNormalized: callerPhone, trade: shop.trade, zip3 },
+    data: {
+      fromBusinessId: shop.id,
+      leadId: lead.id,
+      callerPhone: lead.phone,
+      callerPhoneNormalized: callerPhone,
+      trade: shop.trade,
+      zip3,
+      sharesJson: JSON.stringify(CALL_CONSENT_SHARES),
+    },
   });
   const offered = await offerHandoff(handoff, now, texts);
   await recordAudit({
@@ -281,25 +292,28 @@ export async function takeNetworkJob(
   });
   if (!source || !partner) return "That job is no longer available.";
 
+  // The caller agreed to share only what they were told about; the rest stays with the shop they called.
+  const shares = open.sharesJson ? new Set(JSON.parse(open.sharesJson) as string[]) : null;
+  const allowed = <T>(field: string, value: T) => (!shares || shares.has(field) ? value : null);
   const demand = deriveDemandSignal({
     serviceType: source.serviceType,
-    notes: source.notes,
-    address: source.address,
+    notes: allowed("notes", source.notes),
+    address: allowed("address", source.address),
     categoryHint: source.categoryCode,
     trade: tradeForCapture({ trade: open.trade }),
   });
   const lead = await prisma.lead.create({
     data: {
       businessId: partner.id,
-      name: source.name,
+      name: allowed("name", source.name),
       phone: open.callerPhone,
-      email: source.email,
-      address: source.address,
+      email: allowed("email", source.email),
+      address: allowed("address", source.address),
       serviceType: source.serviceType,
       urgency: source.urgency,
       categoryCode: demand.categoryCode,
-      postalCode: demand.postalCode ?? source.postalCode,
-      notes: [`From the Orvius Network: ${sender?.name ?? "another shop"} couldn't take it and the customer asked for a pro.`, source.notes]
+      postalCode: demand.postalCode ?? allowed("address", source.postalCode),
+      notes: [`From the Orvius Network: ${sender?.name ?? "another shop"} couldn't take it and the customer asked for a pro.`, allowed("notes", source.notes)]
         .filter(Boolean)
         .join("\n"),
       source: "network",
@@ -310,7 +324,7 @@ export async function takeNetworkJob(
   await prisma.lead
     .updateMany({ where: { id: source.id, status: { in: ["new", "contacted"] } }, data: { status: "lost", closedAt: now } })
     .catch(() => null);
-  await linkTouchToCustomer({ businessId: partner.id, leadId: lead.id, phone: open.callerPhone, notes: source.notes ?? "" }).catch(() => null);
+  await linkTouchToCustomer({ businessId: partner.id, leadId: lead.id, phone: open.callerPhone, notes: allowed("notes", source.notes) ?? "" }).catch(() => null);
   await recordAudit({
     businessId: partner.id,
     entityType: "lead",

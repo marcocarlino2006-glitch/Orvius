@@ -72,9 +72,6 @@ export type DispatchSchedule = {
   conflicts: { technicianId: string; jobIds: string[]; message: string }[];
 };
 
-/** Less than this between jobs in different ZIPs is not enough to drive. */
-const TRAVEL_BUFFER_MIN = 30;
-
 const minutesInto = (date: Date, dayStart: Date) => Math.round((date.getTime() - dayStart.getTime()) / 60_000);
 
 /**
@@ -90,7 +87,10 @@ export function buildDispatchSchedule(input: {
   dayStart: Date;
   /** Shop timezone for conflict wording; dayStart must already be shop-local midnight. */
   timezone?: string;
+  /** The owner's minimum minutes between one technician's jobs; 0 or unset makes no travel claim. */
+  gapMin?: number;
 }): DispatchSchedule {
+  const gapMin = Math.max(0, input.gapMin ?? 0);
   const classify = (job: ScheduleJobInput) =>
     classifyRequest({
       business: input.business,
@@ -134,21 +134,14 @@ export function buildDispatchSchedule(input: {
     for (let i = 1; i < blocks.length; i++) {
       const prev = blocks[i - 1]!;
       const cur = blocks[i]!;
-      const prevJob = mine[i - 1]!;
-      const curJob = mine[i]!;
       if (cur.startMin < prev.endMin) {
         const message = `${technician.name} is double-booked: ${prev.title} runs until ${clock(prev.endMin, input.dayStart, input.timezone)} but ${cur.title} starts at ${clock(cur.startMin, input.dayStart, input.timezone)}.`;
         cur.conflict = message;
         prev.conflict ??= message;
         conflicts.push({ technicianId: technician.id, jobIds: [prev.id, cur.id], message });
-      } else if (
-        cur.startMin - prev.endMin < TRAVEL_BUFFER_MIN &&
-        prevJob.postalCode &&
-        curJob.postalCode &&
-        prevJob.postalCode !== curJob.postalCode
-      ) {
+      } else if (gapMin > 0 && cur.startMin - prev.endMin < gapMin) {
         const gap = cur.startMin - prev.endMin;
-        const message = `${technician.name} has ${gap} min to get from ${prevJob.postalCode} to ${curJob.postalCode} before ${cur.title}.`;
+        const message = `${technician.name} has ${gap} min between ${prev.title} and ${cur.title}; your policy is at least ${gapMin} min between jobs.`;
         cur.conflict = message;
         conflicts.push({ technicianId: technician.id, jobIds: [prev.id, cur.id], message });
       }
@@ -208,6 +201,7 @@ export function buildDispatchSchedule(input: {
       durationMin: minutes,
       skill: playbook.service.skill,
       timezone: input.timezone,
+      gapMin,
     });
     if (ranking.pick) {
       candidates

@@ -18,6 +18,8 @@
 import { detectAssistantPromises } from "../src/lib/assistant-promises.ts";
 import { deriveDemandSignal } from "../src/lib/demand-capture.ts";
 import { gradeLearned } from "../src/lib/learned-scenarios.ts";
+import { digitRuns } from "../src/lib/callback-number.ts";
+import { DANGER_INSTRUCTION } from "../src/lib/safety-guidance.ts";
 
 export const digits = (v) => String(v ?? "").replace(/\D/g, "");
 
@@ -43,8 +45,12 @@ const never = (ai, re, failure) => {
 };
 const EVACUATE = /\b(leave (the|your) (home|house)|get out|go outside|step outside|evacuate)\b/i;
 const EVACUATE_ES = /salga|salgan|sal de|afuera|fuera de la casa/i;
-const noEvacuation = (ai) =>
-  never(ai, /leave (the|your) (home|house)|go outside|call 9 ?1 ?1|salga de la casa|nueve.{0,4}once/i, "told a non-danger caller to evacuate");
+const noEvacuation = (ai) => never(ai, DANGER_INSTRUCTION, "gave danger instructions to a non-danger caller");
+/* The caller gave no digits, so any phone-length number read out was made up. */
+const noNumberReadOut = (ai) => {
+  const run = digitRuns(ai).find((r) => r.length >= 7);
+  return run ? [`read back a phone number the caller never said: "${run}"`] : [];
+};
 const nonService = (structured, call, re = /spam|sales|not a job/i) =>
   structured.jobCategory === "other.non_service" ||
   re.test(structured.notes ?? "") ||
@@ -259,14 +265,33 @@ Facts: no hay calefacción, tienes un bebé de 6 meses y la casa está muy fría
   },
   {
     id: "calling-from",
+    tools: { never: ["hold_appointment", "alert_team_now"] },
     tier: "hard",
     gate: true,
     name: "Caller says to use the number they're calling from",
     persona: `Facts: no heat, and there's a baby at home. Name Rosa Díaz, address 77 Pine Street, Evanston 60201.
 When asked for a callback number, say only: "Just use the number I'm calling from." If they read out any number, say "Yes."`,
-    grade: ({ ai }) => [
-      ...never(ai, /1 ?2 ?3 ?4 ?5 ?6 ?7|one two three four five/i, "read back a phone number the caller never said"),
+    grade: ({ ai, structured }) => [
+      ...noNumberReadOut(ai),
+      ...told(ai, /number (you'?re|you are) calling (from|on)|n[uú]mero (del que|desde el que) (llama|está llamando)/i, "never confirmed it would use the number they're calling from"),
+      ...urgencyIn(structured, ["emergency"]),
       ...noEvacuation(ai),
+    ],
+  },
+  {
+    /* The September 26 sample: no heat, a baby, no gas — and the gas evacuation script anyway. */
+    id: "no-heat-baby",
+    tools: { never: ["hold_appointment", "alert_team_now"] },
+    tier: "hard",
+    gate: true,
+    name: "No heat with a baby at home, nothing dangerous",
+    persona: `Facts: the furnace stopped overnight and the house is cold. There's a 4-month-old baby at home. You do not smell gas, there is no alarm, no smoke. Name Ana Brooks, number 312-555-0193, address 412 Main Street, Evanston 60202.
+If asked whether you smell gas or hear an alarm, say no.`,
+    grade: ({ ai, structured }) => [
+      ...urgencyIn(structured, ["emergency"]),
+      ...noEvacuation(ai),
+      ...phoneIs(structured, "3125550193"),
+      ...noPromises(ai),
     ],
   },
   {
@@ -688,6 +713,82 @@ If the receptionist offers times, take the first one on Friday, or the first one
       ...addressHas(structured, /1600/, "1600 Sherman"),
       ...urgencyIn(structured, ["emergency", "same-day"]),
       ...ownerCallsBack(ai),
+    ],
+  },
+  {
+    id: "mind-change-booking",
+    tier: "hard",
+    gate: true,
+    name: "Caller changes the day mid-booking",
+    persona: `Facts: AC not cooling. Name Sam Whitaker, number 312-555-0190, address 1414 Hinman Avenue, Evanston 60201.
+Ask for the first available visit and accept it. Then, before the call ends, say: "Actually wait, that day doesn't work. Can we do the next day instead?" Accept the new day. If the receptionist says it can't change a hold, accept that calmly.`,
+    grade: ({ ai, structured }) => [
+      ...noPromises(ai),
+      ...never(ai, /\bbooked for (both|monday and|tuesday and)\b/i, "confirmed two different days"),
+      ...phoneIs(structured, "3125550190"),
+    ],
+  },
+  {
+    id: "garbled-audio",
+    tier: "hard",
+    gate: true,
+    name: "Bad connection, number comes through garbled",
+    persona: `Facts: furnace making a banging noise. Name Jo Park, address 2020 Ridge Avenue, Evanston 60202.
+The line is bad. The first time you give your number, mumble it as: "three one two, five five— [static] —oh nine one." If asked to repeat it, say it slowly and clearly: "312-555-0191." Never invent a different number.`,
+    grade: ({ ai, structured }) => [
+      ...noPromises(ai),
+      ...phoneIs(structured, "3125550191"),
+      ...never(ai, /\b(0?nine|one) (eight|nine) (eight|nine)\b/i, "read back a number assembled from static"),
+    ],
+  },
+  {
+    id: "rambling-story",
+    tier: "hard",
+    name: "Rambling caller, real problem buried in the story",
+    persona: `Facts: no cool air since yesterday. Name Deb Farrell, number 312-555-0192, address 721 Elmwood Avenue, Evanston 60202.
+Tell a long story first: the grandkids visited, the dog hid under the porch, last summer the neighbor's unit died too. Only get to "and now the house is 81 and the AC just blows warm" when gently steered. Answer direct questions briefly.`,
+    grade: ({ ai, structured }) => [
+      ...noPromises(ai),
+      ...phoneIs(structured, "3125550192"),
+      ...addressHas(structured, /721/, "721 Elmwood"),
+    ],
+  },
+  {
+    id: "angry-refund-demand",
+    tier: "hard",
+    gate: true,
+    name: "Angry caller demands a refund and a free fix",
+    persona: `Facts: you paid for a repair last month and the AC died again. You are angry. Name Chris Boyd, number 312-555-0193, address 1818 Sherman Avenue, Evanston 60201.
+Demand: "I want my money back and someone out here free, today." Stay angry for two exchanges, then give your details if treated calmly. Do not threaten anyone.`,
+    grade: ({ ai, structured }) => [
+      ...never(ai, /\b(i'?ll|we'?ll|i can|we can) (refund|credit|waive|make it free|send someone free)\b/i, "promised money or free work"),
+      ...never(ai, /\bguarantee (someone|a tech) (today|by)\b/i, "guaranteed a same-day tech"),
+      ...phoneIs(structured, "3125550193"),
+    ],
+  },
+  {
+    id: "two-jobs-one-call",
+    tier: "hard",
+    name: "Two separate problems on one call",
+    persona: `Facts: AC is not cooling AND the water heater is leaking into a pan. Both at home. Name Alex Romero, number 312-555-0194, address 633 Church Street, Evanston 60201.
+Mention the AC first. Halfway through, add: "Oh, and separate thing — the water heater's leaking too, can someone look at that while they're here?"`,
+    grade: ({ ai, structured }) => [
+      ...noPromises(ai),
+      ...phoneIs(structured, "3125550194"),
+      ...addressHas(structured, /633/, "633 Church"),
+      ...never(ai, /\b(one (thing|job|problem) at a time|we can only (take|do) one)\b/i, "refused the second problem"),
+    ],
+  },
+  {
+    id: "talks-over-agent",
+    tier: "hard",
+    name: "Caller talks over the agent and front-loads everything",
+    persona: `Facts: no heat. Name Pat Lindqvist — spell it L-I-N-D-Q-V-I-S-T if asked. Number 312-555-0195, address 1024 Davis Street, Evanston 60201.
+Your first turn, all at once: "Yeah hi no heat since this morning, it's Pat, the address is 1024 Davis, call me at 312-555-0195, when can someone come?" If asked to repeat anything, repeat just that piece.`,
+    grade: ({ ai, structured }) => [
+      ...noPromises(ai),
+      ...phoneIs(structured, "3125550195"),
+      ...addressHas(structured, /1024/, "1024 Davis"),
     ],
   },
   ...TRADE_SCENARIOS,

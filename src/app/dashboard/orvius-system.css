@@ -63,16 +63,16 @@
 html[data-theme="day"] .os-shell.os-shell-night,
 html[data-theme="day"] .os-shell-night {
   color-scheme: light;
-  --ox-bg: #f5f6f7;
-  --ox-s1: #ffffff;
-  --ox-s2: #f0f1f3;
-  --ox-s3: #e8eaed;
-  --ox-s4: #dde0e4;
-  --ox-line: #e1e3e7;
-  --ox-line-strong: #c9cdd3;
-  --ox-text: #111316;
-  --ox-text-2: #363b42;
-  --ox-mute: #5c636d;
+  --ox-bg: #f4f1e8;
+  --ox-s1: #f4f1e8;
+  --ox-s2: #f4f1e8;
+  --ox-s3: #ebe6db;
+  --ox-s4: #e4dfd4;
+  --ox-line: #e4dfd4;
+  --ox-line-strong: #d4cec2;
+  --ox-text: #161513;
+  --ox-text-2: #3f3c36;
+  --ox-mute: #6b675f;
   --ox-amber: #9a5b00;
   --ox-amber-hi: #b36a00;
   --ox-amber-soft: rgb(154 91 0 / 0.1);
@@ -85,19 +85,19 @@ html[data-theme="day"] .os-shell-night {
   --ox-red-soft: rgb(192 40 45 / 0.09);
   --ox-focus: 0 0 0 2px var(--ox-bg), 0 0 0 4px rgb(0 0 0 / 0.28);
   --ox-tint: 17 19 22;
-  --ox-legacy-text: #111316;
-  --ox-legacy-text-2: #363b42;
-  --ox-legacy-mute: #5c636d;
+  --ox-legacy-text: #161513;
+  --ox-legacy-text-2: #3f3c36;
+  --ox-legacy-mute: #6b675f;
   /* Day-only: legacy night rules read these with their original hex as fallback. */
-  --ox-day-surface: #ffffff;
-  --ox-day-sunk: #f5f6f7;
-  --ox-day-line: #e1e3e7;
-  --ox-day-ink: #111316;
-  --ox-day-soft: #5c636d;
-  --ox-panel: #ffffff;
-  --ox-rail: #f5f6f7;
-  --ox-primary: #111316;
-  --ox-on-primary: #ffffff;
+  --ox-day-surface: #f4f1e8;
+  --ox-day-sunk: #f4f1e8;
+  --ox-day-line: #e4dfd4;
+  --ox-day-ink: #161513;
+  --ox-day-soft: #6b675f;
+  --ox-panel: #f4f1e8;
+  --ox-rail: #f4f1e8;
+  --ox-primary: #161513;
+  --ox-on-primary: #f4f1e8;
   --ox-fill: rgb(0 0 0 / 0.05);
   --ox-fill-hover: rgb(0 0 0 / 0.08);
   --ox-fill-light: rgb(0 0 0 / 0.03);
@@ -153,8 +153,7 @@ html[data-theme="day"] .os-shell-night {
   background: transparent !important;
 }
 
-.os-shell.os-shell-night .os-sidebar-brand:hover,
-.os-shell.os-shell-night .os-sidebar-user:hover {
+.os-shell.os-shell-night .os-sidebar-brand:hover {
   background: var(--ox-s3) !important;
 }
 
@@ -321,13 +320,7 @@ body:has(.os-shell.os-shell-night) {
 
 /* ── Controls ──────────────────────────────────────────────────────────── */
 
-:is(.os-shell.os-shell-night, .rd-root) .ox-btn,
-.os-shell.os-shell-night .btn,
-.os-shell.os-shell-night .btn-void,
-.os-shell.os-shell-night .btn-secondary,
-.os-shell.os-shell-night .attention-item-btn,
-.os-shell.os-shell-night .assign-tech-btn,
-.os-shell.os-shell-night .job-status-advance-btn {
+:is(.os-shell.os-shell-night,  .rd-root) .ox-btn, .os-shell.os-shell-night .btn, .os-shell.os-shell-night .btn-void, .os-shell.os-shell-night .btn-secondary, .os-shell.os-shell-night .assign-tech-btn, .os-shell.os-shell-night .job-status-advance-btn {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -345,85 +338,52 @@ body:has(.os-shell.os-shell-night) {
   transition: background var(--ox-dur-fast) ease, border-color var(--ox-dur-fast) ease, color var(--ox-dur-fast) ease;
 }
 
-:is(.os-shell.os-shell-night, .rd-root) .ox-btn--primary,
-.os-shell.os-shell-night .btn-void,
-.os-shell.os-shell-night .attention-item-btn-primary,
-.os-shell.os-shell-night .assign-tech-btn,
-.os-shell.os-shell-night .job-status-advance-btn {
+:is(.os-shell.os-shell-night,  .rd-root) .ox-btn--primary, .os-shell.os-shell-night .btn-void, .os-shell.os-shell-night .assign-tech-btn, .os-shell.os-shell-night .job-status-advance-btn {
   background: var(--ox-primary) !important;
   border: 0 !important;
   color: var(--ox-on-primary) !important;
 }
 
-:is(.os-shell.os-shell-night, .rd-root) .ox-btn--primary:hover:not(:disabled),
-.os-shell.os-shell-night .btn-void:hover:not(:disabled),
-.os-shell.os-shell-night .attention-item-btn-primary:hover:not(:disabled),
-.os-shell.os-shell-night .assign-tech-btn:hover:not(:disabled),
-.os-shell.os-shell-night .job-status-advance-btn:hover:not(:disabled) {
+:is(.os-shell.os-shell-night,  .rd-root) .ox-btn--primary:hover:not(:disabled), .os-shell.os-shell-night .btn-void:hover:not(:disabled), .os-shell.os-shell-night .assign-tech-btn:hover:not(:disabled), .os-shell.os-shell-night .job-status-advance-btn:hover:not(:disabled) {
   background: var(--ox-primary) !important;
   opacity: 0.9;
   color: var(--ox-on-primary) !important;
 }
 
-:is(.os-shell.os-shell-night, .rd-root) .ox-btn--quiet,
-.os-shell.os-shell-night .btn-secondary,
-.os-shell.os-shell-night .btn:not(.btn-void),
-.os-shell.os-shell-night .attention-item-btn:not(.attention-item-btn-primary) {
+:is(.os-shell.os-shell-night,  .rd-root) .ox-btn--quiet, .os-shell.os-shell-night .btn-secondary, .os-shell.os-shell-night .btn:not(.btn-void) {
   background: var(--ox-fill) !important;
   border: 0 !important;
   color: var(--ox-text) !important;
 }
 
-:is(.os-shell.os-shell-night, .rd-root) .ox-btn--quiet:hover:not(:disabled),
-.os-shell.os-shell-night .btn-secondary:hover:not(:disabled),
-.os-shell.os-shell-night .btn:not(.btn-void):hover:not(:disabled),
-.os-shell.os-shell-night .attention-item-btn:not(.attention-item-btn-primary):hover:not(:disabled) {
+:is(.os-shell.os-shell-night,  .rd-root) .ox-btn--quiet:hover:not(:disabled), .os-shell.os-shell-night .btn-secondary:hover:not(:disabled), .os-shell.os-shell-night .btn:not(.btn-void):hover:not(:disabled) {
   background: var(--ox-fill-hover) !important;
   color: var(--ox-text) !important;
 }
 
-:is(.os-shell.os-shell-night, .rd-root) .ox-btn--danger,
-:is(.os-shell.os-shell-night, .rd-root) .ox-btn--danger:hover:not(:disabled) {
+:is(.os-shell.os-shell-night,  .rd-root) .ox-btn--danger, :is(.os-shell.os-shell-night,  .rd-root) .ox-btn--danger:hover:not(:disabled) {
   color: #f97066 !important;
   border-color: rgba(249, 112, 102, 0.4) !important;
 }
 
 /* One filled action per view: only the top queue item keeps amber. */
-.os-shell.os-shell-night .wq-row .attention-item-btn-primary,
-.os-shell.os-shell-night .wq-row .assign-tech-btn,
-.os-shell.os-shell-night .wq-row .job-status-advance-btn {
-  background: transparent !important;
-  border: 1px solid var(--ox-line-strong) !important;
-  color: var(--ox-text) !important;
-}
 
-.os-shell.os-shell-night .wq-row .attention-item-btn-primary:hover:not(:disabled),
-.os-shell.os-shell-night .wq-row .assign-tech-btn:hover:not(:disabled),
-.os-shell.os-shell-night .wq-row .job-status-advance-btn:hover:not(:disabled) {
-  background: var(--ox-s3) !important;
-  border-color: var(--ox-line-strong) !important;
-  color: var(--ox-text) !important;
-}
-
-:is(.os-shell.os-shell-night, .rd-root) .ox-btn:disabled,
-.os-shell.os-shell-night .btn:disabled,
-.os-shell.os-shell-night .attention-item-btn:disabled,
-.os-shell.os-shell-night .assign-tech-btn:disabled {
+:is(.os-shell.os-shell-night,  .rd-root) .ox-btn:disabled, .os-shell.os-shell-night .btn:disabled, .os-shell.os-shell-night .assign-tech-btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
 
-:is(.os-shell.os-shell-night, .rd-root) .ox-btn--sm {
+:is(.os-shell.os-shell-night,  .rd-root) .ox-btn--sm {
   min-height: 32px !important;
   padding: 0 8px !important;
   font-size: 14px !important;
 }
 
-:is(.os-shell.os-shell-night, .rd-root) .ox-btn--block {
+:is(.os-shell.os-shell-night,  .rd-root) .ox-btn--block {
   width: 100%;
 }
 
-.os-shell.os-shell-night :is(a, button, input, select, textarea, summary):focus-visible {
+.os-shell.os-shell-night :is(a,  button,  input,  select,  textarea,  summary):focus-visible {
   outline: none !important;
   box-shadow: var(--ox-focus) !important;
 }
@@ -488,8 +448,7 @@ body:has(.os-shell.os-shell-night) {
 
 /* ── Surfaces ──────────────────────────────────────────────────────────── */
 
-.os-shell.os-shell-night .pro-panel,
-.os-shell.os-shell-night .lead-inbox-card {
+.os-shell.os-shell-night .pro-panel {
   background: var(--ox-s2) !important;
   border: 1px solid var(--ox-line) !important;
   border-radius: var(--ox-radius) !important;
@@ -607,10 +566,6 @@ body:has(.os-shell.os-shell-night) {
   border-left: 3px solid var(--ox-red);
 }
 
-.ox-state--success {
-  border-left: 3px solid var(--ox-green);
-}
-
 /* ── Command ───────────────────────────────────────────────────────────── */
 
 .cc {
@@ -639,13 +594,7 @@ body:has(.os-shell.os-shell-night) {
   .cc-rail {
     display: contents;
   }
-
-  .cc > * > .cc-brief { order: 0; }
   .cc > * > .cs-grid { order: 1; }
-  .cc > * > .rw-panel { order: 2; }
-  .cc > * > .cb { order: 3; }
-  .cc > * > .rc-panel { order: 4; }
-  .cc > * > .op-panel:not(.rw-panel):not(.rc-panel) { order: 5; }
 }
 
 @media (min-width: 1240px) {
@@ -657,16 +606,6 @@ body:has(.os-shell.os-shell-night) {
     position: sticky;
     top: 6rem;
   }
-}
-
-.cc-brief-text {
-  margin: 0;
-  max-width: 46rem;
-  font-size: var(--fs-display-xs);
-  font-weight: 500;
-  line-height: 1.3;
-  letter-spacing: -0.02em;
-  color: var(--ox-text);
 }
 
 .cs-grid {
@@ -764,250 +703,7 @@ a.cs-card:hover {
 
 /* Work queue — the dominant surface. */
 
-.wq {
-  border: 1px solid var(--ox-line);
-  border-radius: calc(var(--ox-radius) + 2px);
-  background: var(--ox-s1);
-  overflow: hidden;
-}
-
-.wq-head {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 1.1rem 1.35rem 0.9rem;
-}
-
-.wq-title {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  letter-spacing: -0.015em;
-  color: var(--ox-text);
-}
-
-.wq-skel {
-  display: grid;
-  gap: 0.6rem;
-  padding: 0 1.35rem 1.35rem;
-}
-
-.wq-skel .skeleton {
-  height: 4.5rem;
-}
-
-.wq--clear {
-  border: none;
-  background: transparent;
-}
-
-.wq-recommend {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.25rem;
-  margin: 0 0.75rem 0.75rem;
-  padding: 1.1rem 1.2rem;
-  border: 1px solid var(--ox-line-strong);
-  border-radius: var(--ox-radius);
-  background: var(--ox-s3);
-}
-
-.wq-recommend.wq-sev--critical {
-  border-color: rgb(242 107 107 / 0.45);
-  background: linear-gradient(0deg, var(--ox-red-soft), var(--ox-red-soft)), var(--ox-s3);
-}
-
-.wq-recommend.wq-sev--high {
-  border-color: rgb(232 197 71 / 0.4);
-}
-
-.wq-recommend-copy {
-  min-width: 0;
-  flex: 1;
-}
-
-.wq-list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  border-top: 1px solid var(--ox-line);
-}
-
-.wq-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.25rem;
-  padding: 0.95rem 1.35rem;
-  border-bottom: 1px solid var(--ox-line);
-}
-
-.wq-row:last-child {
-  border-bottom: none;
-}
-
-.wq-row:hover {
-  background: var(--ox-s2);
-}
-
-.wq-body {
-  display: grid;
-  gap: 0.3rem;
-  min-width: 0;
-  flex: 1;
-}
-
-.wq-line1 {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.55rem;
-  min-width: 0;
-}
-
-.wq-sev {
-  display: inline-flex;
-  align-items: center;
-  height: 1.5rem;
-  padding: 0 0.55rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  flex-shrink: 0;
-}
-
-.wq-sev-pill--critical { background: var(--ox-red-soft); color: var(--ox-red); }
-.wq-sev-pill--high { background: var(--ox-yellow-soft); color: var(--ox-yellow); }
-.wq-sev-pill--normal { background: var(--ox-s4); color: var(--ox-text-2); }
-
-.wq-subject {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--ox-text);
-  overflow-wrap: anywhere;
-}
-
-.wq-subject--lg {
-  font-size: 1.25rem;
-  letter-spacing: -0.01em;
-}
-
-.wq-subject-link {
-  color: inherit;
-  text-decoration: none;
-  border-radius: 0.25rem;
-}
-
-.wq-subject-link:hover .wq-subject {
-  text-decoration: underline;
-  text-decoration-color: var(--ox-line-strong);
-  text-underline-offset: 3px;
-}
-
-.wq-count {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--ox-red);
-}
-
-.wq-request {
-  margin: 0;
-  font-size: 0.9375rem;
-  line-height: 1.45;
-  color: var(--ox-text-2);
-  overflow-wrap: anywhere;
-}
-
-.wq-kind {
-  font-weight: 600;
-  color: var(--ox-text);
-}
-
-.wq-meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.4rem;
-  margin: 0;
-  font-size: 0.8125rem;
-  color: var(--ox-mute);
-  font-variant-numeric: tabular-nums;
-}
-
-.wq-impact {
-  font-weight: 600;
-  color: var(--ox-text);
-}
-
-.wq-addr {
-  overflow-wrap: anywhere;
-}
-
-.wq-actions {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  flex-shrink: 0;
-}
-
-.wq-actions .attention-item-detail,
-.wq-actions .assign-tech-error,
-.wq-actions .job-status-advance-error {
-  flex-basis: 100%;
-  text-align: right;
-  font-size: 0.8125rem;
-  color: var(--ox-red);
-}
-
-.wq-actions .assign-tech-inline {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.wq-actions .assign-tech-empty {
-  display: inline-flex;
-  align-items: center;
-  min-height: 2.375rem;
-  padding: 0 1rem;
-  border-radius: var(--ox-radius-sm);
-  background: var(--ox-amber);
-  color: var(--ox-on-amber);
-  font-size: 0.875rem;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.wq-more {
-  width: 100%;
-  min-height: 2.75rem;
-  border: none;
-  border-top: 1px solid var(--ox-line);
-  background: transparent;
-  color: var(--ox-text-2);
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.wq-more:hover {
-  background: var(--ox-s2);
-  color: var(--ox-text);
-}
-
 @media (max-width: 720px) {
-  .wq-row,
-  .wq-recommend {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .wq-actions {
-    justify-content: flex-start;
-  }
 }
 
 /* Approvals under the queue */
@@ -1095,107 +791,43 @@ a.cs-card:hover {
   color: var(--ox-mute);
 }
 
-.rw-headline {
+.op-stages {
   display: grid;
-  gap: 0.1rem;
-  margin: 0 0 0.6rem;
-}
-
-.rw-headline-value {
-  font-size: 1.75rem;
-  font-weight: 600;
-  line-height: 1.1;
-  color: var(--ox-text);
-  font-variant-numeric: tabular-nums;
-}
-
-.rw-headline-label,
-.rw-empty {
-  font-size: 0.8125rem;
-  line-height: 1.4;
-  color: var(--ox-mute);
-}
-
-.rw-empty {
-  margin: 0 0 0.6rem;
-}
-
-.rw-rows {
-  display: grid;
-  margin: 0;
-}
-
-.rw-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.6rem 0;
-  border-top: 1px solid var(--ox-line);
-}
-
-.rw-row dt {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--ox-mute);
-}
-
-.rw-row dd {
-  display: grid;
-  justify-items: end;
-  margin: 0;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: var(--ox-text);
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-}
-
-.rw-detail {
+  gap: 0.2rem;
+  margin: 0.4rem 0 0;
   font-size: 0.75rem;
-  font-weight: 500;
+  line-height: 1.35;
+}
+.op-stage {
+  display: grid;
+  grid-template-columns: 5.75rem 1fr;
+  gap: 0.5rem;
+}
+.op-stage dt {
   color: var(--ox-mute);
 }
-
-.rw-action {
-  justify-self: start;
-  margin-top: 0.4rem;
+.op-stage dd {
+  margin: 0;
+  display: flex;
+  gap: 0.35rem;
+  align-items: baseline;
 }
-
-.rc-link {
-  flex-shrink: 0;
-  white-space: nowrap;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--ox-mute);
-  text-decoration: none;
+.op-stage dd::before {
+  content: "";
+  flex: none;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  transform: translateY(-0.05rem);
+  background: var(--ox-mute);
 }
-
-.rc-link:hover {
-  color: var(--ox-text);
-}
+.op-stage.is-yes dd::before { background: var(--ox-green); }
+.op-stage.is-no dd::before { background: var(--ox-red); }
+.op-stage.is-unknown dd::before { background: transparent; box-shadow: inset 0 0 0 1px var(--ox-mute); }
 
 /* Booked calls as a share of every call answered. */
-.rc-bar {
-  height: 0.375rem;
-  margin: 0 0 0.6rem;
-  overflow: hidden;
-  border-radius: 999px;
-  background: var(--ox-s3);
-}
-
-.rc-bar-fill {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--ox-green);
-  transform-origin: left;
-}
 
 @media (prefers-reduced-motion: no-preference) {
-  .rc-bar-fill {
-    animation: rc-grow 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  }
 }
 
 @keyframes rc-grow {
@@ -1645,9 +1277,7 @@ button.rd-path-btn:hover {
 }
 
 /* Popovers and settings speak in the same face as every other screen. */
-.os-shell.os-shell-night .mx-footer *:not(kbd, code),
-.os-shell .sc-dialog,
-.os-shell .sc-dialog *:not(kbd, code) {
+.os-shell.os-shell-night .mx-footer *:not(kbd,  code), .os-shell .sc-dialog, .os-shell .sc-dialog *:not(kbd,  code) {
   font-family: var(--font-sans), system-ui, sans-serif !important;
 }
 
@@ -1976,7 +1606,6 @@ button.rd-path-btn:hover {
   border-bottom: 1px solid var(--ox-line);
 }
 
-.os-shell.os-shell-night .os-sidebar-avatar,
 .mn-avatar {
   width: 32px;
   height: 32px;
@@ -1987,133 +1616,7 @@ button.rd-path-btn:hover {
   font-weight: 600;
 }
 
-.pm-workspace {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.55rem 0.5rem;
-  border-radius: var(--ox-radius-sm);
-  background: var(--ox-s3);
-}
-
-.pm-ws-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: 0.25rem;
-  background: var(--ox-s4);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--ox-text);
-}
-
-.pm-ws-copy {
-  display: grid;
-  min-width: 0;
-}
-
-.pm-ws-name {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--ox-text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.pm-ws-meta {
-  font-size: 0.75rem;
-  color: var(--ox-mute);
-}
-
-.pm-ws-check {
-  color: var(--ox-amber);
-  font-weight: 600;
-}
-
-.pm-ws-note {
-  margin: 0.4rem 0.5rem 0.2rem;
-  font-size: 0.75rem;
-  color: var(--ox-mute);
-}
-
-.os-shell.os-shell-night .pm-ws-all {
-  display: block;
-  margin: 0.25rem 0.25rem 0;
-  padding: 0.5rem;
-  border-radius: var(--ox-radius-sm);
-  font-size: 0.8125rem;
-  color: var(--ox-text-2);
-  text-decoration: none;
-}
-
-.os-shell.os-shell-night .pm-ws-all:hover,
-.os-shell.os-shell-night .pm-ws-all:focus-visible {
-  background: var(--ox-s3);
-  color: var(--ox-text);
-}
-
-.os-shell.os-shell-night .os-sidebar-user-name {
-  font-size: 0.875rem;
-  color: var(--ox-text);
-}
-
-.os-shell.os-shell-night .os-sidebar-user-plan {
-  font-size: 0.75rem;
-  color: var(--ox-mute);
-}
-
-.os-shell.os-shell-night .os-profile-menu-chevron svg {
-  width: 0.75rem;
-  height: 0.75rem;
-  color: var(--ox-mute);
-}
-
-.os-shell.os-shell-night .os-sidebar-env {
-  margin: 0 0 0.5rem;
-  padding: 0.4rem 0.6rem;
-  border: 1px dashed color-mix(in srgb, var(--ox-amber) 55%, transparent);
-  border-radius: var(--ox-radius-sm);
-  color: var(--ox-amber);
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0;
-}
-
 /* Command home, on Manus's geometry: serif greeting, one large composer, starter chips, then the work. */
-.cc-page {
-  display: grid;
-  gap: 2.5rem;
-}
-
-.cc-hero {
-  display: grid;
-  justify-items: center;
-  gap: 1.5rem;
-  width: 100%;
-  max-width: 48rem;
-  margin: 0 auto;
-  padding: clamp(1.5rem, 6vh, 4rem) 0 0;
-}
-
-.os-shell.os-shell-night .cc-hero-title {
-  margin: 0;
-  font-size: 1.875rem;
-  font-weight: 600 !important;
-  line-height: 1.2;
-  letter-spacing: -0.025em !important;
-  text-align: center;
-  color: var(--ox-text);
-}
-
-.cc-hero .cb-ask {
-  display: grid;
-  gap: 1rem;
-  width: 100%;
-}
 
 .cb-ask-stack {
   overflow: hidden;
@@ -2237,14 +1740,6 @@ button.rd-path-btn:hover {
   color: var(--ox-text);
 }
 
-.cc-hero .cb-ask-result {
-  margin-top: 0;
-  padding: 0.875rem 1rem;
-  border: 1px solid var(--ox-line);
-  border-radius: 0.75rem;
-  background: var(--ox-s1);
-}
-
 /* The next setup step rides under the composer as one quiet strip. */
 .os-shell.os-shell-night .cb-ask-stack .shop-operate-banner {
   display: flex;
@@ -2296,9 +1791,6 @@ button.rd-path-btn:hover {
 }
 
 @media (max-width: 640px) {
-  .cc-hero {
-    padding-top: 1.5rem;
-  }
 
   .os-shell.os-shell-night .cb-ask-stack .shop-operate-banner {
     flex-wrap: wrap;
@@ -2306,237 +1798,6 @@ button.rd-path-btn:hover {
 }
 
 /* Account menu, on Manus's geometry: identity, a plan card, then short icon rows in divided groups. */
-.os-shell.os-shell-night .pm-panel {
-  width: 18.5rem;
-  padding: 0.75rem;
-  border-radius: 0.75rem !important;
-  border: 1px solid var(--ox-line) !important;
-  background: var(--ox-s1) !important;
-  box-shadow: 0 12px 40px rgb(0 0 0 / 0.16), 0 2px 8px rgb(0 0 0 / 0.06) !important;
-  color: var(--ox-text);
-}
-
-.pm-icon {
-  width: 1.125rem;
-  height: 1.125rem;
-  flex-shrink: 0;
-}
-
-.pm-icon-sm {
-  width: 0.875rem;
-  height: 0.875rem;
-  flex-shrink: 0;
-}
-
-.pm-icon-xs {
-  width: 0.75rem;
-  height: 0.75rem;
-}
-
-.pm-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.5rem 0.25rem 0.75rem;
-}
-
-.pm-head-id {
-  position: relative;
-  display: inline-flex;
-}
-
-.os-shell.os-shell-night .pm-head-avatar {
-  width: 3.5rem;
-  height: 3.5rem;
-  font-size: 1.125rem;
-}
-
-.pm-head-badge {
-  position: absolute;
-  right: -0.125rem;
-  bottom: -0.125rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.375rem;
-  height: 1.375rem;
-  border: 2px solid var(--ox-s1);
-  border-radius: 999px;
-  background: var(--ox-text);
-  color: var(--ox-s1);
-}
-
-.pm-switch {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border: none;
-  border-radius: 0.5rem;
-  background: transparent;
-  color: var(--ox-mute);
-  cursor: pointer;
-}
-
-.pm-switch:hover,
-.pm-switch:focus-visible {
-  background: var(--ox-s3);
-  color: var(--ox-text);
-}
-
-.pm-plan {
-  overflow: hidden;
-  margin-bottom: 0.375rem;
-  border: 1px solid var(--ox-line);
-  border-radius: 0.75rem;
-  background: var(--ox-s2);
-}
-
-.pm-plan-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.75rem 0.75rem 0.75rem 0.875rem;
-  border-bottom: 1px dashed var(--ox-line-strong);
-}
-
-.os-shell.os-shell-night .pm-plan-name {
-  min-width: 0;
-  font-size: 1rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  color: var(--ox-text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.os-shell.os-shell-night .pm-plan-cta {
-  flex-shrink: 0;
-  padding: 0.3125rem 0.75rem;
-  border-radius: 999px;
-  background: var(--ox-text);
-  color: var(--ox-s1);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.os-shell.os-shell-night .pm-plan-cta:hover {
-  opacity: 0.86;
-}
-
-.os-shell.os-shell-night .pm-plan-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-height: 2.75rem;
-  padding: 0 0.75rem 0 0.875rem;
-  color: var(--ox-text);
-  font-size: 0.875rem;
-  font-weight: 500;
-  text-decoration: none;
-}
-
-.pm-plan-info {
-  display: inline-flex;
-  color: var(--ox-mute);
-}
-
-.pm-plan-value {
-  margin-left: auto;
-  font-size: 0.8125rem;
-  font-variant-numeric: tabular-nums;
-  color: var(--ox-mute);
-}
-
-.os-shell.os-shell-night .pm-plan-explore {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 2.25rem;
-  padding: 0 0.75rem 0 0.875rem;
-  background: var(--ox-s3);
-  color: var(--ox-mute);
-  font-size: 0.8125rem;
-  text-decoration: none;
-}
-
-.os-shell.os-shell-night .pm-plan-row:hover,
-.os-shell.os-shell-night .pm-plan-explore:hover {
-  background: var(--ox-s4);
-}
-
-.pm-group {
-  display: grid;
-  padding: 0.375rem 0;
-}
-
-.pm-group + .pm-group {
-  border-top: 1px solid var(--ox-line);
-}
-
-.os-shell.os-shell-night .pm-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  width: 100%;
-  min-height: 2.375rem;
-  padding: 0 0.5rem;
-  border: none;
-  border-radius: 0.5rem;
-  background: transparent;
-  color: var(--ox-text);
-  font-size: 0.875rem;
-  font-weight: 500;
-  text-align: left;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.os-shell.os-shell-night .pm-item:hover,
-.os-shell.os-shell-night .pm-item:focus-visible {
-  background: var(--ox-s2);
-}
-
-.pm-item-end {
-  margin-left: auto;
-  color: var(--ox-mute);
-}
-
-.os-shell.os-shell-night .pm-signout {
-  color: var(--ox-red);
-}
-
-.os-shell.os-shell-night .pm-signout:hover {
-  background: var(--ox-red-soft);
-}
-
-.pm-locations {
-  display: grid;
-  gap: 0.375rem;
-}
-
-.os-shell.os-shell-night .pm-back {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  min-height: 2.25rem;
-  padding: 0 0.375rem;
-  border: none;
-  border-radius: 0.5rem;
-  background: transparent;
-  color: var(--ox-text);
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.os-shell.os-shell-night .pm-back:hover {
-  background: var(--ox-s2);
-}
 
 /* ── Ask ───────────────────────────────────────────────────────────────── */
 
@@ -3173,11 +2434,6 @@ html[data-theme="day"] .os-shell .dsp-date {
   background: color-mix(in srgb, var(--ox-red) 16%, var(--ox-s3));
 }
 
-.dsp-block-time {
-  font-size: 0.75rem;
-  color: var(--ox-mute);
-}
-
 .dsp-block-title,
 .dsp-block-who {
   font-size: 0.75rem;
@@ -3284,32 +2540,6 @@ html[data-theme="day"] .os-shell .dsp-date {
 
 .dsp-skel-track {
   height: 3.75rem;
-}
-
-.dsp-crew summary {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  list-style: none;
-}
-
-.dsp-crew summary::-webkit-details-marker {
-  display: none;
-}
-
-.dsp-crew summary::before {
-  content: "";
-  width: 0.4rem;
-  height: 0.4rem;
-  border-right: 1.5px solid currentColor;
-  border-bottom: 1.5px solid currentColor;
-  transform: rotate(-45deg);
-  transition: transform var(--ox-dur-fast) var(--ox-ease);
-}
-
-.dsp-crew[open] > summary::before {
-  transform: rotate(45deg);
 }
 
 .dsp-crew-help {
@@ -3433,11 +2663,7 @@ html[data-theme="day"] .os-shell .dsp-date {
 
 /* Touch: never hover-only; larger hit areas on iPad. */
 @media (hover: none) and (pointer: coarse) {
-  :is(.os-shell.os-shell-night, .rd-root) .ox-btn,
-  .os-shell.os-shell-night .btn,
-  .os-shell.os-shell-night .attention-item-btn,
-  .os-shell.os-shell-night .assign-tech-btn,
-  .os-shell.os-shell-night .os-nav-link {
+  :is(.os-shell.os-shell-night,  .rd-root) .ox-btn, .os-shell.os-shell-night .btn, .os-shell.os-shell-night .assign-tech-btn, .os-shell.os-shell-night .os-nav-link {
     min-height: 2.75rem !important;
   }
 }
@@ -3457,6 +2683,12 @@ html[data-theme="day"] .os-shell .dsp-date {
 
 .cp-side {
   display: none;
+}
+
+.cp-list-note {
+  padding: 0.75rem 0.25rem;
+  color: var(--ox-mute);
+  font-size: 0.8125rem;
 }
 
 @media (min-width: 1100px) {
@@ -3711,16 +2943,6 @@ html[data-theme="day"] .os-shell .dsp-date {
   font-style: italic;
 }
 
-.call-quality-score {
-  font-size: 0.8125rem;
-  color: #9aa1ab;
-}
-
-.call-quality-score strong {
-  color: var(--ox-text);
-  font-variant-numeric: tabular-nums;
-}
-
 .os-shell .pro-search-icon {
   left: 0.8rem;
   z-index: 1;
@@ -3834,49 +3056,15 @@ html[data-theme="day"] .os-shell .dsp-date {
   .os-toast { animation: none; }
 }
 
-.os-shell.os-shell-night :is(button, .btn, [role="button"]):not(:disabled, [aria-disabled="true"]):active {
+.os-shell.os-shell-night :is(button,  .btn,  [role="button"]):not(:disabled,  [aria-disabled="true"]):active {
   transform: scale(0.97);
 }
 
 @media (prefers-reduced-motion: reduce) {
 
-  .os-shell.os-shell-night :is(button, .btn, [role="button"]):active {
+  .os-shell.os-shell-night :is(button,  .btn,  [role="button"]):active {
     transform: none;
   }
-}
-
-.pm-ws-list {
-  display: grid;
-  gap: 2px;
-  max-height: min(16rem, 38vh);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-
-.os-shell.os-shell-night .pm-ws-filter {
-  width: 100%;
-  margin: 0 0 0.375rem;
-  padding: 0.4375rem 0.625rem;
-  border: 1px solid var(--os-line);
-  border-radius: 0.25rem;
-  background: var(--ox-s2, transparent);
-  color: var(--os-ink);
-  font: inherit;
-  font-size: 0.8125rem;
-}
-
-.os-shell.os-shell-night button.pm-workspace {
-  width: 100%;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.os-shell.os-shell-night button.pm-workspace:hover:not(:disabled) {
-  background: var(--ox-s3);
 }
 
 /*
@@ -3884,15 +3072,15 @@ html[data-theme="day"] .os-shell .dsp-date {
   dashboard.css hard-code dark surfaces with !important; these re-point the
   ones still on screen to tokens until those rules are retired.
 */
-html[data-theme="day"] .os-shell.os-shell-night :is(.os-main, .os-topbar, .os-content, .dt, .cc, .wq, .sc-dialog) {
+html[data-theme="day"] .os-shell.os-shell-night :is(.os-main,  .os-topbar,  .os-content,  .dt,  .cc,  .sc-dialog) {
   color: var(--ox-text) !important;
 }
 
-html[data-theme="day"] .os-shell.os-shell-night :is(.orvius-logo-word, .orvius-logo-void, h2, .wq-title) {
+html[data-theme="day"] .os-shell.os-shell-night :is(.orvius-logo-word,  .orvius-logo-void,  h2) {
   color: var(--ox-text) !important;
 }
 
-html[data-theme="day"] .os-shell.os-shell-night :is(.pro-page-filters, .pro-filter-bar) {
+html[data-theme="day"] .os-shell.os-shell-night :is(.pro-page-filters,  .pro-filter-bar) {
   border-color: var(--ox-line) !important;
   background: var(--ox-s1) !important;
 }
@@ -3907,22 +3095,22 @@ html[data-theme="day"] .os-shell.os-shell-night .pro-filter-tab:hover {
   color: var(--ox-text) !important;
 }
 
-html[data-theme="day"] .os-shell.os-shell-night :is(.pro-filter-tab-active, .pro-filter-tab[aria-selected="true"], .pro-page-filters button[aria-pressed="true"]) {
+html[data-theme="day"] .os-shell.os-shell-night :is(.pro-filter-tab-active,  .pro-filter-tab[aria-selected="true"],  .pro-page-filters button[aria-pressed="true"]) {
   background: var(--ox-text) !important;
   color: var(--ox-s1) !important;
 }
 
-html[data-theme="day"] .os-shell.os-shell-night :is(.post-lock-banner, .pro-stat, .pro-panel, .pro-economics-panel, .pro-signal-bar, .capture-setup-panel, .capture-setup-carrier, .account-billing-plan, .transcript-cinema, .owner-alert) {
+html[data-theme="day"] .os-shell.os-shell-night :is(.post-lock-banner,  .pro-stat,  .pro-panel,  .pro-economics-panel,  .pro-signal-bar,  .account-billing-plan,  .transcript-cinema,  .owner-alert) {
   border-color: var(--ox-line) !important;
   background: var(--ox-s1) !important;
   color: var(--ox-text) !important;
 }
 
-html[data-theme="day"] .os-shell.os-shell-night :is(.account-billing-plan-name, .account-billing-plan-price) {
+html[data-theme="day"] .os-shell.os-shell-night :is(.account-billing-plan-name,  .account-billing-plan-price) {
   color: var(--ox-text-2) !important;
 }
 
-html[data-theme="day"] .os-shell.os-shell-night :is(.lead-quick-btn, .lead-quick-actions a, .btn:not(.btn-void)) {
+html[data-theme="day"] .os-shell.os-shell-night :is(.lead-quick-btn,  .lead-quick-actions a,  .btn:not(.btn-void)) {
   border-color: var(--ox-line-strong) !important;
   color: var(--ox-text-2) !important;
 }

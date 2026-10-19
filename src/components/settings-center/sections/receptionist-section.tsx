@@ -6,6 +6,7 @@ import { DEFAULT_VOICE_ID, RECEPTIONIST_VOICES } from "@/lib/voices";
 import { VoiceSampleButton } from "../settings-controls";
 import { dollars, type Business, type PatchFn } from "../settings-model";
 import { ScField, ScGroup, ScRow, ScSwitch } from "../settings-primitives";
+import { CapabilitiesGroup } from "../capabilities-group";
 import { TextingGroup } from "../texting-group";
 
 export function ReceptionistSection({
@@ -20,6 +21,7 @@ export function ReceptionistSection({
   const authority = aiAuthority(b);
   return (
     <>
+      <CapabilitiesGroup refreshKey={`${b.bookingMode}|${b.followUpMode}|${b.autopilot}|${b.hoursJson}`} />
       <ScGroup title="What Orvius may do right now">
         {(
           [

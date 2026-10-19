@@ -2,7 +2,10 @@ import { createHash } from "node:crypto";
 import { describeSlot } from "@/lib/in-call-tool-defs";
 import { displayPhone, normalizePhone } from "@/lib/customer";
 import { logError, logInfo, logWarn } from "@/lib/logger";
+import { assertLiveActionAllowed, isOwnerDemoWorkspaceId } from "@/lib/demo-fence";
 import { prisma } from "@/lib/prisma";
+import { mayWrite } from "@/lib/record-authority";
+import { correlate, raiseReconciliation } from "@/lib/system-of-record";
 import { openSecret, sealSecret, secretBoxConfigured } from "@/lib/secret-box";
 
 /**
@@ -16,7 +19,9 @@ import { openSecret, sealSecret, secretBoxConfigured } from "@/lib/secret-box";
  * and client secret. The secret is sealed at rest and never shown back.
  *
  * Sending is at-most-once, as with Jobber: the row is stamped before the booking
- * is sent, so a lost reply leaves a "check" row for a person, never a second booking.
+ * is sent, so a lost reply leaves a "check" row and one reconciliation item for a
+ * person, never a second booking. Whether to send is read from the shop's record
+ * contract when the row is sent, not when it was queued.
  */
 
 const CLAIM_STALE_MS = 5 * 60_000;
@@ -114,6 +119,7 @@ export function pickProvider(tags: ProviderTag[]): { id: string; name: string | 
 
 /** Pasted credentials → a stored, sealed connection, only once ServiceTitan accepts them. */
 export async function connectServiceTitan(params: { businessId: string; tenantId: string; clientId: string; clientSecret: string; now?: Date }) {
+  await assertLiveActionAllowed(params.businessId, "Connecting ServiceTitan");
   const creds = { tenantId: params.tenantId.trim(), clientId: params.clientId.trim(), clientSecret: params.clientSecret.trim() };
   if (!/^\d{3,20}$/.test(creds.tenantId)) throw new ServiceTitanSetupError("The tenant ID is the number ServiceTitan shows with your client ID.");
   if (!creds.clientId || !creds.clientSecret || /\s/.test(creds.clientId + creds.clientSecret)) {
@@ -152,6 +158,7 @@ export async function disconnectServiceTitan(businessId: string) {
 }
 
 async function connection(businessId: string) {
+  if (await isOwnerDemoWorkspaceId(businessId)) return null;
   const conn = await prisma.serviceTitanConnection.findUnique({ where: { businessId } });
   if (!conn || conn.status !== "active") return null;
   const clientSecret = openSecret(conn.clientSecretEnc);
@@ -175,7 +182,7 @@ const NOT_NEW_WORK = new Set(["existing_job", "follow_up", "complaint", "info_on
 export async function enqueueServiceTitanSync(params: { businessId: string; leadId: string; skipReason?: string | null; nonService?: boolean }) {
   if (params.nonService || (params.skipReason && NOT_NEW_WORK.has(params.skipReason))) return false;
   const conn = await prisma.serviceTitanConnection.findUnique({ where: { businessId: params.businessId }, select: { status: true } });
-  if (conn?.status !== "active") return false;
+  if (conn?.status !== "active" || (await isOwnerDemoWorkspaceId(params.businessId))) return false;
   try {
     await prisma.serviceTitanSync.create({ data: { businessId: params.businessId, leadId: params.leadId } });
     return true;
@@ -238,6 +245,15 @@ async function processSync(syncId: string) {
       where: { id: sync.id },
       data: { status: "check", claimedAt: null, lastError: "Sent to ServiceTitan but the reply was lost. Check the booking queue before sending again." },
     });
+    await raiseReconciliation({
+      businessId: sync.businessId,
+      kind: "create",
+      entityType: "lead",
+      entityId: sync.leadId,
+      system: "servicetitan",
+      expected: { booking: "created once in the ServiceTitan booking queue" },
+      observed: { reason: "response_lost", syncId: sync.id, sentAt: sync.requestSentAt.toISOString() },
+    }).catch(() => null);
     return "check" as const;
   }
   const lead = await prisma.lead.findUnique({
@@ -257,6 +273,11 @@ async function processSync(syncId: string) {
   });
   if (!lead) {
     await prisma.serviceTitanSync.update({ where: { id: sync.id }, data: { status: "skipped", claimedAt: null, lastError: "Lead no longer exists" } });
+    return "skipped" as const;
+  }
+  const authority = await mayWrite(sync.businessId, "servicetitan", "job_state");
+  if (!authority.allowed) {
+    await prisma.serviceTitanSync.update({ where: { id: sync.id }, data: { status: "skipped", claimedAt: null, lastError: authority.reason } });
     return "skipped" as const;
   }
   const conn = await connection(sync.businessId);
@@ -285,7 +306,20 @@ async function processSync(syncId: string) {
       where: { id: sync.id },
       data: { status: "done", claimedAt: null, bookingId: created.id != null ? String(created.id) : "unknown", lastError: null },
     });
-    logInfo("servicetitan.booking_created", { businessId: sync.businessId, leadId: sync.leadId });
+    if (created.id != null) {
+      await correlate({ businessId: sync.businessId, entityType: "lead", entityId: sync.leadId, system: "servicetitan", externalId: String(created.id) }).catch((error: unknown) => logWarn("servicetitan.correlation_failed", { syncId: sync.id, error: error instanceof Error ? error.message : String(error) }));
+    } else {
+      await raiseReconciliation({
+        businessId: sync.businessId,
+        kind: "correlation",
+        entityType: "lead",
+        entityId: sync.leadId,
+        system: "servicetitan",
+        expected: { bookingId: "returned by ServiceTitan" },
+        observed: { reason: "no_id_returned", syncId: sync.id },
+      }).catch(() => null);
+    }
+    logInfo("servicetitan.booking_created", { businessId: sync.businessId, leadId: sync.leadId, basis: authority.basis });
     return "done" as const;
   } catch (error) {
     if (error instanceof ServiceTitanAuthError) await needsReconnect(conn.id, "ServiceTitan refused the Orvius credentials");
@@ -340,10 +374,11 @@ export async function drainServiceTitanSyncs(options: { limit?: number; now?: Da
 
 /** What Settings shows. */
 export async function serviceTitanStatus(businessId: string) {
-  const [conn, recent, failing] = await Promise.all([
+  const [conn, recent, failing, checking] = await Promise.all([
     prisma.serviceTitanConnection.findUnique({ where: { businessId }, select: { status: true, providerName: true, connectedAt: true, lastError: true } }),
     prisma.serviceTitanSync.count({ where: { businessId, status: "done", createdAt: { gte: new Date(Date.now() - 30 * 86_400_000) } } }),
     prisma.serviceTitanSync.count({ where: { businessId, status: { in: ["failed", "check"] } } }),
+    prisma.serviceTitanSync.count({ where: { businessId, status: "check" } }),
   ]);
   return {
     available: serviceTitanConfigured(),
@@ -353,6 +388,8 @@ export async function serviceTitanStatus(businessId: string) {
     lastError: conn?.status === "reconnect" ? conn.lastError : null,
     sentLast30Days: recent,
     needsAttention: failing,
+    checking,
+    failed: failing - checking,
   };
 }
 

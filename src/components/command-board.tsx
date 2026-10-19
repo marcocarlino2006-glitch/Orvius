@@ -1,8 +1,14 @@
 "use client";
 
+import { askConfirm } from "@/components/ask-dialog";
+import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { OutcomeCard } from "@/components/outcome-card";
 import { toast } from "@/components/toaster";
+import type { Outcome } from "@/lib/outcome";
 import type { RequestTrace } from "@/lib/request-trace";
+import { isUncertain, sendWrite } from "@/lib/client-write";
+import { describeReadBack, readCancelReply, readExecuteReply, readReadBack } from "@/lib/plan-reply";
 import { formatWhen } from "@/lib/when";
 
 type Scenario = { id: string; label: string; expect: string };
@@ -13,14 +19,9 @@ type AskResult =
   | { kind: "answer"; message: string; records?: { href: string; title: string; summary: string }[] }
   | { kind: "refused" | "clarify"; message: string };
 
-export type PlanOutcome = { ok: boolean; text: string };
+export type PlanOutcome = { ok: boolean; text: string; outcome?: Outcome | null };
 
-async function post(url: string, body: unknown) {
-  const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error ?? "That didn't go through — nothing changed");
-  return data;
-}
+const post = <T = Record<string, any>>(url: string, body: unknown) => sendWrite<T>(url, "POST", body);
 
 export function PlanCard({
   proposal,
@@ -34,19 +35,60 @@ export function PlanCard({
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /* After a reply nobody can trust, Approve stays away until the shop's record says the plan never took effect. */
+  const [unsure, setUnsure] = useState(false);
+  function finish(outcome: PlanOutcome) {
+    if (onResult) onResult(outcome);
+    else toast({ title: outcome.text });
+    onDone();
+  }
+  async function checkRecord() {
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/copilot?proposalId=${encodeURIComponent(proposal.proposalId)}`, { cache: "no-store" });
+      const found = res.ok ? readReadBack(await res.json().catch(() => null), proposal.proposalId) : null;
+      if (!found) {
+        setError("Orvius couldn't read where this plan stands. It won't run again from here; check again in a moment.");
+        return;
+      }
+      const told = describeReadBack(found.state);
+      if (found.state === "done") return finish({ ok: true, text: told.text, outcome: found.outcome });
+      if (found.state === "withdrawn") return finish({ ok: false, text: told.text, outcome: null });
+      if (told.settled) {
+        toast({ title: told.text });
+        return onDone();
+      }
+      setError(told.text);
+      if (told.canApprove) setUnsure(false);
+    } catch {
+      setError("Orvius couldn't read where this plan stands. It won't run again from here; check again in a moment.");
+    } finally {
+      setBusy(false);
+    }
+  }
   async function act(mode: "execute" | "cancel") {
     setBusy(true);
     setError(null);
+    let readBack = false;
     try {
       const data = await post(`/api/copilot?mode=${mode}`, mode === "execute" ? { proposalId: proposal.proposalId, approved: true } : { proposalId: proposal.proposalId });
-      const text = mode === "execute" ? (data.confirmation?.summary ?? "Done") : "Dismissed. Nothing changed.";
-      if (onResult) onResult({ ok: mode === "execute", text });
-      else toast({ title: text });
-      onDone();
+      if (mode === "execute") {
+        const reply = readExecuteReply(data, proposal.proposalId);
+        if (reply) return finish({ ok: true, text: reply.summary, outcome: reply.outcome });
+      } else if (readCancelReply(data, proposal.proposalId)) {
+        return finish({ ok: false, text: "Dismissed. Nothing changed.", outcome: null });
+      }
+      readBack = true;
     } catch (err) {
-      setError(`${err instanceof Error ? err.message : "That didn't go through — nothing changed"}. Nothing changed.`);
+      setError(err instanceof Error ? err.message : "That wasn't accepted.");
+      if (isUncertain(err)) readBack = true;
+      else if (err instanceof Error && /flagged in Command/.test(err.message)) onDone();
     } finally {
       setBusy(false);
+    }
+    if (readBack) {
+      setUnsure(true);
+      await checkRecord();
     }
   }
   return (
@@ -55,12 +97,80 @@ export function PlanCard({
       <p className="cb-plan-text">{proposal.preview}</p>
       {error ? <p className="cb-error" role="alert">{error}</p> : null}
       <div className="cb-actions">
-        <button type="button" className="ox-btn ox-btn--primary ox-btn--sm" disabled={busy} onClick={() => void act("execute")}>
-          {busy ? "Working…" : "Approve"}
+        {unsure ? (
+          <button type="button" className="ox-btn ox-btn--primary ox-btn--sm" disabled={busy} onClick={() => void checkRecord()}>
+            {busy ? "Checking…" : "Check what happened"}
+          </button>
+        ) : (
+          <>
+            <button type="button" className="ox-btn ox-btn--primary ox-btn--sm" disabled={busy} onClick={() => void act("execute")}>
+              {busy ? "Working…" : "Approve"}
+            </button>
+            <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => void act("cancel")}>
+              Dismiss
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** An approval that stopped partway or couldn't be recorded: a person says whether it happened. Never re-runs it. */
+export function CheckCard({
+  proposalId,
+  title,
+  detail,
+  done,
+  onDone,
+}: {
+  proposalId: string;
+  title: string;
+  detail: string;
+  done: boolean;
+  onDone: () => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  async function resolve(outcome: "done" | "not_done") {
+    setBusy(true);
+    setError(null);
+    try {
+      const data = await post("/api/copilot?mode=resolve", { proposalId, outcome });
+      if (data.ok !== true) {
+        setError("The answer didn't come back readable, so this may or may not be saved. Refresh before answering again.");
+        return;
+      }
+      toast({
+        title:
+          outcome === "done"
+            ? data.recorded === false
+              ? "Marked as done. The note for the history didn't save."
+              : "Marked as done."
+            : "Back in approvals. Approve it again when you're ready.",
+      });
+      onDone();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "That didn't save.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <div className="cb-plan">
+      <p className="cb-plan-kicker">{done ? "Went through, not recorded" : "Check this: it stopped partway"}</p>
+      <p className="cb-plan-text">{title}</p>
+      <p className="cb-plan-text">{detail}</p>
+      {error ? <p className="cb-error" role="alert">{error}</p> : null}
+      <div className="cb-actions">
+        <button type="button" className="ox-btn ox-btn--primary ox-btn--sm" disabled={busy} onClick={() => void resolve("done")}>
+          {done ? "Confirm it happened" : "It happened"}
         </button>
-        <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => void act("cancel")}>
-          Dismiss
-        </button>
+        {done ? null : (
+          <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => void resolve("not_done")}>
+            It didn&apos;t happen
+          </button>
+        )}
       </div>
     </div>
   );
@@ -136,7 +246,7 @@ export function AskBar({ onChange, below }: { onChange: () => void; below?: Reac
     setBusy(true);
     setOutcome(null);
     try {
-      setResult(await post("/api/command/ask", { text }));
+      setResult(await post<AskResult>("/api/command/ask", { text }));
     } catch (err) {
       setResult({ kind: "refused", message: err instanceof Error ? err.message : "That didn't go through — nothing changed" });
     } finally {
@@ -252,6 +362,15 @@ export function AskBar({ onChange, below }: { onChange: () => void; below?: Reac
           <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" onClick={() => setOutcome(null)}>
             Clear
           </button>
+          {outcome.outcome ? (
+            <OutcomeCard
+              outcome={outcome.outcome}
+              onChange={(next) => {
+                setOutcome({ ...outcome, outcome: next });
+                onChange();
+              }}
+            />
+          ) : null}
         </div>
       ) : null}
       <div className="cb-ask-chips" aria-label="Start with">
@@ -309,13 +428,17 @@ export function DemoPanel({ onChange }: { onChange: () => void }) {
   );
 }
 
+async function openDemo(reset: boolean) {
+  await post("/api/demo/workspace", { reset, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone });
+  window.location.assign("/dashboard");
+}
+
 export function TryDemo({ empty }: { empty: boolean }) {
   const [busy, setBusy] = useState(false);
   async function open() {
     setBusy(true);
     try {
-      await post("/api/demo/workspace", {});
-      window.location.assign("/dashboard");
+      await openDemo(false);
     } catch (err) {
       toast({ title: err instanceof Error ? err.message : "Could not open the demo" });
       setBusy(false);
@@ -327,7 +450,56 @@ export function TryDemo({ empty }: { empty: boolean }) {
       <button type="button" className="cb-try-link" disabled={busy} onClick={() => void open()}>
         {busy ? "Opening the demo shop…" : "Try it in a demo shop"}
       </button>
-      {" "}— your real line and customers stay untouched.
+      {" "}— a separate sample shop dated today. Your real line and customers stay untouched.
     </p>
+  );
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** On a demo shop: what it is, how old its sample week is, a reset, and simulated calls. */
+export function DemoWorkspaceBar({ sampleFrom, onChange }: { sampleFrom: string | null | undefined; onChange: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const from = sampleFrom ? new Date(sampleFrom) : null;
+  const stale = Boolean(from && Date.now() - from.getTime() > DAY_MS);
+  async function reset() {
+    const again = await askConfirm({
+      title: "Start the demo over at today's date?",
+      body: "Everything you did in this demo shop is cleared. Your real shop is not touched.",
+      confirmLabel: "Start over",
+    });
+    if (!again) return;
+    setBusy(true);
+    try {
+      await openDemo(true);
+    } catch (err) {
+      toast({ title: err instanceof Error ? err.message : "Could not reset the demo" });
+      setBusy(false);
+    }
+  }
+  return (
+    <section className={`cb-demo-bar${stale ? " is-stale" : ""}`} aria-label="Demo shop">
+      <div className="cb-demo-bar-copy">
+        <p className="cb-demo-title">Demo shop — separate from your real shop</p>
+        <p className="cb-muted">
+          {stale && from
+            ? `The sample week is dated from ${from.toLocaleDateString(undefined, { month: "short", day: "numeric" })}, so some of it has gone overdue. Reset to start it at today.`
+            : "A sample week dated today: requests, a plan waiting for approval, today's crew, bills and payments. Texts are simulated and every number is fictional."}
+        </p>
+      </div>
+      <div className="cb-demo-bar-actions">
+        <button type="button" className={`ox-btn ${stale ? "ox-btn--primary" : "ox-btn--quiet"} ox-btn--sm`} disabled={busy} onClick={() => void reset()}>
+          {busy ? "Resetting…" : "Reset to today"}
+        </button>
+        <Link href="/dashboard/onboarding" className="ox-btn ox-btn--quiet ox-btn--sm">
+          Set up your real business
+        </Link>
+      </div>
+      <p className="cb-muted cb-demo-bar-trail">
+        Open any job or call to see its history: who called, what Orvius decided and why, every text, and what you approved. Your real
+        business starts in test mode and answers nobody until you choose what Orvius may do and turn your line on.
+      </p>
+      <DemoPanel onChange={onChange} />
+    </section>
   );
 }

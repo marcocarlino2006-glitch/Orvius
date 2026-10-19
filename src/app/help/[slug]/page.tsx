@@ -12,7 +12,9 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const article = getHelpArticle((await params).slug);
-  return article ? { title: `${article.title} · Help`, description: article.summary } : {};
+  return article
+    ? { title: `${article.title} · Help`, description: article.summary, alternates: { canonical: `/help/${article.slug}` } }
+    : {};
 }
 
 export default async function HelpArticlePage({ params }: { params: Promise<{ slug: string }> }) {

@@ -94,6 +94,7 @@ function MessagesInner() {
   const [listError, setListError] = useState<string | null>(null);
   const [newPhone, setNewPhone] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const sendKey = useRef<{ key: string; phone: string; body: string } | null>(null);
 
   const loadThreads = useCallback(async (q: string) => {
     try {
@@ -183,22 +184,38 @@ function MessagesInner() {
     if (!active || !body || sending) return;
     setSending(true);
     setError(null);
+    const sent = sendKey.current;
+    const operationKey = sent && sent.phone === active && sent.body === body ? sent.key : crypto.randomUUID();
+    sendKey.current = { key: operationKey, phone: active, body };
     try {
       const res = await fetch("/api/messages/thread", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: active, body }),
+        body: JSON.stringify({ phone: active, body, operationKey }),
       });
       const data = await res.json().catch(() => null);
-      if (!res.ok) {
-        setError(data?.error ?? "The text didn't send. Try again.");
+      if (res.ok && data?.sent === true) {
+        sendKey.current = null;
+        setDraft("");
+        if (data.thread) setDetail(data.thread);
+        void loadThreads(query);
         return;
       }
-      setDraft("");
-      if (data?.thread) setDetail(data.thread);
-      void loadThreads(query);
+      if (res.status === 202) {
+        setError(data?.error ?? "This text may have gone out. Check the thread before writing it again.");
+        void loadThread(active, true);
+        return;
+      }
+      if (res.status >= 400 && res.status < 500 && res.status !== 429) sendKey.current = null;
+      if (data?.refused) sendKey.current = null;
+      setError(
+        data?.error ??
+          (res.ok || res.status >= 500
+            ? "Orvius couldn't confirm this text. Press Send again to check; it won't go twice."
+            : "The text didn't send. Try again."),
+      );
     } catch {
-      setError("Network error. The text didn't send.");
+      setError("No answer from Orvius, so the text may have gone out. Press Send again to check; it won't go twice.");
     } finally {
       setSending(false);
     }
@@ -354,10 +371,7 @@ function MessagesInner() {
                           {Array.from({ length: entry.photos }, (_, i) => {
                             const src = `/api/messages/media?id=${encodeURIComponent(entry.id)}&i=${i}`;
                             return (
-                              <a key={i} href={src} target="_blank" rel="noreferrer" className="msg-photo">
-                                {/* eslint-disable-next-line @next/next/no-img-element -- authed proxy, not optimisable */}
-                                <img src={src} alt={`Photo ${i + 1} from the customer`} loading="lazy" />
-                              </a>
+                              <MessagePhoto key={i} src={src} index={i} />
                             );
                           })}
                         </div>
@@ -368,10 +382,7 @@ function MessagesInner() {
                       <span className="msg-meta">
                         {entry.author === "owner" ? "You" : entry.author === "orvius" ? "Orvius" : "Customer"} ·{" "}
                         {stamp(entry.at)}
-                        {entry.direction === "out" && entry.deliveryStatus === "delivered" ? " · Delivered" : null}
-                        {entry.direction === "out" && (entry.deliveryStatus === "failed" || entry.deliveryStatus === "undelivered") ? (
-                          <span className="msg-failed"> · Not delivered. Call them instead.</span>
-                        ) : null}
+                        {entry.direction === "out" ? <DeliveryNote status={entry.deliveryStatus ?? null} /> : null}
                       </span>
                     </div>
                   ),
@@ -457,5 +468,47 @@ export default function MessagesPage() {
         <MessagesInner />
       </Suspense>
     </OsShell>
+  );
+}
+
+/** What the record says about an outbound text, and nothing it doesn't. */
+function DeliveryNote({ status }: { status: string | null }) {
+  switch (status) {
+    case "delivered":
+    case "read":
+      return <> · Delivered</>;
+    case "failed":
+    case "undelivered":
+      return <span className="msg-failed"> · Not delivered. Call them instead.</span>;
+    case "held":
+      return <span className="msg-failed"> · Held, not sent: texting isn&apos;t verified with the carriers yet.</span>;
+    case "held_for_human":
+      return <> · Held, not sent: someone had taken this conversation over.</>;
+    case "unknown_submission":
+      return <span className="msg-failed"> · Unknown: the carrier never said whether this left. Orvius won&apos;t resend it.</span>;
+    case "queued":
+    case "accepted":
+    case "sending":
+    case "sent":
+      return <> · Sent, waiting on the carrier</>;
+    default:
+      return null;
+  }
+}
+
+function MessagePhoto({ src, index }: { src: string; index: number }) {
+  const [missing, setMissing] = useState(false);
+  if (missing) {
+    return (
+      <span className="msg-photo msg-photo--missing" role="img" aria-label={`Photo ${index + 1} is unavailable`}>
+        Photo unavailable
+      </span>
+    );
+  }
+  return (
+    <a href={src} target="_blank" rel="noreferrer" className="msg-photo">
+      {/* eslint-disable-next-line @next/next/no-img-element -- authed proxy, not optimisable */}
+      <img src={src} alt={`Photo ${index + 1} from the customer`} loading="lazy" onError={() => setMissing(true)} />
+    </a>
   );
 }

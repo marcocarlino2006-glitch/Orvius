@@ -21,6 +21,7 @@
 import { execFileSync } from "node:child_process";
 import { connect } from "node:tls";
 import { resolve4 } from "node:dns/promises";
+import { releaseCheck } from "./lib/release-check.mjs";
 
 const BASE = (process.env.PROD_URL ?? "https://orvius.im").replace(/\/$/, "");
 const ADMIN_KEY = process.env.ORVIUS_ADMIN_KEY?.trim() ?? "";
@@ -270,6 +271,10 @@ try {
   } else {
     pass("/api/health", "readiness only, no counts");
   }
+
+  const release = releaseCheck(json?.release, process.env.EXPECTED_COMMIT);
+  if (release.ok) pass("Release", release.detail);
+  else fail("Release", release.detail);
 
   if (json?.configured) {
     pass("Call credentials", `Twilio + Vapi live${json.twilioPhone ? ` on ${json.twilioPhone}` : ""}`);

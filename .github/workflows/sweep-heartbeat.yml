@@ -29,18 +29,23 @@ jobs:
     timeout-minutes: 355
     env:
       CRON_SECRET: ${{ secrets.CRON_SECRET }}
-      APP_URL: ${{ secrets.LINE_WATCH_URL || 'https://api.orvius.im' }}
+      # No default target: the sweep runs only on the deployment named here,
+      # listed in ops/drain-targets.json, serving the approved release.
+      DRAIN_TARGET_URL: ${{ vars.DRAIN_TARGET_URL }}
+      DRAIN_TARGET_ENV: ${{ vars.DRAIN_TARGET_ENV }}
+      DRAIN_EXPECTED_RELEASE: ${{ vars.APPROVED_RELEASE_COMMIT }}
     steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Keep the sweeps on time
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if [ -z "$CRON_SECRET" ]; then
-            echo "::error::CRON_SECRET is not set in repo secrets; owner-alert retries and line watch on quiet lines do not run."
-            exit 1
-          fi
+          # Refuses up front (and every tick) when the target, its listing or the approved release is wrong.
+          node scripts/scheduled-drain.mjs alert-drain 60 >/dev/null || exit 1
           call() {
-            curl -fsS --max-time "$2" -H "Authorization: Bearer $CRON_SECRET" "$APP_URL/api/cron/$1" >/tmp/out 2>&1 \
+            node scripts/scheduled-drain.mjs "$1" "$2" >/tmp/out 2>&1 \
               && echo "$(date -u +%H:%M) $1 ok" \
               || echo "::warning::$(date -u +%H:%M) $1 failed: $(head -c 300 /tmp/out)"
           }

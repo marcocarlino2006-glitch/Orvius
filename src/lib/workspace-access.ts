@@ -1,4 +1,5 @@
 import type { Business } from "@prisma/client";
+import { isOwnerDemoWorkspace } from "@/lib/demo-fence";
 import { prisma } from "@/lib/prisma";
 import {
   ACTIVE_SHOP_COOKIE,
@@ -46,10 +47,14 @@ export function summarizeShops(access: ShopAccess[]): ShopSummary[] {
   return access.map(({ business, role }) => ({ id: business.id, name: business.name, role, trade: business.trade ?? null }));
 }
 
-/** The shop to open: the remembered one if still reachable, otherwise the first. */
+/** The shop to open: the remembered one if still reachable, otherwise the first real one. */
 export function pickActiveShop(access: ShopAccess[], preferredId: string | null | undefined): ShopAccess | null {
   if (!access.length) return null;
-  return (preferredId && access.find((a) => a.business.id === preferredId)) || access[0];
+  return (
+    (preferredId && access.find((a) => a.business.id === preferredId)) ||
+    access.find((a) => !isOwnerDemoWorkspace(a.business)) ||
+    access[0]
+  );
 }
 
 /** The active-shop cookie, or null outside a request (scripts, tests). */

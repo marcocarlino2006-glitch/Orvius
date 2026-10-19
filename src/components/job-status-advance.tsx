@@ -3,6 +3,7 @@
 import { toast } from "@/components/toaster";
 import { jobStatusLabel, nextJobStatus } from "@/lib/job-status";
 import { useInstantAction } from "@/components/instant-action";
+import { askCompletion } from "@/components/completion-prompt";
 
 type JobStatusAdvanceProps = {
   jobId: string;
@@ -24,11 +25,11 @@ export function JobStatusAdvance({
 
   if (!next) return null;
 
-  async function setJobStatus(value: string) {
+  async function setJobStatus(value: string, extra: Record<string, unknown> = {}) {
     const res = await fetch(`/api/jobs/${jobId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: value }),
+      body: JSON.stringify({ status: value, ...extra }),
     });
     const data = (await res.json().catch(() => null)) as { error?: string } | null;
     if (!res.ok) throw new Error(data?.error ?? "That didn't go through — the job hasn't moved");
@@ -41,6 +42,25 @@ export function JobStatusAdvance({
 
     const previous = status;
     const target = next.status;
+    if (target === "completed") {
+      const asked = await askCompletion({ fromOnSite: status === "on_site" });
+      if (!asked) return;
+      if ("error" in asked) {
+        toast({ title: asked.error, tone: "error" });
+        return;
+      }
+      onAdvanced?.(target);
+      try {
+        await run(() => setJobStatus(target, { completion: asked.completion, ...(asked.reason ? { reason: asked.reason } : {}) }), {
+          pendingTitle: "Marking it done…",
+          doneTitle: "Marked done",
+          revert: () => onAdvanced?.(previous),
+        });
+      } catch {
+        /* The hook already toasted the failure and rolled the row back. */
+      }
+      return;
+    }
     /* The job moves the moment the tap lands; the server confirms after. */
     onAdvanced?.(target);
     try {

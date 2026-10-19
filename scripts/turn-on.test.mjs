@@ -144,6 +144,11 @@ test("a test-mode shop runs the real pipeline: alert-first holds, book-and-confi
   await saveSetupPermissions(owner, "confirm", true);
   await runSetupTest(owner, "routine");
   result = await readSetupTest((await findSetupSandbox(owner)));
+  assert.equal(result.decision.outcome, "held", "a new shop holds until the owner sets how jobs are spaced");
+
+  await prisma.shopOperatingPolicy.update({ where: { businessId: shop.id }, data: { travelMode: "duration_only" } });
+  await runSetupTest(owner, "routine");
+  result = await readSetupTest((await findSetupSandbox(owner)));
   assert.equal(result.decision.outcome, "booked");
   assert.ok(result.messages.some((m) => m.to === "customer"), "the caller's confirmation is shown");
   assert.ok(result.messages.length > 0 && result.messages.every((m) => m.simulated), "every message is simulated");
@@ -235,7 +240,7 @@ test("going live is the only way out of test mode, and it keeps the shop", () =>
 });
 
 test("alert-first is enforced on the call, in booking and in the owner's text", () => {
-  assert.match(read("src/lib/in-call-tools.ts"), /bookingMode === "alert"\) return OWNER_SETS_TIMES_REPLY/);
+  assert.match(read("src/lib/in-call-tools.ts"), /bookingMode === "alert" \|\| holdsForApproval\(await getSchedulingPolicy\(shop\.id\)\)\) return OWNER_SETS_TIMES_REPLY/);
   assert.match(read("src/lib/auto-job.ts"), /bookingMode === "alert"/);
   assert.match(read("src/lib/owner-alert-message.ts"), /owner_first/);
   assert.match(read("src/lib/sync-business-assistant.ts"), /offerTimes: business\.bookingMode !== "alert"/);

@@ -153,7 +153,7 @@ test("a held request is booked only through an approved proposal at a real open 
   const booked = await prisma.job.findUniqueOrThrow({ where: { leadId: lead.id } });
   assert.equal(booked.scheduledAt.getTime(), slot.getTime(), "booked at exactly the approved time");
   assert.ok(await prisma.auditEvent.findFirst({ where: { businessId: shop.id, action: "copilot.executed", jobId: booked.id } }));
-  const twice = await executeProposal({ business: shop, proposalId: proposal.proposalId });
+  const twice = await executeProposal({ business: shop, proposalId: proposal.proposalId, by: { role: "owner", email: "owner@example.test" } });
   assert.equal(twice.ok, false, "a proposal runs once");
 });
 
@@ -171,7 +171,7 @@ test("stale schedules: a window filled after the proposal is refused at approval
   }
   assert.equal(await isWindowOpen(shop, { kind: "lead", lead }, slot), false);
 
-  const outcome = await executeProposal({ business: shop, proposalId: proposal.proposalId });
+  const outcome = await executeProposal({ business: shop, proposalId: proposal.proposalId, by: { role: "owner", email: "owner@example.test" } });
   assert.equal(outcome.ok, false);
   assert.equal(outcome.reason, "stale_window");
   assert.match(outcome.error, /Nothing was changed/);
@@ -198,7 +198,7 @@ test("reschedule: re-checks the window and the tech, clears the old confirmation
   const target = windows.find((d) => d.getTime() !== job.scheduledAt.getTime());
   const proposal = await proposeAction(shop, { action: "reschedule", jobId: job.id, at: target.toISOString() });
   assert.equal(proposal.ok, true, proposal.error);
-  const done = await executeProposal({ business: shop, proposalId: proposal.proposalId });
+  const done = await executeProposal({ business: shop, proposalId: proposal.proposalId, by: { role: "owner", email: "owner@example.test" } });
   assert.equal(done.ok, true, done.error);
   const moved = await prisma.job.findUniqueOrThrow({ where: { id: job.id } });
   assert.equal(moved.scheduledAt.getTime(), target.getTime());
@@ -257,6 +257,24 @@ test("ask to act: real choices or a plan to approve — never an invented time",
   assert.equal(sundayAsk.kind, "refused", "the shop is closed Sunday");
   assert.equal(await prisma.copilotAction.count({ where: { businessId: shop.id } }), 0, "nothing was proposed from a bad time");
   assert.equal(await askToAct(shop, "what's on today"), null, "questions go to Ask, not to actions");
+
+  const dana = await prisma.technician.create({ data: { businessId: shop.id, name: "Dana West" } });
+  const eli = await prisma.technician.create({ data: { businessId: shop.id, name: "Eli Park" } });
+  const titled = await prisma.job.create({
+    data: {
+      businessId: shop.id,
+      title: "Water pooling under the furnace",
+      serviceType: "Water pooling under the furnace",
+      status: "scheduled",
+      technicianId: eli.id,
+      scheduledAt: new Date(Date.now() + 86_400_000),
+    },
+  });
+  const assign = await askToAct(shop, "Send Dana West to Water pooling under the furnace");
+  assert.equal(assign.kind, "proposal", assign.message);
+  const ran = await executeProposal({ business: shop, proposalId: assign.proposal.proposalId, by: { role: "owner", email: "owner@example.test" } });
+  assert.equal(ran.ok, true, ran.error);
+  assert.equal((await prisma.job.findUniqueOrThrow({ where: { id: titled.id } })).technicianId, dana.id);
 });
 
 test("production workspaces never simulate", async () => {

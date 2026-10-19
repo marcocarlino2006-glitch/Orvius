@@ -142,3 +142,36 @@ test("the jobs list reads the job's own bill, not just the estimate's", () => {
   const queue = read("src/lib/attention-queue.ts");
   assert.match(queue, /Confirm payment/);
 });
+
+test("preview and the scripted demo say what they are and keep to the launch trades", () => {
+  const preview = read("src/app/api/preview/route.ts");
+  assert.match(preview, /!isLaunchTrade\(body\.trade\)[\s\S]{0,80}NOT_YET_TRADE/);
+  const browser = read("src/components/talk-in-browser.tsx");
+  assert.match(browser, /isLaunchTrade\(trade\) \? null[\s\S]{0,120}can&apos;t sign up yet/);
+  const watch = read("src/app/watch/page.tsx");
+  assert.doesNotMatch(watch, /real calls/i);
+  assert.match(watch, /scripted/);
+});
+
+test("the terms name every launch trade", async () => {
+  const { company } = await import("../src/lib/company.ts");
+  assert.deepEqual(company.trades.map((t) => t.toLowerCase()), LAUNCH_TRADES.map((t) => t.toLowerCase()));
+});
+
+test("every sitemap page names itself as canonical, and nothing inherits the homepage's", () => {
+  assert.doesNotMatch(read("src/app/layout.tsx"), /canonical/);
+  assert.match(read("src/app/page.tsx"), /canonical: "\/"/);
+  for (const p of ["watch", "launch", "calls", "try", "product", "enterprise", "pricing", "resources", "help", "pilot", "about", "security", "status", "changelog", "legal", "terms", "privacy", "cookies", "sms-terms", "refunds", "dmca"]) {
+    assert.match(read(`src/app/${p}/page.tsx`), new RegExp(`canonical: "/${p}"`), p);
+  }
+  assert.match(read("src/app/help/[slug]/page.tsx"), /canonical: `\/help\/\$\{article\.slug\}`/);
+  const config = read("next.config.ts");
+  assert.match(config, /source: "\/press", destination: "\/about", permanent: true/);
+  assert.match(config, /appliance-repair\)", destination: "\/trades"/);
+});
+
+test("pricing and the Terms say Orvius is for U.S. businesses only", () => {
+  assert.match(read("src/lib/company.ts"), /serviceCountry: "the United States"/);
+  assert.match(read("src/app/pricing/page.tsx"), /For businesses in \{company\.serviceCountry\} only/);
+  assert.match(read("src/app/terms/page.tsx"), /offered only to businesses located and operating in \{company\.serviceCountry\}/);
+});

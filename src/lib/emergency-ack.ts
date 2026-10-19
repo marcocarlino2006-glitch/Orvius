@@ -131,7 +131,13 @@ export async function escalateUnackedEmergencies(now = new Date()): Promise<numb
     if (tier === "emergency") {
       const backup = shop.transferPhone?.trim();
       if (backup && backup !== shop.ownerPhone?.trim()) {
-        await sendSms({ to: backup, body: `${shop.name}: ${message}`, businessId: shop.id, audience: "owner" }).catch(() => null);
+        await sendSms({
+          to: backup,
+          body: `${shop.name}: ${message}`,
+          businessId: shop.id,
+          audience: "owner",
+          intent: { eventType: "emergency.backup_page", eventId: lead.id, severity: "severe" },
+        }).catch(() => null);
       }
     }
     logWarn("emergency.unacked_escalated", { businessId: shop.id, leadId: lead.id });

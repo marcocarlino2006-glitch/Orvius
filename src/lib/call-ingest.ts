@@ -1,4 +1,5 @@
 import { describeAssistantPromises, detectAssistantPromises } from "@/lib/assistant-promises";
+import { recordSetupMilestone } from "@/lib/workflow-events";
 import { costColumns } from "@/lib/call-cost";
 import { latencyColumns, latencyFromReport } from "@/lib/call-latency";
 import { afterResponse } from "@/lib/after-response";
@@ -16,7 +17,9 @@ import { logError, logInfo, logWarn } from "@/lib/logger";
 import { buildLeadAlertDedupeKey, enqueueOwnerAlert } from "@/lib/notifications";
 import { buildOwnerLeadAlertMessage } from "@/lib/owner-alert-message";
 import { passConsentedCallLead } from "@/lib/orvius-network";
+import { NETWORK_DISCLOSURE_VERSION } from "@/lib/in-call-tool-defs";
 import { prisma } from "@/lib/prisma";
+import { inventedNumbers, trustedCallbackNumber } from "@/lib/callback-number";
 import { callerWords } from "@/lib/transcript";
 import { withCallerSpelling } from "@/lib/spelled-name";
 import { extractLeadFromStructuredData, type VapiWebhookMessage } from "@/lib/vapi";
@@ -25,6 +28,16 @@ import type { Business, Call, Lead } from "@prisma/client";
 
 /** Call and lead saved, the rest not yet done. */
 const CAPTURED = "captured";
+
+function hasNetworkConsentEvidence(raw: string | null | undefined) {
+  if (!raw) return false;
+  try {
+    const evidence = JSON.parse(raw) as { callerLine?: string; disclosureVersion?: string };
+    return Boolean(evidence.callerLine) && evidence.disclosureVersion === NETWORK_DISCLOSURE_VERSION;
+  } catch {
+    return false;
+  }
+}
 
 export type IngestResult =
   | { duplicate: true }
@@ -105,8 +118,17 @@ export async function captureEndOfCallReport(params: {
     const latency = { ...latencyColumns(latencyFromReport(message)), ...costColumns(message) };
     const extracted = extractLeadFromStructuredData(message.analysis?.structuredData);
     const spelled = withCallerSpelling(extracted, message.transcript);
+    const callerIdNumber = message.call?.customer?.number ?? null;
+    const callback = trustedCallbackNumber({ extracted: extracted.phone, callerId: callerIdNumber, transcript: message.transcript });
+    if (callback.replaced) {
+      logWarn("call.callback_number_replaced", { businessId: business.id, vapiCallId, reason: "caller_never_said_extracted_number" });
+    }
+    if (callback.withheld) {
+      logWarn("call.callback_number_withheld", { businessId: business.id, vapiCallId, reason: "no_caller_id_and_caller_never_said_it" });
+    }
     const structured = {
       ...extracted,
+      phone: callback.phone ?? undefined,
       name: spelled.name ?? extracted.name,
       address: spelled.address ?? extracted.address,
     };
@@ -189,6 +211,7 @@ export async function captureEndOfCallReport(params: {
     });
 
     await completeWebhookEvent({ source: "vapi", externalId: vapiCallId, eventType, status: CAPTURED });
+    if (!business.lineVerifiedAt) await recordSetupMilestone(business.id, "line_proven", new Date(), { callId: call.id }).catch(() => undefined);
     return { duplicate: false, business, vapiCallId, call, lead };
   } catch (error) {
     await completeWebhookEvent({
@@ -225,6 +248,34 @@ export async function finishCallReport(input: Omit<Captured, "duplicate">): Prom
       detail: { durationSec, successEvaluation },
       idempotencyKey: key("answered"),
     });
+    if (!callerId && !lead.phone) {
+      audit.add({
+        businessId: business.id,
+        entityType: "call",
+        entityId: call.id,
+        callId: call.id,
+        leadId: lead.id,
+        action: "call.callback_withheld",
+        summary: "No callback number on record — caller ID was hidden and the caller never said a full number. Check the recording before calling back.",
+        idempotencyKey: key("callback-withheld"),
+      });
+    }
+    const invented = inventedNumbers(transcript, [business.vapiPhoneNumber, business.transferPhone]);
+    if (invented.length) {
+      audit.add({
+        businessId: business.id,
+        entityType: "call",
+        entityId: call.id,
+        callId: call.id,
+        leadId: lead.id,
+        action: "call.invented_number",
+        summary: callerId
+          ? "Orvius read back a phone number the caller never said — the callback uses the number they called from"
+          : "Orvius read back a phone number the caller never said — confirm the callback number before calling",
+        detail: { quote: invented[0].slice(0, 160) },
+        idempotencyKey: key("invented-number"),
+      });
+    }
 
     const captured = {
       problem: lead.serviceType,
@@ -363,7 +414,7 @@ export async function finishCallReport(input: Omit<Captured, "duplicate">): Prom
     }
 
     const network =
-      call.networkConsentAt && !safety && !autoBook.jobId && !nonService
+      call.networkConsentAt && hasNetworkConsentEvidence(call.networkConsentJson) && !safety && !autoBook.jobId && !nonService
         ? await passConsentedCallLead(
             { id: business.id, name: business.name, trade: business.trade, address: business.address, networkOn: business.networkOn },
             { ...freshLead, job: null },

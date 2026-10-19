@@ -30,7 +30,8 @@ import {
   validateTwilioRequest,
 } from "@/lib/webhook-auth";
 import { recordWebhookEvent } from "@/lib/webhook-events";
-import { resolveBusinessForInboundSms } from "@/lib/resolve-shop-line";
+import { resolveInboundSmsOwner } from "@/lib/resolve-shop-line";
+import { heldStartAsk, holdAmbiguousReply, releaseHeldReplies, withoutShopName } from "@/lib/held-sms-reply";
 import { twimlMessage as twimlResponse } from "@/lib/twiml";
 import { tooManyRequests, webhookAuthFailureLimited } from "@/lib/rate-limit";
 import { recordAudit } from "@/lib/audit";
@@ -70,12 +71,20 @@ export async function POST(request: NextRequest) {
   }
 
   const media = inboundMediaFromForm(formEntries);
-  const body = typed || (media.length ? PHOTO_ONLY_BODY : "");
-  if (!from || !to || !body) {
+  const sent = typed || (media.length ? PHOTO_ONLY_BODY : "");
+  if (!from || !to || !sent) {
     return twimlResponse("");
   }
 
-  const business = await resolveBusinessForInboundSms({ to, from });
+  const owner = await resolveInboundSmsOwner({ to, from, body: typed });
+  if (owner.kind === "ambiguous") {
+    return answerAmbiguousReply({ candidates: owner.candidates, from, to, body: sent, messageSid });
+  }
+  const business = owner.kind === "shop" ? owner.business : null;
+  const released = business && owner.kind === "shop" && owner.clarified
+    ? await releaseHeldReplies({ from, businessId: business.id })
+    : [];
+  const body = released.length ? [...released, sent].join("\n") : sent;
 
   if (!business) {
     /*
@@ -158,7 +167,8 @@ export async function POST(request: NextRequest) {
     return twimlResponse(text);
   };
 
-  const keyword = parseSmsKeyword(body) ?? (isBareYes(body) && (await isOptedOut(business.id, from)) ? "start" : null);
+  const namedStart = owner.kind === "shop" && owner.clarified && parseSmsKeyword(withoutShopName(typed, business.name)) === "start";
+  const keyword = namedStart ? "start" : parseSmsKeyword(body) ?? (isBareYes(body) && (await isOptedOut(business.id, from)) ? "start" : null);
   if (keyword) {
     if (keyword === "stop" && !fromOwner) {
       await warnOwnerOfCancelWord({ business, from, body, messageSid });
@@ -502,6 +512,55 @@ async function alertOwnerOfReply(params: {
     message: `Reply from ${params.from}: ${params.body}\nAnswer it in Inbox → Messages.`,
     dedupeKey: `sms-reply:${params.messageSid || `${params.from}:${Date.now()}`}`,
   });
+}
+
+/**
+ * More than one shop texted this phone and the reply names none of them.
+ * Opt-out words still apply at once, to every candidate, because a carrier
+ * STOP is a promise to the sender, not to one shop. Anything else is held
+ * and the customer is asked which business they meant.
+ */
+async function answerAmbiguousReply(params: {
+  candidates: Array<{ id: string; name: string; ownerPhone: string | null; ownerEmail: string | null; timezone: string }>;
+  from: string;
+  to: string;
+  body: string;
+  messageSid: string;
+}) {
+  const { candidates, from, to, body, messageSid } = params;
+  const keyword = parseSmsKeyword(body);
+  if (keyword === "help") {
+    return twimlResponse(smsHelpReply({ programName: company.smsProgramName, supportEmail: company.supportEmail }));
+  }
+  if (keyword === "start") {
+    // A STOP covered every candidate; a START that names none restarts none of them.
+    await recordWebhookEvent({
+      source: "twilio-sms",
+      externalId: messageSid || `ambiguous:${from}:start:${Date.now()}`,
+      eventType: "keyword-start-unnamed",
+      status: "processed",
+      payload: { from, to, keyword, businessIds: candidates.map((c) => c.id) },
+    });
+    return twimlResponse(heldStartAsk(candidates));
+  }
+  if (keyword === "stop") {
+    let text = "";
+    for (const shop of candidates) {
+      await warnOwnerOfCancelWord({ business: shop, from, body, messageSid });
+      text = await handleSmsKeyword({ keyword, businessId: shop.id, businessName: shop.name, from, ownerPhone: shop.ownerPhone });
+    }
+    await recordWebhookEvent({
+      source: "twilio-sms",
+      externalId: messageSid || `ambiguous:${from}:${keyword}:${Date.now()}`,
+      eventType: `keyword-${keyword}`,
+      status: "processed",
+      payload: { from, to, keyword, businessIds: candidates.map((c) => c.id) },
+    });
+    return twimlResponse(text);
+  }
+  const ask = await holdAmbiguousReply({ from, to, body, messageSid, candidates });
+  await afterResponse(() => drainOwnerAlerts({ at: "twilio.sms.held", messageSid, businessId: candidates[0].id }));
+  return twimlResponse(ask);
 }
 
 async function handleSmsKeyword(params: {

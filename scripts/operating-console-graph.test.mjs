@@ -108,16 +108,16 @@ test("work age is human, not a timestamp", () => {
   assert.equal(formatAge("2026-09-22T12:00:00.000Z", now), "2d");
 });
 
-test("Command reads summary, command bar, action queue, then results; Pulse in the rail", () => {
+test("Command reads as a front-office feed: direct, needs you, what Orvius did, then detail; Pulse in the rail", () => {
   const command = read("src/components/ring1-command-center.tsx");
   assert.doesNotMatch(command, /workMode/);
   assert.doesNotMatch(command, /<OpsBriefing|<ProShiftTimeline|<ProCommandOutcomes/);
   const signalsIdx = command.indexOf("<CommandSignals");
   const askIdx = command.indexOf("<AskBar");
   const workIdx = command.indexOf("<WorkCard");
-  const recentIdx = command.indexOf("Recent actions");
+  const recentIdx = command.indexOf("What Orvius did");
   const pulseIdx = command.indexOf("<OrviusPulse");
-  assert.ok(signalsIdx >= 0 && askIdx > signalsIdx && workIdx > askIdx && recentIdx > workIdx && pulseIdx > recentIdx);
+  assert.ok(askIdx >= 0 && workIdx > askIdx && recentIdx > workIdx && signalsIdx > recentIdx && pulseIdx > signalsIdx, "feed first, counts demoted below it");
   assert.ok(command.indexOf('<aside className="cc-rail"') < pulseIdx, "Pulse lives in the rail");
   assert.match(command, /issue\.severity === "critical" \|\| issue\.severity === "high"/, "the readiness banner is only for what is failing");
   assert.match(command, /\{e\.result\} · \{e\.by\}/, "recent actions show what came of them");

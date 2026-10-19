@@ -64,11 +64,6 @@
 }
 
 /* Command */
-.wc-owner-k {
-  margin-right: 0.25rem;
-  font-size: var(--cr-label);
-  color: var(--ox-mute);
-}
 
 .cmd-readiness {
   margin-bottom: 1rem;
@@ -90,6 +85,17 @@
 .cs-grid + .cmd-ask,
 .cs-grid + .cb-ask {
   margin-top: 1rem;
+}
+
+.cmd-head + .cmd-ask,
+.cmd-wow + .cmd-ask {
+  margin-top: 1rem;
+}
+
+/* Counts and ahead-money sit below the feed, as detail — not the headline. */
+.cmd-detail-strip {
+  display: grid;
+  gap: 1rem;
 }
 
 .cs-grid:has(> :nth-child(3):last-child) {
@@ -192,6 +198,164 @@
   font-size: var(--cr-body);
   line-height: 1.5;
   color: var(--ox-text);
+}
+
+.cb-oc {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 0.625rem;
+  min-width: 0;
+}
+
+.cb-oc-head {
+  display: grid;
+  gap: 0.125rem;
+}
+
+.cb-oc-headline {
+  margin: 0;
+  font-size: var(--cr-body);
+  font-weight: 600;
+  color: var(--ox-text);
+}
+
+.cb-oc-sub,
+.cb-oc-ask {
+  margin: 0;
+  font-size: var(--cr-label);
+  color: var(--ox-text-2);
+}
+
+.cb-oc-stages {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--ox-line);
+}
+
+.cb-oc-stage {
+  display: grid;
+  grid-template-columns: 9rem 6.5rem minmax(0, 1fr);
+  gap: 0.125rem 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--ox-line);
+  font-size: var(--cr-label);
+  color: var(--ox-text-2);
+}
+
+.cb-oc-label {
+  color: var(--ox-text);
+  font-weight: 500;
+}
+
+.cb-oc-state {
+  font-weight: 500;
+}
+
+.cb-oc-evidence,
+.cb-oc-blocker,
+.cb-oc-next,
+.cb-oc-meta {
+  grid-column: 3;
+  overflow-wrap: anywhere;
+}
+
+.cb-oc-evidence {
+  grid-row: 1;
+  color: var(--ox-text);
+}
+
+.cb-oc-meta {
+  color: var(--ox-mute);
+}
+
+.cb-oc-blocker {
+  color: var(--ox-amber);
+}
+
+.cb-oc-stage.is-done .cb-oc-state {
+  color: var(--ox-green);
+}
+
+.cb-oc-stage.is-failed .cb-oc-state {
+  color: var(--ox-red);
+}
+
+.cb-oc-stage.is-blocked .cb-oc-state,
+.cb-oc-stage.is-unknown .cb-oc-state,
+.cb-oc-stage.is-needs_you .cb-oc-state {
+  color: var(--ox-amber);
+}
+
+.cb-oc-stage.is-not_yet,
+.cb-oc-stage.is-not_needed {
+  color: var(--ox-mute);
+}
+
+.cb-oc-note {
+  display: block;
+  font-size: var(--cr-label);
+  color: var(--ox-mute);
+  font-weight: 400;
+}
+
+.cb-oc-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0.5rem 0.75rem;
+  font-size: var(--cr-label);
+  color: var(--ox-text-2);
+}
+
+.cb-oc-form label {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.cb-oc-form .cb-oc-check {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.cb-oc-form > .cb-actions,
+.cb-oc-form > .cb-error {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 640px) {
+  .cb-oc-stage {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .cb-oc-evidence,
+  .cb-oc-blocker,
+  .cb-oc-next,
+  .cb-oc-meta {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+
+  /* A long option note would otherwise set the card's width past the screen. */
+  .cb-oc .cb-slots {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* The shared button rules set size and alignment with !important, so this has to as well. */
+  html .cb-oc .cb-slots > .ox-btn {
+    display: grid !important;
+    justify-items: start !important;
+    justify-content: start !important;
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
+    height: auto !important;
+    padding: 0.4rem 0.75rem !important;
+    white-space: normal;
+    text-align: left !important;
+  }
 }
 
 .cb-records {

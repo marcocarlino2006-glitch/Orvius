@@ -2,11 +2,12 @@ import { calculateNetworkFeeCents, calculatePlatformFeeCents, isChargeableAmount
 import { getAppBaseUrl, getStripe } from "@/lib/stripe";
 import { checkoutPaymentMethods } from "@/lib/financing";
 import { getConnectStatus } from "@/lib/stripe-connect";
+import { assertLiveActionAllowed } from "@/lib/demo-fence";
 import { prisma } from "@/lib/prisma";
 import type Stripe from "stripe";
 import { pricedJobInvoice } from "@/lib/invoice-tax";
 import { feeBaseCents } from "@/lib/sales-tax";
-import { checkoutSessionPaid, reuseOpenCheckoutSession } from "@/lib/checkout-guard";
+import { checkoutSessionPaid, reserveCheckout } from "@/lib/checkout-guard";
 import { applyCardPaymentToInvoice, invoiceOpenBalanceCents, isNetworkJob } from "@/lib/invoice-pay";
 
 type ConnectableShop = Parameters<typeof getConnectStatus>[0];
@@ -86,6 +87,7 @@ export async function createEstimateCheckoutSession(params: {
   jobTitle?: string | null;
   business: ConnectableShop & { financingEnabled?: boolean | null; financingMethods?: string | null };
 }) {
+  await assertLiveActionAllowed(params.businessId, "Card checkout");
   const connect = getConnectStatus(params.business);
   if (!connect.canAcceptPayments || !connect.accountId) {
     throw new Error("Shop is not cleared to accept card payments");
@@ -94,13 +96,6 @@ export async function createEstimateCheckoutSession(params: {
   if (!isChargeableAmount(balanceCents)) {
     throw new Error(`Estimate below Stripe minimum: ${balanceCents}`);
   }
-  const reused = await reuseOpenCheckoutSession({
-    sessionId: params.openCheckoutSessionId,
-    stripeAccount: connect.accountId,
-    amountCents: balanceCents,
-  });
-  if (reused) return reused;
-
   const stripe = getStripe();
   const baseUrl = getAppBaseUrl();
   const title = params.jobTitle?.trim() || "Service estimate";
@@ -121,7 +116,18 @@ export async function createEstimateCheckoutSession(params: {
   };
 
   const paymentMethods = checkoutPaymentMethods(params.business, balanceCents);
-  const session = await stripe.checkout.sessions.create(
+  const accountId = connect.accountId;
+  // Estimate and invoice pay the same bill, so they share the invoice's reservation.
+  return reserveCheckout({
+    scope: `invoice:${params.invoiceId}`,
+    stripeAccount: accountId,
+    amountCents: balanceCents,
+    businessId: params.businessId,
+    entity: { type: "invoice", id: params.invoiceId },
+    currentSessionId: async () =>
+      (await prisma.invoice.findUnique({ where: { id: params.invoiceId }, select: { openCheckoutSessionId: true } }))?.openCheckoutSessionId,
+    remember: (session) => prisma.invoice.update({ where: { id: params.invoiceId }, data: { openCheckoutSessionId: session.id } }),
+    create: (idempotencyKey) => stripe.checkout.sessions.create(
     {
       mode: "payment",
       ...(paymentMethods ? { payment_method_types: paymentMethods } : {}),
@@ -146,11 +152,9 @@ export async function createEstimateCheckoutSession(params: {
         metadata,
       },
     },
-    { stripeAccount: connect.accountId },
-  );
-  await prisma.invoice.update({ where: { id: params.invoiceId }, data: { openCheckoutSessionId: session.id } });
-
-  return session;
+    { stripeAccount: accountId, idempotencyKey },
+  ),
+  });
 }
 
 /** Record a card payment made from an estimate, through the same exactly-once path as any invoice. */

@@ -8,7 +8,7 @@ import {
   getInvoiceByToken,
   invoiceOpenBalanceCents,
 } from "@/lib/invoice-pay";
-import { collectedCents } from "@/lib/payment-math";
+import { collectedCents, moneyTotals } from "@/lib/payment-math";
 import { formatCentsExact } from "@/lib/money";
 import { isChargeableAmount } from "@/lib/platform-fee";
 import { publicTokenLimited } from "@/lib/rate-limit";
@@ -25,7 +25,11 @@ type LoadedInvoice = NonNullable<Awaited<ReturnType<typeof getInvoiceByToken>>>;
 /** Work, tax and any deposit, so the total on the page adds up line by line. */
 function breakdown(invoice: LoadedInvoice) {
   const paidSoFar = invoice.status === "paid" ? 0 : collectedCents(invoice.payments);
-  const paidLine = paidSoFar > 0 ? [{ label: "Paid so far", value: `−${formatCentsExact(paidSoFar)}` }] : [];
+  const refunded = moneyTotals(invoice.payments).refundedCents;
+  const paidLine = [
+    ...(paidSoFar > 0 ? [{ label: "Paid so far", value: `−${formatCentsExact(paidSoFar)}` }] : []),
+    ...(refunded > 0 ? [{ label: "Refunded to you", value: formatCentsExact(refunded) }] : []),
+  ];
   if (invoice.subtotalCents == null || invoice.taxCents <= 0) {
     return paidLine.length ? [{ label: "Invoice total", value: formatCentsExact(invoice.amountCents) }, ...paidLine] : null;
   }

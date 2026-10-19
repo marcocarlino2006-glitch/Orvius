@@ -16,10 +16,24 @@ export async function GET(request: Request) {
 
   const item = await getWorkItem(business.id, kind, id);
   if (!item) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  const [history, assignees, technicians] = await Promise.all([
+  const [history, assignees, technicians, approval] = await Promise.all([
     workHistory(business.id, { kind: item.kind, id: item.id }, email),
     workAssignees(business),
     prisma.technician.findMany({ where: { businessId: business.id, isActive: true }, select: { id: true, name: true }, orderBy: { name: "asc" } }),
+    /* A plan belongs on the work's own page too, not just in the queues. */
+    item.approvalId
+      ? prisma.copilotAction.findFirst({
+          where: { id: item.approvalId, businessId: business.id, status: "proposed" },
+          select: { id: true, preview: true },
+        })
+      : null,
   ]);
-  return NextResponse.json({ item, history: history ?? [], assignees, technicians, timezone: business.timezone ?? null });
+  return NextResponse.json({
+    item,
+    history: history ?? [],
+    assignees,
+    technicians,
+    timezone: business.timezone ?? null,
+    approval: approval ? { proposalId: approval.id, preview: approval.preview } : null,
+  });
 }

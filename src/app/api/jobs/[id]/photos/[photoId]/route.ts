@@ -19,8 +19,18 @@ export async function GET(_request: Request, { params }: Params) {
 export async function DELETE(_request: Request, { params }: Params) {
   const { id, photoId } = await params;
   return withOffice("jobs", async (session) => {
-    await deleteJobPhoto(session.business.id, id, photoId);
-    await recordAudit({ businessId: session.business.id, entityType: "job", entityId: id, jobId: id, action: "job.photo_removed", ...personActor(session), summary: "Removed a photo" });
+    const removed = await deleteJobPhoto(session.business.id, id, photoId);
+    await recordAudit({
+      businessId: session.business.id,
+      entityType: "job",
+      entityId: id,
+      jobId: id,
+      action: "job.photo_removed",
+      ...personActor(session),
+      summary: `Removed a ${removed.kind === "other" ? "" : `${removed.kind} `}photo${removed.takenBy ? ` taken by ${removed.takenBy}` : ""}`,
+      detail: { removed },
+      idempotencyKey: `photo-removed:${removed.id}`,
+    });
     return { ok: true };
   });
 }

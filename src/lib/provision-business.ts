@@ -10,6 +10,8 @@ import {
   slugify,
   type ServiceOffering,
 } from "@/lib/business";
+import { ActivationRequiredError, defaultGreeting, draftActivationBusiness, recordSettledActivation, settleActivation, type ShopActivation } from "@/lib/activation-ack";
+import { NOT_OWNER_DEMO } from "@/lib/demo-fence";
 import { getWebhookUrl, isConfigured } from "@/lib/env";
 import { logError } from "@/lib/logger";
 import {
@@ -31,11 +33,14 @@ import {
   buildVapiAssistantConfig,
   createAssistant,
   deleteAssistant,
+  vapiRequest,
 } from "@/lib/vapi";
+import { performOnce, revertEffect } from "@/lib/provider-effect";
 import type { Business, ProvisionAttempt } from "@prisma/client";
 import {
   claimProvisionAttempt,
   finishProvisionAttempt,
+  LINE_STEP_FAILED,
   lineFriendlyName,
   onboardingAttemptKey,
   ProvisionBusyError,
@@ -182,9 +187,10 @@ export function standardServiceNames(trade: Trade): string[] {
   return TRADE_SERVICES[trade].map((s) => s.name);
 }
 
+/** The person's real (or test-mode) shop. Their sample demo shop is never it. */
 export async function findBusinessForOwner(email: string) {
   return prisma.business.findFirst({
-    where: { ownerEmail: email.toLowerCase() },
+    where: { ownerEmail: email.toLowerCase(), ...NOT_OWNER_DEMO },
     orderBy: { createdAt: "asc" },
   });
 }
@@ -218,6 +224,8 @@ export type ProvisionInput = {
   };
   /** The owner's test-mode shop. It goes live in place, keeping its settings and team. */
   promoteBusinessId?: string;
+  /** The approval of the call notice and permissions this shop will run with. Checked before anything is bought. */
+  activation: ShopActivation;
 };
 
 export type ProvisionResult = {
@@ -275,7 +283,13 @@ async function provisionDedicatedLine(params: {
 }
 
 /** Undo a failed run. Whatever could not be undone is returned so the retry reuses it instead of buying again. */
+/** One receptionist per provisioning attempt; the tag outlives a crashed or retried run. */
+function assistantEffectKey(attempt: Pick<ProvisionAttempt, "tag">) {
+  return `assistant:${attempt.tag}`;
+}
+
 async function rollbackProvision(params: {
+  assistantEffect?: string;
   vapiAssistantId: string | null;
   shopLine: string | null;
   releaseLine: boolean;
@@ -297,6 +311,7 @@ async function rollbackProvision(params: {
     try {
       await deleteAssistant(params.vapiAssistantId);
       kept.vapiAssistantId = null;
+      if (params.assistantEffect) await revertEffect("vapi", params.assistantEffect);
     } catch (error) {
       logError("provision.rollback.assistant_failed", {
         vapiAssistantId: params.vapiAssistantId,
@@ -379,6 +394,10 @@ export async function ensureDedicatedShopLine(business: Business): Promise<{
 }> {
   if (!business.vapiAssistantId) {
     throw new Error("Night line is not provisioned for this shop");
+  }
+  // A test shop gets a real number only by turning on, which carries the owner's approval.
+  if (isSetupSandbox(business)) {
+    throw new ActivationRequiredError({ code: "activation_missing", error: "Turn this shop on from setup before it gets a real line." }, business);
   }
 
   const currentLine = business.vapiPhoneNumber ?? business.twilioPhone;
@@ -537,7 +556,12 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
   const greeting =
     input.greeting?.trim() ||
     promoting?.greeting?.trim() ||
-    `Thank you for calling ${name}. How can I help you today?`;
+    defaultGreeting(name);
+  const settled = await settleActivation(
+    promoting ? { ...promoting, name, greeting } : draftActivationBusiness(name, greeting),
+    input.activation,
+    { existingBusinessId: promoting?.id ?? null },
+  );
   const hoursJson = input.hoursJson ?? promoting?.hoursJson ?? DEFAULT_HOURS_JSON;
   const servicesJson =
     promoting && promoting.trade === input.trade ? promoting.servicesJson : servicesForTrade(input.trade);
@@ -563,17 +587,33 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
 
   try {
     if (!vapiAssistantId) {
-      const assistant = await createAssistant(
-        buildVapiAssistantConfig({
-          businessName: name,
-          systemPrompt,
-          greeting,
-          webhookUrl: getWebhookUrl("/api/webhooks/vapi"),
-          webhookSecret: process.env.VAPI_WEBHOOK_SECRET,
-        }),
-      );
+      /* Vapi has no idempotency keys, so the assistant carries this attempt's tag: a create whose reply was lost is found by it instead of made twice. */
+      const correlationKey = assistantEffectKey(attempt);
+      const config = buildVapiAssistantConfig({
+        businessName: name,
+        systemPrompt,
+        greeting,
+        webhookUrl: getWebhookUrl("/api/webhooks/vapi"),
+        webhookSecret: process.env.VAPI_WEBHOOK_SECRET,
+      });
+      const assistant = await performOnce<{ id: string }>({
+        provider: "vapi",
+        operation: "receptionist create",
+        correlationKey,
+        businessId: promoting?.id ?? null,
+        kind: "create",
+        replayWindowMs: 0,
+        perform: () => createAssistant({ ...config, metadata: { orviusConfig: config.metadata?.orviusConfig ?? "", orviusEffect: correlationKey } }),
+        idOf: (created) => created.id,
+        retrieve: async (id) => ({ id }),
+        find: async () => {
+          const rows = await vapiRequest<Array<{ id: string; metadata?: { orviusEffect?: string } }>>("/assistant?limit=1000");
+          if (rows.length >= 1000) throw new Error("too many assistants to rule it out");
+          return rows.find((row) => row.metadata?.orviusEffect === correlationKey) ?? null;
+        },
+        finalize: (created) => recordProvisionStep(key, { vapiAssistantId: created.id }),
+      });
       vapiAssistantId = assistant.id;
-      await recordProvisionStep(key, { vapiAssistantId });
     }
 
     try {
@@ -589,9 +629,7 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
         shopName: name,
         error: error instanceof Error ? error.message : "unknown",
       });
-      throw new Error(
-        "Could not assign your dedicated shop line. Try again in a moment or contact support@orvius.im",
-      );
+      throw new Error(LINE_STEP_FAILED);
     }
 
     const postProvisionCheck = validateOwnerPhoneForAlerts({
@@ -627,6 +665,7 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
     const business = promoting
       ? await prisma.$transaction(async (tx) => {
           await clearTestRecords(promoting.id, tx);
+          await recordSettledActivation(tx, promoting.id, settled);
           return tx.business.update({
             where: { id: promoting.id },
             data: {
@@ -641,7 +680,11 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
             },
           });
         })
-      : await prisma.business.create({ data: { ...shop, slug } });
+      : await prisma.$transaction(async (tx) => {
+          const created = await tx.business.create({ data: { ...shop, slug, operatingPolicy: { create: { travelMode: "not_configured" } } } });
+          await recordSettledActivation(tx, created.id, settled);
+          return created;
+        });
 
     await finishProvisionAttempt(key, { status: "succeeded", businessId: business.id });
     await syncBusinessAssistant(business);
@@ -650,6 +693,7 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
   } catch (error) {
     const recorded = await prisma.provisionAttempt.findUnique({ where: { key } });
     const kept = await rollbackProvision({
+      assistantEffect: assistantEffectKey(attempt),
       vapiAssistantId,
       shopLine: shopLine ?? recorded?.phoneNumber ?? null,
       releaseLine: Boolean(shopLine ?? recorded?.phoneNumber),

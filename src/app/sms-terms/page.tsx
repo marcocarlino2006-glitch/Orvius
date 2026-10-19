@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/sms-terms" },
   title: "SMS Terms",
   description: `SMS program terms for ${company.productName} owner alerts and the service texts shops send their customers, operated by ${company.legalName}.`,
 };

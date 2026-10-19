@@ -1,7 +1,10 @@
 import { describeSlot } from "@/lib/in-call-tool-defs";
 import { displayPhone, normalizePhone } from "@/lib/customer";
 import { logError, logInfo, logWarn } from "@/lib/logger";
+import { assertLiveActionAllowed, isOwnerDemoWorkspaceId } from "@/lib/demo-fence";
 import { prisma } from "@/lib/prisma";
+import { mayWrite } from "@/lib/record-authority";
+import { correlate, raiseReconciliation } from "@/lib/system-of-record";
 import { openSecret, sealSecret, secretBoxConfigured } from "@/lib/secret-box";
 
 /**
@@ -55,6 +58,7 @@ export async function housecallRequest<T>(apiKey: string, method: "GET" | "POST"
 
 /** A pasted key → a stored, sealed connection, only once Housecall Pro accepts it. */
 export async function connectHousecall(params: { businessId: string; apiKey: string; now?: Date }) {
+  await assertLiveActionAllowed(params.businessId, "Connecting Housecall Pro");
   const apiKey = params.apiKey.trim();
   if (apiKey.length < 16 || /\s/.test(apiKey)) throw new HousecallAuthError("That doesn't look like a Housecall Pro API key.");
   const company = await housecallRequest<{ id?: string | number; name?: string | null }>(apiKey, "GET", "/company");
@@ -82,6 +86,7 @@ export async function disconnectHousecall(businessId: string) {
 }
 
 async function housecallKey(businessId: string): Promise<{ id: string; key: string } | null> {
+  if (await isOwnerDemoWorkspaceId(businessId)) return null;
   const conn = await prisma.housecallConnection.findUnique({ where: { businessId } });
   if (!conn || conn.status !== "active") return null;
   const key = openSecret(conn.apiKeyEnc);
@@ -105,7 +110,7 @@ const NOT_NEW_WORK = new Set(["existing_job", "follow_up", "complaint", "info_on
 export async function enqueueHousecallSync(params: { businessId: string; leadId: string; skipReason?: string | null; nonService?: boolean }) {
   if (params.nonService || (params.skipReason && NOT_NEW_WORK.has(params.skipReason))) return false;
   const conn = await prisma.housecallConnection.findUnique({ where: { businessId: params.businessId }, select: { status: true } });
-  if (conn?.status !== "active") return false;
+  if (conn?.status !== "active" || (await isOwnerDemoWorkspaceId(params.businessId))) return false;
   try {
     await prisma.housecallSync.create({ data: { businessId: params.businessId, leadId: params.leadId } });
     return true;
@@ -179,6 +184,16 @@ async function processSync(syncId: string) {
       where: { id: sync.id },
       data: { status: "check", claimedAt: null, lastError: "Sent to Housecall Pro but the reply was lost. Check Housecall Pro before sending again." },
     });
+    await raiseReconciliation({
+      businessId: sync.businessId,
+      kind: "create",
+      entityType: "lead",
+      entityId: sync.leadId,
+      system: "housecall",
+      externalId: sync.housecallCustomerId,
+      expected: { lead: "created once in Housecall Pro" },
+      observed: { reason: "response_lost", syncId: sync.id, sentAt: sync.requestSentAt.toISOString() },
+    }).catch(() => null);
     return "check" as const;
   }
   const lead = await prisma.lead.findUnique({
@@ -197,6 +212,11 @@ async function processSync(syncId: string) {
   });
   if (!lead) {
     await prisma.housecallSync.update({ where: { id: sync.id }, data: { status: "skipped", claimedAt: null, lastError: "Lead no longer exists" } });
+    return "skipped" as const;
+  }
+  const authority = await mayWrite(sync.businessId, "housecall", "job_state");
+  if (!authority.allowed) {
+    await prisma.housecallSync.update({ where: { id: sync.id }, data: { status: "skipped", claimedAt: null, lastError: authority.reason } });
     return "skipped" as const;
   }
   const conn = await housecallKey(sync.businessId);
@@ -226,7 +246,23 @@ async function processSync(syncId: string) {
       where: { id: sync.id },
       data: { status: "done", claimedAt: null, housecallLeadId: created.id != null ? String(created.id) : "unknown", lastError: null },
     });
-    logInfo("housecall.lead_created", { businessId: sync.businessId, leadId: sync.leadId });
+    if (created.id != null) {
+      await correlate({ businessId: sync.businessId, entityType: "lead", entityId: sync.leadId, system: "housecall", externalId: String(created.id) }).catch((error: unknown) => logWarn("housecall.correlation_failed", { syncId: sync.id, error: error instanceof Error ? error.message : String(error) }));
+    } else {
+      // Created, but with no id to tie it to: a person matches it by hand.
+      await raiseReconciliation({
+        businessId: sync.businessId,
+        kind: "correlation",
+        entityType: "lead",
+        entityId: sync.leadId,
+        system: "housecall",
+        externalId: customerId,
+        expected: { leadId: "returned by Housecall Pro" },
+        observed: { reason: "no_id_returned", syncId: sync.id },
+      }).catch(() => null);
+    }
+    if (lead.customer) await correlate({ businessId: sync.businessId, entityType: "customer", entityId: lead.customer.id, system: "housecall", externalId: customerId }).catch((error: unknown) => logWarn("housecall.correlation_failed", { syncId: sync.id, error: error instanceof Error ? error.message : String(error) }));
+    logInfo("housecall.lead_created", { businessId: sync.businessId, leadId: sync.leadId, basis: authority.basis });
     return "done" as const;
   } catch (error) {
     if (error instanceof HousecallAuthError) {
@@ -284,10 +320,11 @@ export async function drainHousecallSyncs(options: { limit?: number; now?: Date;
 
 /** What Settings shows. */
 export async function housecallStatus(businessId: string) {
-  const [conn, recent, failing] = await Promise.all([
+  const [conn, recent, failing, checking] = await Promise.all([
     prisma.housecallConnection.findUnique({ where: { businessId }, select: { status: true, companyName: true, connectedAt: true, lastError: true } }),
     prisma.housecallSync.count({ where: { businessId, status: "done", createdAt: { gte: new Date(Date.now() - 30 * 86_400_000) } } }),
     prisma.housecallSync.count({ where: { businessId, status: { in: ["failed", "check"] } } }),
+    prisma.housecallSync.count({ where: { businessId, status: "check" } }),
   ]);
   return {
     available: housecallConfigured(),
@@ -297,6 +334,8 @@ export async function housecallStatus(businessId: string) {
     lastError: conn?.status === "reconnect" ? conn.lastError : null,
     sentLast30Days: recent,
     needsAttention: failing,
+    checking,
+    failed: failing - checking,
   };
 }
 

@@ -1,3 +1,4 @@
+import { assertLiveActionAllowed } from "@/lib/demo-fence";
 import type { Business } from "@prisma/client";
 import type Stripe from "stripe";
 
@@ -5,6 +6,7 @@ import { financingMethodsFromAccount } from "@/lib/financing";
 import { logWarn } from "@/lib/logger";
 import { applyPaymentsDefault } from "@/lib/payments-default";
 import { prisma } from "@/lib/prisma";
+import { performOnce, STRIPE_REPLAY_WINDOW_MS } from "@/lib/provider-effect";
 import { getAppBaseUrl, getStripe } from "@/lib/stripe";
 
 /*
@@ -88,36 +90,61 @@ export async function ensureConnectAccount(
     Partial<ConnectFields>,
 ): Promise<string> {
   const existing = business.stripeConnectAccountId?.trim();
+  await assertLiveActionAllowed(business.id, "Card payments setup");
   if (existing) return existing;
 
   const stripe = getStripe();
   const baseUrl = getAppBaseUrl();
 
-  const account = await stripe.accounts.create({
-    type: "express",
-    country: "US",
-    email: business.ownerEmail ?? undefined,
-    capabilities: {
-      card_payments: { requested: true },
-      transfers: { requested: true },
+  /* Recorded before Stripe is called: a lost reply replays the same idempotency key for a day, then looks the account up by its businessId tag, and never opens a second account blindly. */
+  const account = await performOnce<Stripe.Account>({
+    provider: "stripe",
+    operation: "card payments account",
+    correlationKey: `connect-account:${business.id}`,
+    businessId: business.id,
+    entity: { type: "shop", id: business.id },
+    kind: "correlation",
+    replayWindowMs: STRIPE_REPLAY_WINDOW_MS,
+    perform: (idempotencyKey) =>
+      stripe.accounts.create(
+        {
+          type: "express",
+          country: "US",
+          email: business.ownerEmail ?? undefined,
+          capabilities: {
+            card_payments: { requested: true },
+            transfers: { requested: true },
+          },
+          business_profile: {
+            name: business.name,
+            mcc: TRADE_MCC,
+            url: `${baseUrl}/s/${business.slug}`,
+          },
+          metadata: { businessId: business.id, product: "orvius" },
+        },
+        { idempotencyKey },
+      ),
+    idOf: (created) => created.id,
+    retrieve: (id) => stripe.accounts.retrieve(id),
+    find: async () => {
+      let seen = 0;
+      for await (const candidate of stripe.accounts.list({ limit: 100 })) {
+        if (candidate.metadata?.businessId === business.id) return candidate;
+        if (++seen >= 2000) throw new Error("too many accounts to rule it out");
+      }
+      return null;
     },
-    business_profile: {
-      name: business.name,
-      mcc: TRADE_MCC,
-      url: `${baseUrl}/s/${business.slug}`,
-    },
-    metadata: { businessId: business.id, product: "orvius" },
-  });
-
-  await prisma.business.update({
-    where: { id: business.id },
-    data: {
-      stripeConnectAccountId: account.id,
-      stripeConnectChargesEnabled: account.charges_enabled ?? false,
-      stripeConnectPayoutsEnabled: account.payouts_enabled ?? false,
-      stripeConnectDetailsSubmitted: account.details_submitted ?? false,
-      stripeConnectUpdatedAt: new Date(),
-    },
+    finalize: (created) =>
+      prisma.business.update({
+        where: { id: business.id },
+        data: {
+          stripeConnectAccountId: created.id,
+          stripeConnectChargesEnabled: created.charges_enabled ?? false,
+          stripeConnectPayoutsEnabled: created.payouts_enabled ?? false,
+          stripeConnectDetailsSubmitted: created.details_submitted ?? false,
+          stripeConnectUpdatedAt: new Date(),
+        },
+      }),
   });
 
   return account.id;

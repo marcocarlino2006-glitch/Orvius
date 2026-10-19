@@ -245,6 +245,17 @@
   object-fit: cover;
 }
 
+.msg-photo--missing {
+  display: grid;
+  place-items: center;
+  width: 152px;
+  height: 152px;
+  padding: 0.75rem;
+  color: var(--ox-mute);
+  font-size: 0.8125rem;
+  text-align: center;
+}
+
 .msg-bubble--customer {
   background: var(--ox-s3);
   color: var(--ox-text);

@@ -53,6 +53,16 @@ test("the customer history includes texts, and a failed one says it didn't arriv
   }
 });
 
+test("the customer page is a record on paper, not a form warehouse", () => {
+  const page = readFileSync(new URL("../src/app/dashboard/customers/[id]/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /Add address/);
+  assert.match(page, /Add equipment/);
+  assert.match(page, /className="rec"/);
+  assert.doesNotMatch(page, /Add to this record/);
+  assert.doesNotMatch(page, /ShellPanel/);
+  assert.doesNotMatch(page, /sc-input/);
+});
+
 test("an old per-job tech link sends the technician into their day", () => {
   const page = readFileSync(new URL("../src/app/t/[token]/page.tsx", import.meta.url), "utf8");
   assert.match(page, /redirect\(`\/tech\/\$\{appToken\}\/jobs\/\$\{job\.id\}`\)/);
@@ -74,6 +84,6 @@ test("a customer's lifetime value counts paid bills at face and open bills by ba
     { customerId: null, invoices: [{ amountCents: 10000, status: "paid", payments: [] }] },
     { customerId: "c2", invoices: [] },
   ]);
-  assert.deepEqual(out.get("c1"), { collected: 45000, owed: 15000 }, "void and draft bills are not money, and jobs without a customer belong to nobody");
+  assert.deepEqual(out.get("c1"), { collected: 45000, owed: 15000, refunded: 0 }, "void and draft bills are not money, and jobs without a customer belong to nobody");
   assert.ok(!out.has("c2"), "a customer with no bills shows no money line at all");
 });

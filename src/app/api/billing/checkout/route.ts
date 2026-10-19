@@ -1,3 +1,4 @@
+import { isOwnerDemoWorkspace, NOT_OWNER_DEMO } from "@/lib/demo-fence";
 import { NextRequest, NextResponse } from "next/server";
 import { getAllowedEmails } from "@/lib/auth-allowlist";
 import { canCreateShopForEmail } from "@/lib/self-serve-signup";
@@ -31,8 +32,10 @@ import { forbiddenResponse } from "@/lib/tenant";
 import { z } from "zod";
 import { HIPAA_TRADE_REFUSAL, isHipaaTrade } from "@/lib/trades";
 import { consentSchema, shopDraftMetadata, shopDraftSchema } from "@/lib/checkout-shop";
+import { checkActivationClaim, draftActivationBusiness, recordActivationAck } from "@/lib/activation-ack";
 import { resolveShopAccess } from "@/lib/workspace-access";
-import { isSetupSandbox } from "@/lib/setup-flow";
+import { withLease } from "@/lib/provision-attempt";
+import { isSetupSandbox, missingForStep, parseSetup } from "@/lib/setup-flow";
 import { ACQUISITION_COOKIE, parseAcquisition } from "@/lib/acquisition";
 import { acquisitionMetadata, findReferrer } from "@/lib/referrals";
 
@@ -44,9 +47,18 @@ const checkoutSchema = z.object({
   interval: z.enum(["month", "year"]).default("month"),
   /** A new shop's details, so paying is the last step before the line exists. */
   shop: shopDraftSchema.merge(consentSchema).optional(),
+  /** Turning a shop on: the notice and permissions the owner approved, by the versions they saw. */
+  activation: z
+    .object({
+      recording: z.literal(true),
+      approved: z.literal(true),
+      noticeVersion: z.string().max(64),
+      setupVersion: z.string().max(64),
+    })
+    .optional(),
 });
 
-async function expireOpenPlanCheckouts(stripe: ReturnType<typeof getStripe>, email: string, customerId: string | null) {
+async function expireOpenPlanCheckouts(stripe: ReturnType<typeof getStripe>, email: string, customerId: string | null): Promise<boolean> {
   try {
     const lists = await Promise.all([
       stripe.checkout.sessions.list({ status: "open", customer_details: { email }, limit: 10 }),
@@ -55,10 +67,12 @@ async function expireOpenPlanCheckouts(stripe: ReturnType<typeof getStripe>, ema
     const open = new Map(lists.flatMap((list) => list?.data ?? []).map((s) => [s.id, s]));
     for (const session of open.values()) {
       if (session.mode !== "subscription" || !session.metadata?.planId) continue;
-      await stripe.checkout.sessions.expire(session.id).catch(() => null);
+      await stripe.checkout.sessions.expire(session.id);
     }
+    return true;
   } catch (error) {
     console.warn("[billing.checkout] could not expire earlier sessions", error instanceof Error ? error.message : error);
+    return false;
   }
 }
 
@@ -102,15 +116,24 @@ export async function POST(request: NextRequest) {
     const stripe = getStripe();
     const baseUrl = getAppBaseUrl();
 
+    const active = await resolveShopAccess(sessionEmail).then((a) => (a?.role === "owner" ? a.business : null));
     const business = body.businessId
       ? await prisma.business.findFirst({
           where: { id: body.businessId, ownerEmail: sessionEmail },
         })
-      : ((await resolveShopAccess(sessionEmail).then((a) => (a?.role === "owner" ? a.business : null))) ??
+      : ((active && !isOwnerDemoWorkspace(active) ? active : null) ??
         (await prisma.business.findFirst({
-          where: { ownerEmail: sessionEmail },
+          where: { ownerEmail: sessionEmail, ...NOT_OWNER_DEMO },
           orderBy: { createdAt: "asc" },
         })));
+
+    // A plan bought "for" the demo shop would bill a sandbox nobody answers calls on.
+    if (business && isOwnerDemoWorkspace(business)) {
+      return NextResponse.json(
+        { error: "The demo shop can't take a plan. Set up your real business, then choose a plan for it." },
+        { status: 409 },
+      );
+    }
 
     /*
       A shop that is already paying changes plans in the billing portal. A
@@ -155,6 +178,36 @@ export async function POST(request: NextRequest) {
         { status: 409 },
       );
     }
+    let activationAckId: string | null = null;
+    let activationClaim: Record<string, string> = {};
+    if (!business && body.shop) {
+      /* A new shop answers real callers the moment this checkout is paid, so the owner approves the notice it will run with first. */
+      const refusal = checkActivationClaim(draftActivationBusiness(body.shop.name), body.activation);
+      if (refusal) return NextResponse.json(refusal, { status: 409 });
+      activationClaim = {
+        activation_notice: body.activation!.noticeVersion,
+        activation_setup: body.activation!.setupVersion,
+        activation_at: new Date().toISOString(),
+      };
+    }
+    if (turningOn && business) {
+      const missing = missingForStep("live", parseSetup(business.setupJson));
+      if (missing.length) {
+        return NextResponse.json(
+          { error: "Finish your hours and what Orvius may do before going live. Your setup is saved.", code: "setup_incomplete", missing, setupUrl: `/dashboard/onboarding?step=${missing[0]}` },
+          { status: 409 },
+        );
+      }
+      const refusal = checkActivationClaim(business, body.activation);
+      if (refusal) return NextResponse.json(refusal, { status: 409 });
+      const ack = await recordActivationAck({
+        business,
+        actorEmail: sessionEmail,
+        acceptedTerms: Boolean(body.shop?.acceptedTerms),
+        acceptedSms: Boolean(body.shop?.acceptedSms),
+      });
+      activationAckId = ack.id;
+    }
     const shopMetadata =
       (!business || turningOn) && body.shop ? shopDraftMetadata(shopDraftSchema.parse(body.shop), new Date()) : {};
     const acquisition = business && !turningOn ? null : parseAcquisition(request.cookies.get(ACQUISITION_COOKIE)?.value);
@@ -163,52 +216,65 @@ export async function POST(request: NextRequest) {
 
     /*
       Until the webhook lands, nothing here knows a checkout was paid, and an
-      open session stays payable for a day. An owner who retries in a second
-      tab would otherwise be able to pay both and run two subscriptions. Only
-      the newest session can be paid.
+      open session stays payable for a day. Only the newest session can be
+      paid: earlier ones are closed first, one request per email at a time, and
+      if they can't be closed no new one is opened.
     */
-    await expireOpenPlanCheckouts(stripe, sessionEmail, business?.stripeCustomerId ?? null);
-
-    const checkoutSession = await stripe.checkout.sessions.create({
-      mode: "subscription",
-      ...(business?.stripeCustomerId
-        ? { customer: business.stripeCustomerId }
-        : { customer_email: sessionEmail }),
-      line_items: [
-        {
-          price: requireStripePriceIdForPlan(body.planId, body.interval),
-          quantity: 1,
-        },
-      ],
-      success_url: business && !turningOn
-        ? `${baseUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`
-        : `${baseUrl}/dashboard/onboarding?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: turningOn
-        ? `${baseUrl}/dashboard/onboarding?step=live&canceled=1`
-        : business
-          ? `${baseUrl}/pricing?canceled=1`
-          : `${baseUrl}${setupPath}&canceled=1`,
-      // Stripe takes either a fixed discount or a promo-code box, not both.
-      ...(referred ? { discounts: [{ coupon: referralCoupon }] } : { allow_promotion_codes: true }),
-      ...checkoutTaxParams(Boolean(business?.stripeCustomerId)),
-      subscription_data: {
-        metadata: {
-          product: plan.stripeProductKey ?? `orvius-${body.planId}`,
-          planId: body.planId,
-          interval: body.interval,
-          businessId: business?.id ?? "",
-        },
+    const checkoutSession = await withLease(
+      `plan-checkout:${sessionEmail}`,
+      async () => {
+        if (!(await expireOpenPlanCheckouts(stripe, sessionEmail, business?.stripeCustomerId ?? null))) return null;
+        return stripe.checkout.sessions.create({
+          mode: "subscription",
+          ...(business?.stripeCustomerId
+            ? { customer: business.stripeCustomerId }
+            : { customer_email: sessionEmail }),
+          line_items: [
+            {
+              price: requireStripePriceIdForPlan(body.planId, body.interval),
+              quantity: 1,
+            },
+          ],
+          success_url: business && !turningOn
+            ? `${baseUrl}/billing/success?session_id={CHECKOUT_SESSION_ID}`
+            : `${baseUrl}/dashboard/onboarding?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: turningOn
+            ? `${baseUrl}/dashboard/onboarding?step=live&canceled=1`
+            : business
+              ? `${baseUrl}/pricing?canceled=1`
+              : `${baseUrl}${setupPath}&canceled=1`,
+          // Stripe takes either a fixed discount or a promo-code box, not both.
+          ...(referred ? { discounts: [{ coupon: referralCoupon }] } : { allow_promotion_codes: true }),
+          ...checkoutTaxParams(Boolean(business?.stripeCustomerId)),
+          subscription_data: {
+            metadata: {
+              product: plan.stripeProductKey ?? `orvius-${body.planId}`,
+              planId: body.planId,
+              interval: body.interval,
+              businessId: business?.id ?? "",
+            },
+          },
+          metadata: {
+            product: plan.stripeProductKey ?? `orvius-${body.planId}`,
+            planId: body.planId,
+            interval: body.interval,
+            businessId: business?.id ?? "",
+            legalEntity: company.legalName,
+            ...shopMetadata,
+            ...(activationAckId ? { activation_ack: activationAckId } : {}),
+            ...activationClaim,
+            ...acquisitionMetadata(acquisition),
+          },
+        });
       },
-      metadata: {
-        product: plan.stripeProductKey ?? `orvius-${body.planId}`,
-        planId: body.planId,
-        interval: body.interval,
-        businessId: business?.id ?? "",
-        legalEntity: company.legalName,
-        ...shopMetadata,
-        ...acquisitionMetadata(acquisition),
-      },
-    });
+      { leaseMs: 30_000, waitMs: 20_000, forget: true },
+    );
+    if (!checkoutSession) {
+      return NextResponse.json(
+        { error: "An earlier checkout is still open and couldn't be closed, so a second one wasn't opened. Try again in a minute.", code: "checkout_busy" },
+        { status: 503 },
+      );
+    }
 
     return NextResponse.json({
       ok: true,

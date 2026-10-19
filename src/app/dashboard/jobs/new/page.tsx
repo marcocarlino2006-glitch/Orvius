@@ -1,5 +1,6 @@
 "use client";
 
+import { askText } from "@/components/ask-dialog";
 import { OsShell } from "@/components/os-shell";
 import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
 import { ShellPanel } from "@/components/shell-primitives";
@@ -56,7 +57,8 @@ function NewJobForm() {
     if (options?.timezone && !whenTouched) setWhen(tomorrowMorning(options.timezone));
   }, [options?.timezone, whenTouched]);
 
-  async function submit(e: React.FormEvent | null, allowClash = false) {
+  async function submit(e: React.FormEvent | null, override: string | null = null) {
+    const allowClash = override !== null;
     e?.preventDefault();
     setSaving(true);
     setError(null);
@@ -71,12 +73,23 @@ function NewJobForm() {
           technicianId: technicianId || null,
           notes: notes.trim() || null,
           allowClash,
+          ...(override ? { reason: override } : {}),
         }),
       });
       const data = await res.json().catch(() => ({}));
       if (res.status === 409 && data.clash && !allowClash) {
         setSaving(false);
-        if (window.confirm(`${data.error} Book it anyway?`)) await submit(null, true);
+        const reason = (
+          await askText({
+            title: "Book it anyway?",
+            body: `${data.error ?? "This clashes with the schedule."} To book it anyway, say why. This goes in the job's history.`,
+            label: "Why book it anyway",
+            multiline: true,
+            required: true,
+            confirmLabel: "Book anyway",
+          })
+        )?.trim();
+        if (reason) await submit(null, reason);
         return;
       }
       if (!res.ok) throw new Error(data.error ?? `Could not book the ${terms.job}`);

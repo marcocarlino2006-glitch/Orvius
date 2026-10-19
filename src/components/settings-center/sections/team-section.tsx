@@ -4,6 +4,7 @@ import Link from "next/link";
 import { RecordAvatar } from "@/components/record-avatar";
 import { displayPhone } from "@/lib/customer";
 import type { Technician } from "../settings-model";
+import { MoneyGrantsGroup } from "../money-grants-group";
 import { TeamAccessGroup } from "../team-access-group";
 import { ScGroup, ScRow } from "../settings-primitives";
 
@@ -11,6 +12,7 @@ export function TeamSection({ crew, onClose }: { crew: Technician[] | null; onCl
   return (
     <>
       <TeamAccessGroup />
+      <MoneyGrantsGroup />
       <ScGroup title={crew ? `Technicians · ${crew.length}` : "Technicians"}>
         {crew === null ? (
           <p className="sc-muted sc-pad">Loading…</p>

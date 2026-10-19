@@ -1,5 +1,6 @@
 "use client";
 
+import { LoadFailure, SESSION_EXPIRED } from "@/components/load-failure";
 import { CallRecordCard, CallTableHead } from "@/components/call-record-card";
 import { ProLead } from "@/components/pro-lead";
 import { ProEmptyState, ProFilterBar } from "@/components/pro-page-chrome";
@@ -48,7 +49,7 @@ export default function CallsPage() {
     setError(null);
     fetch(`/api/calls?limit=100${q ? `&q=${encodeURIComponent(q)}` : ""}`, { cache: "no-store" })
       .then(async (res) => {
-        if (!res.ok) throw new Error(res.status === 401 ? "Your session expired. Sign in again." : "Calls didn't load. Your line is still answering; try again.");
+        if (!res.ok) throw new Error(res.status === 401 ? SESSION_EXPIRED : "Calls didn't load. Your line is still answering; try again.");
         return res.json();
       })
       .then((data) => {
@@ -102,15 +103,7 @@ export default function CallsPage() {
         action={<ProShopLineCta label="Test call" showNumber={false} />}
       />
 
-      {error ? (
-        <div className="ox-state ox-state--failure ox-state--inline" role="alert">
-          <p className="ox-state-title">Calls not updated</p>
-          <p className="ox-state-copy">{error}</p>
-          <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" onClick={() => load(query.trim())}>
-            Retry
-          </button>
-        </div>
-      ) : null}
+      {error ? <LoadFailure title="Calls not updated" error={error} onRetry={() => load(query.trim())} /> : null}
 
       {loading && !calls.length ? (
         <DashboardSkeleton />

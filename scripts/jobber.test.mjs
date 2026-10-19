@@ -78,6 +78,7 @@ const server = createServer(async (req, res) => {
     assert.equal(req.headers["x-jobber-graphql-version"], "2025-04-16");
     const { query, variables } = JSON.parse(raw);
     if (query.includes("account {")) return send(200, { data: { account: { id: "acct-1", name: "Cole Heating" } } });
+    if (query.includes("visits(")) return send(200, { data: { visits: { nodes: [], pageInfo: { hasNextPage: false, endCursor: null } } } });
     if (query.includes("appDisconnect")) {
       fake.disconnects += 1;
       return send(200, { data: { appDisconnect: { userErrors: [] } } });

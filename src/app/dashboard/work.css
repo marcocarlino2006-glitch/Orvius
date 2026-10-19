@@ -595,6 +595,19 @@ a.cmd-feed-text:hover {
   gap: 0.5rem 0.75rem;
 }
 
+.cmd-issue-resolve {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.cmd-issue-resolve .input {
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+
 /* ── One work page: where it stands, then everything that happened ─────── */
 
 .wp-stack {
@@ -1070,6 +1083,98 @@ a.cmd-feed-text:hover {
 
 /* ── The visit on a job: facts first, changes on request, one next step ── */
 
+/* A person, on paper — not a card warehouse. */
+.rec {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.rec-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--ox-line);
+}
+
+.rec-title {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ox-mute);
+}
+
+.rec-add {
+  padding-top: 0.25rem;
+}
+
+.rec-add-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin: 0;
+}
+
+.rec-add-link,
+.rec-cancel {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--ox-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.rec-cancel {
+  font-weight: 500;
+  color: var(--ox-mute);
+  text-decoration: none;
+}
+
+.rec-cancel:hover,
+.rec-add-link:hover {
+  color: var(--ox-text);
+}
+
+.rec-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.625rem 0.75rem;
+}
+
+.rec-field {
+  flex: 1 1 12rem;
+  min-width: 8rem;
+  height: 2.25rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--ox-line-strong);
+  border-radius: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 0.9375rem;
+  color: var(--ox-text);
+}
+
+.rec-field--short {
+  flex: 0 1 8rem;
+}
+
+.rec-field:focus,
+.rec-field:focus-visible {
+  outline: none;
+  border-bottom-color: var(--ox-text);
+}
+
 .jv-facts {
   display: grid;
   gap: 0.75rem;
@@ -1161,6 +1266,21 @@ a.cmd-feed-text:hover {
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-top: 1.125rem;
+}
+
+.jv-recover {
+  margin-top: 1.125rem;
+  padding: 0.875rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--ox-red) 35%, transparent);
+  background: color-mix(in srgb, var(--ox-red) 7%, transparent);
+}
+.jv-recover-title {
+  margin: 0 0 0.2rem;
+  font-weight: 600;
+}
+.jv-recover .jv-next {
+  margin-top: 0.75rem;
 }
 
 .jv-who {
@@ -1445,28 +1565,6 @@ a.cmd-feed-text:hover {
   text-transform: none;
   letter-spacing: 0;
   color: var(--ox-mute);
-}
-
-.jf-photos {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
-  gap: 0.5rem;
-}
-
-.jf-thumb {
-  aspect-ratio: 1;
-  padding: 0;
-  overflow: hidden;
-  border: 1px solid var(--ox-line);
-  border-radius: var(--ox-radius-sm);
-  background: var(--ox-fill-light);
-  cursor: zoom-in;
-}
-
-.jf-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 
 .jf-notes {
@@ -1839,9 +1937,29 @@ a.cmd-feed-text:hover {
   color: var(--ox-mute);
 }
 
+.cmd-flow-note {
+  display: block;
+  margin: 0.625rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--ox-mute);
+}
+.cmd-flow-note.is-risk {
+  color: var(--ox-red);
+  font-weight: 500;
+  text-decoration: none;
+}
+.cmd-flow-note.is-risk:hover {
+  text-decoration: underline;
+}
+
 .cmd-flow-stage.has-waiting .cmd-flow-wait {
   color: var(--ox-amber);
   font-weight: 600;
+}
+
+.cmd-ahead {
+  margin-top: 1rem;
 }
 
 .cmd-money {

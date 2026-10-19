@@ -3,6 +3,7 @@ import { markCronRan } from "@/lib/cron-runs";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { getBearerToken, secretsMatch, verifyAdminRequest } from "@/lib/env";
 import { isUnauthenticatedAccessAllowed } from "@/lib/runtime";
+import { scheduledTargetRefusal } from "@/lib/scheduled-target";
 
 /*
   Driven every 5 minutes by .github/workflows/alert-drain.yml. Webhooks drain
@@ -21,6 +22,8 @@ export async function GET(request: NextRequest) {
     if (!secretsMatch(getBearerToken(request), cronSecret) && !verifyAdminRequest(request)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const refusal = scheduledTargetRefusal(request.headers);
+    if (refusal) return NextResponse.json({ error: refusal }, { status: 409 });
   }
   await markCronRan("alert-drain");
   await drainOwnerAlerts({ at: "cron.alert_drain" });

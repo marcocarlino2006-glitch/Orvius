@@ -3,7 +3,8 @@ import { normalizePhone } from "@/lib/customer";
 import { prisma } from "@/lib/prisma";
 import { isTextableNumber } from "@/lib/sms-destination";
 import { withSmsOptOutFooter } from "@/lib/sms-keywords";
-import { sendSms } from "@/lib/twilio-sms";
+import { sendSms, textingHeld } from "@/lib/twilio-sms";
+import type { SmsIntentInput } from "@/lib/sms-intent";
 
 export type CustomerSmsResult =
   | { sent: true; sid: string }
@@ -14,7 +15,9 @@ export type CustomerSmsResult =
         | "unsupported_destination"
         | "customer_opted_out"
         | "human_takeover"
-        | "sms_not_configured";
+        | "sms_not_configured"
+        | "sender_not_verified";
+      detail?: string;
     };
 
 /**
@@ -31,6 +34,8 @@ export async function sendCustomerSms(params: {
   to: string;
   body: string;
   author?: "orvius" | "owner";
+  /** The operational event, for the intent ledger. */
+  intent?: SmsIntentInput;
 }): Promise<CustomerSmsResult> {
   const normalized = normalizePhone(params.to);
   if (!normalized) {
@@ -64,6 +69,21 @@ export async function sendCustomerSms(params: {
     return { sent: false, reason: "human_takeover" };
   }
 
+  const held = await textingHeld(params.businessId);
+  if (held) {
+    if (held.reason === "no_sender") return { sent: false, reason: "sms_not_configured" };
+    await recordAudit({
+      businessId: params.businessId,
+      entityType: "notification",
+      entityId: normalized,
+      action: "sms.held_sender_unverified",
+      actor: "system",
+      summary: `Held a text to ${normalized}: ${held.detail}`,
+      detail: { to: normalized, reason: held.reason, author: params.author ?? "orvius", body: params.body.slice(0, 160) },
+    });
+    return { sent: false, reason: "sender_not_verified", detail: held.detail };
+  }
+
   const body = params.author === "owner" ? await signedOwnerText(params.businessId, normalized, params.body) : params.body;
 
   let result: { sid: string } | null;
@@ -74,6 +94,7 @@ export async function sendCustomerSms(params: {
       businessId: params.businessId,
       audience: "customer",
       author: params.author,
+      intent: params.intent,
     });
   } catch (error) {
     await recordAudit({

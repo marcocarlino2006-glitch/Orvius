@@ -9,6 +9,8 @@ import "./globals.css";
 import "./public-v2.css";
 import "./theme-tokens.css";
 import "./public-polish.css";
+import "./public-surfaces.css";
+import "./ask-dialog.css";
 
 /**
  * One face everywhere: Inter for the site, the product and every number in it
@@ -35,7 +37,6 @@ export const metadata: Metadata = {
   },
   description: company.searchDescription,
   metadataBase: new URL(`https://${company.domain}`),
-  alternates: { canonical: "/" },
   appleWebApp: { capable: true, title: "Orvius", statusBarStyle: "black-translucent" },
   ...(process.env.GOOGLE_SITE_VERIFICATION
     ? { verification: { google: process.env.GOOGLE_SITE_VERIFICATION } }

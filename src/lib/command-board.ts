@@ -1,4 +1,6 @@
 import { formatShopTime } from "@/lib/availability";
+import { formatCentsExact } from "@/lib/money";
+import { needsCheck, STALE_EXECUTING_MS } from "@/lib/copilot-execute";
 import { prisma } from "@/lib/prisma";
 import { findDuplicateJobs } from "@/lib/workspace-hygiene";
 
@@ -18,7 +20,10 @@ export type ExceptionKind =
   | "takeover"
   | "unconfirmed_soon"
   | "tech_declined"
-  | "tech_unanswered";
+  | "tech_unanswered"
+  | "record_mismatch"
+  | "billing_gap"
+  | "invoice_undelivered";
 
 export type BoardItem = {
   id: string;
@@ -37,6 +42,13 @@ export type BoardItem = {
   confirm?: "not_sent" | "sent" | "failed" | "confirmed";
   proposalId?: string;
   preview?: string;
+  /** An approval that ran but whose outcome Orvius can't vouch for; a person says whether it happened. */
+  needsCheck?: "unknown" | "done_unrecorded";
+  /** An open reconciliation exception a person resolves, with what they did. */
+  reconcileId?: string;
+  /** For a disagreement with another system: which one holds the record, and where the shop opens it. */
+  systemOfRecord?: string;
+  providerHref?: string | null;
 };
 
 export type CommandBoard = {
@@ -57,7 +69,7 @@ const ANSWER_LEAD_MS = 4 * 60 * 60_000;
 
 type CrewFacts = {
   scheduledAt: Date | null;
-  technician: { name: string } | null;
+  technician: { name: string; phone?: string | null } | null;
   techAssignedAt: Date | null;
   techNotifiedAt: Date | null;
   techAcceptedAt: Date | null;
@@ -85,13 +97,18 @@ export function techIssue(job: CrewFacts, now = new Date()): { kind: "tech_decli
   }
   if (job.techAcceptedAt || !job.techAssignedAt) return null;
   const name = job.technician.name;
+  const hasNumber = Boolean(job.technician.phone?.trim());
   if (!job.techNotifiedAt && now.getTime() - job.techAssignedAt.getTime() > NOTIFY_GRACE_MS) {
-    return { kind: "tech_unanswered", title: `${name} wasn't told`, detail: `the job text to ${name} didn't go out, call them`, at: job.techAssignedAt };
+    return hasNumber
+      ? { kind: "tech_unanswered", title: `${name} wasn't told`, detail: `the job text to ${name} didn't go out, call them`, at: job.techAssignedAt }
+      : { kind: "tech_unanswered", title: `${name} has no number`, detail: `the job text can't go out — add ${name}'s mobile number in Team`, at: job.techAssignedAt };
   }
   const waited = now.getTime() - job.techAssignedAt.getTime() > ANSWER_WAIT_MS;
   const close = job.scheduledAt != null && job.scheduledAt.getTime() - now.getTime() < ANSWER_LEAD_MS;
   if (!waited && !close) return null;
-  return { kind: "tech_unanswered", title: `${name} hasn't accepted`, detail: `call ${name} to make sure they're going`, at: job.techAssignedAt };
+  return hasNumber
+    ? { kind: "tech_unanswered", title: `${name} hasn't accepted`, detail: `call ${name} to make sure they're going`, at: job.techAssignedAt }
+    : { kind: "tech_unanswered", title: `${name} has no number`, detail: `${name} can't answer without the job text — add their mobile number in Team`, at: job.techAssignedAt };
 }
 
 function who(name: string | null | undefined, phone: string | null | undefined) {
@@ -103,7 +120,7 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
   const recent = new Date(now.getTime() - 2 * DAY);
   const week = new Date(now.getTime() + 7 * DAY);
 
-  const [shop, leads, jobs, proposals, failedAlerts, failedTexts, smsFailures, takeovers, escalations] = await Promise.all([
+  const [shop, leads, jobs, proposals, failedAlerts, failedTexts, smsFailures, takeovers, escalations, mismatches] = await Promise.all([
     prisma.business.findUniqueOrThrow({ where: { id: businessId }, select: { timezone: true, environment: true } }),
     prisma.lead.findMany({
       where: {
@@ -152,7 +169,13 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
       },
     }),
     prisma.copilotAction.findMany({
-      where: { businessId, status: "proposed" },
+      where: {
+        businessId,
+        OR: [
+          { status: { in: ["proposed", "reconcile"] } },
+          { status: "executing", createdAt: { lt: new Date(now.getTime() - STALE_EXECUTING_MS) } },
+        ],
+      },
       orderBy: { createdAt: "desc" },
       take: 20,
     }),
@@ -166,7 +189,7 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
       where: { businessId, direction: "out", deliveryStatus: { in: ["failed", "undelivered"] }, createdAt: { gte: recent } },
       orderBy: { createdAt: "desc" },
       take: 10,
-      select: { id: true, phoneNormalized: true, body: true, createdAt: true },
+      select: { id: true, sid: true, phoneNormalized: true, body: true, createdAt: true },
     }),
     prisma.auditEvent.findMany({
       where: { businessId, action: "sms.failed", createdAt: { gte: recent } },
@@ -180,6 +203,12 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
       orderBy: { createdAt: "desc" },
       take: 10,
       select: { id: true, summary: true, leadId: true, createdAt: true },
+    }),
+    prisma.reconciliationException.findMany({
+      where: { businessId, status: "open" },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      select: { id: true, kind: true, entityType: true, entityId: true, system: true, expectedJson: true, observedJson: true, createdAt: true },
     }),
   ]);
 
@@ -376,7 +405,12 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
       at: failedAlerts[0]!.createdAt.toISOString(),
     });
   }
+  const billing = await billingItems(businessId, now);
+  /* A bill text that failed is one problem: the bill item says which bill, so no generic text item is added for it. */
+  const billFailure = (a: { entityId: string; createdAt: Date }) =>
+    billing.attempts.some((t) => t.to === a.entityId && a.createdAt >= t.from && a.createdAt.getTime() <= t.from.getTime() + 60_000);
   for (const m of failedTexts) {
+    if (m.sid && billing.sids.has(m.sid)) continue;
     exceptions.push({
       id: `text-failed:${m.id}`,
       lane: "exceptions",
@@ -388,6 +422,7 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
     });
   }
   for (const a of smsFailures) {
+    if (billFailure(a)) continue;
     if (exceptions.some((x) => x.exception === "failed_message" && x.phone && phoneKey(x.phone) === a.entityId)) continue;
     exceptions.push({
       id: `sms-failed:${a.id}`,
@@ -426,23 +461,51 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
     });
   }
 
-  const order: Record<ExceptionKind, number> = { emergency: 0, alert_setup: 1, tech_declined: 2, failed_message: 3, tech_unanswered: 4, unconfirmed_soon: 5, stale: 6, duplicate: 7, takeover: 8 };
+  exceptions.push(...(await mismatchItems(businessId, mismatches)));
+  exceptions.push(...billing.items);
+
+  const order: Record<ExceptionKind, number> = {
+    emergency: 0,
+    alert_setup: 1,
+    tech_declined: 2,
+    record_mismatch: 3,
+    failed_message: 4,
+    invoice_undelivered: 5,
+    billing_gap: 6,
+    tech_unanswered: 7,
+    unconfirmed_soon: 8,
+    stale: 9,
+    duplicate: 10,
+    takeover: 11,
+  };
   exceptions.sort((a, b) => order[a.exception!] - order[b.exception!] || b.at.localeCompare(a.at));
   requests.sort((a, b) => Number(Boolean(b.urgent)) - Number(Boolean(a.urgent)) || b.at.localeCompare(a.at));
 
-  const approvals: BoardItem[] = proposals.map((p) => {
-    const params = JSON.parse(p.paramsJson) as { leadId?: string; jobId?: string };
-    return {
+  const approvals: BoardItem[] = proposals.flatMap((p) => {
+    if (p.status !== "proposed" && !needsCheck(p, now)) return [];
+    let params: { leadId?: string; jobId?: string } = {};
+    let result: { done?: boolean } | null = null;
+    try {
+      params = JSON.parse(p.paramsJson);
+      result = p.resultJson ? JSON.parse(p.resultJson) : null;
+    } catch {}
+    const check = p.status === "proposed" ? undefined : result?.done ? "done_unrecorded" : "unknown";
+    return [{
       id: `approval:${p.id}`,
-      lane: "approvals",
+      lane: "approvals" as const,
       title: p.preview.split("\n")[0] ?? p.preview,
-      detail: p.action.replace(/_/g, " "),
+      detail: check === "done_unrecorded"
+        ? "This went through but Orvius couldn't save the record. Confirm it so the history is right."
+        : check === "unknown"
+          ? "This stopped partway, so part of it may have happened. Check the job or request, then say whether it did."
+          : p.action.replace(/_/g, " "),
       preview: p.preview,
       at: p.createdAt.toISOString(),
       proposalId: p.id,
       leadId: params.leadId ?? null,
       jobId: params.jobId ?? null,
-    };
+      ...(check ? { needsCheck: check } : {}),
+    }];
   });
 
   return {
@@ -450,4 +513,178 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
     environment: shop.environment,
     lanes: { requests, proposed, confirmed, exceptions, approvals },
   };
+}
+
+type Mismatch = { id: string; kind: string; entityType: string; entityId: string; system: string; expectedJson: string; observedJson: string; createdAt: Date };
+
+function parsed(raw: string): Record<string, unknown> {
+  try {
+    const v = JSON.parse(raw);
+    return v && typeof v === "object" ? (v as Record<string, unknown>) : {};
+  } catch {
+    return {};
+  }
+}
+
+const cents = (v: unknown) => (typeof v === "number" ? formatCentsExact(v) : "an amount");
+const SYSTEM_NAMES: Record<string, string> = { stripe: "Stripe", vapi: "the voice provider", orvius: "Orvius", jobber: "Jobber", housecall: "Housecall Pro", servicetitan: "ServiceTitan", quickbooks: "QuickBooks" };
+
+/** What a person reads for one open reconciliation exception, and what to do about it. */
+export function mismatchText(row: Pick<Mismatch, "kind" | "entityType" | "system" | "expectedJson" | "observedJson">): { title: string; detail: string } {
+  const expected = parsed(row.expectedJson);
+  const observed = parsed(row.observedJson);
+  if (row.kind === "payment" && observed.reason === "late_session_payment") {
+    return {
+      title: `Extra payment on a settled ${row.entityType}`,
+      detail: `A customer paid ${cents(observed.amountCents)} after the ${row.entityType} was already settled. Nothing was refunded. Refund it in Stripe or tell them it's credited, then mark it resolved.`,
+    };
+  }
+  if (observed.reason === "response_lost" || observed.reason === "local_finalize_failed") {
+    const provider = SYSTEM_NAMES[row.system] ?? row.system;
+    const what = typeof expected.effect === "string" ? expected.effect : "change";
+    return observed.reason === "response_lost"
+      ? {
+          title: `No reply from ${provider} on a ${what}`,
+          detail: `Orvius asked ${provider} for a ${what} and the answer never came back, so it may or may not exist. It won't be repeated blindly: the next try checks ${provider} first. Check ${provider}, then mark it resolved with what you found.`,
+        }
+      : {
+          title: `${provider} did a ${what} Orvius didn't save`,
+          detail: `${provider} accepted it (${String(observed.providerId ?? "id on file")}) but Orvius couldn't record it. The next try saves it without asking ${provider} again. If this stays open, check the ${row.entityType} and mark it resolved.`,
+        };
+  }
+  if (row.kind === "payment" && observed.reason === "deposit_refunded_after_billing") {
+    return {
+      title: "Deposit refunded after the bill went out",
+      detail: `Stripe refunded ${cents(observed.amountCents)} of the booking deposit. The customer's bill was priced with the deposit taken off and stays at ${cents(expected.invoiceCents)}; Orvius won't ask them for more on its own. If they should pay the refunded amount, change the bill with a reason. Otherwise mark this resolved.`,
+    };
+  }
+  if (row.kind === "payment" && observed.reason === "refund_record_unpaid") {
+    return {
+      title: `Stripe refund on a ${row.entityType} never recorded as paid`,
+      detail: `Stripe (the record for card money) refunded ${cents(observed.amountCents)} on a ${row.entityType} Orvius has as unpaid. Nothing changed here. Check the payment and refund in Stripe, then mark this resolved with what you found.`,
+    };
+  }
+  if (row.kind === "payment" && (observed.reason === "refund_unmatched" || observed.reason === "refund_record_missing")) {
+    const charge = typeof observed.chargeId === "string" ? observed.chargeId : "a charge";
+    return observed.reason === "refund_unmatched"
+      ? {
+          title: `Stripe refund not matched to a payment`,
+          detail: `Stripe (the record for card money) refunded ${cents(observed.amountCents)} on ${charge}. This bill has more than one card payment and Orvius can't tell which was refunded, so its payments still read as collected. Find the charge in Stripe, mark that payment refunded on the job, then mark this resolved.`,
+        }
+      : {
+          title: `Stripe refund for a missing ${row.entityType}`,
+          detail: `Stripe (the record for card money) refunded ${cents(observed.amountCents)} on ${charge}, but the ${row.entityType} it was for isn't in Orvius any more. Nothing changed here. Check the refund in Stripe, then mark this resolved with what you found.`,
+        };
+  }
+  if (row.kind === "change" && row.entityType === "invoice") {
+    const basis = expected.basis === "signed_estimate" ? "signed" : expected.basis === "paid_toward" ? "already paid toward" : "sent";
+    return {
+      title: "Bill total changed after the customer had it",
+      detail: `The customer's ${basis} bill stays at ${cents(expected.amountCents)}. A new total of ${cents(observed.amountCents)} came in. Change the bill with a reason, or mark this resolved to keep it.`,
+    };
+  }
+  const system = SYSTEM_NAMES[row.system] ?? row.system;
+  return {
+    title: `${system} and Orvius disagree on a ${row.entityType}`,
+    detail: `Orvius couldn't confirm a ${row.kind} on this ${row.entityType} in ${system}. Check it there, then mark it resolved with what you found.`,
+  };
+}
+
+async function mismatchItems(businessId: string, rows: Mismatch[]): Promise<BoardItem[]> {
+  if (!rows.length) return [];
+  const ids = (type: string) => rows.filter((r) => r.entityType === type).map((r) => r.entityId);
+  const [invoices, deposits, jobs] = await Promise.all([
+    prisma.invoice.findMany({ where: { businessId, id: { in: ids("invoice") } }, select: { id: true, jobId: true } }),
+    prisma.deposit.findMany({ where: { businessId, id: { in: ids("deposit") } }, select: { id: true, jobId: true, leadId: true } }),
+    prisma.job.findMany({ where: { businessId, id: { in: ids("job") } }, select: { id: true } }),
+  ]);
+  const jobFor = new Map<string, string | null>([
+    ...invoices.map((i) => [`invoice:${i.id}`, i.jobId] as const),
+    ...deposits.map((d) => [`deposit:${d.id}`, d.jobId] as const),
+    ...jobs.map((j) => [`job:${j.id}`, j.id] as const),
+  ]);
+  const leadFor = new Map(deposits.map((d) => [`deposit:${d.id}`, d.leadId]));
+  return rows.map((row) => ({
+    id: `reconcile:${row.id}`,
+    lane: "exceptions" as const,
+    exception: "record_mismatch" as const,
+    ...mismatchText(row),
+    at: row.createdAt.toISOString(),
+    jobId: jobFor.get(`${row.entityType}:${row.entityId}`) ?? null,
+    leadId: leadFor.get(`${row.entityType}:${row.entityId}`) ?? null,
+    reconcileId: row.id,
+    systemOfRecord: SYSTEM_NAMES[row.system] ?? row.system,
+    providerHref: row.system === "orvius" ? null : "/dashboard/settings?settings=integrations",
+  }));
+}
+
+const BILL_TEXT_FAILED = ["undelivered", "rejected", "retry_exhausted", "unknown_submission"];
+
+/**
+ * Money the shop earned that hasn't reached the customer: work marked done
+ * with a total and no bill, and bills whose latest pay-link text failed or
+ * may not have gone out. Both are read from the job, the invoice and the text
+ * ledger, so they stay on the board through a reload until the record changes.
+ */
+async function billingItems(businessId: string, now: Date): Promise<{ items: BoardItem[]; sids: Set<string>; attempts: { to: string; from: Date }[] }> {
+  const month = new Date(now.getTime() - 30 * DAY);
+  const [unbilled, intents] = await Promise.all([
+    prisma.job.findMany({
+      where: { businessId, status: "completed", completedAt: { gte: month }, finalAmountCents: { gt: 0 }, invoices: { none: {} } },
+      orderBy: { completedAt: "desc" },
+      take: 20,
+      select: { id: true, leadId: true, title: true, finalAmountCents: true, completedAt: true, customer: { select: { name: true, phone: true } }, lead: { select: { name: true, phone: true } } },
+    }),
+    prisma.smsIntent.findMany({
+      where: { businessId, eventType: "invoice.pay_link", updatedAt: { gte: month } },
+      orderBy: { updatedAt: "desc" },
+      take: 300,
+      select: { eventId: true, status: true, updatedAt: true, createdAt: true, providerSid: true, recipientNormalized: true },
+    }),
+  ]);
+  /* Versions count per recipient, so a bill's latest attempt is the newest one, whichever number it went to. */
+  const latest = new Map<string, { status: string; updatedAt: Date; createdAt: Date; providerSid: string | null; recipientNormalized: string }>();
+  for (const i of intents) if ((latest.get(i.eventId)?.createdAt.getTime() ?? -1) < i.createdAt.getTime()) latest.set(i.eventId, i);
+  const failedIds = [...latest].filter(([, i]) => BILL_TEXT_FAILED.includes(i.status)).map(([id]) => id);
+  const bills = failedIds.length
+    ? await prisma.invoice.findMany({
+        where: { businessId, id: { in: failedIds }, paidAt: null, status: { notIn: ["paid", "void", "refunded"] } },
+        select: { id: true, amountCents: true, jobId: true, job: { select: { leadId: true, title: true, customer: { select: { name: true, phone: true } }, lead: { select: { name: true, phone: true } } } } },
+      })
+    : [];
+  const sids = new Set(bills.map((b) => latest.get(b.id)!.providerSid).filter((sid): sid is string => Boolean(sid)));
+  /* A send refused before the carrier took it leaves no message row, only its failure written right after the attempt. */
+  const attempts = bills.map((b) => latest.get(b.id)!).filter((t) => !t.providerSid).map((t) => ({ to: t.recipientNormalized, from: t.createdAt }));
+  const items = [
+    ...unbilled.map((job) => ({
+      id: `billing-gap:${job.id}`,
+      lane: "exceptions" as const,
+      exception: "billing_gap" as const,
+      title: `${who(job.customer?.name ?? job.lead?.name, job.customer?.phone ?? job.lead?.phone)} · done, not billed`,
+      detail: `Marked done with a ${formatCentsExact(job.finalAmountCents!)} total, but no bill was created. Create and send it from the job.`,
+      at: (job.completedAt ?? now).toISOString(),
+      jobId: job.id,
+      leadId: job.leadId,
+      phone: job.customer?.phone ?? job.lead?.phone ?? null,
+    })),
+    ...bills.map((bill) => {
+      const intent = latest.get(bill.id)!;
+      const unknown = intent.status === "unknown_submission";
+      const person = who(bill.job?.customer?.name ?? bill.job?.lead?.name, bill.job?.customer?.phone ?? bill.job?.lead?.phone);
+      return {
+        id: `invoice-undelivered:${bill.id}`,
+        lane: "exceptions" as const,
+        exception: "invoice_undelivered" as const,
+        title: unknown ? `${person} · bill text may not have gone out` : `${person} · bill text didn't reach them`,
+        detail: unknown
+          ? `The ${formatCentsExact(bill.amountCents)} pay link may or may not have been sent, so Orvius won't resend it on its own. Ask ${person} before resending.`
+          : `The ${formatCentsExact(bill.amountCents)} pay link didn't go through. Call ${person}, or fix the number and resend it.`,
+        at: intent.updatedAt.toISOString(),
+        jobId: bill.jobId,
+        leadId: bill.job?.leadId ?? null,
+        phone: bill.job?.customer?.phone ?? bill.job?.lead?.phone ?? null,
+      };
+    }),
+  ];
+  return { items, sids, attempts };
 }

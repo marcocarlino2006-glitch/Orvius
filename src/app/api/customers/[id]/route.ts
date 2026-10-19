@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { requireEntitledSession, requirePermission } from "@/lib/tenant";
 import { forgetCustomer } from "@/lib/forget-customer";
 import { can } from "@/lib/workspace-access-labels";
-import { recordAudit } from "@/lib/audit";
+import { personActor, recordAudit } from "@/lib/audit";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -93,10 +93,18 @@ const patchBody = z.object({
     .optional(),
 });
 
+const CUSTOMER_FIELD_LABEL = {
+  address: "address",
+  email: "email",
+  notes: "notes",
+  addressesJson: "other addresses",
+  equipmentJson: "equipment",
+} as const;
+
 export async function PATCH(request: Request, { params }: Params) {
   const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
-  const { business, email } = authResult;
+  const { business } = authResult;
   const planGate = requirePlanModule(business, "customers");
   if ("error" in planGate) return planGate.error;
 
@@ -129,16 +137,19 @@ export async function PATCH(request: Request, { params }: Params) {
     );
   }
 
-  const customer = await prisma.customer.update({ where: { id: existing.id }, data });
-  await recordAudit({
-    businessId: business.id,
-    entityType: "customer",
-    entityId: customer.id,
-    action: "customer.updated",
-    actor: "owner",
-    actorEmail: email,
-    summary: "Updated the customer record",
-  });
+  const changed = (Object.keys(data) as Array<keyof typeof data>).filter((key) => (existing[key] ?? null) !== (data[key] ?? null));
+  const customer = changed.length ? await prisma.customer.update({ where: { id: existing.id }, data }) : existing;
+  if (changed.length) {
+    await recordAudit({
+      businessId: business.id,
+      entityType: "customer",
+      entityId: customer.id,
+      action: "customer.updated",
+      ...personActor(authResult),
+      summary: `Updated the customer's ${changed.map((key) => CUSTOMER_FIELD_LABEL[key]).join(", ")}`,
+      detail: { changed },
+    });
+  }
 
   return NextResponse.json({
     addresses: parseAddresses(customer.addressesJson),

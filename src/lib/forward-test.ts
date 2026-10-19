@@ -1,4 +1,5 @@
 import { recordAudit } from "@/lib/audit";
+import { recordSetupMilestone } from "@/lib/workflow-events";
 import { logInfo, logWarn } from "@/lib/logger";
 import {
   FORWARD_TEST_WINDOW_MS,
@@ -7,6 +8,7 @@ import {
   type ForwardTestVerdict,
 } from "@/lib/number-connection";
 import { phonesEqual } from "@/lib/owner-alerts";
+import { isOwnerDemoWorkspaceId } from "@/lib/demo-fence";
 import { prisma } from "@/lib/prisma";
 import { getTwilioClient } from "@/lib/twilio-client";
 
@@ -38,6 +40,9 @@ export async function startForwardTest(params: {
   coverage: Coverage;
   client?: TwilioLike;
 }): Promise<StartResult> {
+  if (await isOwnerDemoWorkspaceId(params.business.id)) {
+    return { ok: false, reason: "unavailable", message: "The demo shop never dials a real phone. Test forwarding from your real shop." };
+  }
   const from = params.business.twilioPhone?.trim() || null;
   const line = from ?? params.business.vapiPhoneNumber?.trim() ?? null;
   if (!line) return { ok: false, reason: "no_line", message: "Your Orvius line isn't ready yet, so there's nothing to test against." };
@@ -83,7 +88,8 @@ export async function startForwardTest(params: {
 
 async function markProven(businessId: string, testId: string, businessNumber: string) {
   const now = new Date();
-  await prisma.business.updateMany({ where: { id: businessId, lineVerifiedAt: null }, data: { lineVerifiedAt: now } });
+  const firstCall = await prisma.business.updateMany({ where: { id: businessId, lineVerifiedAt: null }, data: { lineVerifiedAt: now } });
+  if (firstCall.count) await recordSetupMilestone(businessId, "line_proven", now, { forwardTestId: testId }).catch(() => undefined);
   const stamped = await prisma.business.updateMany({
     where: { id: businessId, overflowForwardConfirmedAt: null },
     data: { overflowForwardConfirmedAt: now, overflowProvedAt: now },

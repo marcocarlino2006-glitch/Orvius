@@ -9,9 +9,12 @@ import {
   alwaysToAPerson,
   buildGoLiveChecklist,
   defaultLevelForGoal,
+  allowedSteps,
   hoursPresetFor,
   hoursSummary,
   isSetupTrade,
+  missingForStep,
+  stepsDone,
   needsServiceArea,
   parseSetup,
   permissionLevelFor,
@@ -25,11 +28,14 @@ import {
   runSetupTest,
   saveSetupDay,
   saveSetupGoal,
+  saveSetupLiveDraft,
   saveSetupPermissions,
   scenariosFor,
   setSetupStep,
   startSetup,
 } from "@/lib/setup-sandbox";
+import { activationVersions } from "@/lib/activation-ack";
+import { loadCapabilities } from "@/lib/capabilities";
 import { openingWithNotice } from "@/lib/vapi";
 import { ACTIVE_SHOP_COOKIE } from "@/lib/workspace-access";
 import { NOT_YET_TRADE } from "@/lib/trades";
@@ -70,7 +76,52 @@ const bodySchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("permissions"), level: z.enum(["alert", "offer", "confirm"]), followUps: z.boolean() }),
   z.object({ action: z.literal("test"), scenario: z.enum(["routine", "exception"]) }),
   z.object({ action: z.literal("step"), step: z.enum(SETUP_STEPS) }),
+  z.object({
+    action: z.literal("draft"),
+    ownerPhone: z.string().trim().max(32).optional(),
+    areaCode: z.string().regex(/^\d{0,3}$/).optional(),
+  }),
 ]);
+
+type FactSource = "confirmed" | "imported" | "starting_default" | "unknown";
+
+/** Where each business fact came from, so nothing Orvius filled in reads as something the owner said. */
+function businessFacts(business: Business, setup: ReturnType<typeof parseSetup>) {
+  const done = stepsDone(setup);
+  const fact = (label: string, value: string | null, source: FactSource, note: string) => ({ label, value, source, note });
+  let zips: string[] = [];
+  try {
+    const parsed = JSON.parse(business.serviceZipsJson || "[]");
+    zips = Array.isArray(parsed) ? parsed : [];
+  } catch {
+    zips = [];
+  }
+  return [
+    fact("Business name", business.name, "confirmed", "You entered it."),
+    fact("Business type", business.trade, "confirmed", "You chose it."),
+    fact("Time zone", business.timezone, setup.done?.business ? "imported" : "starting_default", "Read from your device. Change it in Settings if it's wrong."),
+    fact(
+      "Open hours",
+      hoursPresetFor(business.hoursJson),
+      done.day ? "confirmed" : "starting_default",
+      done.day ? "You chose them." : "A starting week, not yet confirmed. Callers aren't offered times from it until you confirm your hours.",
+    ),
+    fact(
+      "Services",
+      null,
+      done.day ? "confirmed" : "starting_default",
+      done.day ? "You picked the work you take." : "The usual list for your trade, not yet confirmed.",
+    ),
+    fact("Service area", zips.length ? `${zips.length} ZIP codes` : null, zips.length ? "confirmed" : "unknown", zips.length ? "You listed them." : "Not set. Orvius won't turn anyone away for distance."),
+    fact("Shop address", business.address, business.address ? "confirmed" : "unknown", business.address ? "On file." : "Not set."),
+    fact(
+      "What Orvius may do",
+      setup.permissions ?? null,
+      setup.permissions ? "confirmed" : "unknown",
+      setup.permissions ? "You chose it." : "Not chosen. Orvius never picks this for you.",
+    ),
+  ];
+}
 
 function serviceChoices(business: Business, trade: Trade | null) {
   let current: string[] = [];
@@ -100,12 +151,33 @@ async function view(business: Business | null) {
     zips = [];
   }
   const level = setup.permissions ? permissionLevelFor(business) : defaultLevelForGoal(setup.goal);
+  const [capabilities, uncertain] = await Promise.all([
+    loadCapabilities(business.id),
+    prisma.providerEffect.findMany({
+      where: { businessId: business.id, status: { in: ["uncertain", "accepted", "failed"] } },
+      orderBy: { updatedAt: "desc" },
+      take: 5,
+      select: { provider: true, operation: true, status: true, lastError: true, updatedAt: true },
+    }),
+  ]);
+  const allowed = allowedSteps(setup);
+  const resumeAt = setup.step && allowed.includes(setup.step) ? setup.step : (allowed.at(-1) ?? "business");
   return {
     sandbox: {
       id: business.id,
       name: business.name,
       trade,
-      step: setup.step ?? "goal",
+      step: resumeAt,
+      progress: {
+        done: stepsDone(setup),
+        allowed,
+        missing: Object.fromEntries(SETUP_STEPS.map((s) => [s, missingForStep(s, setup)])),
+      },
+      failures: setup.failures ?? [],
+      liveDraft: setup.liveDraft ?? {},
+      facts: businessFacts(business, setup),
+      capabilities,
+      providerEffects: uncertain.map((e) => ({ ...e, updatedAt: e.updatedAt.toISOString() })),
       goal: setup.goal ?? null,
       team: setup.team ?? null,
       crew,
@@ -124,6 +196,7 @@ async function view(business: Business | null) {
       testedAt: setup.testedAt ?? null,
       test,
       opening: openingWithNotice(business.greeting ?? "", business.name),
+      activation: activationVersions(business),
       checklist: buildGoLiveChecklist({
         sandbox: true,
         line: business.vapiPhoneNumber ?? business.twilioPhone ?? null,
@@ -201,6 +274,9 @@ export async function POST(request: Request) {
       }
       case "step":
         business = await setSetupStep(email, body.step);
+        break;
+      case "draft":
+        business = await saveSetupLiveDraft(email, { ownerPhone: body.ownerPhone, areaCode: body.areaCode });
         break;
     }
     const response = NextResponse.json({ ok: true, live: false, ...(await view(business)) });

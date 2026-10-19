@@ -1,3 +1,4 @@
+import { DemoFenceError } from "@/lib/demo-fence";
 import { NextResponse } from "next/server";
 
 import { formatPlatformFeeRate, getPlatformFeeBps } from "@/lib/platform-fee";
@@ -105,6 +106,7 @@ export async function POST(request: Request) {
     const url = await createConnectOnboardingLink({ accountId });
     return NextResponse.json({ url });
   } catch (error) {
+    if (error instanceof DemoFenceError) return NextResponse.json({ error: error.message }, { status: 409 });
     const message =
       error instanceof Error ? error.message : "Could not start onboarding";
     console.error("connect.onboard_failed", { businessId: business.id, message });

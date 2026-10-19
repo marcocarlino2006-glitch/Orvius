@@ -1,5 +1,6 @@
 "use client";
 
+import { LoadFailure, SESSION_EXPIRED } from "@/components/load-failure";
 import { RecordLink } from "@/components/record-drawer";
 import { ProLead } from "@/components/pro-lead";
 import { OsShell } from "@/components/os-shell";
@@ -14,6 +15,7 @@ import { previewMove, type MovePreview } from "@/lib/schedule-move";
 import { DispatchWeek } from "@/components/dispatch-week";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { patchJob } from "@/lib/job-patch-client";
 
 type Tech = {
   id: string;
@@ -169,11 +171,7 @@ function Decision({
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch(`/api/jobs/${item.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ technicianId: item.recommendation.technicianId }),
-      });
+      const res = await patchJob(item.id, { technicianId: item.recommendation.technicianId });
       const data = (await res.json().catch(() => null)) as { error?: string } | null;
       if (!res.ok) throw new Error(data?.error ?? "Nobody was assigned — nothing changed");
       onDone();
@@ -238,7 +236,7 @@ export default function DispatchPage() {
     setError(null);
     fetch(picked ? `/api/dispatch?day=${picked}` : "/api/dispatch")
       .then(async (res) => {
-        if (!res.ok) throw new Error(res.status === 401 ? "Your session expired. Sign in again." : "The schedule didn't load. Nothing changed; try again.");
+        if (!res.ok) throw new Error(res.status === 401 ? SESSION_EXPIRED : "The schedule didn't load. Nothing changed; try again.");
         return res.json();
       })
       .then(setBoard)
@@ -260,11 +258,7 @@ export default function DispatchPage() {
 
   async function reassign(jobId: string, technicianId: string | null, name: string, undoTo?: string | null) {
     try {
-      const res = await fetch(`/api/jobs/${jobId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ technicianId }),
-      });
+      const res = await patchJob(jobId, { technicianId });
       if (!res.ok) throw new Error();
       const data = (await res.json().catch(() => ({}))) as { techSms?: { sent: boolean } };
       toast({
@@ -389,15 +383,7 @@ export default function DispatchPage() {
           {loading && board && view === "day" ? <span className="dsp-refreshing">Refreshing…</span> : null}
         </div>
 
-        {error ? (
-          <div className="ox-state ox-state--failure ox-state--inline" role="alert">
-            <p className="ox-state-title">Schedule not updated</p>
-            <p className="ox-state-copy">{error}</p>
-            <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" onClick={load}>
-              Retry
-            </button>
-          </div>
-        ) : null}
+        {error ? <LoadFailure title="Schedule not updated" error={error} onRetry={load} /> : null}
 
         {loading && !board ? (
           <div className="dsp-grid" aria-hidden>

@@ -84,7 +84,8 @@ test("a fallback call saved without its owner alert gets one, once", async () =>
 test("quiet lines get the alert ladder advanced every 5 minutes, behind CRON_SECRET", () => {
   const workflow = read(".github/workflows/alert-drain.yml");
   assert.match(workflow, /cron: "\*\/5 \* \* \* \*"/);
-  assert.match(workflow, /\/api\/cron\/alert-drain/);
+  assert.match(workflow, /scheduled-drain\.mjs alert-drain/);
+  assert.match(read("scripts/scheduled-drain.mjs"), /\/api\/cron\/\$\{sweep\}/);
   const route = read("src/app/api/cron/alert-drain/route.ts");
   assert.match(route, /isUnauthenticatedAccessAllowed\(\)/);
   assert.match(route, /drainOwnerAlerts\(/);

@@ -14,8 +14,8 @@ import { getTwilioClient } from "@/lib/twilio-client";
   flow — secondary customer profile, A2P trust bundle, brand, messaging service
   with the shop's number, campaign — one step per pass of the 30-minute cron,
   because each review takes minutes to weeks. Until the campaign is approved,
-  the shop's texts keep going out from the shared Orvius sender, so nothing
-  stops while it waits.
+  the shop's customer and technician texts use the shared Orvius sender only
+  if that sender is verified (lib/sms-eligibility.ts); otherwise they are held.
 */
 
 const SECONDARY_PROFILE_POLICY = "RNdfbf3fae0e1107f8aded0e7cead80bf5";

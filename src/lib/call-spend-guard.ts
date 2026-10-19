@@ -1,5 +1,5 @@
 import { normalizePhone } from "@/lib/customer";
-import { DEMO_OVERFLOW_SAY, demoVerdict, readDemoLoad } from "@/lib/demo-load";
+import { DEMO_OVERFLOW_SAY, demoDailyCeiling, demoVerdict, readDemoLoad, reserveDemoSlot } from "@/lib/demo-load";
 import { logWarn } from "@/lib/logger";
 import { enqueueOwnerAlert } from "@/lib/notification-queue";
 import { prisma } from "@/lib/prisma";
@@ -31,6 +31,8 @@ export async function callSpendCut(params: {
   callerPhone: string | null;
   /** The public demo line: held to its own live-call cap and daily budget. */
   demo?: boolean;
+  /** The demo call asking for a slot; without it the live cap falls back to a count. */
+  vapiCallId?: string;
   now?: Date;
 }): Promise<SpendCut | null> {
   const now = params.now ?? new Date();
@@ -53,6 +55,17 @@ export async function callSpendCut(params: {
         count: lastHour,
       };
     }
+  }
+
+  if (params.demo && params.vapiCallId) {
+    const load = await readDemoLoad(params.shop.id, now);
+    if (load.today > demoDailyCeiling()) {
+      logWarn("call.spend_cut", { businessId: params.shop.id, reason: "demo_daily_ceiling" });
+      return { reason: "demo_daily_ceiling", say: DEMO_OVERFLOW_SAY, count: load.today };
+    }
+    if (await reserveDemoSlot(params.vapiCallId, now)) return null;
+    logWarn("call.spend_cut", { businessId: params.shop.id, reason: "demo_live_cap" });
+    return { reason: "demo_live_cap", say: DEMO_OVERFLOW_SAY, count: load.live };
   }
 
   if (params.demo) {

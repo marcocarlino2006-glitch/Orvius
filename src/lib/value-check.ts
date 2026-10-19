@@ -7,8 +7,15 @@ import { getPlanById, getPlanPrice, type PlanId } from "@/lib/pricing-plans";
   cancel, so it is named on the founders' board while there is time to fix it
   (a number that stopped forwarding, a calendar with no open time) or refund.
   Booked work is valued only at the owner's own average ticket; without one,
-  only money actually collected counts.
+  only money actually collected counts. Only work that traces back to a call
+  or text Orvius handled is credited.
 */
+
+/**
+ * A lead Orvius itself captured: a call it answered or a text it handled. Work
+ * the owner typed in, or that came through another channel, is the shop's own.
+ */
+export const ORVIUS_CAPTURED_LEAD = { OR: [{ callId: { not: null } }, { source: "sms" }] };
 
 export const VALUE_WINDOW_DAYS = 30;
 /** A shop this new has not had a fair month yet. */
@@ -87,22 +94,40 @@ export async function payingShopValue(now = new Date()): Promise<ValueVerdict[]>
   });
   if (!shops.length) return [];
   const ids = shops.map((s) => s.id);
-  const [calls, jobs, deposits, invoices] = await Promise.all([
+  const capturedJob = { lead: { is: ORVIUS_CAPTURED_LEAD } };
+  const [calls, jobs, deposits, invoices, invoiceRefunds] = await Promise.all([
     prisma.call.groupBy({ by: ["businessId"], where: { businessId: { in: ids }, direction: "inbound", createdAt: { gte: since } }, _count: { _all: true } }),
-    prisma.job.groupBy({ by: ["businessId"], where: { businessId: { in: ids }, leadId: { not: null }, createdAt: { gte: since } }, _count: { _all: true } }),
-    prisma.deposit.groupBy({ by: ["businessId"], where: { businessId: { in: ids }, status: "paid", paidAt: { gte: since } }, _sum: { amountCents: true } }),
+    prisma.job.groupBy({ by: ["businessId"], where: { businessId: { in: ids }, createdAt: { gte: since }, ...capturedJob }, _count: { _all: true } }),
+    prisma.deposit.groupBy({
+      by: ["businessId"],
+      where: {
+        businessId: { in: ids },
+        status: "paid",
+        paidAt: { gte: since },
+        OR: [{ lead: { is: ORVIUS_CAPTURED_LEAD } }, { job: { is: capturedJob } }],
+      },
+      _sum: { amountCents: true, refundedCents: true },
+    }),
     prisma.invoice.groupBy({
       by: ["businessId"],
-      where: { businessId: { in: ids }, status: "paid", paidAt: { gte: since }, stripeSessionId: { not: null } },
+      where: { businessId: { in: ids }, status: "paid", paidAt: { gte: since }, stripeSessionId: { not: null }, job: { is: capturedJob } },
       _sum: { amountCents: true },
+    }),
+    prisma.payment.groupBy({
+      by: ["businessId"],
+      where: { businessId: { in: ids }, invoice: { status: "paid", paidAt: { gte: since }, stripeSessionId: { not: null }, job: { is: capturedJob } } },
+      _sum: { refundedCents: true },
     }),
   ]);
   const count = (rows: { businessId: string; _count: { _all: number } }[]) => new Map(rows.map((r) => [r.businessId, r._count._all]));
   const sum = (rows: { businessId: string; _sum: { amountCents: number | null } }[]) => new Map(rows.map((r) => [r.businessId, r._sum.amountCents ?? 0]));
   const callsBy = count(calls);
   const jobsBy = count(jobs);
+  const refunds = (rows: { businessId: string; _sum: { refundedCents: number | null } }[]) => new Map(rows.map((r) => [r.businessId, r._sum.refundedCents ?? 0]));
   const depositsBy = sum(deposits);
   const invoicesBy = sum(invoices);
+  const refundedBy = new Map<string, number>();
+  for (const m of [refunds(deposits), refunds(invoiceRefunds)]) for (const [id, c] of m) refundedBy.set(id, (refundedBy.get(id) ?? 0) + c);
   return shops.map((shop) =>
     judgeShopValue(
       {
@@ -114,7 +139,7 @@ export async function payingShopValue(now = new Date()): Promise<ValueVerdict[]>
         avgTicketCents: shop.avgTicketCents,
         callsAnswered: callsBy.get(shop.id) ?? 0,
         jobsBooked: jobsBy.get(shop.id) ?? 0,
-        collectedCents: (depositsBy.get(shop.id) ?? 0) + (invoicesBy.get(shop.id) ?? 0),
+        collectedCents: (depositsBy.get(shop.id) ?? 0) + (invoicesBy.get(shop.id) ?? 0) - (refundedBy.get(shop.id) ?? 0),
       },
       now,
     ),

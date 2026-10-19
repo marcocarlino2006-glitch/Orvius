@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/terms" },
   title: "Terms of Service",
   description: `Terms of Service for ${company.productName}, a product of ${company.legalName}.`,
 };
@@ -39,7 +40,7 @@ export default function TermsPage() {
           {company.productName} provides AI-assisted call and text handling and related workspace
           tools for home-service businesses, including qualification, summaries, owner
           notifications, jobs, dispatch, and related features we make available. The Service is
-          designed for {company.trades.join(", ")} shops and related trades we approve.
+          designed for {company.trades.slice(0, -1).join(", ")} and {company.trades.at(-1)} shops and related trades we approve.
         </p>
         <p>
           We improve the Service continuously. Features, providers, and integrations may change.
@@ -61,7 +62,8 @@ export default function TermsPage() {
         <p>
           You must provide accurate account and business information and keep it updated. You are
           responsible for activity under your account and for safeguarding access credentials. The
-          Service is intended for business use by persons 18 years of age or older.
+          Service is intended for business use by persons 18 years of age or older. The Service is
+          offered only to businesses located and operating in {company.serviceCountry}.
         </p>
       </LegalSection>
 

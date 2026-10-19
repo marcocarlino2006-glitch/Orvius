@@ -7,18 +7,24 @@ import { CheckoutNotPaidError, provisionFromCheckout, shopDraftSchema } from "@/
 import { logWarn } from "@/lib/logger";
 import { isStripeCheckoutConfigured } from "@/lib/stripe";
 import { isOnboardingComplete } from "@/lib/provision-business";
+import { provisioningStatus } from "@/lib/provision-attempt";
 import { getPublicLaunchReadiness } from "@/lib/public-launch-readiness";
 import { clientIp, sharedRateLimit } from "@/lib/rate-limit";
 import { prisma } from "@/lib/prisma";
 import { canCreateShopForEmail } from "@/lib/self-serve-signup";
 import { getOwnerSetupStatus } from "@/lib/owner-setup-state";
 import { resolveShopAccess } from "@/lib/workspace-access";
+import { isOwnerDemoWorkspace } from "@/lib/demo-fence";
 import { isSetupSandbox, parseSetup } from "@/lib/setup-flow";
 import { z } from "zod";
 
 /* Details are optional: a checkout that carried them builds the shop from Stripe. */
 const createSchema = shopDraftSchema.partial({ name: true, trade: true, ownerPhone: true }).extend({
   checkoutSessionId: z.string().min(8, "Paid checkout is required"),
+  /** Approved on this form, when the checkout's approval doesn't match the shop being built. */
+  activation: z
+    .object({ recording: z.literal(true), approved: z.literal(true), noticeVersion: z.string().max(64), setupVersion: z.string().max(64) })
+    .optional(),
 });
 
 export async function GET(request: NextRequest) {
@@ -35,6 +41,8 @@ export async function GET(request: NextRequest) {
   const sandbox = business ? isSetupSandbox(business) : false;
   // A demo shop has no line to set up; it opens straight onto Command.
   const ready = business?.environment === "demo" || (!sandbox && (setup?.ready ?? false));
+  // From the person's own demo, setup still opens: it builds their real shop, not this one.
+  const demoActive = isOwnerDemoWorkspace(business);
 
   // Setup asks on open so an owner who paid and left comes back to the form, not "Pay first".
   let checkoutSessionId: string | null = null;
@@ -45,8 +53,19 @@ export async function GET(request: NextRequest) {
     });
   }
 
+  /* Only a person without a live shop has a paid setup in flight. */
+  const provisioning =
+    !business || sandbox || demoActive
+      ? await provisioningStatus(email).catch((error: unknown) => {
+          logWarn("onboarding.provisioning_lookup_failed", { error: error instanceof Error ? error.message : "unknown" });
+          return null;
+        })
+      : null;
+
   return NextResponse.json({
     provisioned: Boolean(business) && !sandbox,
+    demoActive,
+    provisioning: provisioning && provisioning.state !== "succeeded" ? provisioning : null,
     complete: ready,
     ready,
     setup,
@@ -134,7 +153,7 @@ export async function POST(request: NextRequest) {
       { status: 400 },
     );
   }
-  const { checkoutSessionId, ...typed } = parsed.data;
+  const { checkoutSessionId, activation, ...typed } = parsed.data;
   if (isHipaaTrade(typed.trade)) {
     return NextResponse.json({ error: HIPAA_TRADE_REFUSAL, code: "trade_not_offered" }, { status: 400 });
   }
@@ -149,7 +168,7 @@ export async function POST(request: NextRequest) {
   try {
     let result;
     try {
-      result = await provisionFromCheckout({ sessionId: checkoutSessionId, email, draft: draft?.data });
+      result = await provisionFromCheckout({ sessionId: checkoutSessionId, email, draft: draft?.data, activation });
     } catch (error) {
       if (!(error instanceof CheckoutNotPaidError)) throw error;
       console.error("Paid checkout could not be verified:", error);
@@ -168,9 +187,22 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       );
     }
+    if (result.status === "needs_activation") {
+      return NextResponse.json(
+        {
+          error:
+            result.code === "activation_stale"
+              ? "Your shop's details changed since you approved what callers hear. Read the notice below and approve it to finish."
+              : "Approve what callers will hear before your line turns on.",
+          code: "activation_needed",
+          activation: result.terms,
+        },
+        { status: 409 },
+      );
+    }
     if (result.status === "busy") {
       return NextResponse.json(
-        { error: "Your line is being set up. This takes a few seconds.", code: "provision_in_progress" },
+        { error: "Your line is being set up. This takes a few seconds.", code: "provision_in_progress", provisioning: await provisioningStatus(email).catch(() => null) },
         { status: 409 },
       );
     }
@@ -209,6 +241,6 @@ export async function POST(request: NextRequest) {
         : error instanceof Error
           ? error.message
           : "Failed to create shop";
-    return NextResponse.json({ error: message }, { status: 400 });
+    return NextResponse.json({ error: message, provisioning: await provisioningStatus(email).catch(() => null) }, { status: 400 });
   }
 }

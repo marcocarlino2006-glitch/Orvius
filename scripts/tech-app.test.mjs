@@ -237,6 +237,12 @@ test("getting paid in cash locks the work and the finish text goes once", async 
   assert.equal((await call(linesRoute.PUT, "PUT", { token, jobId: job.id }, { lines: [] })).status, 409, "paid work is locked");
 
   assert.equal((await call(jobRoute.PATCH, "PATCH", { token, jobId: job.id }, { status: "completed" })).status, 400, "needs an outcome");
+  assert.equal(
+    (await call(jobRoute.PATCH, "PATCH", { token, jobId: job.id }, { status: "completed", resolutionCode: "maintenance" })).status,
+    409,
+    "a physical job is finished from on site",
+  );
+  assert.equal((await call(jobRoute.PATCH, "PATCH", { token, jobId: job.id }, { status: "on_site" })).status, 200);
   const done = await call(jobRoute.PATCH, "PATCH", { token, jobId: job.id }, { status: "completed", resolutionCode: "maintenance", resolutionSummary: "Cleaned coil" });
   assert.equal(done.status, 200);
   assert.equal(done.data.job.status, "completed");

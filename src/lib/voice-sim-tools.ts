@@ -10,9 +10,7 @@ import {
   NO_SLOTS_REPLY,
   outsideScopeReply,
   URGENT_NO_BOOK_REPLY,
-  PASSED_TO_NETWORK_REPLY,
-  NETWORK_NOT_A_YES_REPLY,
-  isClearYes,
+  NETWORK_NOT_OFFERED_REPLY,
   OFFER_GAP_MIN,
   OFFERED_SLOTS,
   parseSlotPreference,
@@ -126,10 +124,9 @@ function answer(shop: SimShop, call: ToolCall, now: Date, transferring: boolean,
     if (!open.length) return SLOT_TAKEN_REPLY;
     return call.name === "hold_new_time" ? heldNewTimeReply(at, tz) : heldReply(at, tz);
   }
-  if (call.name === "alert_team_now") return safetyAlertReply({ texted: true, transferring });
-  if (call.name === "pass_to_network") {
-    return isClearYes(typeof call.args.callerSaid === "string" ? call.args.callerSaid : null) ? PASSED_TO_NETWORK_REPLY : NETWORK_NOT_A_YES_REPLY;
-  }
+  if (call.name === "alert_team_now") return safetyAlertReply({ queued: true, transferring });
+  // The sandbox never offers the network, and production refuses a pass that wasn't offered.
+  if (call.name === "pass_to_network") return NETWORK_NOT_OFFERED_REPLY;
   return "Unknown tool. Continue the call without it.";
 }
 

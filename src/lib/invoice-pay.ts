@@ -1,20 +1,25 @@
+import { withLease } from "@/lib/provision-attempt";
 import type { Business, Invoice } from "@prisma/client";
 import type Stripe from "stripe";
 
 import { recordAudit } from "@/lib/audit";
+import { normalizePhone } from "@/lib/customer";
 import { sendCustomerSms } from "@/lib/customer-sms";
 import { formatCentsExact } from "@/lib/money";
 import { logWarn } from "@/lib/logger";
 import { creditNetworkSender } from "@/lib/orvius-network";
 import { calculateNetworkFeeCents, calculatePlatformFeeCents, isChargeableAmount } from "@/lib/platform-fee";
 import { checkoutPaymentMethods } from "@/lib/financing";
-import { checkoutSessionPaid, refundDuplicateCheckout, reuseOpenCheckoutSession } from "@/lib/checkout-guard";
+import { checkoutSessionPaid, holdDemoPayment, holdLatePayment, reserveCheckout } from "@/lib/checkout-guard";
 import { collectedCents } from "@/lib/payment-math";
 import { claimWebhookEvent, completeWebhookEvent } from "@/lib/webhook-events";
+import { assertLiveActionAllowed } from "@/lib/demo-fence";
 import { prisma } from "@/lib/prisma";
+import { raiseReconciliation } from "@/lib/system-of-record";
 import { paidDepositCents, shopTaxBps } from "@/lib/invoice-tax";
 import { feeBaseCents, withSalesTax } from "@/lib/sales-tax";
 import { mintPublicToken } from "@/lib/public-tokens";
+import { nextIntentVersion } from "@/lib/sms-intent";
 import { withSmsOptOutFooter } from "@/lib/sms-keywords";
 import { getAppBaseUrl, getStripe } from "@/lib/stripe";
 import { getConnectStatus } from "@/lib/stripe-connect";
@@ -66,6 +71,17 @@ export async function balanceDueForJob(params: {
   };
 }
 
+/** An owner's explicit change to a bill the customer already has, with the reason on the record. */
+export type InvoiceRevision = { reason: string; actor: "owner" | "teammate"; actorEmail: string };
+
+type UpsertResult = {
+  invoice: Invoice;
+  created: boolean;
+  depositPaidCents: number;
+  /** The new total differs from a bill the customer was sent, signed or paid toward; it was kept, not changed. */
+  repriceHeld?: { fromCents: number; toCents: number };
+};
+
 /**
  * The one open invoice for a job, created or re-priced from the final bill.
  *
@@ -77,13 +93,25 @@ export async function upsertJobInvoice(params: {
   businessId: string;
   jobId: string;
   totalCents: number;
-}): Promise<{ invoice: Invoice; created: boolean; depositPaidCents: number }> {
+  revision?: InvoiceRevision;
+}): Promise<UpsertResult> {
+  // Two completions of one job (owner tap and tech app, two servers) read "no invoice" together; one creates it.
+  return withLease(`invoice-job:${params.businessId}:${params.jobId}`, () => upsertJobInvoiceHeld(params), { forget: true });
+}
+
+async function upsertJobInvoiceHeld(params: {
+  businessId: string;
+  jobId: string;
+  totalCents: number;
+  revision?: InvoiceRevision;
+}): Promise<UpsertResult> {
   const { balanceCents, depositPaidCents, taxBps, taxCents } = await balanceDueForJob(params);
   const priced = { amountCents: balanceCents, subtotalCents: params.totalCents, taxCents, taxBps };
 
   const existing = await prisma.invoice.findFirst({
     where: { businessId: params.businessId, jobId: params.jobId },
     orderBy: { createdAt: "desc" },
+    include: { payments: { select: { id: true } } },
   });
 
   if (existing?.status === "paid") {
@@ -91,6 +119,32 @@ export async function upsertJobInvoice(params: {
   }
 
   if (existing) {
+    /*
+      A bill the customer was sent, signed (an accepted estimate) or paid
+      toward is what they agreed to. A different total from a later step
+      (line items, the tech app, a completion) never silently replaces it:
+      the bill stays as sent and the difference waits on the owner.
+    */
+    const committed = Boolean(existing.sentAt || existing.estimateId || existing.payments.length || existing.status === "partial");
+    const reason = params.revision?.reason.trim();
+    if (committed && priced.amountCents !== existing.amountCents) {
+      const change = { fromCents: existing.amountCents, toCents: priced.amountCents };
+      if (!reason) {
+        await holdInvoiceReprice({ businessId: params.businessId, invoice: existing, ...change });
+        return { invoice: existing, created: false, depositPaidCents, repriceHeld: change };
+      }
+      await recordAudit({
+        businessId: params.businessId,
+        entityType: "job",
+        entityId: params.jobId,
+        jobId: params.jobId,
+        action: "invoice.revised",
+        actor: params.revision!.actor,
+        actorEmail: params.revision!.actorEmail,
+        summary: `Bill changed from ${formatCentsExact(change.fromCents)} to ${formatCentsExact(change.toCents)} after the customer had it. Reason: ${reason}`,
+        detail: { invoiceId: existing.id, ...change, reason, sentAt: existing.sentAt?.toISOString() ?? null, estimateId: existing.estimateId },
+      });
+    }
     const invoice = await prisma.invoice.update({
       where: { id: existing.id },
       data: {
@@ -114,11 +168,36 @@ export async function upsertJobInvoice(params: {
   return { invoice, created: true, depositPaidCents };
 }
 
+async function holdInvoiceReprice(params: { businessId: string; invoice: Invoice; fromCents: number; toCents: number }) {
+  await raiseReconciliation({
+    businessId: params.businessId,
+    kind: "change",
+    entityType: "invoice",
+    entityId: params.invoice.id,
+    system: "orvius",
+    expected: { amountCents: params.fromCents, basis: params.invoice.estimateId ? "signed_estimate" : params.invoice.sentAt ? "sent_bill" : "paid_toward" },
+    observed: { amountCents: params.toCents },
+  });
+  await recordAudit({
+    businessId: params.businessId,
+    entityType: "job",
+    entityId: params.invoice.jobId ?? params.invoice.id,
+    jobId: params.invoice.jobId,
+    action: "invoice.reprice_held",
+    actor: "system",
+    summary: `The bill stays at ${formatCentsExact(params.fromCents)}, what the customer was given. A new total of ${formatCentsExact(params.toCents)} needs the owner to change it, with a reason.`,
+    detail: { invoiceId: params.invoice.id, fromCents: params.fromCents, toCents: params.toCents },
+    idempotencyKey: `invoice-reprice-held:${params.invoice.id}:${params.fromCents}:${params.toCents}`,
+  });
+}
+
 /** Text the customer their invoice link through the shop-scoped STOP list. */
 export async function sendInvoiceLink(params: {
   business: Pick<Business, "id" | "name">;
   invoice: Pick<Invoice, "id" | "amountCents" | "publicToken">;
   toPhone: string;
+  /** Who asked for this send; each send is its own version, linked to the one before. */
+  authorizedBy?: string;
 }) {
   if (!params.invoice.publicToken) {
     return { sent: false as const, reason: "no_token" as const };
@@ -133,6 +212,12 @@ export async function sendInvoiceLink(params: {
         `${formatCentsExact(balance)}. Pay securely here: ` +
         invoicePayUrl(params.invoice.publicToken),
     ),
+    intent: {
+      eventType: "invoice.pay_link",
+      eventId: params.invoice.id,
+      authorizedBy: params.authorizedBy ?? null,
+      ...(await nextIntentVersion({ businessId: params.business.id, eventType: "invoice.pay_link", eventId: params.invoice.id, to: normalizePhone(params.toPhone) ?? params.toPhone })),
+    },
   });
   if (result.sent) {
     await prisma.invoice.update({
@@ -149,7 +234,7 @@ export async function getInvoiceByToken(token: string) {
     where: { publicToken: token },
     include: {
       job: { select: { title: true, completedAt: true } },
-      payments: { select: { amountCents: true, status: true } },
+      payments: { select: { amountCents: true, status: true, refundedCents: true } },
       business: {
         select: {
           id: true,
@@ -184,6 +269,7 @@ export async function createInvoiceCheckoutSession(params: {
   business: Pick<Business, "id" | "name"> & ConnectableShop & Partial<Pick<Business, "financingEnabled" | "financingMethods">>;
   jobTitle?: string | null;
 }) {
+  await assertLiveActionAllowed(params.business.id, "Card checkout");
   const connect = getConnectStatus(params.business);
   if (!connect.canAcceptPayments || !connect.accountId) {
     throw new Error("Shop is not cleared to accept card payments");
@@ -196,13 +282,6 @@ export async function createInvoiceCheckoutSession(params: {
   if (!isChargeableAmount(balanceCents)) {
     throw new Error(`Invoice balance below Stripe minimum: ${balanceCents}`);
   }
-
-  const reused = await reuseOpenCheckoutSession({
-    sessionId: params.invoice.openCheckoutSessionId,
-    stripeAccount: connect.accountId,
-    amountCents: balanceCents,
-  });
-  if (reused) return reused;
 
   const token = params.invoice.publicToken;
   const baseUrl = getAppBaseUrl();
@@ -219,7 +298,17 @@ export async function createInvoiceCheckoutSession(params: {
   };
 
   const paymentMethods = checkoutPaymentMethods(params.business, balanceCents);
-  const session = await getStripe().checkout.sessions.create(
+  const accountId = connect.accountId;
+  return reserveCheckout({
+    scope: `invoice:${params.invoice.id}`,
+    stripeAccount: accountId,
+    amountCents: balanceCents,
+    businessId: params.business.id,
+    entity: { type: "invoice", id: params.invoice.id },
+    currentSessionId: async () =>
+      (await prisma.invoice.findUnique({ where: { id: params.invoice.id }, select: { openCheckoutSessionId: true } }))?.openCheckoutSessionId,
+    remember: (session) => prisma.invoice.update({ where: { id: params.invoice.id }, data: { openCheckoutSessionId: session.id } }),
+    create: (idempotencyKey) => getStripe().checkout.sessions.create(
     {
       mode: "payment",
       ...(paymentMethods ? { payment_method_types: paymentMethods } : {}),
@@ -243,10 +332,9 @@ export async function createInvoiceCheckoutSession(params: {
         metadata,
       },
     },
-    { stripeAccount: connect.accountId },
-  );
-  await prisma.invoice.update({ where: { id: params.invoice.id }, data: { openCheckoutSessionId: session.id } });
-  return session;
+    { stripeAccount: accountId, idempotencyKey },
+  ),
+  });
 }
 
 /**
@@ -276,7 +364,7 @@ export async function fulfillInvoiceCheckoutSession(
  * Record one cleared card payment against an invoice, exactly once per
  * session. The invoice is paid only when the money in covers it; anything
  * less leaves it part-paid with the rest still owed. A payment on an invoice
- * that was already settled is refunded rather than kept.
+ * that was already settled is held for the owner, never counted or refunded on its own.
  */
 export async function applyCardPaymentToInvoice(params: {
   session: Pick<Stripe.Checkout.Session, "id" | "amount_total" | "payment_intent">;
@@ -329,14 +417,22 @@ export async function applyCardPaymentToInvoice(params: {
       return { ok: true, reason: "already_paid" };
     }
     if (outcome.kind === "duplicate") {
-      await refundDuplicateCheckout({ session, businessId, entityType: "invoice", entityId: invoiceId, what: "invoice" });
+      const held = await holdDemoPayment({ businessId, entityType: "invoice", entityId: invoiceId, sessionId: session.id, amountCents: session.amount_total, held: "duplicate_refund" });
+      if (held) {
+        await completeWebhookEvent({ ...claim, status: "processed" });
+        return { ok: true, reason: "duplicate_held" };
+      }
+      await holdLatePayment({ session, businessId, entityType: "invoice", entityId: invoiceId, what: "invoice" });
       await completeWebhookEvent({ ...claim, status: "processed" });
-      return { ok: true, reason: "duplicate_refunded" };
+      return { ok: true, reason: "late_payment_held" };
     }
 
     await completeWebhookEvent({ ...claim, status: "processed" });
     const { invoice, amountCents, workCents } = outcome;
-    await textOwnerPaid({ businessId, jobId: invoice.jobId, amountCents }).catch(() => null);
+    if (await holdDemoPayment({ businessId, entityType: "invoice", entityId: invoice.id, sessionId: session.id, amountCents, held: "follow_ups" })) {
+      return { ok: true, reason: "held_in_demo" };
+    }
+    await textOwnerPaid({ businessId, jobId: invoice.jobId, amountCents, sessionId: session.id }).catch(() => null);
     if (params.network && invoice.jobId) {
       await creditNetworkSender({ jobId: invoice.jobId, amountCents: workCents }).catch((error) =>
         logWarn("network.credit_failed", {
@@ -357,7 +453,7 @@ export async function applyCardPaymentToInvoice(params: {
 }
 
 /* Runs once per card payment: only the caller that won the session claim gets here. */
-async function textOwnerPaid(params: { businessId: string; jobId: string | null; amountCents: number }) {
+async function textOwnerPaid(params: { businessId: string; jobId: string | null; amountCents: number; sessionId: string }) {
   const business = await prisma.business.findUnique({
     where: { id: params.businessId },
     select: { ownerPhone: true },
@@ -374,6 +470,7 @@ async function textOwnerPaid(params: { businessId: string; jobId: string | null;
     to: business.ownerPhone,
     businessId: params.businessId,
     audience: "owner",
+    intent: { eventType: "invoice.paid_owner", eventId: params.sessionId },
     body: `Orvius: ${who} paid ${formatCentsExact(params.amountCents)}${job?.title ? ` for ${job.title}` : ""}. It's on its way to your bank.`,
   });
 }
@@ -418,7 +515,7 @@ export async function invoiceCompletedJob(
     (job.estimate?.status === "accepted" ? job.estimate.amountCents : null);
   if (!totalCents) return { invoiced: false as const, reason: "no_amount" as const };
 
-  const { invoice } = await upsertJobInvoice({
+  const { invoice, repriceHeld } = await upsertJobInvoice({
     businessId: job.businessId,
     jobId: job.id,
     totalCents,
@@ -428,7 +525,9 @@ export async function invoiceCompletedJob(
   const blocked =
     invoice.status === "paid"
       ? "paid"
-      : !phone
+      : repriceHeld
+        ? "reprice_held"
+        : !phone
         ? "no_phone"
         : !getConnectStatus(job.business).canAcceptPayments
           ? "connect_incomplete"
@@ -444,7 +543,7 @@ export async function invoiceCompletedJob(
     return { invoiced: true as const, invoice, sms: null, reason: blocked };
   }
 
-  const sms = await sendInvoiceLink({ business: job.business, invoice, toPhone: phone });
+  const sms = await sendInvoiceLink({ business: job.business, invoice, toPhone: phone, authorizedBy: options.ownerAsked ? "owner:asked" : "system:autopilot" });
   if (sms.sent) {
     await recordAudit({
       businessId: job.businessId,

@@ -3,6 +3,7 @@ import { DEFAULT_JOB_DURATION_MIN, formatShopTime, MAX_SCHEDULE_DAYS } from "@/l
 import { findOpenSlots } from "@/lib/job";
 import { prisma } from "@/lib/prisma";
 import { classifyRequest } from "@/lib/trade-playbooks";
+import { grantsForActor, mayPropose } from "@/lib/command-authority";
 
 export const COPILOT_ACTIONS = ["assign_tech", "mark_contacted", "sms_followup", "book_window", "reschedule"] as const;
 export type CopilotActionName = (typeof COPILOT_ACTIONS)[number];
@@ -17,7 +18,7 @@ export type ProposeInput = {
 };
 
 export type ProposeOutcome =
-  | { ok: true; proposalId: string; action: string; preview: string; params: Record<string, string> }
+  | { ok: true; proposalId: string; action: string; preview: string; params: Record<string, string>; reused?: true }
   | { ok: false; error: string; status: number; reason?: string; alternatives?: string[] };
 
 type Shop = Pick<Business, "id" | "name" | "timezone" | "hoursJson" | "servicesJson" | "trade"> & { jobLengthsJson?: string | null };
@@ -91,7 +92,10 @@ async function refuseTaken(shop: Shop, target: SlotTarget, at: Date, what: strin
  * Turn a request into a proposal the owner approves. Nothing changes here: the
  * preview is the plan, and execution re-checks every step (copilot-execute).
  */
-export async function proposeAction(shop: Shop, input: ProposeInput): Promise<ProposeOutcome> {
+export async function proposeAction(shop: Shop, input: ProposeInput, proposer?: { role: string; email: string }): Promise<ProposeOutcome> {
+  if (proposer && !mayPropose(proposer, input.action, await grantsForActor(shop.id, proposer.email))) {
+    return { ok: false, error: "Asking Orvius for this kind of plan needs a Command grant from the owner.", status: 403, reason: "no_command_grant" };
+  }
   let preview = "";
   const params: Record<string, string> = {};
   const tz = shop.timezone;
@@ -182,8 +186,55 @@ export async function proposeAction(shop: Shop, input: ProposeInput): Promise<Pr
     return { ok: false, error: "Unknown action", status: 400 };
   }
 
+  const paramsJson = JSON.stringify(params);
+  const twin = await openTwin(shop.id, input.action, paramsJson);
+  if (twin && twin.status !== "proposed") return refuseTwin(twin.status);
+  if (twin) {
+    await prisma.copilotAction.updateMany({ where: { id: twin.id, status: "proposed" }, data: { preview } });
+    return { ok: true, proposalId: twin.id, action: input.action, preview, params, reused: true };
+  }
+
   const proposal = await prisma.copilotAction.create({
-    data: { businessId: shop.id, action: input.action, paramsJson: JSON.stringify(params), preview, status: "proposed" },
+    data: {
+      businessId: shop.id,
+      action: input.action,
+      paramsJson,
+      preview,
+      status: "proposed",
+      proposedByEmail: proposer?.email.trim().toLowerCase() ?? null,
+      proposedByRole: proposer?.role ?? null,
+    },
   });
   return { ok: true, proposalId: proposal.id, action: proposal.action, preview, params };
+}
+
+/** A plan approved later than this was made on an old picture of the shop; ask for a fresh one. */
+export const PROPOSAL_FRESH_MS = 12 * 60 * 60_000;
+
+/**
+ * The open plan for the same action on the same records, if any. Asking
+ * twice is one plan: a waiting twin is handed back, and a twin that is
+ * running or stopped partway blocks a second copy that could do it again.
+ */
+export async function openTwin(businessId: string, action: string, paramsJson: string, excludeId?: string) {
+  return prisma.copilotAction.findFirst({
+    where: {
+      businessId,
+      action,
+      paramsJson,
+      ...(excludeId ? { id: { not: excludeId } } : {}),
+      OR: [
+        { status: "proposed", createdAt: { gte: new Date(Date.now() - PROPOSAL_FRESH_MS) } },
+        { status: { in: ["executing", "reconcile"] } },
+      ],
+    },
+    orderBy: [{ createdAt: "desc" }],
+    select: { id: true, status: true },
+  });
+}
+
+export function refuseTwin(status: string): Extract<ProposeOutcome, { ok: false }> {
+  return status === "executing"
+    ? { ok: false, status: 409, reason: "twin_running", error: "The same plan is running right now. Check Command in a moment; it won't run twice." }
+    : { ok: false, status: 409, reason: "twin_needs_check", error: "The same plan stopped partway and is flagged in Command. Say whether it happened there first, so it isn't done twice." };
 }

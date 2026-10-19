@@ -15,8 +15,8 @@ export const ROLE_LABELS: Record<ShopRole, string> = {
 
 export const ROLE_DETAILS: Record<ShopRole, string> = {
   owner: "Everything, including billing and deleting the workspace.",
-  manager: "Everything except billing and deleting the workspace.",
-  dispatcher: "Calls, leads, jobs, customers and dispatch. Can't change settings or the team.",
+  manager: "Everything except billing and deleting the workspace. Changing a bill the customer already has, accepting an \"I paid\" or editing prices needs the owner's money grant.",
+  dispatcher: "Calls, leads, jobs, customers and dispatch. Can bill a job and log cash in hand; can't change a bill the customer already has, accept an \"I paid\", edit prices, settings or the team.",
 };
 
 export type Permission =
@@ -29,12 +29,16 @@ export type Permission =
   | "audit.view"
   | "reports.view"
   | "calls.publish"
-  | "customers.forget";
+  | "customers.forget"
+  | "command.approve"
+  | "money.adjust";
 
 const GRANTS: Record<ShopRole, ReadonlySet<Permission>> = {
-  owner: new Set(["settings.edit", "team.manage", "data.export", "billing.manage", "workspace.delete", "ownership.transfer", "audit.view", "reports.view", "calls.publish", "customers.forget"]),
+  owner: new Set(["settings.edit", "team.manage", "data.export", "billing.manage", "workspace.delete", "ownership.transfer", "audit.view", "reports.view", "calls.publish", "customers.forget", "command.approve", "money.adjust"]),
+  // Money actions aren't a role right for anyone but the owner: others need a scoped grant (money-authority.ts).
   manager: new Set(["settings.edit", "team.manage", "data.export", "audit.view", "reports.view"]),
-  dispatcher: new Set(),
+  // Command authority is not a role right: anyone but the owner approves plans only through an owner's grant (command-authority.ts).
+  dispatcher: new Set([]),
 };
 
 export function can(role: ShopRole, permission: Permission): boolean {

@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { after } from "next/server";
 import { applyCustomerConfirmReceipt } from "@/lib/customer-confirm";
+import { normalizePhone } from "@/lib/customer";
 import { applyDepositDeliveryReceipt } from "@/lib/deposit-delivery";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { prisma } from "@/lib/prisma";
 import { logInfo } from "@/lib/logger";
 import { applyMessageReceipt } from "@/lib/messages";
 import { applySmsDeliveryReceipt } from "@/lib/notification-queue";
+import { applyIntentReceipt } from "@/lib/sms-intent";
 import {
   getTwilioStatusWebhookUrl,
   validateTwilioRequest,
@@ -40,8 +42,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true, skipped: "missing MessageSid" });
   }
 
+  // Receipts arrive out of order; a stale "failed" never overwrites a "delivered".
   const updated = await prisma.ownerNotification.updateMany({
-    where: { deliveryId: messageSid, channel: "sms" },
+    where: { deliveryId: messageSid, channel: "sms", OR: [{ deliveryStatus: null }, { deliveryStatus: { not: "delivered" } }] },
     data: {
       deliveryStatus: messageStatus || "unknown",
       ...(errorCode ? { error: `Twilio error ${errorCode}` } : {}),
@@ -58,8 +61,13 @@ export async function POST(request: NextRequest) {
     messageStatus,
     errorCode,
   });
+  const sender = normalizePhone(String(form.get("From") ?? ""));
+  if (sender) {
+    await prisma.outboundSms.updateMany({ where: { sid: messageSid, fromNormalized: null }, data: { fromNormalized: sender } });
+  }
   const confirmReceipt = await applyCustomerConfirmReceipt({ messageSid, messageStatus, errorCode });
   const threadReceipt = await applyMessageReceipt({ messageSid, messageStatus });
+  const intentReceipt = await applyIntentReceipt({ messageSid, messageStatus, errorCode });
   const depositReceipt = await applyDepositDeliveryReceipt({
     messageSid,
     messageStatus,
@@ -80,6 +88,8 @@ export async function POST(request: NextRequest) {
       depositReopened: depositReceipt.reopened,
       confirmAlerted: confirmReceipt.alerted,
       threadUpdated: threadReceipt,
+      intentMatched: intentReceipt.matched,
+      intentException: intentReceipt.exception,
     },
   });
 

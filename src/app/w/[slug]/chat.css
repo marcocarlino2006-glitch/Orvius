@@ -2,8 +2,8 @@
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  background: #0f1013;
-  color: #eceef1;
+  background: var(--ov-booking-bg);
+  color: var(--ov-booking-ink);
   font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
   font-size: 15px;
   max-width: 28rem;
@@ -14,7 +14,7 @@
   height: 100dvh;
 }
 .wc a {
-  color: #f7bb5c;
+  color: var(--ov-booking-link);
 }
 .wc-head {
   display: flex;
@@ -22,15 +22,15 @@
   justify-content: space-between;
   gap: 12px;
   padding: 14px 16px;
-  background: #16181c;
-  border-bottom: 1px solid #23262c;
+  background: var(--ov-booking-raised);
+  border-bottom: 1px solid var(--ov-booking-line-soft);
 }
 .wc-head div {
   display: grid;
   gap: 2px;
 }
 .wc-head span {
-  color: #8b919a;
+  color: var(--ov-booking-faint);
   font-size: 12px;
 }
 .wc-x {
@@ -39,7 +39,7 @@
   border: 0;
   border-radius: 0.5rem;
   background: transparent;
-  color: #b4bac3;
+  color: var(--ov-booking-muted);
   font-size: 22px;
   cursor: pointer;
 }
@@ -56,19 +56,19 @@
   max-width: 85%;
   padding: 10px 12px;
   border-radius: 0.75rem 14px 14px 4px;
-  background: #1d2026;
+  background: var(--ov-booking-bubble);
   line-height: 1.45;
   white-space: pre-wrap;
 }
 .wc-bubble--me {
   align-self: flex-end;
   border-radius: 0.75rem 14px 4px 14px;
-  background: #f2a93b;
-  color: #1b1203;
+  background: var(--ov-booking-accent);
+  color: var(--ov-booking-on-accent);
 }
 .wc-bubble--warn {
   background: rgba(248, 113, 113, 0.14);
-  color: #fecaca;
+  color: var(--ov-booking-red-bright);
 }
 .wc-link {
   align-self: flex-start;
@@ -79,7 +79,7 @@
   display: grid;
   gap: 8px;
   padding: 12px 16px 16px;
-  border-top: 1px solid #23262c;
+  border-top: 1px solid var(--ov-booking-line-soft);
 }
 .wc-form textarea,
 .wc-form input {
@@ -87,9 +87,9 @@
   min-height: 44px;
   padding: 10px 12px;
   border-radius: 0.5rem;
-  border: 1px solid #2c3139;
-  background: #0b0c0e;
-  color: #fff;
+  border: 1px solid var(--ov-booking-line);
+  background: var(--ov-booking-bg);
+  color: var(--ox-white);
   font: inherit;
 }
 .wc-form textarea {
@@ -98,7 +98,7 @@
 }
 .wc-form textarea:focus,
 .wc-form input:focus {
-  outline: 2px solid #f2a93b;
+  outline: 2px solid var(--ov-booking-accent);
   outline-offset: 0;
   border-color: transparent;
 }
@@ -118,8 +118,8 @@
   min-height: 46px;
   border: 0;
   border-radius: 0.75rem;
-  background: #f2a93b;
-  color: #1b1203;
+  background: var(--ov-booking-accent);
+  color: var(--ov-booking-on-accent);
   font: inherit;
   font-weight: 600;
   cursor: pointer;
@@ -130,13 +130,13 @@
 }
 .wc-error {
   margin: 0;
-  color: #fca5a5;
+  color: var(--ov-booking-red);
   font-size: 14px;
 }
 .wc-fine,
 .wc-note {
   margin: 0;
-  color: #8b919a;
+  color: var(--ov-booking-faint);
   font-size: 12px;
   line-height: 1.4;
 }

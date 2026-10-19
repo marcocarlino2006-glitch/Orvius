@@ -9,6 +9,7 @@ import "../p/[id]/replay.css";
 export const revalidate = 60;
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/calls" },
   title: "Real calls Orvius answered",
   description: "Real customer calls to HVAC, plumbing and electrical shops, answered by Orvius and shared by the owners with the callers' permission.",
 };
@@ -26,9 +27,17 @@ export default async function GalleryPage() {
             description="Every call here came into a working shop's line. The words are as transcribed; names, numbers and addresses are hidden. Nothing here is staged."
           />
           <GalleryGrid calls={calls} />
-          <p className="pd-scenario-sub" style={{ marginTop: "1.5rem" }}>
-            Want to hear it yourself? <Link href="/try">Talk to it now</Link>.
-          </p>
+          {calls.length === 0 ? (
+            <p className="pd-scenario-sub" style={{ marginTop: "1.5rem" }}>
+              Until the first owner shares one, hear how it answers:{" "}
+              <Link href="/launch">listen to a sample call</Link>, then{" "}
+              <Link href="/try">talk to it as your own shop</Link>.
+            </p>
+          ) : (
+            <p className="pd-scenario-sub" style={{ marginTop: "1.5rem" }}>
+              Want to hear it yourself? <Link href="/try">Talk to it now</Link>.
+            </p>
+          )}
         </div>
       </section>
     </MarketingShell>

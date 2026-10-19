@@ -42,6 +42,21 @@ Events: `checkout.session.completed`, `customer.subscription.updated`, `customer
 
 **Important:** Change `prisma/schema.prisma` provider to `postgresql` and run migrations before production scale. For first deploy testing, Turso SQLite-compatible works.
 
+**Builds are pure; schema migrations are a separate approved step (`scripts/turso-migrate.mjs`).** The Vercel build command only generates the Prisma client and compiles (`npm run db:generate && npm run build`). It never connects to a database and refuses to migrate if run inside a build. A remote migration runs only as its own invocation, and refuses before connecting unless all of these are set:
+
+| Variable | What it binds |
+|---|---|
+| `MIGRATION_APPROVAL` | The approval reference (ticket, message link) |
+| `MIGRATION_RELEASE_COMMIT` | The full commit of the release; must equal the checked-out commit |
+| `MIGRATION_TARGET` | `production`, `preview` or `staging` |
+| `DATABASE_URL` host | Must be listed for that target in `ops/migration-targets.json`, and for no other target (empty until the owner adds hosts) |
+| `MIGRATION_PLAN_SHA256` | SHA-256 of the reviewed `prisma/turso-migrate.sql` (`shasum -a 256 prisma/turso-migrate.sql`) |
+| `MIGRATION_BACKUP_REF` | The backup or point-in-time recovery reference taken first |
+
+Order for a release that changes the schema: take the backup, run the approved migration at the release commit, then promote that commit. Rolling code back does not roll the schema or payment facts back; the additive SQL stays, and money facts are reconciled, never deleted. Preview and staging use their own databases, synthetic data and no live provider effects. After promotion, run `EXPECTED_COMMIT=<full sha> npm run prod:verify`; it fails without `EXPECTED_COMMIT`, or when `/api/health` reports a different `release.commit`.
+
+**Paid voice tests are off by default.** `voice-gate.yml` and `voice-nightly.yml` ("Voice full run") have no schedule, no label trigger and no trusted-event trigger. A receptionist PR only gets a warning. A paid run starts by hand (Actions → Run workflow) in the protected `paid-voice-tests` environment, with an `authorization` JSON written by the budget owner: `id`, `approvedBy`, full `commit`, `environment`, test-only `receptionistPhoneId`/`callerPhoneId`, consented `destinationAllowlist`, `scenarioProfile`, `maxCalls`, `maxMinutesPerCall`, `budgetUsd`, `abortOwner`, `cleanup: "restore-assistant-and-delete-test-assistant"`, `evidence: "redacted"`, `expiresAt`, and `transfer`/`transferAuthorizedBy` only if transfers are separately allowed. The simulator refuses before any provider call when anything is missing or does not match. Owner actions: create the `paid-voice-tests` environment with required reviewers and move the `VAPI_API_KEY`/`VOICE_SIM_*` secrets into it.
+
 ## 4. Custom domains
 
 Vercel → Project → Domains:

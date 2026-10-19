@@ -10,6 +10,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/security" },
   title: "Security",
   description: `Security practices for ${company.productName}. No third-party audit certification claimed.`,
 };
@@ -33,45 +34,56 @@ export default function SecurityPage() {
       </LegalSection>
 
       <LegalSection title="2. Practices">
-        <p>Each of these is enforced in code, and the ones marked checked run as automated tests on every release.</p>
-        <ul>
+        <p className="legal-lead">Each of these is enforced in code, and the ones marked checked run as automated tests on every release.</p>
+        <ul className="legal-rows">
           <li>
-            <strong>One shop never sees another&apos;s records (checked).</strong> Every signed-in request is tied to
+            <strong>One shop never sees another&apos;s records (checked).</strong>
+            <span>Every signed-in request is tied to
             the shop it belongs to, and every record opened by id is looked up inside that shop. A release fails if any
-            API route doesn&apos;t check who is asking.
+            API route doesn&apos;t check who is asking.</span>
           </li>
           <li>
-            <strong>Roles (checked).</strong> Owner, manager and dispatcher each see only what their role allows.
-            Technicians get a private link per person, not a sign-in, and sending a new link retires the old one.
+            <strong>Roles (checked).</strong>
+            <span>Owner, manager and dispatcher each see only what their role allows.
+            Technicians get a private link per person, not a sign-in, and sending a new link retires the old one.</span>
           </li>
           <li>
-            <strong>Credentials.</strong> Connected-app tokens and keys (Jobber, Housecall Pro, QuickBooks) are encrypted before they are stored.
-            Passwords are stored only as salted hashes. Provider keys live outside the source code.
+            <strong>Credentials.</strong>
+            <span>Connected-app tokens and keys (Jobber, Housecall Pro, QuickBooks) are encrypted before they are stored.
+            Passwords are stored only as salted hashes. Provider keys live outside the source code.</span>
           </li>
           <li>
-            <strong>Signed webhooks.</strong> Calls, texts, payments and Jobber updates are accepted only with a valid
-            provider signature or shared secret.
+            <strong>Signed webhooks.</strong>
+            <span>Calls, texts, payments and Jobber updates are accepted only with a valid
+            provider signature or shared secret.</span>
           </li>
           <li>
-            <strong>Activity log.</strong> Settings → Activity log records what Orvius did on each call and what your
-            team changed, with who and when, and downloads as CSV.
+            <strong>Activity log.</strong>
+            <span>Settings → Activity log records what Orvius did on each call and what your
+            team changed, with who and when, and downloads as CSV.</span>
           </li>
           <li>
-            <strong>Retention.</strong> Call recordings, transcripts and voicemail are deleted{" "}
+            <strong>Retention.</strong>
+            <span>Call recordings, transcripts and voicemail are deleted{" "}
             {CALL_CONTENT_RETENTION_MONTHS} months after the call. Provider delivery logs are pruned after{" "}
-            {WEBHOOK_EVENT_RETENTION_DAYS} days and alert history after {OWNER_NOTIFICATION_RETENTION_DAYS} days.
+            {WEBHOOK_EVENT_RETENTION_DAYS} days and alert history after {OWNER_NOTIFICATION_RETENTION_DAYS} days.</span>
           </li>
           <li>
-            <strong>Recording notice.</strong> Every call opens by telling the caller it may be recorded and is
-            answered by an automated receptionist.
+            <strong>Recording notice.</strong>
+            <span>Every call opens by telling the caller it may be recorded and is
+            answered by an automated receptionist.</span>
           </li>
-          <li>Encrypted connections (HTTPS/TLS) for all web and API traffic.</li>
+          <li>
+            <strong>Connections.</strong>
+            <span>Encrypted (HTTPS/TLS) for all web and API traffic.</span>
+          </li>
         </ul>
         <p>No system is perfectly secure. We work to reduce risk and respond to incidents.</p>
       </LegalSection>
 
       <LegalSection title="3. Product controls you operate">
-        <ul>
+        <p className="legal-lead">Each of these is in your workspace, for you or your team to use.</p>
+        <ul className="legal-checks">
           <li>Business hours, services, and escalation contacts you configure</li>
           <li>Whether Orvius books callers itself or only takes the request for you to schedule</li>
           <li>
@@ -106,10 +118,11 @@ export default function SecurityPage() {
       </LegalSection>
 
       <LegalSection title="5. Subprocessors">
-        <ul>
+        <ul className="legal-rows">
           {subprocessors.map((s) => (
             <li key={s.name}>
-              <strong>{s.name}</strong> — {s.purpose}
+              <strong>{s.name}</strong>
+              <span>{s.purpose}</span>
             </li>
           ))}
         </ul>

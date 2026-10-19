@@ -7,6 +7,7 @@ import { logWarn } from "@/lib/logger";
 import { enqueueOwnerAlert } from "@/lib/notification-queue";
 import { HOUR_MS, pauseDate, PAUSE_ENDING_NOTICE_DAYS, type PauseMonths, pauseWindow } from "@/lib/plan-exit";
 import { prisma } from "@/lib/prisma";
+import { performOnce, revertEffect, STRIPE_REPLAY_WINDOW_MS } from "@/lib/provider-effect";
 import { getStripe } from "@/lib/stripe";
 
 /*
@@ -89,18 +90,36 @@ export async function pauseShopPlan(
   if (!periodEnd) return { ok: false, error: "Stripe didn't say when this month ends. Nothing was changed.", status: 502 };
 
   const { startsAt, until } = pauseWindow(periodEnd, months);
-  await stripe.subscriptions.update(subscription.id, {
-    pause_collection: { behavior: "void", resumes_at: Math.floor(until.getTime() / 1000) },
-  });
-  await prisma.business.update({ where: { id: shop.id }, data: { pauseStartsAt: startsAt, pausedUntil: until } });
-  await recordAudit({
+  const resumesAt = Math.floor(until.getTime() / 1000);
+  await performOnce<Stripe.Subscription>({
+    provider: "stripe",
+    operation: "plan.pause",
+    correlationKey: `pause:${subscription.id}:${resumesAt}`,
     businessId: shop.id,
-    entityType: "shop",
-    entityId: shop.id,
-    action: "billing.paused",
-    actor: "owner",
-    actorEmail,
-    summary: `Plan paused for ${months} month${months === 1 ? "" : "s"}: no charge from ${pauseDate(startsAt)} until ${pauseDate(until)}.`,
+    entity: { type: "subscription", id: subscription.id },
+    kind: "change",
+    replayWindowMs: STRIPE_REPLAY_WINDOW_MS,
+    perform: (idempotencyKey) =>
+      stripe.subscriptions.update(subscription.id, { pause_collection: { behavior: "void", resumes_at: resumesAt } }, { idempotencyKey }),
+    idOf: (sub) => sub.id,
+    retrieve: (id) => stripe.subscriptions.retrieve(id),
+    find: async () => {
+      const sub = await stripe.subscriptions.retrieve(subscription.id);
+      return sub.pause_collection?.resumes_at === resumesAt ? sub : null;
+    },
+    finalize: async () => {
+      await prisma.business.update({ where: { id: shop.id }, data: { pauseStartsAt: startsAt, pausedUntil: until } });
+      await revertEffect("stripe", `resume:${subscription.id}:${until.getTime()}`);
+      await recordAudit({
+        businessId: shop.id,
+        entityType: "shop",
+        entityId: shop.id,
+        action: "billing.paused",
+        actor: "owner",
+        actorEmail,
+        summary: `Plan paused for ${months} month${months === 1 ? "" : "s"}: no charge from ${pauseDate(startsAt)} until ${pauseDate(until)}.`,
+      });
+    },
   });
   return { ok: true, startsAt, until };
 }
@@ -119,10 +138,31 @@ export async function resumeShopPlan(
     for the month it is in was voided.
   */
   const started = isPaused(shop, now);
-  await getStripe().subscriptions.update(
-    shop.stripeSubscriptionId,
-    started ? { pause_collection: "", billing_cycle_anchor: "now", proration_behavior: "none" } : { pause_collection: "" },
-  );
+  const stripe = getStripe();
+  const subscriptionId = shop.stripeSubscriptionId;
+  /* Resuming inside a pause starts a paid month; sent twice it would start two, so a lost reply is checked at Stripe first. */
+  await performOnce<Stripe.Subscription>({
+    provider: "stripe",
+    operation: started ? "plan.resume_now" : "plan.call_off_pause",
+    correlationKey: `resume:${subscriptionId}:${shop.pausedUntil.getTime()}`,
+    businessId: shop.id,
+    entity: { type: "subscription", id: subscriptionId },
+    kind: "change",
+    replayWindowMs: STRIPE_REPLAY_WINDOW_MS,
+    perform: (idempotencyKey) =>
+      stripe.subscriptions.update(
+        subscriptionId,
+        started ? { pause_collection: "", billing_cycle_anchor: "now", proration_behavior: "none" } : { pause_collection: "" },
+        { idempotencyKey },
+      ),
+    idOf: (sub) => sub.id,
+    retrieve: (id) => stripe.subscriptions.retrieve(id),
+    find: async () => {
+      const sub = await stripe.subscriptions.retrieve(subscriptionId);
+      return sub.pause_collection ? null : sub;
+    },
+    finalize: () => revertEffect("stripe", `pause:${subscriptionId}:${Math.floor(shop.pausedUntil!.getTime() / 1000)}`),
+  });
   const updated = await prisma.business.update({
     where: { id: shop.id },
     data: { pauseStartsAt: null, pausedUntil: null },

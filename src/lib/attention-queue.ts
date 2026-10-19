@@ -1,3 +1,4 @@
+import { PAST_DUE_LABEL, jobPastDue } from "@/lib/job-status";
 import "server-only";
 
 import { failuresThatReachedNoOne } from "@/lib/alert-reach";
@@ -1052,7 +1053,8 @@ export async function collectAttention(businessId: string, now = new Date()): Pr
       (job.status === "scheduled" || job.status === "confirmed");
     const dueToday =
       scheduled != null && scheduled >= dayStart && scheduled < dayEnd;
-    const unassigned = !job.technicianId;
+    const recover = jobPastDue(job, now.getTime());
+    const unassigned = !job.technicianId && !recover;
     const group = {
       key: job.customer?.id ?? job.lead?.id ?? `job:${job.id}`,
       label: who,
@@ -1225,13 +1227,13 @@ export async function collectAttention(businessId: string, now = new Date()): Pr
         impact: "critical",
         title: who,
         detail: [
-          "Appointment past due",
+          recover ? "Visit time passed, never started" : "Appointment past due",
           job.technician?.name ? `Tech: ${job.technician.name}` : null,
           job.status.replace(/_/g, " "),
         ]
           .filter(Boolean)
           .join(" · "),
-        recommendedAction: "Update status",
+        recommendedAction: recover ? PAST_DUE_LABEL : "Update status",
         href: `/dashboard/jobs/${job.id}`,
         entityType: "job",
         entityId: job.id,

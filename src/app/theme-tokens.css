@@ -47,13 +47,15 @@
     scripts/verify-dock.cjs scans the whole scroll range and asserts it.
   */
   --ui-dock-glass: rgb(31 31 34 / 0.9);
+  --ui-danger: #f26b6b;
+  --ui-on-danger: #111113;
 }
 
 [data-theme="day"] {
   color-scheme: light;
 
-  --ui-bg: #f7f7f4;
-  --ui-surface: #ffffff;
+  --ui-bg: #f4f1e8;
+  --ui-surface: #f4f1e8;
   /* Hover is derived from the border tone; the brief fixes only the resting
      values for this colorway. */
   --ui-surface-hover: #f2f1ed;
@@ -69,6 +71,8 @@
   --ui-lip: inset 0 1px 0 0 rgb(255 255 255 / 0.9);
   --ui-dock-shadow: 0 12px 32px rgb(38 37 30 / 0.12);
   --ui-dock-glass: rgb(255 255 255 / 0.9);
+  --ui-danger: #b42318;
+  --ui-on-danger: #ffffff;
 }
 
 /*
@@ -116,6 +120,40 @@ body {
 :root {
   --ox-white: #fff;
   --ox-ink-on-green: #06140d;
+
+  /*
+    Always-dark phone surfaces: booking, webchat, the tech app, public
+    confirm pages. Five copies of one ladder, named once. Every pair below
+    clears AA against the canvas it sits on (computed, WCAG formula):
+    ink 16.83, muted 10.02, faint 6.16, link 11.38, red 10.31,
+    red-bright 13.53, green 9.80, mint 12.84, on-accent 9.27.
+    Folded in while naming (each step imperceptible, AA still clears):
+    chat canvas 0f1013 into bg, hairlines 23262c and 23272e into
+    line-soft, plans secondary b7bcc4 into muted, tech prompt fcd34d
+    into link, tech live 7ee2b4 into mint, tech pressed 20242a into
+    bubble, steps done 34d399 into green, pending-step text 6b717a
+    into faint (it sat at 3.98, under AA for 1rem semibold).
+    Tech keeps its private ladder (high 191c21, line-strong 30353d,
+    pressed pair) until its own pass; nothing outside .ta reads it.
+  */
+  --ov-booking-bg: #0b0c0e;
+  --ov-booking-card: #121418;
+  --ov-booking-raised: #16181c;
+  --ov-booking-action: #1a1d22;
+  --ov-booking-bubble: #1d2026;
+  --ov-booking-track: #262a31;
+  --ov-booking-line: #2c3139;
+  --ov-booking-line-soft: #22262c;
+  --ov-booking-ink: #eceef1;
+  --ov-booking-muted: #b4bac3;
+  --ov-booking-faint: #8b919a;
+  --ov-booking-accent: #f2a93b;
+  --ov-booking-link: #f7bb5c;
+  --ov-booking-on-accent: #1b1203;
+  --ov-booking-red: #fca5a5;
+  --ov-booking-red-bright: #fecaca;
+  --ov-booking-green: #3ecf8e;
+  --ov-booking-mint: #6ee7b7;
 }
 
 /*
