@@ -22,8 +22,8 @@
   --ox-line: rgb(255 255 255 / 0.06);
   --ox-line-strong: rgb(255 255 255 / 0.12);
   --ox-text: #e6e6e6;
-  --ox-text-2: #b3b3b3;
-  --ox-mute: #8c8c8c;
+  --ox-text-2: #c9c9c9;
+  --ox-mute: #a8a8a8;
   --ox-primary: rgb(255 255 255 / 0.95);
   --ox-on-primary: rgb(0 0 0 / 0.9);
   --ox-fill: rgb(255 255 255 / 0.06);
@@ -50,7 +50,7 @@
   --ox-tint: 255 255 255;
   --ox-legacy-text: #e9e9e9;
   --ox-legacy-text-2: #c7c7c7;
-  --ox-legacy-mute: #8f8d88;
+  --ox-legacy-mute: #a9a9a9;
   --ox-panel: #1b1c1f;
   --ox-rail: #151618;
 }
@@ -71,8 +71,8 @@ html[data-theme="day"] .os-shell-night {
   --ox-line: #e4dfd4;
   --ox-line-strong: #d4cec2;
   --ox-text: #161513;
-  --ox-text-2: #3f3c36;
-  --ox-mute: #6b675f;
+  --ox-text-2: #2e2c26;
+  --ox-mute: #504e48;
   --ox-amber: #9a5b00;
   --ox-amber-hi: #b36a00;
   --ox-amber-soft: rgb(154 91 0 / 0.1);
@@ -86,14 +86,14 @@ html[data-theme="day"] .os-shell-night {
   --ox-focus: 0 0 0 2px var(--ox-bg), 0 0 0 4px rgb(0 0 0 / 0.28);
   --ox-tint: 17 19 22;
   --ox-legacy-text: #161513;
-  --ox-legacy-text-2: #3f3c36;
-  --ox-legacy-mute: #6b675f;
+  --ox-legacy-text-2: #2e2c26;
+  --ox-legacy-mute: #504e48;
   /* Day-only: legacy night rules read these with their original hex as fallback. */
   --ox-day-surface: #f4f1e8;
   --ox-day-sunk: #f4f1e8;
   --ox-day-line: #e4dfd4;
   --ox-day-ink: #161513;
-  --ox-day-soft: #6b675f;
+  --ox-day-soft: #504e48;
   --ox-panel: #f4f1e8;
   --ox-rail: #f4f1e8;
   --ox-primary: #161513;
