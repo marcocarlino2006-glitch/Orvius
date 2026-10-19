@@ -37,7 +37,9 @@ jobs:
         env:
           ORVIUS_ADMIN_KEY: ${{ secrets.ORVIUS_ADMIN_KEY }}
           # Compared with the commit the serving deployment reports, never this checkout.
-          EXPECTED_COMMIT: ${{ github.event_name == 'deployment_status' && github.event.deployment.sha || vars.APPROVED_RELEASE_COMMIT }}
+          # Scheduled and manual runs expect main's head — the release that should be
+          # serving once the deploy lands; per-deploy runs expect the deployment itself.
+          EXPECTED_COMMIT: ${{ github.event_name == 'deployment_status' && github.event.deployment.sha || github.sha }}
         run: |
           set +e
           node scripts/prod-verify.mjs > /tmp/report.txt 2>&1
