@@ -78,7 +78,8 @@
 
 .cmd-feed-result {
   font-size: var(--cr-label);
-  color: var(--ox-mute);
+  color: var(--ox-text-2);
+  font-weight: 500;
 }
 
 .cmd-head + .cs-grid,
