@@ -10,6 +10,8 @@ import {
   PERMISSION_LEVELS,
   SETUP_GOALS,
   SETUP_STEPS,
+  hoursSummary,
+  isSetupTrade,
   parseZipList,
   setupTradeGroups,
   type GoLiveItem,
@@ -31,6 +33,9 @@ type Sandbox = {
   team: "solo" | "crew" | null;
   crew: number;
   hours: HoursPresetId | null;
+  importedHours: boolean;
+  importedHoursSummary: string | null;
+  importedAddress: string | null;
   services: { options: string[]; chosen: string[] };
   zips: string[];
   needsServiceArea: boolean;
@@ -161,7 +166,13 @@ export function TurnOnOrvius({
       <TopBar index={index} onBack={back ? () => go(back) : undefined} testMode={Boolean(sandbox)} />
       <section className="ton-stage" key={step}>
         {step === "business" ? (
-          <BusinessStep sandbox={sandbox} busy={busy} onSave={(name, trade) => run({ action: "start", name, trade, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }, "goal")} />
+          <BusinessStep
+            sandbox={sandbox}
+            busy={busy}
+            onSave={(name, trade, found) =>
+              run({ action: "start", name, trade, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, ...(found ? { found } : {}) }, "goal")
+            }
+          />
         ) : null}
         {step === "goal" && sandbox ? (
           <GoalStep sandbox={sandbox} busy={busy} onSave={(goal) => run({ action: "goal", goal }, "day")} />
@@ -248,6 +259,18 @@ function Primary({ children, disabled, onClick }: { children: React.ReactNode; d
 
 /* ── 1. What kind of business ─────────────────────────────────────────── */
 
+type FoundShop = {
+  name: string;
+  address: string | null;
+  phone: string | null;
+  website: string | null;
+  hoursJson: string | null;
+  trade: Trade | null;
+  source: "website" | "google";
+};
+
+type Claimed = { address?: string; hoursJson?: string; source: "website" | "google" };
+
 function BusinessStep({
   sandbox,
   busy,
@@ -255,17 +278,101 @@ function BusinessStep({
 }: {
   sandbox: Sandbox | null;
   busy: boolean;
-  onSave: (name: string, trade: Trade) => void;
+  onSave: (name: string, trade: Trade, found?: Claimed) => void;
 }) {
   const [trade, setTrade] = useState<Trade | null>(sandbox?.trade ?? null);
   const [name, setName] = useState(sandbox?.name ?? "");
   const groups = useMemo(() => setupTradeGroups(), []);
+  const [query, setQuery] = useState("");
+  const [looking, setLooking] = useState(false);
+  const [results, setResults] = useState<FoundShop[] | null>(null);
+  const [note, setNote] = useState<string | null>(null);
+  const [claimed, setClaimed] = useState<Claimed | null>(null);
+
+  async function findShop() {
+    const q = query.trim();
+    if (q.length < 3 || looking) return;
+    setLooking(true);
+    setNote(null);
+    setResults(null);
+    try {
+      const res = await fetch(`/api/onboarding/lookup?q=${encodeURIComponent(q)}`);
+      const json = (await res.json().catch(() => ({}))) as { found?: FoundShop[]; reason?: string };
+      const found = json.found ?? [];
+      if (found.length === 1) pick(found[0]!);
+      else if (found.length > 1) setResults(found);
+      else setNote(json.reason ?? "No match. Fill it in below — it takes a minute.");
+    } catch {
+      setNote("Couldn't look that up. Fill it in below — it takes a minute.");
+    } finally {
+      setLooking(false);
+    }
+  }
+
+  function pick(shop: FoundShop) {
+    setName(shop.name);
+    if (shop.trade && isSetupTrade(shop.trade)) setTrade(shop.trade);
+    setClaimed({
+      ...(shop.address ? { address: shop.address } : {}),
+      ...(shop.hoursJson ? { hoursJson: shop.hoursJson } : {}),
+      source: shop.source,
+    });
+    setResults(null);
+    const bits = [shop.address, hoursSummary(shop.hoursJson)].filter(Boolean);
+    setNote(bits.length ? `Found it: ${bits.join(" · ")}. Loaded below — check it and continue.` : "Found it. Loaded below — check it and continue.");
+  }
+
+  const save = () => {
+    if (trade && name.trim().length >= 2) onSave(name.trim(), trade, claimed ?? undefined);
+  };
+
   return (
     <>
       <Heading
         title="What kind of business do you run?"
         lead="Orvius loads the questions your callers get asked and the calls it must never handle alone."
       />
+      <fieldset className="ton-group">
+        <legend className="ton-group-title">Start with your shop as customers find it</legend>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void findShop();
+          }}
+        >
+          <label className="ton-field">
+            <span className="ton-label">Your website or Google listing</span>
+            <input
+              className="ton-input"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="raysheating.com or Ray's Heating, Austin"
+              autoComplete="url"
+              maxLength={200}
+            />
+          </label>
+          <Primary disabled={query.trim().length < 3 || looking} onClick={() => void findShop()}>
+            {looking ? "Looking…" : "Find my shop"}
+          </Primary>
+        </form>
+        {results ? (
+          <div className="ton-cards" role="radiogroup" aria-label="Which one is your shop?">
+            {results.map((shop) => (
+              <button key={`${shop.name}-${shop.address}`} type="button" className="ton-card" onClick={() => pick(shop)}>
+                <span>{shop.name}</span>
+                {shop.address ? <span className="ton-note">{shop.address}</span> : null}
+              </button>
+            ))}
+          </div>
+        ) : null}
+        {note ? (
+          <p className="ton-note" aria-live="polite">
+            {note}
+          </p>
+        ) : (
+          <p className="ton-note">We fill in your name, address and hours so you confirm instead of typing. Or just pick below.</p>
+        )}
+      </fieldset>
       {groups.map((group) => (
         <fieldset key={group.title} className="ton-group">
           <legend className="ton-group-title">{group.title}</legend>
@@ -300,12 +407,12 @@ function BusinessStep({
             autoFocus
             maxLength={80}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && name.trim().length >= 2) onSave(name.trim(), trade);
+              if (e.key === "Enter" && name.trim().length >= 2) save();
             }}
           />
         </label>
       ) : null}
-      <Primary disabled={!trade || name.trim().length < 2 || busy} onClick={() => trade && onSave(name.trim(), trade)}>
+      <Primary disabled={!trade || name.trim().length < 2 || busy} onClick={save}>
         {busy ? "Saving…" : "Continue"}
       </Primary>
       <p className="ton-fine">No card. Nothing answers real calls until you say so.</p>
@@ -352,14 +459,14 @@ function DayStep({
   sandbox: Sandbox;
   busy: boolean;
   onSave: (body: {
-    hours: HoursPresetId;
+    hours: HoursPresetId | "listing";
     services: string[];
     zips?: string[];
     team?: "solo" | "crew";
     crew?: Array<{ name: string; phone: string }>;
   }) => void;
 }) {
-  const [hours, setHours] = useState<HoursPresetId>(sandbox.hours ?? "weekdays");
+  const [hours, setHours] = useState<HoursPresetId | "listing">(sandbox.importedHours ? "listing" : (sandbox.hours ?? "weekdays"));
   const [serviceOptions, setServiceOptions] = useState(sandbox.services.options);
   const [services, setServices] = useState<string[]>(sandbox.services.chosen.length ? sandbox.services.chosen : sandbox.services.options);
   const [extra, setExtra] = useState("");
@@ -406,6 +513,17 @@ function DayStep({
       <fieldset className="ton-group">
         <legend className="ton-group-title">Your hours</legend>
         <div className="ton-chips" role="radiogroup" aria-label="Your hours">
+          {sandbox.importedHours ? (
+            <button
+              type="button"
+              role="radio"
+              aria-checked={hours === "listing"}
+              className={`ton-chip ${hours === "listing" ? "is-on" : ""}`}
+              onClick={() => setHours("listing")}
+            >
+              From your listing{sandbox.importedHoursSummary ? ` · ${sandbox.importedHoursSummary}` : ""}
+            </button>
+          ) : null}
           {HOURS_PRESETS.map((preset) => (
             <button
               key={preset.id}
@@ -419,7 +537,11 @@ function DayStep({
             </button>
           ))}
         </div>
-        <p className="ton-note">Different every day? Pick the closest; set exact hours in Settings later.</p>
+        <p className="ton-note">
+          {sandbox.importedHours
+            ? "These came from your listing. Keep them, or pick a preset to replace them — exact hours can be set in Settings later."
+            : "Different every day? Pick the closest; set exact hours in Settings later."}
+        </p>
       </fieldset>
 
       <fieldset className="ton-group">

@@ -16,7 +16,9 @@ import {
   PERMISSION_LEVELS,
   SETUP_TRADES,
   buildGoLiveChecklist,
+  hoursSummary,
   isSetupSandbox,
+  isValidHoursJson,
   needsServiceArea,
   parseSetup,
   permissionLevelFor,
@@ -152,6 +154,64 @@ test("a test-mode shop runs the real pipeline: alert-first holds, book-and-confi
   assert.equal(result.decision.outcome, "escalated");
   assert.ok(result.exception);
   assert.equal(await prisma.job.count({ where: { businessId: shop.id } }), 0);
+});
+
+test("claiming a shop loads its listing address and hours, keeps their origin, and confirming keeps the hours", async () => {
+  const week = Object.fromEntries(
+    ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((day) => [
+      day,
+      day === "sunday"
+        ? { closed: true, open: "00:00", close: "00:00" }
+        : day === "saturday"
+          ? { open: "08:00", close: "13:00" }
+          : { open: "07:00", close: "18:00" },
+    ]),
+  );
+  const listingHours = JSON.stringify(week);
+  assert.equal(isValidHoursJson(listingHours), true);
+  assert.equal(isValidHoursJson('{"monday":{"open":"7am","close":"6pm"}}'), false);
+  assert.equal(isValidHoursJson("not json"), false);
+  assert.match(hoursSummary(listingHours), /Mon–Fri 7am–6pm/);
+  assert.match(hoursSummary(listingHours), /Sun closed/);
+
+  const owner = email();
+  const shop = await startSetup(owner, {
+    name: "Claimed Heating",
+    trade: "HVAC",
+    found: { address: "1842 Oak Street, Austin, TX 78704", hoursJson: listingHours, source: "google" },
+  });
+  assert.equal(shop.address, "1842 Oak Street, Austin, TX 78704");
+  assert.equal(shop.hoursJson, listingHours, "the listing's real hours replace the default week");
+  const setup = parseSetup(shop.setupJson);
+  assert.equal(setup.imported?.source, "google");
+  assert.equal(setup.imported?.hours, true);
+  assert.equal(setup.imported?.address, true);
+
+  const after = await saveSetupDay(owner, { hours: "listing", team: "solo", ownerName: "Pat" });
+  assert.equal(after.hoursJson, listingHours, "confirming on the day step keeps the listing hours untouched");
+
+  const other = email();
+  await startSetup(other, { name: "No Listing", trade: "Plumbing" });
+  await assert.rejects(() => saveSetupDay(other, { hours: "listing" }), /don't have hours from your listing/);
+
+  const third = email();
+  const plain = await startSetup(third, {
+    name: "Broken Listing",
+    trade: "HVAC",
+    found: { address: "1 Main St", hoursJson: '{"monday":{}}', source: "website" },
+  });
+  assert.notEqual(plain.hoursJson, '{"monday":{}}', "malformed listing hours are never imported");
+  assert.equal(parseSetup(plain.setupJson).imported?.hours, undefined);
+  assert.equal(parseSetup(plain.setupJson).imported?.address, true);
+});
+
+test("the turn-on business step finds the shop before asking the owner to type", () => {
+  const ui = read("src/components/turn-on-orvius.tsx");
+  assert.match(ui, /Find my shop/);
+  assert.match(ui, /\/api\/onboarding\/lookup/);
+  assert.match(ui, /From your listing/);
+  const route = read("src/app/api/setup/route.ts");
+  assert.match(route, /importedHours/);
 });
 
 test("an owner whose business is live cannot start test mode over it", async () => {
