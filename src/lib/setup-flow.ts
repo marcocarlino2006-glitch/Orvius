@@ -43,6 +43,14 @@ export function isSetupGoal(value: unknown): value is SetupGoal {
   return SETUP_GOALS.some((goal) => goal.id === value);
 }
 
+/** Facts pulled from the shop's own website or Google listing at claim time, kept distinct from what the owner typed. */
+export type SetupImported = {
+  source: "website" | "google";
+  at: string;
+  address?: boolean;
+  hours?: boolean;
+};
+
 export type SetupFailure = { step: SetupStep; at: string; reason: string; attempt: number };
 
 /** What the owner typed on the go-live screen, kept so a closed tab or another device doesn't lose it. */
@@ -56,6 +64,7 @@ export type SetupState = {
   permissions?: "alert" | "offer" | "confirm";
   testedAt?: string;
   liveAt?: string;
+  imported?: SetupImported;
   /** When each step was saved on the server. A step counts as done only from here (or the older fields it implies). */
   done?: Partial<Record<SetupStep, string>>;
   /** The last few failures, newest last, so a retry can say what went wrong. */
@@ -147,6 +156,16 @@ export function parseSetup(json: string | null | undefined): SetupState {
         : {}),
       ...(typeof raw.testedAt === "string" ? { testedAt: raw.testedAt } : {}),
       ...(typeof raw.liveAt === "string" ? { liveAt: raw.liveAt } : {}),
+      ...((raw.imported as SetupImported | undefined)?.source === "website" || (raw.imported as SetupImported | undefined)?.source === "google"
+        ? {
+            imported: {
+              source: (raw.imported as SetupImported).source,
+              at: typeof (raw.imported as SetupImported).at === "string" ? (raw.imported as SetupImported).at : "",
+              ...((raw.imported as SetupImported).address ? { address: true } : {}),
+              ...((raw.imported as SetupImported).hours ? { hours: true } : {}),
+            },
+          }
+        : {}),
       ...(parseDone(raw.done) ? { done: parseDone(raw.done) } : {}),
       ...(parseFailures(raw.failures) ? { failures: parseFailures(raw.failures) } : {}),
       ...(parseLiveDraft(raw.liveDraft) ? { liveDraft: parseLiveDraft(raw.liveDraft) } : {}),
@@ -270,6 +289,68 @@ export type HoursPresetId = (typeof HOURS_PRESETS)[number]["id"];
 
 export function hoursPresetFor(hoursJson: string | null | undefined): HoursPresetId | null {
   return HOURS_PRESETS.find((preset) => preset.hoursJson === hoursJson)?.id ?? null;
+}
+
+const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+/** Only a complete, well-formed week may be imported from a listing; anything less falls back to a preset the owner picks. */
+export function isValidHoursJson(value: unknown): value is string {
+  if (typeof value !== "string" || value.length > 2000) return false;
+  try {
+    const parsed = JSON.parse(value) as Record<string, unknown>;
+    if (!parsed || typeof parsed !== "object") return false;
+    return DAYS.every((day) => {
+      const entry = parsed[day] as { open?: unknown; close?: unknown; closed?: unknown } | undefined;
+      return Boolean(
+        entry &&
+          typeof entry === "object" &&
+          typeof entry.open === "string" &&
+          HHMM.test(entry.open) &&
+          typeof entry.close === "string" &&
+          HHMM.test(entry.close) &&
+          (entry.closed === undefined || typeof entry.closed === "boolean"),
+      );
+    });
+  } catch {
+    return false;
+  }
+}
+
+const DAY_SHORT: Record<(typeof DAYS)[number], string> = {
+  monday: "Mon",
+  tuesday: "Tue",
+  wednesday: "Wed",
+  thursday: "Thu",
+  friday: "Fri",
+  saturday: "Sat",
+  sunday: "Sun",
+};
+
+function shortTime(hhmm: string): string {
+  const [h, m] = hhmm.split(":").map(Number);
+  const suffix = h >= 12 ? "pm" : "am";
+  const hour = h % 12 === 0 ? 12 : h % 12;
+  return m ? `${hour}:${String(m).padStart(2, "0")}${suffix}` : `${hour}${suffix}`;
+}
+
+/** "Mon–Fri 8am–5pm · Sat 9am–1pm · Sun closed" — for confirming imported hours without a table. */
+export function hoursSummary(hoursJson: string | null | undefined): string | null {
+  if (!isValidHoursJson(hoursJson)) return null;
+  const parsed = JSON.parse(hoursJson) as Record<(typeof DAYS)[number], DayHours>;
+  const label = (day: (typeof DAYS)[number]) => {
+    const entry = parsed[day];
+    return entry.closed ? "closed" : `${shortTime(entry.open)}–${shortTime(entry.close)}`;
+  };
+  const groups: Array<{ from: (typeof DAYS)[number]; to: (typeof DAYS)[number]; label: string }> = [];
+  for (const day of DAYS) {
+    const current = label(day);
+    const last = groups[groups.length - 1];
+    if (last && last.label === current) last.to = day;
+    else groups.push({ from: day, to: day, label: current });
+  }
+  return groups
+    .map((g) => (g.from === g.to ? `${DAY_SHORT[g.from]} ${g.label}` : `${DAY_SHORT[g.from]}–${DAY_SHORT[g.to]} ${g.label}`))
+    .join(" · ");
 }
 
 /** Service area and crew only matter for businesses that go to the customer. */

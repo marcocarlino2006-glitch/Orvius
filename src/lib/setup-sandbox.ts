@@ -10,6 +10,7 @@ import { clearTestRecords } from "@/lib/setup-test-records";
 import {
   HOURS_PRESETS,
   isSetupSandbox,
+  isValidHoursJson,
   missingForStep,
   parseSetup,
   withFailure,
@@ -93,23 +94,46 @@ async function recordStepFailure(business: Pick<Business, "id">, step: SetupStep
   await updateSetup(business.id, (state) => ({ ...state, failures: withFailure(state, step, reason) })).catch(() => undefined);
 }
 
+export type ClaimedShop = {
+  address?: string | null;
+  hoursJson?: string | null;
+  source?: "website" | "google";
+};
+
 /** Step 1: the test-mode shop, created the moment the owner names their business type. */
 export async function startSetup(
   email: string,
-  input: { name: string; trade: Trade; timezone?: string | null },
+  input: { name: string; trade: Trade; timezone?: string | null; found?: ClaimedShop },
 ): Promise<Business> {
   const owner = email.trim().toLowerCase();
   if (await ownsLiveShop(owner)) throw new SetupError("Your business is already live. Open Command to run it.");
   const name = input.name.trim().slice(0, 80);
   const greeting = `Thanks for calling ${name}. How can I help you today?`;
+  /* Claimed facts are applied only when well-formed, and their origin is kept so nothing found reads as owner-typed. */
+  const foundAddress = input.found?.address?.trim().slice(0, 200) || null;
+  const foundHours = input.found?.hoursJson && isValidHoursJson(input.found.hoursJson) ? input.found.hoursJson : null;
+  const imported: SetupState["imported"] =
+    foundAddress || foundHours
+      ? {
+          source: input.found?.source === "google" ? "google" : "website",
+          at: new Date().toISOString(),
+          ...(foundAddress ? { address: true } : {}),
+          ...(foundHours ? { hours: true } : {}),
+        }
+      : undefined;
+  const claimed = {
+    ...(foundAddress ? { address: foundAddress } : {}),
+    ...(foundHours ? { hoursJson: foundHours } : {}),
+  };
   const existing = await findSetupSandbox(owner);
 
   if (existing) {
     const tradeChanged = existing.trade !== input.trade;
-    const updated = await updateSetup(existing.id, (current) => mergeSetup(current, { step: "goal" }, "business"), {
+    const updated = await updateSetup(existing.id, (current) => mergeSetup(current, { step: "goal", ...(imported ? { imported } : {}) }, "business"), {
       name,
       trade: input.trade,
       greeting,
+      ...claimed,
       ...(tradeChanged ? { servicesJson: servicesForTrade(input.trade) } : {}),
       ...(input.timezone ? { timezone: input.timezone } : {}),
     });
@@ -126,13 +150,14 @@ export async function startSetup(
       greeting,
       ownerEmail: owner,
       hoursJson: DEFAULT_HOURS_JSON,
+      ...claimed,
       servicesJson: servicesForTrade(input.trade),
       ...(input.timezone ? { timezone: input.timezone } : {}),
       billingStatus: "pilot",
       pilotEndsAt: new Date(Date.now() + TEST_WINDOW_DAYS * 24 * 60 * 60_000),
       bookingMode: "alert",
       autopilot: false,
-      setupJson: JSON.stringify({ sandbox: true, step: "goal", done: { business: new Date().toISOString() } } satisfies SetupState),
+      setupJson: JSON.stringify({ sandbox: true, step: "goal", done: { business: new Date().toISOString() }, ...(imported ? { imported } : {}) } satisfies SetupState),
       operatingPolicy: { create: { travelMode: "not_configured" } },
     },
   });
@@ -162,7 +187,7 @@ export async function saveSetupGoal(email: string, goal: SetupGoal): Promise<Bus
 export async function saveSetupDay(
   email: string,
   input: {
-    hours: HoursPresetId;
+    hours: HoursPresetId | "listing";
     services?: string[];
     zips?: string[];
     team?: "solo" | "crew";
@@ -172,8 +197,13 @@ export async function saveSetupDay(
 ): Promise<Business> {
   const business = await requireSandbox(email);
   requireBefore(business, "day");
-  const preset = HOURS_PRESETS.find((item) => item.id === input.hours);
-  if (!preset) throw new SetupError("Pick the hours that fit your week.");
+  /* Keeping the listing's hours confirms them as-is; a preset replaces them. */
+  const keepListing = input.hours === "listing";
+  if (keepListing && !(parseSetup(business.setupJson).imported?.hours && isValidHoursJson(business.hoursJson))) {
+    throw new SetupError("We don't have hours from your listing. Pick the closest week.");
+  }
+  const preset = keepListing ? null : HOURS_PRESETS.find((item) => item.id === input.hours);
+  if (!keepListing && !preset) throw new SetupError("Pick the hours that fit your week.");
   const servicesJson = input.services && business.trade ? chosenServicesJson(business.trade as Trade, input.services) : undefined;
   if (input.services && !servicesJson) throw new SetupError("Pick at least one kind of work you take.");
   /*
@@ -207,7 +237,7 @@ export async function saveSetupDay(
     business.id,
     (current) => mergeSetup(current, { step: "permissions", ...(input.team ? { team: input.team } : {}) }, "day"),
     {
-      hoursJson: preset.hoursJson,
+      ...(keepListing ? {} : { hoursJson: preset!.hoursJson }),
       ...(servicesJson ? { servicesJson } : {}),
       ...(input.zips ? { serviceZipsJson: JSON.stringify(input.zips) } : {}),
     },

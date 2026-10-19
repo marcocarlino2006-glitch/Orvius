@@ -11,6 +11,7 @@ import {
   defaultLevelForGoal,
   allowedSteps,
   hoursPresetFor,
+  hoursSummary,
   isSetupTrade,
   missingForStep,
   stepsDone,
@@ -52,11 +53,18 @@ const bodySchema = z.discriminatedUnion("action", [
     name: z.string().trim().min(2, "Add your business name").max(80),
     trade: tradeSchema,
     timezone: z.string().max(64).optional(),
+    found: z
+      .object({
+        address: z.string().trim().max(200).optional(),
+        hoursJson: z.string().max(2000).optional(),
+        source: z.enum(["website", "google"]).optional(),
+      })
+      .optional(),
   }),
   z.object({ action: z.literal("goal"), goal: z.enum(goalIds) }),
   z.object({
     action: z.literal("day"),
-    hours: z.enum(hoursIds),
+    hours: z.enum([...hoursIds, "listing"] as [string, ...string[]]),
     services: z.array(z.string().trim().min(1).max(60)).max(12).optional(),
     zips: z.array(z.string().regex(/^\d{5}$/)).max(60).optional(),
     team: z.enum(["solo", "crew"]).optional(),
@@ -174,6 +182,9 @@ async function view(business: Business | null) {
       team: setup.team ?? null,
       crew,
       hours: hoursPresetFor(business.hoursJson),
+      importedHours: Boolean(setup.imported?.hours && hoursSummary(business.hoursJson)),
+      importedHoursSummary: setup.imported?.hours ? hoursSummary(business.hoursJson) : null,
+      importedAddress: setup.imported?.address ? business.address : null,
       services: serviceChoices(business, trade),
       zips,
       needsServiceArea: needsServiceArea(trade),
@@ -237,14 +248,14 @@ export async function POST(request: Request) {
     let business: Business;
     switch (body.action) {
       case "start":
-        business = await startSetup(email, { name: body.name, trade: body.trade as Trade, timezone: body.timezone });
+        business = await startSetup(email, { name: body.name, trade: body.trade as Trade, timezone: body.timezone, found: body.found });
         break;
       case "goal":
         business = await saveSetupGoal(email, body.goal as (typeof SETUP_GOALS)[number]["id"]);
         break;
       case "day":
         business = await saveSetupDay(email, {
-          hours: body.hours as (typeof HOURS_PRESETS)[number]["id"],
+          hours: body.hours as (typeof HOURS_PRESETS)[number]["id"] | "listing",
           services: body.services,
           zips: body.zips,
           team: body.team,
