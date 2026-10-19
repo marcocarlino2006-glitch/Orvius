@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
   try {
     const result = await buildOwnerReport(authResult.business.id, period);
     if (request.nextUrl.searchParams.get("format") === "csv") {
-      return new NextResponse(reportCsv(result.report, result.truncated, result.testMode), {
+      return new NextResponse(reportCsv(result.report, result.truncated, result.testMode, result.moneyPaused), {
         headers: {
           "Content-Type": "text/csv; charset=utf-8",
           "Content-Disposition": `attachment; filename="orvius-report-${period}-${result.start.slice(0, 10)}.csv"`,

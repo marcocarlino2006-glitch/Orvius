@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isMoneySchemaDrift } from "@/lib/command-degraded";
 import { publicTechnician } from "@/lib/tech-app-link";
 import { prisma } from "@/lib/prisma";
 import { recordAudit } from "@/lib/audit";
@@ -19,7 +20,7 @@ export async function GET(request: Request) {
   const page = Math.max(0, Math.floor(Number(new URL(request.url).searchParams.get("page") ?? "0")) || 0);
   const skip = (kind: keyof typeof EXPORT_PAGE) => page * EXPORT_PAGE[kind];
 
-  const [business, customers, leads, jobs, estimates, invoices, payments, technicians, auditEvents, leadTotal, jobTotal, auditTotal] =
+  const [business, customers, leads, jobs, estimates, invoices, technicians, auditEvents, leadTotal, jobTotal, auditTotal] =
     await Promise.all([
       prisma.business.findUnique({
         where: { id: businessId },
@@ -64,10 +65,6 @@ export async function GET(request: Request) {
         where: { businessId },
         orderBy: { createdAt: "desc" },
       }),
-      prisma.payment.findMany({
-        where: { businessId },
-        orderBy: { createdAt: "desc" },
-      }),
       prisma.technician.findMany({
         where: { businessId },
         orderBy: { name: "asc" },
@@ -83,12 +80,32 @@ export async function GET(request: Request) {
       prisma.auditEvent.count({ where: { businessId } }),
     ]);
 
+  /* Full payment rows name the refund column. On a database that predates
+     it, export every other field — the column does not exist there, so no
+     recorded refund is being hidden — and flag the file as money-paused. */
+  let moneyPaused = false;
+  const payments = await prisma.payment
+    .findMany({
+      where: { businessId },
+      orderBy: { createdAt: "desc" },
+    })
+    .catch(async (error: unknown) => {
+      if (!isMoneySchemaDrift(error)) throw error;
+      moneyPaused = true;
+      return prisma.payment.findMany({
+        where: { businessId },
+        orderBy: { createdAt: "desc" },
+        select: { id: true, businessId: true, invoiceId: true, amountCents: true, status: true, method: true, createdAt: true },
+      });
+    });
+
   const totals = { leads: leadTotal, jobs: jobTotal, auditEvents: auditTotal };
   const more = (Object.keys(EXPORT_PAGE) as (keyof typeof EXPORT_PAGE)[]).filter((k) => (page + 1) * EXPORT_PAGE[k] < totals[k]);
 
   const payload = {
     exportedAt: new Date().toISOString(),
     format: "orvius-shop-export-v1",
+    moneyPaused,
     page,
     /* False means this file is not everything: fetch nextPage for the rest of the listed collections. */
     complete: more.length === 0 && page === 0,

@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import { isMoneySchemaDrift } from "@/lib/command-degraded";
 import { COLLECTED_STATUSES } from "@/lib/payment-math";
 import { prisma } from "@/lib/prisma";
 import { can, listShopAccess, type ShopRole } from "@/lib/workspace-access";
@@ -26,6 +27,8 @@ export type PortfolioShop = {
 export type Portfolio = {
   days: number;
   since: string;
+  /** Money reads paused (database behind the release); collectedCents is null per shop, never zeroed. */
+  moneyPaused: boolean;
   shops: PortfolioShop[];
   /** More locations than one page shows; totals cover only the ones listed. */
   truncated: boolean;
@@ -56,18 +59,12 @@ export async function getPortfolio(email: string, days: number, now = new Date()
   const ids = access.map((a) => a.business.id);
   const inShops = { businessId: { in: ids } };
 
-  const [calls, leads, booked, completed, deposits, invoices, waiting, waitingEmergencies, lastCalls] = ids.length
+  const [calls, leads, booked, completed, waiting, waitingEmergencies, lastCalls] = ids.length
     ? await Promise.all([
         prisma.call.groupBy({ by: ["businessId"], where: { ...inShops, direction: "inbound", createdAt: { gte: since } }, _count: { _all: true } }),
         prisma.lead.groupBy({ by: ["businessId"], where: { ...inShops, status: { not: "spam" }, createdAt: { gte: since } }, _count: { _all: true } }),
         prisma.job.groupBy({ by: ["businessId"], where: { ...inShops, createdAt: { gte: since } }, _count: { _all: true } }),
         prisma.job.groupBy({ by: ["businessId"], where: { ...inShops, completedAt: { gte: since } }, _count: { _all: true } }),
-        prisma.deposit.groupBy({ by: ["businessId"], where: { ...inShops, status: "paid", paidAt: { gte: since } }, _sum: { amountCents: true, refundedCents: true } }),
-        prisma.payment.groupBy({
-          by: ["businessId"],
-          where: { ...inShops, createdAt: { gte: since }, status: { in: COLLECTED_STATUSES } },
-          _sum: { amountCents: true, refundedCents: true },
-        }),
         prisma.lead.groupBy({ by: ["businessId"], where: { ...inShops, status: "new" }, _count: { _all: true } }),
         prisma.lead.groupBy({ by: ["businessId"], where: { ...inShops, status: "new", urgency: "emergency" }, _count: { _all: true } }),
         // Prisma writes DateTime as epoch ms; a row written by a SQL default holds text, which SQLite sorts above every
@@ -76,7 +73,26 @@ export async function getPortfolio(email: string, days: number, now = new Date()
           SELECT "businessId", MAX(CASE WHEN typeof("createdAt") = 'integer' THEN "createdAt" END) AS "lastAt"
           FROM "Call" WHERE "direction" = 'inbound' AND "businessId" IN (${Prisma.join(ids)}) GROUP BY "businessId"`,
       ])
-    : [[], [], [], [], [], [], [], [], []];
+    : [[], [], [], [], [], [], []];
+
+  /* Refund columns are the one read that can be ahead of the database;
+     pause money (null per shop below) and keep every count exact. */
+  const moneyRows = ids.length
+    ? await Promise.all([
+        prisma.deposit.groupBy({ by: ["businessId"], where: { ...inShops, status: "paid", paidAt: { gte: since } }, _sum: { amountCents: true, refundedCents: true } }),
+        prisma.payment.groupBy({
+          by: ["businessId"],
+          where: { ...inShops, createdAt: { gte: since }, status: { in: COLLECTED_STATUSES } },
+          _sum: { amountCents: true, refundedCents: true },
+        }),
+      ]).catch((error: unknown) => {
+        if (isMoneySchemaDrift(error)) return null;
+        throw error;
+      })
+    : null;
+  const moneyPaused = ids.length > 0 && moneyRows === null;
+  const deposits = moneyRows?.[0] ?? [];
+  const invoices = moneyRows?.[1] ?? [];
 
   const m = {
     calls: countBy(calls),
@@ -99,7 +115,7 @@ export async function getPortfolio(email: string, days: number, now = new Date()
     leads: m.leads.get(b.id) ?? 0,
     booked: m.booked.get(b.id) ?? 0,
     completed: m.completed.get(b.id) ?? 0,
-    collectedCents: can(role, "reports.view") ? (m.deposits.get(b.id) ?? 0) + (m.invoices.get(b.id) ?? 0) : null,
+    collectedCents: can(role, "reports.view") && !moneyPaused ? (m.deposits.get(b.id) ?? 0) + (m.invoices.get(b.id) ?? 0) : null,
     waiting: m.waiting.get(b.id) ?? 0,
     waitingEmergencies: m.waitingEmergencies.get(b.id) ?? 0,
     lastCallAt: m.lastCall.get(b.id)?.toISOString() ?? null,
@@ -115,6 +131,7 @@ export async function getPortfolio(email: string, days: number, now = new Date()
   return {
     days: window,
     since: since.toISOString(),
+    moneyPaused,
     shops,
     truncated: all.length > access.length,
     totals: {

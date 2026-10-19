@@ -1,11 +1,14 @@
 import { usagePeriodStart } from "@/lib/call-usage";
+import { isMoneySchemaDrift } from "@/lib/command-degraded";
 import { prisma } from "@/lib/prisma";
 
 export type MonthValue = {
   callsAnswered: number;
   leadsCaptured: number;
   jobsBooked: number;
-  collectedCents: number;
+  /** Null while moneyPaused: refunds are unreadable, so kept money is unknown — never faked as $0. */
+  collectedCents: number | null;
+  moneyPaused?: boolean;
 };
 
 /**
@@ -15,10 +18,14 @@ export type MonthValue = {
  */
 export async function getMonthValue(businessId: string, now = new Date()): Promise<MonthValue> {
   const since = usagePeriodStart(now);
-  const [callsAnswered, leadsCaptured, jobsBooked, deposits, invoices, invoiceRefunds] = await Promise.all([
+  const [callsAnswered, leadsCaptured, jobsBooked] = await Promise.all([
     prisma.call.count({ where: { businessId, direction: "inbound", createdAt: { gte: since } } }),
     prisma.lead.count({ where: { businessId, createdAt: { gte: since } } }),
     prisma.job.count({ where: { businessId, leadId: { not: null }, createdAt: { gte: since } } }),
+  ]);
+  /* Counts above never touch money columns; the aggregates below are the
+     only reads that can hit a not-yet-migrated database. */
+  const money = await Promise.all([
     prisma.deposit.aggregate({
       where: { businessId, status: "paid", paidAt: { gte: since } },
       _sum: { amountCents: true, refundedCents: true },
@@ -31,7 +38,14 @@ export async function getMonthValue(businessId: string, now = new Date()): Promi
       where: { businessId, invoice: { status: "paid", paidAt: { gte: since }, stripeSessionId: { not: null } } },
       _sum: { refundedCents: true },
     }),
-  ]);
+  ]).catch((error: unknown) => {
+    if (isMoneySchemaDrift(error)) return null;
+    throw error;
+  });
+  if (!money) {
+    return { callsAnswered, leadsCaptured, jobsBooked, collectedCents: null, moneyPaused: true };
+  }
+  const [deposits, invoices, invoiceRefunds] = money;
   return {
     callsAnswered,
     leadsCaptured,

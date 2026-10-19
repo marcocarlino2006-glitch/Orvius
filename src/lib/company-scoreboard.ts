@@ -13,6 +13,7 @@ import { cancelReasonCounts, cancelReasonText } from "@/lib/cancel-signal";
 import { relianceLines } from "@/lib/reliance-lines";
 import { payingShopReliance, type RelianceVerdict } from "@/lib/shop-reliance";
 import { ORVIUS_CAPTURED_LEAD, payingShopValue, planMonthlyCents, type ValueVerdict } from "@/lib/value-check";
+import { isMoneySchemaDrift } from "@/lib/command-degraded";
 import { densityClusters, densityText, networkReadyAreas, zip3FromAddress, type DensityCluster } from "@/lib/network-density";
 
 /**
@@ -45,8 +46,10 @@ export type ScoreboardWeek = {
   /** Jobs the customer themselves confirmed this week (not the office marking them). */
   jobsCustomerConfirmed: number;
   jobsCompleted: number;
-  /** Shops' own customer payments recorded or collected this week: their money, not Orvius revenue. */
-  collectedCents: number;
+  /** Shops' own customer payments recorded or collected this week: their money, not Orvius revenue. Null while moneyPaused. */
+  collectedCents: number | null;
+  /** Refund reads paused (database behind the release); money is unreadable, never zeroed. */
+  moneyPaused?: boolean;
   /** Orvius's platform fee on card payments paid this week (invoices and deposits). */
   platformFeeCents: number;
 };
@@ -80,6 +83,8 @@ export type CompanyScoreboard = {
   cancelReasons30d: Array<{ reason: string; count: number }>;
   /** Paying shops getting less than they pay for, or no calls at all, last 30 days. */
   valueAtRisk: ValueVerdict[];
+  /** Any money read on this board is paused (database behind the release). */
+  moneyPaused?: boolean;
   reliance?: RelianceVerdict[];
   /** Replies to the shared sender that two shops could own and the customer never pointed at one. */
   heldTexts?: { count: number; oldestAt: string | null };
@@ -122,7 +127,6 @@ async function week(start: Date, end: Date, now: Date): Promise<ScoreboardWeek> 
     leads,
     leadsBooked,
     jobsBooked,
-    collected,
     jobsFromOrvius,
     jobsCustomerConfirmed,
     jobsCompleted,
@@ -139,10 +143,6 @@ async function week(start: Date, end: Date, now: Date): Promise<ScoreboardWeek> 
       prisma.lead.count({ where: { business: realShop, createdAt: inWindow } }),
       prisma.lead.count({ where: { business: realShop, createdAt: inWindow, job: { isNot: null } } }),
       prisma.job.count({ where: { business: realShop, createdAt: inWindow } }),
-      prisma.payment.aggregate({
-        where: { business: realShop, createdAt: inWindow, status: { in: COLLECTED_STATUSES } },
-        _sum: { amountCents: true, refundedCents: true },
-      }),
       prisma.job.count({ where: { business: realShop, createdAt: inWindow, ...fromOrvius } }),
       prisma.job.count({ where: { business: realShop, customerConfirmedAt: inWindow } }),
       prisma.job.count({ where: { business: realShop, completedAt: inWindow, status: "completed" } }),
@@ -155,6 +155,17 @@ async function week(start: Date, end: Date, now: Date): Promise<ScoreboardWeek> 
         _sum: { applicationFeeCents: true },
       }),
     ]);
+  /* The refund column is the one read that can be ahead of the database;
+     pause this week's money (null below) and keep every count exact. */
+  const collected = await prisma.payment
+    .aggregate({
+      where: { business: realShop, createdAt: inWindow, status: { in: COLLECTED_STATUSES } },
+      _sum: { amountCents: true, refundedCents: true },
+    })
+    .catch((error: unknown) => {
+      if (isMoneySchemaDrift(error)) return null;
+      throw error;
+    });
   const failed = failedCalls + stuckCalls;
   return {
     start: start.toISOString().slice(0, 10),
@@ -170,7 +181,8 @@ async function week(start: Date, end: Date, now: Date): Promise<ScoreboardWeek> 
     jobsFromOrvius,
     jobsCustomerConfirmed,
     jobsCompleted,
-    collectedCents: (collected._sum.amountCents ?? 0) - (collected._sum.refundedCents ?? 0),
+    collectedCents: collected ? (collected._sum.amountCents ?? 0) - (collected._sum.refundedCents ?? 0) : null,
+    moneyPaused: collected === null,
     platformFeeCents: (invoiceFees._sum.applicationFeeCents ?? 0) + (depositFees._sum.applicationFeeCents ?? 0),
   };
 }
@@ -226,6 +238,7 @@ export async function getCompanyScoreboard(now = new Date()): Promise<CompanySco
   const signedUp30d = { ...realShop, createdAt: { gte: new Date(now.getTime() - 30 * DAY_MS) } };
   const orvJob = { lead: { is: ORVIUS_CAPTURED_LEAD } };
   const heldWhere = { source: "twilio-sms", eventType: "inbound-held", status: "held" };
+  let valuePaused = false;
   const [plans, calls30d, value, reliance, leaving, payers, signedUp, lineAnswered, numberProven, withFirstJob, firstJobs, heldCount, oldestHeld] = await Promise.all([
     prisma.business.groupBy({
       by: ["billingPlan", "billingInterval"],
@@ -233,7 +246,13 @@ export async function getCompanyScoreboard(now = new Date()): Promise<CompanySco
       _count: { _all: true },
     }),
     prisma.call.count({ where: { business: realShop, createdAt: { gte: new Date(now.getTime() - 30 * DAY_MS) } } }),
-    payingShopValue(now),
+    payingShopValue(now).catch((error: unknown) => {
+      if (isMoneySchemaDrift(error)) {
+        valuePaused = true;
+        return [] as ValueVerdict[];
+      }
+      throw error;
+    }),
     payingShopReliance(now),
     prisma.business.findMany({
       where: { ...realShop, cancelRequestedAt: { gte: new Date(now.getTime() - 30 * DAY_MS) } },
@@ -293,6 +312,7 @@ export async function getCompanyScoreboard(now = new Date()): Promise<CompanySco
     revenue,
     cancelReasons30d: cancelReasonCounts(leaving.map((shop) => ({ reason: shop.cancelReason }))),
     valueAtRisk: value.filter((v) => v.verdict === "short" || v.verdict === "idle"),
+    moneyPaused: valuePaused || Boolean(thisWeek.moneyPaused) || Boolean(lastWeek.moneyPaused),
     reliance,
     heldTexts: { count: heldCount, oldestAt: oldestHeld?.createdAt.toISOString() ?? null },
   };
@@ -319,7 +339,8 @@ export function scoreboardLines(board: CompanyScoreboard): string[] {
     `Booking rate: ${rate(now.bookingRate)} of ${now.leads} leads (last week ${rate(prev.bookingRate)})`,
     `Jobs booked: ${now.jobsBooked} (last week ${prev.jobsBooked}) · from calls and texts Orvius answered: ${now.jobsFromOrvius ?? 0}`,
     `Customer confirmed: ${now.jobsCustomerConfirmed ?? 0} · completed: ${now.jobsCompleted ?? 0}`,
-    `Shops' customer payments (their money, not ours): ${money(now.collectedCents)} (last week ${money(prev.collectedCents)})`,
+    `Shops' customer payments (their money, not ours): ${now.collectedCents == null ? "paused" : money(now.collectedCents)} (last week ${prev.collectedCents == null ? "paused" : money(prev.collectedCents)})`,
+    ...(board.moneyPaused ? [`Money numbers are paused — payment totals are unreadable until the database update lands.`] : []),
     `Orvius platform fees on card payments: ${money(now.platformFeeCents ?? 0)} (last week ${money(prev.platformFeeCents ?? 0)})`,
     activationText(board.activation30d),
     `Signup to first job from an answered call or text: ${duration(board.signupToFirstJobMinutes)} median · ${board.shopsWithoutFirstJob} new shop(s) still without one`,

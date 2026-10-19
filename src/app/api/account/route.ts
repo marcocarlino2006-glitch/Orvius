@@ -297,6 +297,7 @@ export async function GET(request: Request) {
       pilotEndsAt: pilotEnds?.toISOString() ?? null,
       usage: billableCalls !== null ? summarizeCallUsage({ used: billableCalls, planId: currentPlanId }) : null,
       valueLine: monthValue ? monthValueLine(monthValue) : null,
+      valuePaused: monthValue?.moneyPaused ?? false,
       advice: usageAdvice,
       interval: businessRecord?.billingInterval === "year" ? "year" : "month",
       planEndsAt: businessRecord?.planEndsAt?.toISOString() ?? null,

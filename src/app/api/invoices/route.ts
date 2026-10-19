@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import type { Invoice, Payment } from "@prisma/client";
+import { isMoneySchemaDrift } from "@/lib/command-degraded";
 import { parseEstimateOptions } from "@/lib/estimate-options";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
@@ -20,17 +22,42 @@ export async function GET() {
   const planGate = requirePlanModule(business, "jobs");
   if ("error" in planGate) return planGate.error;
 
-  const invoices = await prisma.invoice.findMany({
-    where: { businessId: business.id },
-    take: 80,
-    orderBy: { createdAt: "desc" },
-    include: {
-      estimate: { select: { id: true, status: true, jobId: true } },
-      payments: true,
-    },
-  });
+  /* Full payment rows name the refund column. On a database that predates
+     it, retry with every other field the list shows — payments predate the
+     column there, so nothing readable is left out — and flag money paused. */
+  type InvoiceRow = Invoice & {
+    estimate: { id: string; status: string; jobId: string | null } | null;
+    payments: Payment[];
+  };
+  let moneyPaused = false;
+  const invoices = (await prisma.invoice
+    .findMany({
+      where: { businessId: business.id },
+      take: 80,
+      orderBy: { createdAt: "desc" },
+      include: {
+        estimate: { select: { id: true, status: true, jobId: true } },
+        payments: true,
+      },
+    })
+    .catch(async (error: unknown) => {
+      if (!isMoneySchemaDrift(error)) throw error;
+      moneyPaused = true;
+      return prisma.invoice.findMany({
+        where: { businessId: business.id },
+        take: 80,
+        orderBy: { createdAt: "desc" },
+        include: {
+          estimate: { select: { id: true, status: true, jobId: true } },
+          payments: {
+            select: { id: true, businessId: true, invoiceId: true, amountCents: true, status: true, method: true, createdAt: true },
+          },
+        },
+      });
+    })) as InvoiceRow[];
 
   return NextResponse.json({
+    moneyPaused,
     invoices: invoices.map((invoice) => ({
       ...invoice,
       createdAt: invoice.createdAt.toISOString(),

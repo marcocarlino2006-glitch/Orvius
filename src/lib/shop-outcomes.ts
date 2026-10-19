@@ -1,6 +1,7 @@
 import { shopDayBounds } from "@/lib/availability";
 import { isAfterHours } from "@/lib/business";
 import { COLLECTED_STATUSES, addTotals, moneyTotals, type MoneyTotals } from "@/lib/payment-math";
+import { isMoneySchemaDrift } from "@/lib/command-degraded";
 import { estimatedRevenueCents, formatCentsExact } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
 import { weekBounds } from "@/lib/tech-timesheet";
@@ -87,6 +88,8 @@ export type ShopOutcomes = {
   collectedCents: number;
   /** Gross receipts, refunded and kept, from moneyTotals. */
   money?: MoneyTotals;
+  /** Money reads paused (database behind the release); counts stay exact and money is absent, never zeroed. */
+  moneyPaused?: boolean;
   openEstimateCents: number;
   openInvoiceCents: number;
   economicsReady: boolean;
@@ -134,11 +137,9 @@ export async function getShopOutcomes(
     unassignedJobs,
     activeTechnicians,
     emergencyLeads,
-    payments,
     openEstimates,
     openInvoices,
     trendLeads,
-    depositsPaid,
   ] = await Promise.all([
     prisma.call.count({
       where: { businessId, createdAt: { gte: since } },
@@ -194,15 +195,6 @@ export async function getShopOutcomes(
         job: { isNot: null },
       },
     }),
-    prisma.payment.findMany({
-      where: {
-        businessId,
-        createdAt: { gte: since },
-        // Refunded rows still came in once; their refunds come off below. Claims never count.
-        status: { in: [...COLLECTED_STATUSES, "refunded"] },
-      },
-      select: { amountCents: true, status: true, refundedCents: true },
-    }),
     prisma.estimate.findMany({
       where: {
         businessId,
@@ -227,12 +219,30 @@ export async function getShopOutcomes(
       where: { businessId, createdAt: { gte: trendSince } },
       select: { createdAt: true, job: { select: { id: true } } },
     }),
+  ]);
+
+  /* The refund columns are the one read that can be ahead of the database.
+     When they are missing, money pauses (absent below) and every count
+     above stays exact — the same degradation Command uses. */
+  const moneyRows = await Promise.all([
+    prisma.payment.findMany({
+      where: {
+        businessId,
+        createdAt: { gte: since },
+        // Refunded rows still came in once; their refunds come off below. Claims never count.
+        status: { in: [...COLLECTED_STATUSES, "refunded"] },
+      },
+      select: { amountCents: true, status: true, refundedCents: true },
+    }),
     // Invoices bill the balance net of any deposit, so deposits add to payments without counting twice.
     prisma.deposit.findMany({
       where: { businessId, status: { in: ["paid", "refunded"] }, paidAt: { gte: since } },
       select: { amountCents: true, status: true, refundedCents: true },
     }),
-  ]);
+  ]).catch((error: unknown) => {
+    if (isMoneySchemaDrift(error)) return null;
+    throw error;
+  });
 
   const leadCount = leads.length;
   const bookedFromLeads = leads.filter((l) => l.job).length;
@@ -263,8 +273,8 @@ export async function getShopOutcomes(
       ? Math.round((jobsPerWeek - baselineJobs) * 10) / 10
       : null;
 
-  const money = addTotals(moneyTotals(payments), moneyTotals(depositsPaid));
-  const collectedCents = money.netCents;
+  const money = moneyRows ? addTotals(moneyTotals(moneyRows[0]), moneyTotals(moneyRows[1])) : undefined;
+  const collectedCents = money ? money.netCents : 0;
   const openEstimateCents = openEstimates.reduce((sum, e) => sum + e.amountCents, 0);
   const openInvoiceCents = openInvoices.reduce((sum, i) => sum + i.amountCents, 0);
 
@@ -320,6 +330,7 @@ export async function getShopOutcomes(
     ),
     collectedCents,
     money,
+    moneyPaused: moneyRows === null,
     openEstimateCents,
     openInvoiceCents,
     economicsReady,
