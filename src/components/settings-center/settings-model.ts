@@ -117,6 +117,8 @@ export type Account = {
     pilotEndsAt?: string | null;
     hasSubscription?: boolean;
     planEndsAt?: string | null;
+    usage?: { used: number; included: number; overCalls: number; overageCents: number } | null;
+    valuePaused?: boolean;
   };
   alerts: {
     smsEnabled: boolean;

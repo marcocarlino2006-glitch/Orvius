@@ -29,7 +29,7 @@ import { TRADES, type Trade } from "@/lib/trades";
 import { SettingsGeneral } from "./settings-general";
 import { SettingsIcon } from "./settings-icons";
 import { ScGroup, ScRow } from "./settings-primitives";
-import { FOUNDER_CERT, applyFromReply, isSaveReply, mergeSaved, parseCert, recordHolds, type Account, type Patch, type SaveReply, type Technician } from "./settings-model";
+import { FOUNDER_CERT, applyFromReply, isSaveReply, mergeSaved, parseCert, planLabel, recordHolds, type Account, type Patch, type SaveReply, type Technician } from "./settings-model";
 import { AccountSection } from "./sections/account-section";
 import { BusinessSection } from "./sections/business-section";
 import { ActivitySection } from "./sections/activity-section";
@@ -535,6 +535,21 @@ export function SettingsCenter({
             })}
             {!sections.length ? <p className="sc-nav-empty">No settings match “{navQuery.trim()}”.</p> : null}
           </nav>
+          {account?.billing ? (
+            <div className="sc-rail-plan">
+              <div className="sc-rail-plan-row">
+                <span className="sc-rail-plan-name">{planLabel(account)}</span>
+                <button type="button" className="sc-btn sc-btn--primary" onClick={() => go("billing")}>
+                  {account.billing.status === "active" ? "Manage" : "Upgrade"}
+                </button>
+              </div>
+              {account.billing.usage ? (
+                <p className="sc-rail-plan-usage">
+                  {account.billing.usage.used.toLocaleString("en-US")} of {account.billing.usage.included.toLocaleString("en-US")} calls this month
+                </p>
+              ) : null}
+            </div>
+          ) : null}
           <a className="sc-nav-item sc-nav-help" href="/help" target="_blank" rel="noreferrer">
             <SettingsIcon name="help" />
             <span>Get help</span>

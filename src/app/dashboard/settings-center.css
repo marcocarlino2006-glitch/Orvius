@@ -694,6 +694,64 @@
   background: #4ade80;
 }
 
+/* Usage ledger and rail plan summary: quiet labels, exact values, dotted rules. */
+
+.sc-ledger {
+  margin: 0.75rem 0 0;
+  padding: 0.25rem 1.125rem;
+  border: 1px solid rgb(var(--ox-tint) / 0.08);
+  border-radius: 0.75rem;
+  background: rgb(var(--ox-tint) / 0.03);
+}
+
+.sc-ledger-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.625rem 0;
+}
+
+.sc-ledger-row + .sc-ledger-row {
+  border-top: 1px dotted rgb(var(--ox-tint) / 0.16);
+}
+
+.sc-ledger-label {
+  font-size: 0.8125rem;
+  color: var(--ox-mute);
+}
+
+.sc-ledger-value {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.sc-rail-plan {
+  padding: 0.875rem 0.5rem 0.25rem;
+  border-top: 1px solid var(--sc-line);
+}
+
+.sc-rail-plan-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.sc-rail-plan-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--ox-text);
+}
+
+.sc-rail-plan-usage {
+  margin: 0.375rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--ox-mute);
+}
+
 /* Lists */
 
 .sc-person,

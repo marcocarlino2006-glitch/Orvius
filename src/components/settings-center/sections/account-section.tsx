@@ -51,6 +51,21 @@ export function AccountSection({
           <p className="sc-plan-kicker">Plan</p>
           <p className="sc-plan-name">{planLabel(account)}</p>
           <p className="sc-plan-detail">{planDetail(account)}</p>
+          {account.billing?.usage ? (
+            <>
+              <div className="sc-meter" aria-hidden>
+                <span
+                  style={{
+                    width: `${Math.min(100, Math.round((account.billing.usage.used / Math.max(1, account.billing.usage.included)) * 100))}%`,
+                  }}
+                />
+              </div>
+              <p className="sc-plan-detail">
+                {account.billing.usage.used.toLocaleString("en-US")} of {account.billing.usage.included.toLocaleString("en-US")} included
+                calls this month.
+              </p>
+            </>
+          ) : null}
         </div>
         <button type="button" className="sc-btn sc-btn--primary" onClick={() => go("billing")}>
           {account.billing?.status === "active" ? "Manage" : "Upgrade"}
