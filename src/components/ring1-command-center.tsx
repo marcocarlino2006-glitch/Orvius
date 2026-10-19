@@ -123,7 +123,7 @@ function AheadStrip({ tomorrow, money }: { tomorrow?: CommandTomorrow | null; mo
         <span className="cmd-money-label">Collected · {money?.windowDays ?? 7} days</span>
         <span className="cmd-money-value">{money ? formatCents(money.collectedCents) : "—"}</span>
         <span className="cmd-money-note">
-          {money?.outstandingCents ? `${formatCents(money.outstandingCents)} still owed` : "Nothing outstanding"}
+          {money ? (money.outstandingCents ? `${formatCents(money.outstandingCents)} still owed` : "Nothing outstanding") : "Money isn't loading right now"}
         </span>
       </Link>
     </section>
