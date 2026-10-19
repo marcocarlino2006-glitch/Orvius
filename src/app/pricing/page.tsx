@@ -37,15 +37,15 @@ export default function PricingPage() {
             }
           />
           <p className="mt-4 max-w-2xl font-sans text-sm text-ash">
-            For businesses in {company.serviceCountry} only, for now.
+            For businesses in {company.serviceCountry} only.
           </p>
           {!selfServeReady ? (
             <p className="mt-4 max-w-2xl font-sans text-sm text-ash">
-              Card signup isn&apos;t open yet. Until it is, book a{" "}
+              Every shop starts with a guided setup, not a form. Book a{" "}
               <Link href="/pilot" className="underline underline-offset-2">
                 call audit
               </Link>{" "}
-              and we&apos;ll set up your business line with you.
+              and we&apos;ll put your line live with you — your name, hours and playbook set before the first call.
             </p>
           ) : null}
         </div>
