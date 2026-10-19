@@ -1,5 +1,5 @@
 {
-  "production": [],
+  "production": ["orvius.im"],
   "preview": [],
   "staging": []
 }

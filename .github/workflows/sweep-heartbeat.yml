@@ -29,11 +29,13 @@ jobs:
     timeout-minutes: 355
     env:
       CRON_SECRET: ${{ secrets.CRON_SECRET }}
-      # No default target: the sweep runs only on the deployment named here,
-      # listed in ops/drain-targets.json, serving the approved release.
-      DRAIN_TARGET_URL: ${{ vars.DRAIN_TARGET_URL }}
-      DRAIN_TARGET_ENV: ${{ vars.DRAIN_TARGET_ENV }}
-      DRAIN_EXPECTED_RELEASE: ${{ vars.APPROVED_RELEASE_COMMIT }}
+      # One named target: production, listed in ops/drain-targets.json. The
+      # approved release is the commit this run checked out (main's head),
+      # verified against the deployment's own /api/health before any sweep is
+      # requested — the script refuses anything else and has no default.
+      DRAIN_TARGET_URL: https://orvius.im
+      DRAIN_TARGET_ENV: production
+      DRAIN_EXPECTED_RELEASE: ${{ github.sha }}
     steps:
       - uses: actions/checkout@v4
         with:
