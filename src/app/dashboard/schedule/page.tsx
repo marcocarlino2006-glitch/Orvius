@@ -479,9 +479,16 @@ export default function DispatchPage() {
                 title="Nothing scheduled this day"
                 body={`Calls Orvius books land here with a ${terms.worker} already picked. Pick another day, or book one yourself.`}
                 action={
-                  <Link href="/dashboard/jobs/new" className="ox-btn ox-btn--quiet ox-btn--sm">
-                    New {terms.job}
-                  </Link>
+                  <span className="flex flex-wrap justify-center gap-2">
+                    <Link href="/dashboard/jobs/new" className="ox-btn ox-btn--primary ox-btn--sm">
+                      New {terms.job}
+                    </Link>
+                    {day === today ? (
+                      <Link href="/dashboard/calls" className="ox-btn ox-btn--quiet ox-btn--sm">
+                        See today&apos;s calls
+                      </Link>
+                    ) : null}
+                  </span>
                 }
               />
             ) : (

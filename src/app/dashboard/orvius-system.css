@@ -1417,6 +1417,9 @@ button.rd-path-btn:hover {
   align-items: center;
   height: 28px;
   padding: 0 10px;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
   border-radius: 0.5rem;
   background: #fffffff2;
   color: #000000e5;
@@ -1525,6 +1528,489 @@ button.rd-path-btn:hover {
 
 .os-shell.os-shell-night .mx-menu .mx-signout:hover {
   background: rgb(229 72 77 / 0.08);
+}
+
+.os-shell.os-shell-night .mx-usage {
+  padding: 1px 2px 9px;
+}
+
+.os-shell.os-shell-night .mx-meter {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(128 128 128 / 0.28);
+}
+
+.os-shell.os-shell-night .mx-meter > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--ox-green);
+}
+
+.os-shell.os-shell-night .mx-meter[data-tone="near"] > span {
+  background: var(--ox-yellow);
+}
+
+.os-shell.os-shell-night .mx-meter[data-tone="over"] > span {
+  background: var(--ox-red);
+}
+
+.os-shell.os-shell-night .mx-usage-line {
+  margin-top: 6px;
+  color: var(--ox-mute, #8c8c8c);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+/* ── Upgrade: pick a plan without leaving the app ──────────────────────── */
+
+.os-shell.os-shell-night .upg-backdrop {
+  --upg-bg: var(--ox-panel);
+  --upg-text: var(--ox-text);
+  --upg-text-2: var(--ox-text-2);
+  --upg-mute: var(--ox-mute);
+  --upg-line: var(--ox-line);
+  --upg-card: var(--ox-fill-light);
+  --upg-hover: var(--ox-fill-hover);
+  --upg-btn: var(--ox-text);
+  --upg-btn-ink: var(--ox-bg);
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgb(5 5 8 / 0.6);
+  animation: upg-in var(--ox-dur, 160ms) var(--ox-ease, ease-out) both;
+}
+
+@keyframes upg-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.os-shell.os-shell-night .upg-card {
+  width: min(560px, 100%);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  padding: 20px;
+  border-radius: 1.25rem;
+  background: var(--upg-bg);
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.28), 0 24px 48px -12px rgb(0 0 0 / 0.35);
+  color: var(--upg-text);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  animation: upg-card-in var(--ox-dur, 160ms) var(--ox-ease, ease-out) both;
+}
+
+@keyframes upg-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.99);
+  }
+}
+
+.os-shell.os-shell-night .upg-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.os-shell.os-shell-night .upg-title {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.os-shell.os-shell-night .upg-sub {
+  margin-top: 4px;
+  color: var(--upg-text-2);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.os-shell.os-shell-night .upg-close {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--upg-mute);
+  cursor: pointer;
+}
+
+.os-shell.os-shell-night .upg-close:hover {
+  background: var(--upg-hover);
+  color: var(--upg-text);
+}
+
+.os-shell.os-shell-night .upg-close svg {
+  width: 16px;
+  height: 16px;
+}
+
+.os-shell.os-shell-night .upg-usage {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 0.75rem;
+  background: var(--upg-card);
+}
+
+.os-shell.os-shell-night .upg-meter {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(128 128 128 / 0.28);
+}
+
+.os-shell.os-shell-night .upg-meter > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--ox-green);
+}
+
+.os-shell.os-shell-night .upg-meter[data-tone="near"] > span {
+  background: var(--ox-yellow);
+}
+
+.os-shell.os-shell-night .upg-meter[data-tone="over"] > span {
+  background: var(--ox-red);
+}
+
+.os-shell.os-shell-night .upg-usage-line {
+  margin-top: 8px;
+  color: var(--upg-text);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.os-shell.os-shell-night .upg-advice {
+  margin-top: 3px;
+  color: var(--upg-mute);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.os-shell.os-shell-night .upg-toggle {
+  display: inline-flex;
+  gap: 2px;
+  margin-top: 16px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--upg-card);
+}
+
+.os-shell.os-shell-night .upg-toggle button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--upg-text-2);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.os-shell.os-shell-night .upg-toggle button.is-on {
+  background: var(--upg-text);
+  color: var(--upg-bg);
+}
+
+.os-shell.os-shell-night .upg-save {
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.72;
+}
+
+.os-shell.os-shell-night .upg-plans {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.os-shell.os-shell-night .upg-plan {
+  display: block;
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--upg-line);
+  border-radius: 0.75rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.os-shell.os-shell-night .upg-plan:hover {
+  background: var(--upg-hover);
+}
+
+.os-shell.os-shell-night .upg-plan.is-on {
+  border-color: var(--upg-text);
+  background: var(--upg-card);
+}
+
+.os-shell.os-shell-night .upg-plan-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.os-shell.os-shell-night .upg-plan-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.os-shell.os-shell-night .upg-badge {
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--upg-text);
+  color: var(--upg-bg);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.os-shell.os-shell-night .upg-radio {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  margin-left: auto;
+  flex-shrink: 0;
+  border: 1.5px solid var(--upg-mute);
+  border-radius: 999px;
+}
+
+.os-shell.os-shell-night .upg-plan.is-on .upg-radio {
+  border-color: var(--upg-text);
+}
+
+.os-shell.os-shell-night .upg-plan.is-on .upg-radio::after {
+  content: "";
+  position: absolute;
+  inset: 3.5px;
+  border-radius: 999px;
+  background: var(--upg-text);
+}
+
+.os-shell.os-shell-night .upg-plan-price {
+  display: block;
+  margin-top: 8px;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.os-shell.os-shell-night .upg-plan-per {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--upg-mute);
+  letter-spacing: 0;
+}
+
+.os-shell.os-shell-night .upg-plan-bill {
+  display: block;
+  margin-top: 1px;
+  color: var(--upg-mute);
+  font-size: 12px;
+}
+
+.os-shell.os-shell-night .upg-plan-tag {
+  display: block;
+  margin-top: 8px;
+  color: var(--upg-text-2);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.os-shell.os-shell-night .upg-plan-list {
+  display: grid;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.os-shell.os-shell-night .upg-li {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  color: var(--upg-text-2);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.os-shell.os-shell-night .upg-li svg {
+  width: 14px;
+  height: 14px;
+  margin-top: 2px;
+  flex-shrink: 0;
+  color: var(--ox-green);
+}
+
+.os-shell.os-shell-night .upg-note {
+  margin-top: 12px;
+  color: var(--upg-mute);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.os-shell.os-shell-night .upg-textlink {
+  color: var(--upg-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.os-shell.os-shell-night .upg-error {
+  margin-top: 12px;
+  color: var(--ox-red);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.os-shell.os-shell-night .upg-foot {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--upg-line);
+}
+
+.os-shell.os-shell-night .upg-due {
+  color: var(--upg-text-2);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.os-shell.os-shell-night .upg-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 12px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 0.5rem;
+  background: var(--upg-btn);
+  color: var(--upg-btn-ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.os-shell.os-shell-night .upg-cta:hover:not(:disabled) {
+  opacity: 0.92;
+}
+
+.os-shell.os-shell-night .upg-cta:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.os-shell.os-shell-night .upg-fine {
+  margin-top: 10px;
+  color: var(--upg-mute);
+  font-size: 12px;
+  text-align: center;
+}
+
+/* Day theme: the account popover sits on paper, so it reads paper. */
+html[data-theme="day"] .os-shell.os-shell-night .mx-menu {
+  background: var(--ox-s2);
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.08), 0 24px 48px -12px rgb(0 0 0 / 0.18);
+  color: var(--ox-text);
+}
+
+html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-name,
+html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-plan-name,
+html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-link,
+html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-plan-row {
+  color: var(--ox-text);
+}
+
+html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-sub,
+html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-plan-value,
+html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-plan-chevron,
+html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-updown,
+html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-trail,
+html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-back {
+  color: var(--ox-mute);
+}
+
+html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-identity:hover,
+html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-link:hover,
+html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-link:focus-visible,
+html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-plan-row:hover,
+html[data-theme="day"] .os-shell.os-shell-night .mx-menu button.mx-ws:hover:not(:disabled) {
+  background: rgb(0 0 0 / 0.04);
+}
+
+html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-plan {
+  background: rgb(0 0 0 / 0.03);
+}
+
+html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-upgrade {
+  background: var(--ox-text);
+  color: var(--ox-bg);
+}
+
+html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-upgrade:hover {
+  background: var(--ox-text-2);
+}
+
+html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-group--rule::before {
+  border-top-color: rgb(0 0 0 / 0.07);
+}
+
+html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-ws.is-current {
+  background: rgb(0 0 0 / 0.04);
+}
+
+html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-ws-mark {
+  background: var(--ox-s3);
+  color: var(--ox-text);
+}
+
+html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-ws-check {
+  color: var(--ox-text);
+}
+
+html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-ws-filter {
+  border-color: var(--ox-line-strong);
+  color: var(--ox-text);
+}
+
+html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-ws-all,
+html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-ws-note {
+  border-top-color: rgb(0 0 0 / 0.07);
+  color: var(--ox-mute);
+}
+
+html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-ws-all:hover {
+  color: var(--ox-text);
+}
+
+html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-signout,
+html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-signout > .mx-icon:first-child {
+  color: var(--ox-red);
+}
+
+html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-signout:hover {
+  background: var(--ox-red-soft);
 }
 
 .os-shell.os-shell-night .mx-bar {
