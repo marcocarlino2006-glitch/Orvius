@@ -21,7 +21,7 @@ import {
   resolvePilotEndsAt,
 } from "../src/lib/billing-entitlement.ts";
 import { canAccessModule, getEffectivePlanId } from "../src/lib/plan-features.ts";
-import { getPayPromptDecision } from "../src/lib/pay-prompt.ts";
+import { getPayPromptDecision, payPromptOpensNow, PAY_PROMPT_VALUE_DELAY_MS } from "../src/lib/pay-prompt.ts";
 
 const HOUR = 60 * 60 * 1000;
 const daysFromNow = (n) => {
@@ -127,6 +127,22 @@ describe("pay prompt loop", () => {
     assert.equal(d.tone, "trial");
     assert.equal(d.hard, false);
     assert.ok(d.snoozeMs <= 4 * HOUR);
+  });
+
+  it("value first: the soft trial ask waits a day, urgency never waits", () => {
+    const now = Date.now();
+    const trial = getPayPromptDecision({
+      billingStatus: "pilot",
+      pilotEndsAt: daysFromNow(20).toISOString(),
+      shopCreatedAt: new Date().toISOString(),
+    });
+    assert.equal(payPromptOpensNow(trial, null, now), false, "first view: the product speaks first");
+    assert.equal(payPromptOpensNow(trial, now - HOUR, now), false);
+    assert.equal(payPromptOpensNow(trial, now - PAY_PROMPT_VALUE_DELAY_MS, now), true);
+    const ending = getPayPromptDecision({ billingStatus: "pilot", pilotEndsAt: daysFromNow(3).toISOString() });
+    assert.equal(payPromptOpensNow(ending, null, now), true, "access ending is never deferred");
+    const locked = getPayPromptDecision({ billingStatus: "canceled" });
+    assert.equal(payPromptOpensNow(locked, null, now), false, "hard states use the lock bar, not the modal");
   });
 
   it("sharpens in the last week and counts the days down", () => {

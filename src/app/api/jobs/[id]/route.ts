@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { depositPayUrl, getDepositReadiness } from "@/lib/booking-deposit";
 import { invoiceCompletedJob, invoicePayUrl } from "@/lib/invoice-pay";
 import { claimedCents, collectedCents, collectedHow } from "@/lib/payment-record";
+import { moneyTotals } from "@/lib/payment-math";
 import { getConnectStatus } from "@/lib/stripe-connect";
 import { personActor, recordAudit } from "@/lib/audit";
 import { DEFAULT_JOB_DURATION_MIN, shopWallInputToUtc } from "@/lib/availability";
@@ -18,6 +19,7 @@ import { recordWorkflowDecision, recordWorkflowProgress } from "@/lib/workflow-e
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
 import { forbiddenResponse, requireEntitledSession } from "@/lib/tenant";
+import { interactionFloor } from "@/lib/customer";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -60,7 +62,7 @@ export async function GET(_request: Request, { params }: Params) {
   const invoice = await prisma.invoice.findFirst({
     where: { businessId: business.id, jobId: job.id },
     orderBy: { createdAt: "desc" },
-    include: { payments: { select: { amountCents: true, status: true, method: true } } },
+    include: { payments: { select: { amountCents: true, status: true, method: true, refundedCents: true } } },
   });
 
   const confirmText = job.customerConfirmSid
@@ -73,8 +75,22 @@ export async function GET(_request: Request, { params }: Params) {
     ? textDelivery({ sid: job.customerConfirmSid, deliveryStatus: confirmText?.deliveryStatus, sentAt: job.customerConfirmSentAt })
     : null;
 
+  const serialized = serializeJob(job);
+  if (serialized.customer) {
+    const counts = await prisma.customer.findUnique({
+      where: { id: serialized.customer.id },
+      select: { _count: { select: { calls: true, leads: true, jobs: true } } },
+    });
+    if (counts) {
+      serialized.customer = {
+        ...serialized.customer,
+        interactionCount: interactionFloor(serialized.customer.interactionCount, counts._count),
+      };
+    }
+  }
+
   return NextResponse.json({
-    job: { ...serializeJob(job), customerConfirmDelivery },
+    job: { ...serialized, customerConfirmDelivery },
     deposit: deposit
       ? {
           id: deposit.id,
@@ -100,6 +116,8 @@ export async function GET(_request: Request, { params }: Params) {
           collectedCents: collectedCents(invoice.payments),
           claimedCents: claimedCents(invoice.payments),
           collectedHow: collectedHow(invoice.payments),
+          refundedCents: moneyTotals(invoice.payments).refundedCents,
+          keptCents: moneyTotals(invoice.payments).netCents,
         }
       : null,
     finalAmountCents: job.finalAmountCents,

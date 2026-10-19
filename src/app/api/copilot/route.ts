@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { executeProposal, needsCheck, resolveReconcile, STALE_EXECUTING_MS, type ProposalParams } from "@/lib/copilot-execute";
+import { auditOrThrow, executeProposal, needsCheck, readParams, resolveReconcile, STALE_EXECUTING_MS } from "@/lib/copilot-execute";
 import { COPILOT_ACTIONS, proposeAction } from "@/lib/copilot-propose";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
-import { personActor, recordAudit } from "@/lib/audit";
+import { personActor } from "@/lib/audit";
 import { sharedRateLimit, tooManyRequests } from "@/lib/rate-limit";
 import { requireEntitledSession } from "@/lib/tenant";
 import { grantsForActor, mayResolve, mayWithdraw } from "@/lib/command-authority";
@@ -43,8 +43,39 @@ function parseResult(json: string | null) {
   }
 }
 
-/** List open approvals and the recent audit trail for Command. */
-export async function GET() {
+/**
+ * Where one plan stands, read from the shop's own record: what Command asks
+ * after a reply was lost, instead of guessing or offering it again.
+ */
+async function readBack(businessId: string, proposalId: string, now: Date) {
+  const item = await prisma.copilotAction.findFirst({ where: { id: proposalId, businessId } });
+  if (!item) return null;
+  const result = parseResult(item.resultJson);
+  const state =
+    item.status === "executed"
+      ? "done"
+      : item.status === "cancelled"
+        ? "withdrawn"
+        : item.status === "superseded"
+          ? "superseded"
+        : item.status === "proposed"
+          ? result?.failedBeforeEffect === true
+            ? "failed_before_effect"
+            : "waiting_for_approval"
+          : needsCheck(item, now)
+            ? result?.done === true
+              ? "done_unrecorded"
+              : "needs_check"
+            : "running";
+  const params = readParams(item.paramsJson);
+  const jobId = typeof result?.jobId === "string" ? result.jobId : (params?.jobId ?? null);
+  const leadId = typeof result?.leadId === "string" ? result.leadId : (params?.leadId ?? null);
+  const outcome = jobId || leadId ? await buildOutcome(businessId, { jobId, leadId }).catch(() => null) : null;
+  return { proposal: { id: item.id, action: item.action, preview: item.preview, status: item.status, state, executedAt: item.executedAt?.toISOString() ?? null }, outcome };
+}
+
+/** List open approvals and the recent audit trail for Command, or read back one plan with ?proposalId=. */
+export async function GET(request: Request) {
   const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
   const { business } = authResult;
@@ -53,6 +84,11 @@ export async function GET() {
   if ("error" in planGate) return planGate.error;
 
   const now = new Date();
+  const one = request?.url ? new URL(request.url).searchParams.get("proposalId") : null;
+  if (one) {
+    const found = await readBack(business.id, one, now);
+    return found ? NextResponse.json(found) : NextResponse.json({ error: "No such plan in this shop" }, { status: 404 });
+  }
   const [proposals, flagged, activity] = await Promise.all([
     prisma.copilotAction.findMany({
       where: { businessId: business.id, status: "proposed" },
@@ -135,6 +171,21 @@ export async function POST(request: Request) {
       }
       const outcome = await resolveReconcile({ business, proposalId: body.proposalId, happened: body.outcome === "done", by: authResult });
       if (!outcome.ok) return NextResponse.json({ error: outcome.error }, { status: outcome.status });
+      try {
+        const resolved = await prisma.copilotAction.findFirst({ where: { id: body.proposalId, businessId: business.id }, select: { paramsJson: true, resultJson: true } });
+        const p = readParams(resolved?.paramsJson) ?? {};
+        const r = parseResult(resolved?.resultJson ?? null);
+        const jobId = typeof r?.jobId === "string" ? r.jobId : (p.jobId ?? null);
+        const leadId = typeof r?.leadId === "string" ? r.leadId : (p.leadId ?? null);
+        const view = jobId || leadId ? await buildOutcome(business.id, { jobId, leadId }) : null;
+        if (view) {
+          const who = { actor: personActor(authResult).actor as "owner" | "teammate", email: authResult.email };
+          await recordWorkflowDecision(view, "resolved_exception", who, `${body.proposalId}:${body.outcome}`);
+          await recordWorkflowProgress(view, who);
+        }
+      } catch (error) {
+        logWarn("workflow.report_failed", { proposalId: body.proposalId, error: error instanceof Error ? error.message : "unknown" });
+      }
       return NextResponse.json(outcome);
     }
 
@@ -153,6 +204,7 @@ export async function POST(request: Request) {
       if (!mayWithdraw(actor, proposal, await grantsForActor(business.id, actor.email))) {
         return NextResponse.json({ error: "Only the owner, whoever asked for this plan, or a grant holder can withdraw it." }, { status: 403 });
       }
+      const params = readParams(proposal.paramsJson) ?? {};
       const withdrawn = await prisma.copilotAction.updateMany({
         where: { id: proposal.id, status: "proposed" },
         data: { status: "cancelled" },
@@ -160,8 +212,7 @@ export async function POST(request: Request) {
       if (withdrawn.count === 0) {
         return NextResponse.json({ error: "This plan already started, so it can't be withdrawn. If it stops partway it is flagged to check." }, { status: 409 });
       }
-      const params = JSON.parse(proposal.paramsJson) as ProposalParams;
-      await recordAudit({
+      const recorded = await auditOrThrow({
         businessId: business.id,
         entityType: params.jobId ? "job" : params.leadId ? "lead" : "copilot",
         entityId: params.jobId ?? params.leadId ?? proposal.id,
@@ -171,13 +222,27 @@ export async function POST(request: Request) {
         jobId: params.jobId ?? null,
         leadId: params.leadId ?? null,
         idempotencyKey: `copilot:${proposal.id}:declined`,
-      });
-      return NextResponse.json({ ok: true, proposalId: proposal.id, status: "cancelled" });
+      }).then(
+        () => true,
+        (error: unknown) => {
+          logWarn("copilot.declined_unrecorded", { proposalId: proposal.id, error: error instanceof Error ? error.message : "unknown" });
+          return false;
+        },
+      );
+      return NextResponse.json({ ok: true, proposalId: proposal.id, status: "cancelled", recorded });
     }
 
     if (mode === "execute") {
       const body = executeSchema.parse(await request.json());
-      const outcome = await executeProposal({ business, proposalId: body.proposalId, by: authResult });
+      const outcome = await executeProposal({ business, proposalId: body.proposalId, by: authResult }).catch((error: unknown) => {
+        logWarn("copilot.execute_unknown", { proposalId: body.proposalId, error: error instanceof Error ? error.message : "unknown" });
+        return {
+          ok: false as const,
+          error: "Orvius couldn't tell whether this ran. It won't run again on its own; refresh Command to see, and check it before approving again.",
+          status: 500,
+          reason: "unknown",
+        };
+      });
       if (!outcome.ok) {
         return NextResponse.json({ error: outcome.error, reason: outcome.reason }, { status: outcome.status });
       }

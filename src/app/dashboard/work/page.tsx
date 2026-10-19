@@ -44,9 +44,10 @@ export default function WorkPage() {
 
   const load = useCallback(async (which: "open" | "closed") => {
     setError(null);
-    const res = await fetch(`/api/work?view=${which}`);
-    if (!res.ok) throw new Error("Couldn't load your work. Refresh to try again.");
-    setData((await res.json()) as Payload);
+    const res = await fetch(`/api/work?view=${which}`).catch(() => null);
+    const next = res?.ok ? ((await res.json().catch(() => null)) as Payload | null) : null;
+    if (!next || !Array.isArray(next.items)) throw new Error("Couldn't load your work.");
+    setData(next);
   }, []);
 
   useEffect(() => {
@@ -106,7 +107,7 @@ export default function WorkPage() {
                 onClick={() => setFilter(f.id)}
               >
                 <span className="jobs-pipeline-label">{f.label}</span>
-                <span className="jobs-pipeline-count">{counts[f.id]}</span>
+                <span className="jobs-pipeline-count">{data ? counts[f.id] : "–"}</span>
               </button>
             ))
           : null}
@@ -121,7 +122,17 @@ export default function WorkPage() {
         </button>
       </div>
 
-      {!data ? (
+      {!data && error ? (
+        <ProEmptyState
+          title="Work didn't load"
+          body="Nothing here is changed by this. Try again, or open Jobs and Inbox directly."
+          action={
+            <button type="button" className="btn btn-secondary text-sm" onClick={() => void load(view).catch((e: Error) => setError(e.message))}>
+              Try again
+            </button>
+          }
+        />
+      ) : !data ? (
         <DashboardSkeleton />
       ) : rows.length === 0 ? (
         <ProEmptyState

@@ -1,4 +1,5 @@
 import { recordAudit, type AuditActor } from "@/lib/audit";
+import { recordSetupMilestone } from "@/lib/workflow-events";
 import { DEFAULT_JOB_DURATION_MIN } from "@/lib/availability";
 import { JobTransitionError, ownerScheduleClash, updateJobStatus } from "@/lib/job";
 import { isJobOutcomeCode, parseFinalAmountCents, type JobOutcomeCode } from "@/lib/job-outcome";
@@ -215,6 +216,8 @@ export async function transitionJob(params: {
         via: params.via,
       },
     });
+    /* The job is already done; a milestone that can't be written never undoes that. */
+    if (job.leadId) await recordSetupMilestone(params.businessId, "first_outcome", now, { jobId: job.id, via: params.via }).catch(() => undefined);
     return { changed: true, from, to: "completed" };
   }
 

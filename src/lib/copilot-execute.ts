@@ -2,7 +2,7 @@ import { COMMAND_POLICY_VERSION, decideApproval, grantsForActor } from "@/lib/co
 import type { Business } from "@prisma/client";
 import { personActor, recordAudit, type AuditInput } from "@/lib/audit";
 import { DEFAULT_JOB_DURATION_MIN } from "@/lib/availability";
-import { isWindowOpen, openWindows, windowLabel } from "@/lib/copilot-propose";
+import { isWindowOpen, openTwin, openWindows, PROPOSAL_FRESH_MS, refuseTwin, windowLabel } from "@/lib/copilot-propose";
 import { sendCustomerConfirmSms } from "@/lib/customer-confirm";
 import { sendCustomerSms } from "@/lib/customer-sms";
 import { createJobFromLead, SlotTakenError } from "@/lib/job";
@@ -324,8 +324,7 @@ export type ExecuteOutcome =
 /** An approval still "executing" after this long crashed mid-run: someone has to check what happened. */
 export const STALE_EXECUTING_MS = 5 * 60_000;
 
-/** A plan approved later than this was made on an old picture of the shop; ask for a fresh one. */
-export const PROPOSAL_FRESH_MS = 12 * 60 * 60_000;
+export { PROPOSAL_FRESH_MS };
 
 /**
  * Proposal lifecycle (CopilotAction.status):
@@ -339,6 +338,30 @@ export const PROPOSAL_FRESH_MS = 12 * 60 * 60_000;
 export function needsCheck(item: { status: string; createdAt: Date; executedAt?: Date | null }, now = new Date()) {
   if (item.status === "reconcile") return true;
   return item.status === "executing" && now.getTime() - item.createdAt.getTime() > STALE_EXECUTING_MS;
+}
+
+/**
+ * recordAudit never throws, and a null id means either a failed write or a row
+ * already there under this key, so the row itself decides.
+ */
+export async function auditOrThrow(input: AuditInput): Promise<string> {
+  const id = await recordAudit(input);
+  if (id) return id;
+  const existing = input.idempotencyKey
+    ? await prisma.auditEvent.findFirst({ where: { businessId: input.businessId, idempotencyKey: input.idempotencyKey }, select: { id: true } })
+    : null;
+  if (!existing) throw new Error(`audit row not written: ${input.action}`);
+  return existing.id;
+}
+
+/** Stored plan parameters, or null when they can't be read. Parsed before any status changes, never after. */
+export function readParams(json: string | null | undefined): ProposalParams | null {
+  try {
+    const value = JSON.parse(json ?? "null");
+    return value && typeof value === "object" && !Array.isArray(value) ? (value as ProposalParams) : null;
+  } catch {
+    return null;
+  }
 }
 
 function errorText(error: unknown) {
@@ -394,12 +417,29 @@ export async function executeProposal(params: {
   }
   const decision = decideApproval({ actor: params.by, proposal: pending, grants: await grantsForActor(business.id, params.by.email) });
   if (!decision.ok) return { ok: false, error: decision.error, status: 403, reason: "no_command_authority" };
+  const stored = await prisma.copilotAction.findFirst({ where: { id: params.proposalId, businessId: business.id }, select: { paramsJson: true } });
+  const planParams = readParams(stored?.paramsJson);
+  if (!planParams) {
+    await prisma.copilotAction.updateMany({
+      where: { id: params.proposalId, businessId: business.id, status: "proposed" },
+      data: { resultJson: JSON.stringify({ failedBeforeEffect: true, error: "unreadable plan details" }) },
+    });
+    return { ok: false, error: "This plan's details can't be read, so it didn't run. Nothing was changed. Ask Command for a fresh one.", status: 409, reason: "failed_before_effect" };
+  }
+  const twin = await openTwin(business.id, pending.action, stored!.paramsJson, params.proposalId);
+  if (twin && twin.status !== "proposed") return refuseTwin(twin.status);
   const claimed = await prisma.copilotAction.updateMany({
     where: { id: params.proposalId, businessId: business.id, status: "proposed" },
     data: { status: "executing", approvalKind: decision.kind, approvedByEmail: params.by.email.trim().toLowerCase(), grantId: decision.grantId },
   });
   if (claimed.count === 0) {
     return { ok: false, error: "Proposal not found or already used", status: 404 };
+  }
+  // Two copies approved at once both pass the check above; whichever sees the other after claiming steps back.
+  const racing = await openTwin(business.id, pending.action, stored!.paramsJson, params.proposalId);
+  if (racing && racing.status !== "proposed") {
+    await prisma.copilotAction.updateMany({ where: { id: params.proposalId, status: "executing" }, data: { status: "proposed", approvalKind: null, approvedByEmail: null, grantId: null } });
+    return refuseTwin(racing.status);
   }
   const proposal = await prisma.copilotAction.findUniqueOrThrow({ where: { id: params.proposalId } });
 
@@ -409,7 +449,7 @@ export async function executeProposal(params: {
     outcome = await runProposal(
       business,
       proposal.action,
-      JSON.parse(proposal.paramsJson) as ProposalParams,
+      planParams,
       () => {
         touched = true;
       },
@@ -448,8 +488,14 @@ export async function executeProposal(params: {
       where: { id: proposal.id },
       data: { status: "executed", executedAt, resultJson: JSON.stringify(outcome.result) },
     });
+    await prisma.copilotAction
+      .updateMany({
+        where: { businessId: business.id, action: proposal.action, paramsJson: proposal.paramsJson, status: "proposed", id: { not: proposal.id } },
+        data: { status: "superseded", resultJson: JSON.stringify({ supersededBy: proposal.id }) },
+      })
+      .catch(() => undefined);
     stage = "audit";
-    auditId = await recordAudit({
+    auditId = await auditOrThrow({
       businessId: business.id,
       entityType: outcome.entity.type,
       entityId: outcome.entity.id,
@@ -492,7 +538,8 @@ export async function executeProposal(params: {
   };
 }
 
-export type ResolveOutcome = { ok: true; status: "executed" | "proposed" } | { ok: false; error: string; status: number };
+/** `recorded: false` only when the decision saved but its history row didn't. */
+export type ResolveOutcome = { ok: true; status: "executed" | "proposed"; recorded?: false } | { ok: false; error: string; status: number };
 
 /** A person checked a flagged approval: it happened ("done"), or it didn't and can be approved again ("not_done"). */
 export async function resolveReconcile(params: {
@@ -513,13 +560,14 @@ export async function resolveReconcile(params: {
     return { ok: false, error: "This one went through — only the record is missing, so confirm it instead.", status: 409 };
   }
   const next = params.happened ? "executed" : "proposed";
+  const p = readParams(item.paramsJson) ?? {};
   const moved = await prisma.copilotAction.updateMany({
     where: { id: item.id, status: item.status },
     data: params.happened ? { status: next, executedAt: item.executedAt ?? now } : { status: next },
   });
   if (moved.count === 0) return { ok: false, error: "Someone else just resolved this", status: 409 };
-  const p = JSON.parse(item.paramsJson) as ProposalParams;
-  await recordAudit({
+  // The decision is already saved; a failed record is reported, not turned into an error that invites a repeat.
+  const recorded = await auditOrThrow({
     businessId: params.business.id,
     entityType: p.jobId ? "job" : p.leadId ? "lead" : "copilot",
     entityId: p.jobId ?? p.leadId ?? item.id,
@@ -532,6 +580,12 @@ export async function resolveReconcile(params: {
     jobId: p.jobId ?? null,
     leadId: p.leadId ?? null,
     idempotencyKey: `copilot:${item.id}:reconciled:${item.status}:${now.getTime()}`,
-  });
-  return { ok: true, status: next };
+  }).then(
+    () => true,
+    (error: unknown) => {
+      console.error("[copilot] resolved but unrecorded", item.id, errorText(error));
+      return false;
+    },
+  );
+  return { ok: true, status: next, ...(recorded ? {} : { recorded: false as const }) };
 }

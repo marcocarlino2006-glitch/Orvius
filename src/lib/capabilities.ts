@@ -17,7 +17,7 @@ import { textingEligibility, type TextingEligibility } from "@/lib/sms-eligibili
   through Stripe's chargesEnabled.
 */
 
-export type CapabilityId = "voice" | "sms" | "booking" | "follow_ups" | "payments";
+export type CapabilityId = "voice" | "owner_alerts" | "sms" | "booking" | "follow_ups" | "payments";
 /** off: the owner hasn't asked for it. pending: asked for, a prerequisite is missing. ready: on and allowed. */
 export type CapabilityState = "ready" | "pending" | "off";
 export type CapabilityFact = { label: string; ok: boolean | null };
@@ -32,6 +32,8 @@ export type Capability = {
   facts: CapabilityFact[];
   /** Where the owner fixes it. */
   fixHref: string | null;
+  /** Test mode: what this says works is simulated and reaches no one. */
+  simulated?: boolean;
 };
 
 const DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
@@ -111,6 +113,8 @@ export type CapabilityInput = {
   /** The latest activation approval on record, if any. */
   activation: { noticeVersion: string; setupVersion: string; createdAt: Date; actorEmail: string } | null;
   simulated: boolean;
+  /** Evidence about owner alerts. A phone on file or a texting flag is not delivery. */
+  alerts?: { reachable: boolean; lastDelivered: { channel: string; at: Date } | null; lastFailedAt: Date | null };
 };
 
 export function capabilityReport(input: CapabilityInput): Capability[] {
@@ -226,13 +230,43 @@ export function capabilityReport(input: CapabilityInput): Capability[] {
     fixHref: cardsReady ? null : "/dashboard/settings?settings=integrations",
   };
 
-  return [voice, sms, bookingCap, followUps, payments];
+  const alertFacts = input.alerts ?? { reachable: false, lastDelivered: null, lastFailedAt: null };
+  const delivered = alertFacts.lastDelivered;
+  const failedSince = Boolean(alertFacts.lastFailedAt && (!delivered || alertFacts.lastFailedAt > delivered.at));
+  const alertsReady = alertFacts.reachable && Boolean(delivered) && !failedSince && !input.simulated;
+  const ownerAlerts: Capability = {
+    id: "owner_alerts",
+    label: "Alerts to you",
+    requested: true,
+    state: alertsReady ? "ready" : "pending",
+    meanwhile: alertsReady ? null : "New requests still show in Command; don't rely on a text or email reaching you yet.",
+    detail: input.simulated
+      ? "Test mode: alerts are simulated and reach no one."
+      : !alertFacts.reachable
+        ? "No mobile number or email on file to reach you."
+        : failedSince
+          ? "The last alert to you failed after the last one that got through."
+          : delivered
+            ? delivered.channel === "email"
+              ? `An alert email was accepted by the mail provider ${delivered.at.toISOString().slice(0, 10)}.`
+              : `An alert text was delivered (carrier receipt) ${delivered.at.toISOString().slice(0, 10)}.`
+            : "Nothing has reached you yet. Send a test alert to prove it.",
+    facts: [
+      { label: "A way to reach you on file", ok: alertFacts.reachable },
+      { label: "An alert has reached you", ok: delivered ? true : alertFacts.reachable ? false : null },
+      { label: "No failure since", ok: delivered ? !failedSince : null },
+    ],
+    fixHref: alertsReady ? null : "/dashboard/settings?settings=notifications",
+  };
+
+  const all = [voice, ownerAlerts, sms, bookingCap, followUps, payments];
+  return input.simulated ? all.map((c) => (c.state === "off" ? c : { ...c, simulated: true })) : all;
 }
 
 export async function loadCapabilities(businessId: string, now = new Date()): Promise<Capability[] | null> {
   const shop = await prisma.business.findUnique({ where: { id: businessId } });
   if (!shop) return null;
-  const [booking, texting, activation] = await Promise.all([
+  const [booking, texting, activation, delivered, failed] = await Promise.all([
     bookingReadiness(shop, now),
     textingEligibility(shop.id),
     prisma.activationAcknowledgement.findFirst({
@@ -240,7 +274,19 @@ export async function loadCapabilities(businessId: string, now = new Date()): Pr
       orderBy: { createdAt: "desc" },
       select: { noticeVersion: true, setupVersion: true, createdAt: true, actorEmail: true },
     }),
+    // A text counts once the carrier says delivered; an email once the mail provider accepted it.
+    prisma.ownerNotification.findFirst({
+      where: { businessId: shop.id, status: "sent", OR: [{ channel: "email" }, { deliveryStatus: "delivered" }] },
+      orderBy: { createdAt: "desc" },
+      select: { channel: true, createdAt: true },
+    }),
+    prisma.ownerNotification.findFirst({ where: { businessId: shop.id, status: "failed" }, orderBy: { createdAt: "desc" }, select: { createdAt: true } }),
   ]);
   const simulated = shop.environment === "test";
-  return capabilityReport({ shop, booking, texting, activation, simulated });
+  const alerts = {
+    reachable: Boolean((shop.ownerPhone?.trim() && !shop.ownerSmsOptOutAt) || shop.ownerEmail?.trim()),
+    lastDelivered: delivered ? { channel: delivered.channel, at: delivered.createdAt } : null,
+    lastFailedAt: failed?.createdAt ?? null,
+  };
+  return capabilityReport({ shop, booking, texting, activation, simulated, alerts });
 }

@@ -1,3 +1,5 @@
+import { askConfirm } from "@/components/ask-dialog";
+
 /**
  * Every schedule edit from the owner's screens goes through here. The server
  * refuses a move or reassignment that clashes (closed day, busy calendar, the
@@ -23,6 +25,8 @@ async function sendWithClashConfirm(url: string, method: "PATCH" | "POST", body:
   const res = await send();
   if (res.status !== 409) return res;
   const data = (await res.clone().json().catch(() => null)) as { error?: string; clash?: boolean } | null;
-  if (!data?.clash || !window.confirm(`${data.error} Do it anyway?`)) return res;
+  if (!data?.clash) return res;
+  const anyway = await askConfirm({ title: "Do it anyway?", body: data.error ?? "This clashes with the schedule.", confirmLabel: "Do it anyway", cancelLabel: "Don't" });
+  if (!anyway) return res;
   return send({ allowClash: true });
 }

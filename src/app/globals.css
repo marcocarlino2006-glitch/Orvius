@@ -1515,7 +1515,9 @@ h3 {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem 1rem;
-  margin-top: 1rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
 }
 
 .pricing-wizard-step {
@@ -4850,7 +4852,7 @@ label:has(> input[type="radio"]) {
 .mkt-page .pricing-needs-result {
   background: var(--ov-paper-raised) !important;
   border: 1px solid var(--ov-line) !important;
-  border-radius: 0.5rem !important;
+  border-radius: 0.25rem !important;
   color: var(--ov-headline) !important;
 }
 

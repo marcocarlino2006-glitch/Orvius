@@ -8,6 +8,9 @@ import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
 import { requireMoney } from "@/lib/money-authority";
 import { requireEntitledSession } from "@/lib/tenant";
+import { logWarn } from "@/lib/logger";
+import { buildOutcome } from "@/lib/outcome";
+import { recordWorkflowDecision, recordWorkflowProgress } from "@/lib/workflow-events";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -55,6 +58,7 @@ export async function POST(request: Request, { params }: Params) {
         {
           error: `The customer already has this bill at ${formatCentsExact(repriceHeld.fromCents)}. To change it to ${formatCentsExact(repriceHeld.toCents)}, add why.`,
           code: "bill_committed",
+          reason: "bill_committed",
           ...repriceHeld,
         },
         { status: 409 },
@@ -76,6 +80,20 @@ export async function POST(request: Request, { params }: Params) {
       summary: `Invoice ${formatCentsExact(invoice.amountCents)}${sms?.sent ? ", texted to the customer" : ""}`,
       detail: { totalCents: body.totalCents, depositPaidCents },
     });
+
+    if (body.send) {
+      /* The bill is already made; reporting can't turn that into an error the owner retries. */
+      try {
+        const view = await buildOutcome(business.id, { jobId: job.id });
+        const who = { actor: actor.actor === "owner" ? ("owner" as const) : ("teammate" as const), email: authResult.email };
+        if (view) {
+          await recordWorkflowDecision(view, "sent_bill", who, invoice.id);
+          await recordWorkflowProgress(view, who);
+        }
+      } catch (error) {
+        logWarn("workflow.report_failed", { jobId: job.id, error: error instanceof Error ? error.message : "unknown" });
+      }
+    }
 
     return NextResponse.json({ ok: true, created, depositPaidCents, invoiceId: invoice.id, sms });
   } catch (error) {

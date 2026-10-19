@@ -1,6 +1,6 @@
 import { isLiveCall } from "@/lib/live-call";
 import { prisma } from "@/lib/prisma";
-import { collectedCents, isCollected } from "@/lib/payment-math";
+import { RECEIPT_STATUSES, collectedCents, refundedOf } from "@/lib/payment-math";
 import { estimateTitle } from "@/lib/estimate-options";
 import { paymentMethodLabel } from "@/lib/when";
 
@@ -76,6 +76,18 @@ function mergeAddress(
  */
 export async function findOrCreateCustomer(touch: CustomerTouch) {
   return (await findOrCreateCustomerDetailed(touch))?.customer ?? null;
+}
+
+/**
+ * The maintained counter can lag the records (imports, backfills, rows
+ * written before counting existed). Displays floor it at what the
+ * customer's own calls, leads and jobs prove — never the other way.
+ */
+export function interactionFloor(
+  maintained: number,
+  counts: { calls: number; leads: number; jobs: number },
+): number {
+  return Math.max(maintained, counts.calls, counts.leads, counts.jobs);
 }
 
 /**
@@ -242,11 +254,22 @@ export type TimelineEvent = {
   urgency: string | null;
   status: string | null;
   amountCents?: number | null;
+  /** What went back out on a payment row; gross less this is what the shop kept. */
+  refundedCents?: number;
   /** The job a money row belongs to, so the row opens it. */
   jobId?: string | null;
   /** Inbox thread for a text. */
   href?: string | null;
 };
+
+function paymentTitle(payment: { status: string; amountCents: number; refundedCents?: number | null }): string {
+  if (payment.status === "claimed") return `Customer says paid · ${formatMoney(payment.amountCents)}`;
+  const back = refundedOf(payment);
+  if (!back) return `Payment · ${formatMoney(payment.amountCents)}`;
+  return back >= payment.amountCents
+    ? `Payment · ${formatMoney(payment.amountCents)} · refunded in full`
+    : `Payment · ${formatMoney(payment.amountCents)} · ${formatMoney(back)} refunded`;
+}
 
 function formatMoney(cents: number): string {
   return new Intl.NumberFormat("en-US", {
@@ -398,17 +421,18 @@ export async function getCustomerTimeline(
           jobId: job.id,
         });
         for (const payment of invoice.payments) {
-          if (!isCollected(payment.status) && payment.status !== "claimed") continue;
+          if (!RECEIPT_STATUSES.includes(payment.status) && payment.status !== "claimed") continue;
           events.push({
             id: payment.id,
             type: "payment",
             at: payment.createdAt.toISOString(),
-            title: `${payment.status === "claimed" ? "Customer says paid" : "Payment"} · ${formatMoney(payment.amountCents)}`,
+            title: paymentTitle(payment),
             summary: paymentMethodLabel(payment.method),
             source: "payment",
             urgency: null,
             status: payment.status,
             amountCents: payment.amountCents,
+            refundedCents: refundedOf(payment),
             jobId: job.id,
           });
         }
@@ -430,17 +454,18 @@ export async function getCustomerTimeline(
       jobId: invoice.jobId,
     });
     for (const payment of invoice.payments) {
-      if (!isCollected(payment.status) && payment.status !== "claimed") continue;
+      if (!RECEIPT_STATUSES.includes(payment.status) && payment.status !== "claimed") continue;
       events.push({
         id: payment.id,
         type: "payment",
         at: payment.createdAt.toISOString(),
-        title: `${payment.status === "claimed" ? "Customer says paid" : "Payment"} · ${formatMoney(payment.amountCents)}`,
+        title: paymentTitle(payment),
         summary: paymentMethodLabel(payment.method),
         source: "payment",
         urgency: null,
         status: payment.status,
         amountCents: payment.amountCents,
+        refundedCents: refundedOf(payment),
         jobId: invoice.jobId,
       });
     }

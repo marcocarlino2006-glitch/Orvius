@@ -86,16 +86,17 @@ results.push(
 );
 
 const workMode = /workMode/.test(commandSrc);
+const askLead = commandSrc.indexOf("<AskBar");
 const signalsLead = commandSrc.indexOf("<CommandSignals");
 const exceptionBoard = commandSrc.indexOf("<WorkCard");
 const pulse = commandSrc.indexOf("<OrviusPulse");
 results.push(
   !workMode &&
-    exceptionBoard >= 0 &&
-    signalsLead >= 0 &&
-    exceptionBoard > signalsLead &&
-    pulse > exceptionBoard
-    ? pass("Command always-on: summary → action queue → Pulse (no workMode XOR)")
+    askLead >= 0 &&
+    exceptionBoard > askLead &&
+    signalsLead > exceptionBoard &&
+    pulse > signalsLead
+    ? pass("Command always-on: feed (direct → needs you → did) → summary → Pulse (no workMode XOR)")
     : fail("Command must keep signals, work queue, and Pulse visible — never XOR"),
 );
 

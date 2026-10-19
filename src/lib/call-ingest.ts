@@ -1,4 +1,5 @@
 import { describeAssistantPromises, detectAssistantPromises } from "@/lib/assistant-promises";
+import { recordSetupMilestone } from "@/lib/workflow-events";
 import { costColumns } from "@/lib/call-cost";
 import { latencyColumns, latencyFromReport } from "@/lib/call-latency";
 import { afterResponse } from "@/lib/after-response";
@@ -210,6 +211,7 @@ export async function captureEndOfCallReport(params: {
     });
 
     await completeWebhookEvent({ source: "vapi", externalId: vapiCallId, eventType, status: CAPTURED });
+    if (!business.lineVerifiedAt) await recordSetupMilestone(business.id, "line_proven", new Date(), { callId: call.id }).catch(() => undefined);
     return { duplicate: false, business, vapiCallId, call, lead };
   } catch (error) {
     await completeWebhookEvent({

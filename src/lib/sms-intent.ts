@@ -111,6 +111,7 @@ export async function claimIntent(params: {
   }
   if (existing.status === "leased") {
     const marked = await finishIntent(existing.id, { status: "unknown_submission", error: "lease expired mid-send" });
+    await raiseIntentException(marked);
     return { kind: "closed", intent: marked };
   }
   const took = await prisma.smsIntent.updateMany({
@@ -232,6 +233,14 @@ export async function nextIntentVersion(params: { businessId: string; eventType:
     select: { id: true, messageVersion: true },
   });
   return { version: (latest?.messageVersion ?? 0) + 1, priorIntentId: latest?.id ?? null };
+}
+
+/** The intent already written for an event and recipient, if any. */
+export async function findIntent(params: { businessId: string; eventType: string; eventId: string; to: string }) {
+  return prisma.smsIntent.findFirst({
+    where: { businessId: params.businessId, eventType: params.eventType, eventId: params.eventId, recipientNormalized: params.to, channel: "sms" },
+    orderBy: { messageVersion: "desc" },
+  });
 }
 
 /** The latest intent for an event and recipient, for linking a follow-up message to it. */

@@ -4,7 +4,7 @@ import { personActor, recordAudit } from "@/lib/audit";
 import { shopDayBounds } from "@/lib/availability";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
-import { requireEntitledSession } from "@/lib/tenant";
+import { requirePermission, type requireEntitledSession } from "@/lib/tenant";
 import { handOffTechnicianJobs } from "@/lib/tech-handoff";
 
 type Params = { params: Promise<{ id: string }> };
@@ -21,7 +21,7 @@ type Scoped =
   | { auth: Extract<Awaited<ReturnType<typeof requireEntitledSession>>, { business: unknown }>; technician: { id: string; name: string } };
 
 async function scope(params: Params["params"]): Promise<Scoped> {
-  const authResult = await requireEntitledSession();
+  const authResult = await requirePermission("team.manage");
   if ("error" in authResult) return { error: authResult.error! };
   const planGate = requirePlanModule(authResult.business, "dispatch");
   if ("error" in planGate) return { error: planGate.error };

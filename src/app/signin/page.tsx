@@ -72,9 +72,12 @@ export default async function SignInPage({
 
       <section className="ov-signin-panel" aria-labelledby="signin-heading">
         <div className="ov-signin-panel-inner">
-          <Link href="/" className="ov-signin-brand ov-signin-brand--mobile">
-            <OrviusLogo variant="void" size="lg" />
-          </Link>
+          <div className="ov-signin-mobile-head">
+            <Link href="/" className="ov-signin-brand ov-signin-brand--mobile">
+              <OrviusLogo variant="void" size="lg" />
+            </Link>
+            <SystemStatusPill className="ov-signin-status-echo" />
+          </div>
 
           <h2 id="signin-heading" className="sr-only">
             Sign in

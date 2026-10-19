@@ -94,7 +94,18 @@ export function analyzeCssUsage() {
     dynamicPrefixes.add(match[1]);
   }
 
+  /*
+    The literal head of a template string, read on its own. Template strings
+    span lines, so one stray backtick in the corpus flips which text the
+    literal scan treats as inside a string, and `sc-pill${on ? …}` then reads
+    as code while the " is-on" inside it reads as the string. A backtick run
+    that ends in an interpolation is a template head whichever way the scan
+    was aligned.
+  */
   const literal = literalTokens(codeText);
+  for (const head of codeText.matchAll(/`([^`$\\]*)\$\{/g)) {
+    for (const token of head[1].matchAll(tokenRe)) literal.add(token[0]);
+  }
   const declared = declaredClasses(cssFiles);
 
   const verdicts = new Map();

@@ -1,5 +1,8 @@
 import { recordAudit } from "@/lib/audit";
-import { collectedCents } from "@/lib/payment-math";
+import { isDemoBusiness } from "@/lib/demo-business";
+import { isFounderEmail } from "@/lib/founder";
+import { moneyTotals, type MoneyTotals } from "@/lib/payment-math";
+import { isSetupSandbox } from "@/lib/setup-flow";
 import type { Outcome, OutcomeStage } from "@/lib/outcome";
 import { prisma } from "@/lib/prisma";
 
@@ -14,14 +17,14 @@ import { prisma } from "@/lib/prisma";
 
 const EXCEPTION_STATES = new Set<OutcomeStage["state"]>(["failed", "unknown", "blocked"]);
 
-export type WorkflowDecision = "approved_plan" | "recorded_completion" | "chose_assignment" | "resolved_exception";
+export type WorkflowDecision = "approved_plan" | "recorded_completion" | "chose_assignment" | "resolved_exception" | "sent_bill";
 
 function key(outcome: Outcome) {
   return outcome.jobId ?? outcome.leadId ?? "none";
 }
 
 /** Stage completions, new exceptions, and exceptions that cleared, for one outcome. Idempotent. */
-export async function recordWorkflowProgress(outcome: Outcome, by: { actor: "owner" | "teammate" | "system"; email?: string | null }) {
+export async function recordWorkflowProgress(outcome: Outcome, by: { actor: "owner" | "teammate" | "technician" | "system"; email?: string | null }) {
   const id = key(outcome);
   const base = {
     businessId: outcome.businessId,
@@ -100,48 +103,99 @@ export async function recordWorkflowDecision(outcome: Outcome, decision: Workflo
   });
 }
 
+export type SetupMilestone = "line_proven" | "first_outcome";
+
+/** A setup step proven by something that happened (a real call, a job marked done), once per shop. */
+export async function recordSetupMilestone(businessId: string, milestone: SetupMilestone, at: Date, detail: Record<string, unknown> = {}) {
+  const shop = await prisma.business.findUnique({ where: { id: businessId }, select: { environment: true, slug: true, name: true, ownerEmail: true } });
+  if (!shop) return;
+  await recordAudit({
+    businessId,
+    entityType: "shop",
+    entityId: businessId,
+    action: "workflow.setup_milestone",
+    actor: "system",
+    actorEmail: null,
+    summary: milestone === "line_proven" ? "First real call answered on the Orvius line" : "First job done start to finish, marked by a person",
+    detail: { milestone, at: at.toISOString(), synthetic: shopIsSynthetic(shop), ...detail },
+    idempotencyKey: `workflow:${businessId}:setup:${milestone}`,
+  });
+}
+
+/** Demo, test-mode and the founder's own shops: their work is synthetic whatever an event says. */
+export function shopIsSynthetic(shop: { environment?: string | null; slug: string; name?: string; ownerEmail?: string | null; setupJson?: string | null }): boolean {
+  return shop.environment !== "production" || isDemoBusiness(shop) || isSetupSandbox(shop) || isFounderEmail(shop.ownerEmail);
+}
+
+/** What these numbers can't say. Missing inputs stay unknown; nothing is estimated in their place. */
+export const WORKFLOW_UNKNOWNS = [
+  "Owner hours saved: Orvius doesn't record how long these tasks took before.",
+  "Profit: labor and material costs aren't entered, so only money collected is shown.",
+  "Whether a job would have happened without Orvius: attributable means Orvius answered the call or the booking was approved in Command, not that it caused the sale.",
+  "Retention: customers aren't followed long enough here to say.",
+] as const;
+
 export type WorkflowReport = {
   synthetic: boolean;
+  /** The whole shop is demo, test-mode or the founder's own, so nothing in it counts as real work. */
+  shopSynthetic: boolean;
   started: number;
-  /** Jobs a person marked done, with what happened. */
+  /** Jobs a person marked done in the window, with what happened, and still done now. */
   completedJobs: number;
-  /** Money on Payment rows that Stripe or a person recorded as collected; claims and estimates are not counted. */
+  /** Receipts on those jobs, as collected; claims and estimates are not counted. Same as money.grossCents. */
   collectedCents: number;
-  /** Completed jobs that came from a call Orvius answered or a booking approved in Command. */
+  money: MoneyTotals;
+  /** Of those jobs, the ones from a real phone call Orvius answered or a booking approved in Command. */
   attributableJobs: number;
   ownerDecisions: number;
   exceptions: number;
   recovered: number;
   /** From the record times on the events: start to completion, per job, in ms. */
   startToCompleteMs: number[];
+  setupMilestones: SetupMilestone[];
+  /** Events of the other kind (synthetic when real was asked for, and the reverse) left out of these numbers. */
+  excluded: number;
+  unknown: readonly string[];
 };
 
 /**
  * One shop's numbers for a window, kept apart: jobs finished, money in, and
  * what Orvius can claim a hand in. Synthetic events are counted only when asked.
  */
-export async function workflowReport(businessId: string, since: Date, options: { synthetic?: boolean } = {}): Promise<WorkflowReport> {
+export async function workflowReport(businessId: string, since: Date, options: { synthetic?: boolean; until?: Date } = {}): Promise<WorkflowReport> {
   const synthetic = options.synthetic ?? false;
-  const events = await prisma.auditEvent.findMany({
-    where: { businessId, action: { startsWith: "workflow." }, createdAt: { gte: since } },
-    select: { action: true, entityId: true, leadId: true, jobId: true, detailJson: true, createdAt: true },
-  });
+  const window = { gte: since, ...(options.until ? { lt: options.until } : {}) };
+  const [shop, events] = await Promise.all([
+    prisma.business.findUnique({ where: { id: businessId }, select: { environment: true, slug: true, name: true, ownerEmail: true, setupJson: true } }),
+    prisma.auditEvent.findMany({
+      where: { businessId, action: { startsWith: "workflow." }, createdAt: window },
+      select: { action: true, entityId: true, leadId: true, jobId: true, detailJson: true, createdAt: true },
+    }),
+  ]);
+  const shopSynthetic = !shop || shopIsSynthetic(shop);
   const read = (raw: string | null) => {
     try {
-      return JSON.parse(raw ?? "{}") as { synthetic?: boolean; stage?: string; at?: string | null };
+      return JSON.parse(raw ?? "{}") as { synthetic?: boolean; stage?: string; at?: string | null; milestone?: SetupMilestone };
     } catch {
       return {};
     }
   };
-  const mine = events.filter((e) => Boolean(read(e.detailJson).synthetic) === synthetic);
+  const isSynthetic = (raw: string | null) => shopSynthetic || Boolean(read(raw).synthetic);
+  const mine = events.filter((e) => isSynthetic(e.detailJson) === synthetic);
   const completed = mine.filter((e) => e.action === "workflow.stage_done" && read(e.detailJson).stage === "completion");
-  const jobIds = [...new Set(completed.map((e) => e.jobId).filter((id): id is string => Boolean(id)))];
-  const [jobs, payments] = await Promise.all([
-    jobIds.length
-      ? prisma.job.findMany({ where: { businessId, id: { in: jobIds } }, select: { id: true, leadId: true, lead: { select: { callId: true } } } })
-      : [],
-    jobIds.length ? prisma.payment.findMany({ where: { businessId, invoice: { jobId: { in: jobIds } } }, select: { amountCents: true, status: true, method: true } }) : [],
-  ]);
+  const named = [...new Set(completed.map((e) => e.jobId).filter((id): id is string => Boolean(id)))];
+  /* An event is a pointer; the job record decides. Reopened, cancelled or never-resolved work doesn't count. */
+  const jobs = named.length
+    ? await prisma.job.findMany({
+        where: { businessId, id: { in: named }, status: "completed", resolutionCode: { not: null }, completedAt: window },
+        select: { id: true, leadId: true, lead: { select: { callId: true, call: { select: { channel: true, businessId: true } } } } },
+      })
+    : [];
+  const jobIds = jobs.map((j) => j.id);
+  const payments = jobIds.length
+    ? await prisma.payment.findMany({ where: { businessId, invoice: { jobId: { in: jobIds } } }, select: { amountCents: true, status: true, refundedCents: true } })
+    : [];
+  const money = moneyTotals(payments);
   const commandBooked = new Set(mine.filter((e) => e.action === "workflow.started").map((e) => e.leadId).filter(Boolean));
   const startAt = new Map<string, number>();
   for (const e of mine) {
@@ -154,15 +208,21 @@ export async function workflowReport(businessId: string, since: Date, options: {
     const end = Date.parse(read(e.detailJson).at ?? "") || e.createdAt.getTime();
     if (start != null && end >= start) durations.push(end - start);
   }
+  const realCall = (j: (typeof jobs)[number]) => Boolean(j.lead?.callId && j.lead.call && j.lead.call.businessId === businessId && j.lead.call.channel !== "web_demo");
   return {
     synthetic,
+    shopSynthetic,
     started: mine.filter((e) => e.action === "workflow.started").length,
     completedJobs: jobIds.length,
-    collectedCents: collectedCents(payments),
-    attributableJobs: jobs.filter((j) => j.lead?.callId || (j.leadId && commandBooked.has(j.leadId))).length,
+    collectedCents: money.grossCents,
+    money,
+    attributableJobs: jobs.filter((j) => realCall(j) || (j.leadId && commandBooked.has(j.leadId))).length,
     ownerDecisions: mine.filter((e) => e.action === "workflow.decision").length,
     exceptions: mine.filter((e) => e.action === "workflow.exception").length,
     recovered: mine.filter((e) => e.action === "workflow.recovered").length,
     startToCompleteMs: durations,
+    setupMilestones: [...new Set(mine.filter((e) => e.action === "workflow.setup_milestone").map((e) => read(e.detailJson).milestone).filter((m): m is SetupMilestone => Boolean(m)))],
+    excluded: events.length - mine.length,
+    unknown: WORKFLOW_UNKNOWNS,
   };
 }

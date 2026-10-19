@@ -142,7 +142,7 @@ test("an estimate paid by card credits the deposit, stamps paidAt and the fee, a
 });
 
 test("refunding one card payment leaves cash collected, and refunding a duplicate changes nothing", async () => {
-  const shop = await makeShop();
+  const shop = await makeShop({ stripeConnectAccountId: uid("acct") });
   const { invoice } = await makeInvoice(shop, 50_000);
   await prisma.payment.create({ data: { businessId: shop.id, invoiceId: invoice.id, amountCents: 20_000, status: "recorded", method: "cash" } });
   const card = session(invoice, shop, { amount_total: 30_000 });
@@ -150,11 +150,11 @@ test("refunding one card payment leaves cash collected, and refunding a duplicat
   assert.equal((await prisma.invoice.findUnique({ where: { id: invoice.id } })).status, "paid");
 
   const meta = { kind: "invoice_pay", invoiceId: invoice.id, businessId: shop.id };
-  const dup = await applyChargeRefund({ metadata: meta, amountRefundedCents: 30_000, fullyRefunded: true, chargeId: uid("ch"), sessionId: uid("cs_other") });
+  const dup = await applyChargeRefund({ metadata: meta, amountRefundedCents: 30_000, fullyRefunded: true, chargeId: uid("ch"), sessionId: uid("cs_other"), account: shop.stripeConnectAccountId });
   assert.equal(dup.reason, "duplicate_charge");
   assert.equal((await prisma.invoice.findUnique({ where: { id: invoice.id } })).status, "paid");
 
-  await applyChargeRefund({ metadata: meta, amountRefundedCents: 30_000, fullyRefunded: true, chargeId: uid("ch"), sessionId: card.id });
+  await applyChargeRefund({ metadata: meta, amountRefundedCents: 30_000, fullyRefunded: true, chargeId: uid("ch"), sessionId: card.id, account: shop.stripeConnectAccountId });
   const payments = await prisma.payment.findMany({ where: { invoiceId: invoice.id } });
   assert.equal(payments.find((p) => p.method === "cash").status, "recorded", "cash stays collected");
   assert.equal(payments.find((p) => p.method === `stripe:${card.id}`).status, "refunded");
@@ -162,7 +162,7 @@ test("refunding one card payment leaves cash collected, and refunding a duplicat
 });
 
 test("a deposit paid twice keeps the first payment and holds the second for the owner; refunding that one leaves the deposit paid", async () => {
-  const shop = await makeShop({ ownerPhone: "+15550004444" });
+  const shop = await makeShop({ ownerPhone: "+15550004444", stripeConnectAccountId: uid("acct") });
   const deposit = await prisma.deposit.create({ data: { businessId: shop.id, amountCents: 7_500, status: "pending", publicToken: uid("dep") } });
   const base = { mode: "payment", status: "complete", payment_status: "paid", amount_total: 7_500, metadata: { kind: "booking_deposit", depositId: deposit.id, businessId: shop.id } };
   const first = { ...base, id: uid("cs_a"), payment_intent: uid("pi_a") };
@@ -178,6 +178,7 @@ test("a deposit paid twice keeps the first payment and holds the second for the 
     fullyRefunded: true,
     chargeId: uid("ch"),
     paymentIntentId: second.payment_intent,
+    account: shop.stripeConnectAccountId,
   });
   assert.equal(refund.reason, "duplicate_charge");
   assert.equal((await prisma.deposit.findUnique({ where: { id: deposit.id } })).status, "paid");

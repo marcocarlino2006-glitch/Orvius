@@ -15,24 +15,29 @@ export type MonthValue = {
  */
 export async function getMonthValue(businessId: string, now = new Date()): Promise<MonthValue> {
   const since = usagePeriodStart(now);
-  const [callsAnswered, leadsCaptured, jobsBooked, deposits, invoices] = await Promise.all([
+  const [callsAnswered, leadsCaptured, jobsBooked, deposits, invoices, invoiceRefunds] = await Promise.all([
     prisma.call.count({ where: { businessId, direction: "inbound", createdAt: { gte: since } } }),
     prisma.lead.count({ where: { businessId, createdAt: { gte: since } } }),
     prisma.job.count({ where: { businessId, leadId: { not: null }, createdAt: { gte: since } } }),
     prisma.deposit.aggregate({
       where: { businessId, status: "paid", paidAt: { gte: since } },
-      _sum: { amountCents: true },
+      _sum: { amountCents: true, refundedCents: true },
     }),
     prisma.invoice.aggregate({
       where: { businessId, status: "paid", paidAt: { gte: since }, stripeSessionId: { not: null } },
       _sum: { amountCents: true },
+    }),
+    prisma.payment.aggregate({
+      where: { businessId, invoice: { status: "paid", paidAt: { gte: since }, stripeSessionId: { not: null } } },
+      _sum: { refundedCents: true },
     }),
   ]);
   return {
     callsAnswered,
     leadsCaptured,
     jobsBooked,
-    collectedCents: (deposits._sum.amountCents ?? 0) + (invoices._sum.amountCents ?? 0),
+    collectedCents:
+      (deposits._sum.amountCents ?? 0) - (deposits._sum.refundedCents ?? 0) + (invoices._sum.amountCents ?? 0) - (invoiceRefunds._sum.refundedCents ?? 0),
   };
 }
 

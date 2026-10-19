@@ -1,24 +1,22 @@
 "use client";
 
+import { askText } from "@/components/ask-dialog";
 import { askCompletion } from "@/components/completion-prompt";
 import Link from "next/link";
 import { useState } from "react";
 import { PlanCard, type Proposal } from "@/components/command-board";
 import { JobStatusAdvance } from "@/components/job-status-advance";
+import { MarkNotAJobButton } from "@/components/mark-not-a-job-button";
 import { TestAlertButton } from "@/components/test-alert-button";
 import { WorkHistoryLoader } from "@/components/work-history-view";
 import { toast } from "@/components/toaster";
 import type { BoardItem } from "@/lib/command-board";
 import { jobPastDue } from "@/lib/job-status";
 import type { WorkItem, WorkSeverity } from "@/lib/work";
+import { sendWrite } from "@/lib/client-write";
 import { formatWhen } from "@/lib/when";
 
-async function send(url: string, method: "POST" | "PATCH", body: unknown) {
-  const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error((data as { error?: string }).error ?? "That didn't go through — nothing changed");
-  return data as Record<string, unknown>;
-}
+const send = (url: string, method: "POST" | "PATCH", body: unknown) => sendWrite<Record<string, unknown>>(url, method, body);
 
 const SEVERITY_CLASS: Record<WorkSeverity, string> = { critical: "wc-tag--critical", high: "wc-tag--high", med: "wc-tag--med" };
 
@@ -74,7 +72,7 @@ export function WorkCard({
     try {
       await fn();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "That didn't go through — nothing changed");
+      setError(err instanceof Error ? err.message : "That wasn't accepted.");
     } finally {
       setBusy(false);
     }
@@ -85,7 +83,7 @@ export function WorkCard({
       const q = item.kind === "job" ? `jobId=${item.id}` : `leadId=${item.id}`;
       const res = await fetch(`/api/command/slots?${q}`);
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Couldn't read the schedule — nothing changed");
+      if (!res.ok) throw new Error(data.error ?? "Couldn't read the schedule.");
       setSlots(data);
       setOpen("slots");
     });
@@ -105,16 +103,25 @@ export function WorkCard({
       onChange();
     });
 
-  const markDone = () => {
-    const asked = askCompletion({ fromOnSite: item.stage === "on_site" });
+  const markDone = async () => {
+    const asked = await askCompletion({ fromOnSite: item.stage === "on_site" });
     if (!asked) return;
     if ("error" in asked) return setError(asked.error);
     void setJob({ status: "completed", completion: asked.completion, ...(asked.reason ? { reason: asked.reason } : {}) }, "Marked done");
   };
 
-  const closeJob = () => {
-    const reason = window.prompt("Why close this job? This goes in the history.", "The visit time passed and it never happened")?.trim();
-    if (reason === undefined) return;
+  const closeJob = async () => {
+    const answer = await askText({
+      title: "Close this job?",
+      body: "This goes in the history.",
+      label: "Why close it",
+      defaultValue: "The visit time passed and it never happened",
+      multiline: true,
+      confirmLabel: "Close job",
+      danger: true,
+    });
+    if (answer == null) return;
+    const reason = answer.trim();
     void setJob({ status: "cancelled", ...(reason ? { reason } : {}) }, "Job closed");
   };
 
@@ -147,6 +154,7 @@ export function WorkCard({
   const askTech = isJob && kinds.has("tech_unanswered") && Boolean(item.technician?.phone);
   const unconfirmed = isJob && !pastDue && (item.stage === "scheduled" || kinds.has("unconfirmed_soon")) && Boolean(item.technician) && !kinds.has("failed_message") && !askTech;
   const fieldStatus = isJob && !late ? JOB_STATUS_FOR_STAGE[item.stage] : undefined;
+  const notAJob = !isJob && item.open && kinds.has("not_a_job") ? (item.leadId ?? item.id) : null;
 
   return (
     <li className={`wc${inList ? "" : " wc--page"}${settled ? " wc--settled" : ""}${top ? ` wc--${top.severity}` : item.urgent ? " wc--high" : ""}`}>
@@ -218,6 +226,8 @@ export function WorkCard({
                 ))}
               </select>
             </label>
+          ) : notAJob ? (
+            <MarkNotAJobButton leadId={notAJob} onDone={onChange} primary />
           ) : primaryCall && item.phone ? (
             <a href={tel(item.phone)} className="ox-btn ox-btn--primary ox-btn--sm">
               Call {item.customer?.split(" ")[0] || "them"}
@@ -280,6 +290,7 @@ export function WorkCard({
             </button>
           ) : null}
           {kinds.has("alert_failed") ? <TestAlertButton onDone={onChange} /> : null}
+          {notAJob ? <MarkNotAJobButton leadId={notAJob} onDone={onChange} /> : null}
           {fieldStatus ? <JobStatusAdvance jobId={item.id} status={fieldStatus} onAdvanced={() => onChange()} compact /> : null}
           {canMove ? (
             <button

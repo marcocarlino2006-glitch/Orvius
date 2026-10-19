@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "@/components/toaster";
+import { CHECKING, runCheckedWrite, type ReadBackAnswer } from "@/lib/checked-write";
+import { sendWrite } from "@/lib/client-write";
+import { isBillReply } from "@/lib/plan-reply";
 import { formatCentsExact } from "@/lib/money";
 import { formatTaxRate, withSalesTax } from "@/lib/sales-tax";
 import { formatDay, formatWhen } from "@/lib/when";
@@ -18,6 +21,8 @@ export type JobBill = {
     collectedCents?: number;
     claimedCents?: number;
     collectedHow?: string | null;
+    refundedCents?: number;
+    keptCents?: number;
   } | null;
   finalAmountCents: number | null;
   cardPayReady: boolean;
@@ -61,26 +66,47 @@ export function JobBillSection({
     setBusy(true);
     setError(null);
     setNote(null);
+    const pressedAt = Date.now();
     try {
-      const res = await fetch(`/api/jobs/${jobId}/invoice`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ totalCents, send, ...(reasonNeeded && reason.trim() ? { reason: reason.trim() } : {}) }),
+      const result = await runCheckedWrite<string>({
+        send: () => sendWrite(`/api/jobs/${jobId}/invoice`, "POST", { totalCents, send, ...(reasonNeeded && reason.trim() ? { reason: reason.trim() } : {}) }),
+        accept: (data) => {
+          if (!isBillReply(data)) return null;
+          const sms = (data as { sms?: { sent?: unknown } | null }).sms;
+          if (!send) return "Pay link ready. Copy it below.";
+          return sms?.sent === true ? "Pay link texted to the customer." : "Link ready, but the text did not send. Copy it below.";
+        },
+        readBack: () => readBill(send, pressedAt),
+        onChecking: () => setNote(CHECKING),
       });
-      const data = await res.json();
-      if (res.status === 409 && data.code === "bill_committed") setReasonNeeded(true);
-      if (!res.ok) throw new Error(data.error ?? "Could not bill this job");
-      setReasonNeeded(false);
-      setReason("");
-      if (send && data.sms?.sent) setNote("Pay link texted to the customer.");
-      else if (send) setNote("Link ready, but the text did not send. Copy it below.");
-      else setNote("Pay link ready. Copy it below.");
+      if (result.kind === "confirmed") {
+        setReasonNeeded(false);
+        setReason("");
+        setNote(result.via === "record" ? `${result.value} Confirmed from the job's record.` : result.value);
+      } else {
+        setNote(null);
+        if (result.kind === "failed" && result.reason === "bill_committed") setReasonNeeded(true);
+        setError(result.kind === "not_done" && send ? "Orvius checked: the record shows no pay-link text since you pressed. You can send it again." : result.message);
+      }
       onRefresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not bill this job");
     } finally {
       setBusy(false);
     }
+  }
+
+  /** The job's own record after a lost reply: a text stamped after the press, or a bill at the amount entered. */
+  async function readBill(send: boolean, pressedAt: number): Promise<ReadBackAnswer<string>> {
+    const res = await fetch(`/api/jobs/${jobId}`, { cache: "no-store" });
+    if (!res.ok) return null;
+    const data = (await res.json().catch(() => null)) as { invoice?: JobBill["invoice"]; finalAmountCents?: number | null } | null;
+    if (!data) return null;
+    const saved = data.finalAmountCents === totalCents && Boolean(data.invoice);
+    if (send) {
+      const sentAt = data.invoice?.sentAt ? Date.parse(data.invoice.sentAt) : NaN;
+      if (Number.isFinite(sentAt) && sentAt >= pressedAt - 5_000) return "Pay link texted to the customer.";
+      return saved ? "absent" : null;
+    }
+    return saved ? "Pay link ready. Copy it below." : "absent";
   }
 
   async function settle(action: "record" | "confirm" | "reject", method?: string) {
@@ -124,6 +150,11 @@ export function JobBillSection({
           {invoice.paidAt ? ` on ${formatDay(invoice.paidAt)}` : ""}
           {invoice.collectedHow ? ` · ${invoice.collectedHow}` : ""}.
         </p>
+        {(invoice.refundedCents ?? 0) > 0 ? (
+          <p className="job-money-lead">
+            {formatCentsExact(invoice.refundedCents!)} refunded in Stripe, {formatCentsExact(invoice.keptCents ?? 0)} kept.
+          </p>
+        ) : null}
       </div>
     );
   }

@@ -51,11 +51,9 @@ export default function PricingPage() {
         </div>
       </section>
 
-      <section className="tier1-story">
-        <PricingPagePlans selfServeReady={selfServeReady} terms={<PricingTerms />} />
-      </section>
+      <PricingPagePlans selfServeReady={selfServeReady} terms={<PricingTerms />} />
 
-      <section className="pricing-getpaid" aria-labelledby="pricing-getpaid-title">
+      <section className="pricing-getpaid ov-chapter" aria-labelledby="pricing-getpaid-title">
         <div className="editorial-wrap">
           <h2 id="pricing-getpaid-title" className="tier1-section-title type-headline">
             Getting paid works the same way.
@@ -99,7 +97,7 @@ export default function PricingPage() {
         </div>
       </section>
 
-      <section className="tier1-close">
+      <section className="tier1-close tier1-bridge">
         <div className="editorial-wrap tier1-close-inner">
           <h2 className="tier1-section-title type-headline">
             Built to pay back with one additional job.

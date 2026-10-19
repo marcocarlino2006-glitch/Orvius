@@ -106,6 +106,13 @@ test("the customer signs for the total on screen; a resend lands once; signing a
   const resigned = await saveJobSignature({ businessId: shop.id, jobId: job.id, technicianId: tech.id, name: "Dana Cole", image: PNG, replace: true });
   assert.equal(resigned.signature.agreedCents, 27500);
   assert.equal(await prisma.jobSignature.count({ where: { jobId: job.id } }), 1);
+  const lineage = await prisma.auditEvent.findMany({ where: { jobId: job.id, action: "job.signature_replaced" } });
+  assert.equal(lineage.length, 1, "the replaced sign-off stays on the job's history");
+  const detail = JSON.parse(lineage[0].detailJson);
+  assert.equal(detail.previous.agreedCents, 18500);
+  assert.equal(detail.previous.statement, "I approve the work listed and the total of $185.00.");
+  assert.equal(detail.next.agreedCents, 27500);
+  assert.equal(await prisma.auditEvent.count({ where: { jobId: job.id, action: "job.signature_replaced" } }), 1, "the offline resend that returned the first signature recorded nothing");
   const field = await jobField(shop.id, job.id);
   assert.equal(field.signature.signerName, "Dana Cole");
   assert.equal(signatureStatement(null), "I approve the work listed.");

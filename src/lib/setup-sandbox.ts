@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { Business } from "@prisma/client";
+import type { Business, Prisma } from "@prisma/client";
 import { recordAudit } from "@/lib/audit";
 import { ingestEndOfCallReport } from "@/lib/call-ingest";
 import { normalizePhone } from "@/lib/customer";
@@ -47,10 +47,31 @@ async function ownsLiveShop(email: string): Promise<boolean> {
   return Boolean(live);
 }
 
-function mergeSetup(business: Pick<Business, "setupJson">, patch: Partial<SetupState>, finished?: SetupStep): string {
-  const current = parseSetup(business.setupJson);
+function mergeSetup(current: SetupState, patch: Partial<SetupState>, finished?: SetupStep): SetupState {
   const done = finished ? { ...(current.done ?? {}), [finished]: new Date().toISOString() } : current.done;
-  return JSON.stringify({ ...current, ...patch, ...(done ? { done } : {}), sandbox: true });
+  return { ...current, ...patch, ...(done ? { done } : {}), sandbox: true };
+}
+
+const SETUP_WRITE_TRIES = 5;
+
+/**
+ * Write setup progress against what is saved now, not what this request read
+ * earlier. The write only lands if setupJson is unchanged since the read, and
+ * a lost race re-reads and re-applies the patch, so two devices (or a test
+ * call finishing while the owner types) both keep what they saved.
+ */
+export async function updateSetup(
+  businessId: string,
+  patch: (current: SetupState) => SetupState,
+  data: Omit<Prisma.BusinessUpdateManyMutationInput, "setupJson"> = {},
+): Promise<Business> {
+  for (let attempt = 0; attempt < SETUP_WRITE_TRIES; attempt++) {
+    const row = await prisma.business.findUniqueOrThrow({ where: { id: businessId }, select: { setupJson: true } });
+    const next = JSON.stringify({ ...patch(parseSetup(row.setupJson)), sandbox: true });
+    const won = await prisma.business.updateMany({ where: { id: businessId, setupJson: row.setupJson }, data: { ...data, setupJson: next } });
+    if (won.count) return prisma.business.findUniqueOrThrow({ where: { id: businessId } });
+  }
+  throw new SetupError("Your setup is being saved from somewhere else right now. Nothing was lost; try again in a moment.");
 }
 
 const STEP_NAMES: Record<SetupStep, string> = {
@@ -68,11 +89,8 @@ function requireBefore(business: Pick<Business, "setupJson">, step: SetupStep) {
   if (missing.length) throw new SetupError(`Finish ${missing.map((m) => STEP_NAMES[m]).join(" and ")} first.`);
 }
 
-async function recordStepFailure(business: Pick<Business, "id" | "setupJson">, step: SetupStep, reason: string) {
-  const state = parseSetup(business.setupJson);
-  await prisma.business
-    .update({ where: { id: business.id }, data: { setupJson: JSON.stringify({ ...state, failures: withFailure(state, step, reason), sandbox: true }) } })
-    .catch(() => undefined);
+async function recordStepFailure(business: Pick<Business, "id">, step: SetupStep, reason: string) {
+  await updateSetup(business.id, (state) => ({ ...state, failures: withFailure(state, step, reason) })).catch(() => undefined);
 }
 
 /** Step 1: the test-mode shop, created the moment the owner names their business type. */
@@ -88,16 +106,12 @@ export async function startSetup(
 
   if (existing) {
     const tradeChanged = existing.trade !== input.trade;
-    const updated = await prisma.business.update({
-      where: { id: existing.id },
-      data: {
-        name,
-        trade: input.trade,
-        greeting,
-        ...(tradeChanged ? { servicesJson: servicesForTrade(input.trade) } : {}),
-        ...(input.timezone ? { timezone: input.timezone } : {}),
-        setupJson: mergeSetup(existing, { step: "goal" }, "business"),
-      },
+    const updated = await updateSetup(existing.id, (current) => mergeSetup(current, { step: "goal" }, "business"), {
+      name,
+      trade: input.trade,
+      greeting,
+      ...(tradeChanged ? { servicesJson: servicesForTrade(input.trade) } : {}),
+      ...(input.timezone ? { timezone: input.timezone } : {}),
     });
     if (tradeChanged) await clearTestRecords(existing.id);
     return updated;
@@ -142,10 +156,7 @@ async function requireSandbox(email: string): Promise<Business> {
 
 export async function saveSetupGoal(email: string, goal: SetupGoal): Promise<Business> {
   const business = await requireSandbox(email);
-  return prisma.business.update({
-    where: { id: business.id },
-    data: { setupJson: mergeSetup(business, { goal, step: "day" }, "goal") },
-  });
+  return updateSetup(business.id, (current) => mergeSetup(current, { goal, step: "day" }, "goal"));
 }
 
 export async function saveSetupDay(
@@ -192,29 +203,25 @@ export async function saveSetupDay(
       await prisma.technician.createMany({ data: fresh.map((person) => ({ businessId: business.id, ...person })) });
     }
   }
-  return prisma.business.update({
-    where: { id: business.id },
-    data: {
+  return updateSetup(
+    business.id,
+    (current) => mergeSetup(current, { step: "permissions", ...(input.team ? { team: input.team } : {}) }, "day"),
+    {
       hoursJson: preset.hoursJson,
       ...(servicesJson ? { servicesJson } : {}),
       ...(input.zips ? { serviceZipsJson: JSON.stringify(input.zips) } : {}),
-      setupJson: mergeSetup(business, { step: "permissions", ...(input.team ? { team: input.team } : {}) }, "day"),
     },
-  });
+  );
 }
 
 export async function saveSetupPermissions(email: string, level: PermissionLevel, followUps: boolean): Promise<Business> {
   const business = await requireSandbox(email);
   requireBefore(business, "permissions");
   const settings = permissionSettings(level);
-  const updated = await prisma.business.update({
-    where: { id: business.id },
-    data: {
-      bookingMode: settings.bookingMode,
-      autopilot: settings.autopilot,
-      followUpMode: followUps ? "auto" : "ask",
-      setupJson: mergeSetup(business, { step: "test", permissions: level }, "permissions"),
-    },
+  const updated = await updateSetup(business.id, (current) => mergeSetup(current, { step: "test", permissions: level }, "permissions"), {
+    bookingMode: settings.bookingMode,
+    autopilot: settings.autopilot,
+    followUpMode: followUps ? "auto" : "ask",
   });
   await recordAudit({
     businessId: business.id,
@@ -237,18 +244,14 @@ export async function saveSetupPermissions(email: string, level: PermissionLevel
 export async function setSetupStep(email: string, step: SetupStep): Promise<Business> {
   const business = await requireSandbox(email);
   requireBefore(business, step);
-  return prisma.business.update({ where: { id: business.id }, data: { setupJson: mergeSetup(business, { step }) } });
+  return updateSetup(business.id, (current) => mergeSetup(current, { step }));
 }
 
 /** The go-live screen's typing, kept on the server so it survives a closed tab or a switch of device. */
 export async function saveSetupLiveDraft(email: string, draft: LiveDraft): Promise<Business> {
   const business = await requireSandbox(email);
-  const current = parseSetup(business.setupJson);
   const typed = Object.fromEntries(Object.entries(draft).filter(([, value]) => value !== undefined));
-  return prisma.business.update({
-    where: { id: business.id },
-    data: { setupJson: JSON.stringify({ ...current, liveDraft: { ...(current.liveDraft ?? {}), ...typed }, sandbox: true }) },
-  });
+  return updateSetup(business.id, (current) => ({ ...current, liveDraft: { ...(current.liveDraft ?? {}), ...typed } }));
 }
 
 function serviceZips(business: Pick<Business, "serviceZipsJson">): string[] {
@@ -306,10 +309,7 @@ async function runScenario(business: Business, scenario: ReturnType<typeof scena
   });
   await processNotificationQueue(10, { businessId: business.id });
   const testedAt = new Date().toISOString();
-  await prisma.business.update({
-    where: { id: business.id },
-    data: { setupJson: mergeSetup(business, { testedAt, step: "test" }, "test") },
-  });
+  await updateSetup(business.id, (current) => mergeSetup(current, { testedAt, step: "test" }, "test"));
   return { scenario, ...result };
 }
 

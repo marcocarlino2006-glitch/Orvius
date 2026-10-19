@@ -31,6 +31,7 @@ type CrewData = {
   timezone: string;
   today: string;
   trade: string | null;
+  canManage?: boolean;
 };
 
 function destinationLine(tech: TeamTech) {
@@ -149,15 +150,26 @@ export default function TeamPage() {
                 {crew.map((tech) => (
                   <li key={`${tech.id}-${tech.skillsJson}-${tech.phone}`} className="tm-tech">
                     <CrewOverview tech={tech} timezone={data.timezone} />
-                    <details className="tm-edit">
-                      <summary>Edit {tech.name.split(" ")[0]}: phone, skills, hours</summary>
-                      <CrewMember tech={tech} trade={(data.trade ?? null) as Trade | null} timezone={data.timezone} today={data.today} onSaved={load} />
-                    </details>
+                    {data.canManage !== false ? (
+                      <details className="tm-edit">
+                        <summary>Edit {tech.name.split(" ")[0]}: phone, skills, hours</summary>
+                        <CrewMember tech={tech} trade={(data.trade ?? null) as Trade | null} timezone={data.timezone} today={data.today} onSaved={load} />
+                      </details>
+                    ) : null}
                   </li>
                 ))}
               </ul>
-              <AddTechnician onAdded={load} />
-              {data.former?.length ? <FormerCrew former={data.former} onChanged={load} /> : null}
+              {data.canManage !== false ? (
+                <>
+                  <AddTechnician onAdded={load} />
+                  {data.former?.length ? <FormerCrew former={data.former} onChanged={load} /> : null}
+                </>
+              ) : (
+                <p className="tm-help">
+                  Adding people, changing their details or hours, time off and taking someone off the crew are for the owner or a manager.
+                  You can still assign and schedule work from Schedule and each job.
+                </p>
+              )}
             </>
           ) : null}
         </PlanUpgradeGate>

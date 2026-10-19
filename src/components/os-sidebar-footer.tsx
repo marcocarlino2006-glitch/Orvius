@@ -4,7 +4,7 @@ import Link from "next/link";
 import { toast } from "@/components/toaster";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { pricing } from "@/lib/company";
 import { supportMailto, supportPhone } from "@/lib/support";
 import { fetchAccount, invalidateAccount } from "@/lib/account-client";
@@ -126,17 +126,29 @@ export function OsSidebarFooter({ newLeads = 0 }: { newLeads?: number }) {
   const [switching, setSwitching] = useState<string | null>(null);
   const [shopQuery, setShopQuery] = useState("");
   const [account, setAccount] = useState<AccountData | null>(null);
+  const [accountFailed, setAccountFailed] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
 
-  useEffect(() => {
+  const loadAccount = useCallback(() => {
+    setAccountFailed(false);
     fetchAccount()
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (data) setAccount(data);
+        else setAccountFailed(true);
       })
-      .catch(() => null);
+      .catch(() => setAccountFailed(true));
   }, []);
+
+  useEffect(() => {
+    loadAccount();
+  }, [loadAccount]);
+
+  useEffect(() => {
+    if (open && accountFailed) loadAccount();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   useEffect(() => {
     if (!open) {
@@ -257,8 +269,10 @@ export function OsSidebarFooter({ newLeads = 0 }: { newLeads?: number }) {
                 <Link href="/dashboard/portfolio" role="menuitem" className="mx-ws-all" onClick={close}>
                   All {otherShops.length + 1} locations side by side
                 </Link>
-              ) : (
+              ) : account ? (
                 <p className="mx-ws-note">This sign-in has one workspace.</p>
+              ) : (
+                <p className="mx-ws-note">{accountFailed ? "Your other workspaces didn't load. Reopen this menu to try again." : "Loading workspaces…"}</p>
               )}
             </div>
           ) : (

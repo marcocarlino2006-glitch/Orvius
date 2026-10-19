@@ -1,11 +1,14 @@
 "use client";
 
+import { askConfirm } from "@/components/ask-dialog";
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { OutcomeCard } from "@/components/outcome-card";
 import { toast } from "@/components/toaster";
 import type { Outcome } from "@/lib/outcome";
 import type { RequestTrace } from "@/lib/request-trace";
+import { isUncertain, sendWrite } from "@/lib/client-write";
+import { describeReadBack, readCancelReply, readExecuteReply, readReadBack } from "@/lib/plan-reply";
 import { formatWhen } from "@/lib/when";
 
 type Scenario = { id: string; label: string; expect: string };
@@ -18,12 +21,7 @@ type AskResult =
 
 export type PlanOutcome = { ok: boolean; text: string; outcome?: Outcome | null };
 
-async function post(url: string, body: unknown) {
-  const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error ?? "That didn't go through — nothing changed.");
-  return data;
-}
+const post = <T = Record<string, any>>(url: string, body: unknown) => sendWrite<T>(url, "POST", body);
 
 export function PlanCard({
   proposal,
@@ -37,20 +35,60 @@ export function PlanCard({
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /* After a reply nobody can trust, Approve stays away until the shop's record says the plan never took effect. */
+  const [unsure, setUnsure] = useState(false);
+  function finish(outcome: PlanOutcome) {
+    if (onResult) onResult(outcome);
+    else toast({ title: outcome.text });
+    onDone();
+  }
+  async function checkRecord() {
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/copilot?proposalId=${encodeURIComponent(proposal.proposalId)}`, { cache: "no-store" });
+      const found = res.ok ? readReadBack(await res.json().catch(() => null), proposal.proposalId) : null;
+      if (!found) {
+        setError("Orvius couldn't read where this plan stands. It won't run again from here; check again in a moment.");
+        return;
+      }
+      const told = describeReadBack(found.state);
+      if (found.state === "done") return finish({ ok: true, text: told.text, outcome: found.outcome });
+      if (found.state === "withdrawn") return finish({ ok: false, text: told.text, outcome: null });
+      if (told.settled) {
+        toast({ title: told.text });
+        return onDone();
+      }
+      setError(told.text);
+      if (told.canApprove) setUnsure(false);
+    } catch {
+      setError("Orvius couldn't read where this plan stands. It won't run again from here; check again in a moment.");
+    } finally {
+      setBusy(false);
+    }
+  }
   async function act(mode: "execute" | "cancel") {
     setBusy(true);
     setError(null);
+    let readBack = false;
     try {
       const data = await post(`/api/copilot?mode=${mode}`, mode === "execute" ? { proposalId: proposal.proposalId, approved: true } : { proposalId: proposal.proposalId });
-      const text = mode === "execute" ? (data.confirmation?.summary ?? "Done") : "Dismissed. Nothing changed.";
-      if (onResult) onResult({ ok: mode === "execute", text, outcome: mode === "execute" ? (data.outcome ?? null) : null });
-      else toast({ title: text });
-      onDone();
+      if (mode === "execute") {
+        const reply = readExecuteReply(data, proposal.proposalId);
+        if (reply) return finish({ ok: true, text: reply.summary, outcome: reply.outcome });
+      } else if (readCancelReply(data, proposal.proposalId)) {
+        return finish({ ok: false, text: "Dismissed. Nothing changed.", outcome: null });
+      }
+      readBack = true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "That didn't go through — nothing changed.");
-      if (err instanceof Error && /flagged in Command/.test(err.message)) onDone();
+      setError(err instanceof Error ? err.message : "That wasn't accepted.");
+      if (isUncertain(err)) readBack = true;
+      else if (err instanceof Error && /flagged in Command/.test(err.message)) onDone();
     } finally {
       setBusy(false);
+    }
+    if (readBack) {
+      setUnsure(true);
+      await checkRecord();
     }
   }
   return (
@@ -59,12 +97,20 @@ export function PlanCard({
       <p className="cb-plan-text">{proposal.preview}</p>
       {error ? <p className="cb-error" role="alert">{error}</p> : null}
       <div className="cb-actions">
-        <button type="button" className="ox-btn ox-btn--primary ox-btn--sm" disabled={busy} onClick={() => void act("execute")}>
-          {busy ? "Working…" : "Approve"}
-        </button>
-        <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => void act("cancel")}>
-          Dismiss
-        </button>
+        {unsure ? (
+          <button type="button" className="ox-btn ox-btn--primary ox-btn--sm" disabled={busy} onClick={() => void checkRecord()}>
+            {busy ? "Checking…" : "Check what happened"}
+          </button>
+        ) : (
+          <>
+            <button type="button" className="ox-btn ox-btn--primary ox-btn--sm" disabled={busy} onClick={() => void act("execute")}>
+              {busy ? "Working…" : "Approve"}
+            </button>
+            <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => void act("cancel")}>
+              Dismiss
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
@@ -90,8 +136,19 @@ export function CheckCard({
     setBusy(true);
     setError(null);
     try {
-      await post("/api/copilot?mode=resolve", { proposalId, outcome });
-      toast({ title: outcome === "done" ? "Marked as done." : "Back in approvals. Approve it again when you're ready." });
+      const data = await post("/api/copilot?mode=resolve", { proposalId, outcome });
+      if (data.ok !== true) {
+        setError("The answer didn't come back readable, so this may or may not be saved. Refresh before answering again.");
+        return;
+      }
+      toast({
+        title:
+          outcome === "done"
+            ? data.recorded === false
+              ? "Marked as done. The note for the history didn't save."
+              : "Marked as done."
+            : "Back in approvals. Approve it again when you're ready.",
+      });
       onDone();
     } catch (err) {
       setError(err instanceof Error ? err.message : "That didn't save.");
@@ -189,7 +246,7 @@ export function AskBar({ onChange, below }: { onChange: () => void; below?: Reac
     setBusy(true);
     setOutcome(null);
     try {
-      setResult(await post("/api/command/ask", { text }));
+      setResult(await post<AskResult>("/api/command/ask", { text }));
     } catch (err) {
       setResult({ kind: "refused", message: err instanceof Error ? err.message : "That didn't go through — nothing changed" });
     } finally {
@@ -406,7 +463,12 @@ export function DemoWorkspaceBar({ sampleFrom, onChange }: { sampleFrom: string 
   const from = sampleFrom ? new Date(sampleFrom) : null;
   const stale = Boolean(from && Date.now() - from.getTime() > DAY_MS);
   async function reset() {
-    if (!window.confirm("Start the demo over at today's date? Everything you did in this demo shop is cleared. Your real shop is not touched.")) return;
+    const again = await askConfirm({
+      title: "Start the demo over at today's date?",
+      body: "Everything you did in this demo shop is cleared. Your real shop is not touched.",
+      confirmLabel: "Start over",
+    });
+    if (!again) return;
     setBusy(true);
     try {
       await openDemo(true);

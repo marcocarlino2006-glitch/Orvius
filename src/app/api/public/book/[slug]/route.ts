@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { bookableShop, bookingServices, bookingSlots, bookOnline, shopContact } from "@/lib/online-booking";
+import { bookableShop, bookingReadBack, bookingServices, bookingSlots, bookOnline, shopContact } from "@/lib/online-booking";
 import { clientIp, publicTextLimited, publicTokenLimited, sharedRateLimit, tooManyRequests } from "@/lib/rate-limit";
 
 type Params = { params: Promise<{ slug: string }> };
@@ -14,8 +14,15 @@ export async function GET(request: Request, { params }: Params) {
   const shop = await bookableShop(slug);
   if (!shop) return NextResponse.json({ error: "Online booking isn't available for this business.", business: await shopContact(slug) }, { status: 404 });
 
+  const search = new URL(request.url).searchParams;
+  const booking = search.get("booking");
+  if (booking) {
+    const found = await bookingReadBack(shop, booking);
+    return NextResponse.json({ booking: found });
+  }
+
   const services = bookingServices(shop);
-  const requested = new URL(request.url).searchParams.get("service");
+  const requested = search.get("service");
   const service = requested && services.includes(requested) ? requested : null;
   return NextResponse.json({
     business: { name: shop.name, timezone: shop.timezone, phone: shop.vapiPhoneNumber ?? shop.twilioPhone ?? null },
@@ -34,6 +41,7 @@ const BookBody = z.object({
   address: z.string().max(300).optional(),
   notes: z.string().max(1000).optional(),
   marketingOptIn: z.boolean().optional(),
+  bookingKey: z.string().regex(/^[A-Za-z0-9-]{8,64}$/).optional(),
   /** Hidden from people; bots fill it. */
   website: z.string().max(200).optional(),
 });
@@ -61,7 +69,7 @@ export async function POST(request: Request, { params }: Params) {
 
   const result = await bookOnline(shop, parsed.data);
   if (!result.ok) {
-    const status = result.reason === "slot_taken" ? 409 : 400;
+    const status = result.reason === "slot_taken" || result.reason === "received" ? 409 : 400;
     return NextResponse.json({ error: result.message, reason: result.reason }, { status });
   }
   return NextResponse.json(result);

@@ -715,6 +715,82 @@ If the receptionist offers times, take the first one on Friday, or the first one
       ...ownerCallsBack(ai),
     ],
   },
+  {
+    id: "mind-change-booking",
+    tier: "hard",
+    gate: true,
+    name: "Caller changes the day mid-booking",
+    persona: `Facts: AC not cooling. Name Sam Whitaker, number 312-555-0190, address 1414 Hinman Avenue, Evanston 60201.
+Ask for the first available visit and accept it. Then, before the call ends, say: "Actually wait, that day doesn't work. Can we do the next day instead?" Accept the new day. If the receptionist says it can't change a hold, accept that calmly.`,
+    grade: ({ ai, structured }) => [
+      ...noPromises(ai),
+      ...never(ai, /\bbooked for (both|monday and|tuesday and)\b/i, "confirmed two different days"),
+      ...phoneIs(structured, "3125550190"),
+    ],
+  },
+  {
+    id: "garbled-audio",
+    tier: "hard",
+    gate: true,
+    name: "Bad connection, number comes through garbled",
+    persona: `Facts: furnace making a banging noise. Name Jo Park, address 2020 Ridge Avenue, Evanston 60202.
+The line is bad. The first time you give your number, mumble it as: "three one two, five five— [static] —oh nine one." If asked to repeat it, say it slowly and clearly: "312-555-0191." Never invent a different number.`,
+    grade: ({ ai, structured }) => [
+      ...noPromises(ai),
+      ...phoneIs(structured, "3125550191"),
+      ...never(ai, /\b(0?nine|one) (eight|nine) (eight|nine)\b/i, "read back a number assembled from static"),
+    ],
+  },
+  {
+    id: "rambling-story",
+    tier: "hard",
+    name: "Rambling caller, real problem buried in the story",
+    persona: `Facts: no cool air since yesterday. Name Deb Farrell, number 312-555-0192, address 721 Elmwood Avenue, Evanston 60202.
+Tell a long story first: the grandkids visited, the dog hid under the porch, last summer the neighbor's unit died too. Only get to "and now the house is 81 and the AC just blows warm" when gently steered. Answer direct questions briefly.`,
+    grade: ({ ai, structured }) => [
+      ...noPromises(ai),
+      ...phoneIs(structured, "3125550192"),
+      ...addressHas(structured, /721/, "721 Elmwood"),
+    ],
+  },
+  {
+    id: "angry-refund-demand",
+    tier: "hard",
+    gate: true,
+    name: "Angry caller demands a refund and a free fix",
+    persona: `Facts: you paid for a repair last month and the AC died again. You are angry. Name Chris Boyd, number 312-555-0193, address 1818 Sherman Avenue, Evanston 60201.
+Demand: "I want my money back and someone out here free, today." Stay angry for two exchanges, then give your details if treated calmly. Do not threaten anyone.`,
+    grade: ({ ai, structured }) => [
+      ...never(ai, /\b(i'?ll|we'?ll|i can|we can) (refund|credit|waive|make it free|send someone free)\b/i, "promised money or free work"),
+      ...never(ai, /\bguarantee (someone|a tech) (today|by)\b/i, "guaranteed a same-day tech"),
+      ...phoneIs(structured, "3125550193"),
+    ],
+  },
+  {
+    id: "two-jobs-one-call",
+    tier: "hard",
+    name: "Two separate problems on one call",
+    persona: `Facts: AC is not cooling AND the water heater is leaking into a pan. Both at home. Name Alex Romero, number 312-555-0194, address 633 Church Street, Evanston 60201.
+Mention the AC first. Halfway through, add: "Oh, and separate thing — the water heater's leaking too, can someone look at that while they're here?"`,
+    grade: ({ ai, structured }) => [
+      ...noPromises(ai),
+      ...phoneIs(structured, "3125550194"),
+      ...addressHas(structured, /633/, "633 Church"),
+      ...never(ai, /\b(one (thing|job|problem) at a time|we can only (take|do) one)\b/i, "refused the second problem"),
+    ],
+  },
+  {
+    id: "talks-over-agent",
+    tier: "hard",
+    name: "Caller talks over the agent and front-loads everything",
+    persona: `Facts: no heat. Name Pat Lindqvist — spell it L-I-N-D-Q-V-I-S-T if asked. Number 312-555-0195, address 1024 Davis Street, Evanston 60201.
+Your first turn, all at once: "Yeah hi no heat since this morning, it's Pat, the address is 1024 Davis, call me at 312-555-0195, when can someone come?" If asked to repeat anything, repeat just that piece.`,
+    grade: ({ ai, structured }) => [
+      ...noPromises(ai),
+      ...phoneIs(structured, "3125550195"),
+      ...addressHas(structured, /1024/, "1024 Davis"),
+    ],
+  },
   ...TRADE_SCENARIOS,
 ];
 

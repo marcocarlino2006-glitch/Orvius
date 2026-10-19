@@ -338,8 +338,8 @@ export function TalkInBrowser({
           </button>
           <p className="tib-note font-sans">
             {personal
-              ? "Talk to it like a customer, in your browser. Uses your microphone, no account. Calls end after 3 minutes."
-              : "Uses your microphone. You talk to a demo HVAC shop; calls end after 3 minutes."}
+              ? "Pressing this asks your browser for the microphone, used for this demo call only. It's an illustration built from the name you typed, not that shop's real line, and nothing you say books work. No account. Calls end after 3 minutes."
+              : "Pressing this asks your browser for the microphone, used for this demo call only. You talk to a sample HVAC shop, so nothing you say books real work. Calls end after 3 minutes."}
           </p>
         </form>
       )}
@@ -366,6 +366,7 @@ export function TalkInBrowser({
           <p className="tib-status font-sans">
             <strong>Your turn.</strong> Your slot is held for about a minute.
           </p>
+          <p className="tib-note font-sans">Start talking asks your browser for the microphone, used for this demo call only.</p>
           <button type="button" className="ov-btn ov-btn--solid tib-go" onClick={() => start(view.ticketId)}>
             <span className="tib-mic" aria-hidden /> Start talking
           </button>

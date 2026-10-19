@@ -1958,6 +1958,10 @@ a.cmd-feed-text:hover {
   font-weight: 600;
 }
 
+.cmd-ahead {
+  margin-top: 1rem;
+}
+
 .cmd-money {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

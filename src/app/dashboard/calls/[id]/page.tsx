@@ -139,7 +139,8 @@ export default function CallDetailPage() {
     call.callerPhone ??
     "Unknown caller";
 
-  const phone = call.lead?.phone ?? call.callerPhone;
+  /* The request's number is the checked callback (what the caller said, or caller ID); the button dials what the page shows. */
+  const phone = call.lead ? call.lead.phone : call.callerPhone;
   const address = call.lead?.address ?? call.customer?.address ?? null;
   const service = call.lead?.serviceType ?? null;
   const summary = call.summary?.trim() || null;
@@ -153,8 +154,8 @@ export default function CallDetailPage() {
       businessName={call.business?.name ?? "Your shop"}
       actions={
         <div className="flex flex-wrap gap-2">
-          {call.callerPhone ? (
-            <a href={`tel:${call.callerPhone}`} className="ox-btn ox-btn--primary ox-btn--sm">
+          {phone ? (
+            <a href={`tel:${phone}`} className="ox-btn ox-btn--primary ox-btn--sm" aria-label={`Call back ${displayPhone(phone) ?? phone}`}>
               Call back
             </a>
           ) : null}
@@ -182,7 +183,7 @@ export default function CallDetailPage() {
             <dl className="jv-facts font-sans">
               <div>
                 <dt>Phone</dt>
-                <dd>{phone ? displayPhone(phone) : "Unknown"}</dd>
+                <dd>{phone ? displayPhone(phone) : call.lead ? "Not confirmed. Listen to the call before calling back." : "Unknown"}</dd>
               </div>
               {service ? (
                 <div>

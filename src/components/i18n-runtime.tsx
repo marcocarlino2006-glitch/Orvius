@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { translations, type Lang } from "@/lib/i18n";
+import { setLabel } from "@/lib/i18n-label";
 
 /**
  * Applies translations to [data-i18n] nodes based on the active language.
@@ -16,7 +17,7 @@ export function I18nRuntime() {
         const key = el.getAttribute("data-i18n");
         if (!key) return;
         const dict = translations[key];
-        if (dict) el.textContent = dict[lang] ?? dict.en;
+        if (dict) setLabel(el, dict[lang] ?? dict.en);
       });
     }
 

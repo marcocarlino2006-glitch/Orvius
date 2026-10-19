@@ -82,6 +82,7 @@ test("hardcoded colors never grow (migrate to tokens, don't add hex)", () => {
      Until it lands, no file may gain a new one. To move the ceiling down,
      migrate a file and lower its number here. */
   const ceiling = {
+    "src/app/ask-dialog.css": 0,
     "src/app/b/[slug]/book.css": 0,
     "src/app/dashboard/dashboard.css": 121,
     "src/app/dashboard/inbox/messages/messages.css": 0,
@@ -104,6 +105,7 @@ test("hardcoded colors never grow (migrate to tokens, don't add hex)", () => {
     "src/app/p/[id]/replay.css": 0,
     "src/app/public-field.css": 0,
     "src/app/public-polish.css": 6,
+    "src/app/public-surfaces.css": 0,
     "src/app/public-v2.css": 111,
     "src/app/tech/tech-app.css": 0,
     "src/app/theme-tokens.css": 0,

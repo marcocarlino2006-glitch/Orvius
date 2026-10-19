@@ -227,3 +227,54 @@ test("addresses split only when certain; everything else rides in the summary", 
   assert.equal(body.contacts, undefined);
   assert.match(body.summary, /Address: the blue house\./);
 });
+
+test("send-time authority: a contract set after queuing that doesn't list ServiceTitan stops the send; listing it as a copy lets it through", async () => {
+  const { setRecordContract } = await import("../src/lib/system-of-record.ts");
+  const s = await connectedShop();
+  const { lead } = await leadFor(s);
+  await enqueueServiceTitanSync({ businessId: s.id, leadId: lead.id });
+  await setRecordContract({ businessId: s.id, domains: { job_state: "orvius" }, actorEmail: "owner@example.test" });
+  assert.equal((await drainServiceTitanSyncs({ businessId: s.id })).skipped, 1);
+  assert.equal(fake.bookings.length, 0, "nothing sent against the contract");
+  assert.match((await prisma.serviceTitanSync.findUniqueOrThrow({ where: { leadId: lead.id } })).lastError, /record of truth/);
+
+  const other = await leadFor(s);
+  await setRecordContract({ businessId: s.id, domains: { job_state: "orvius" }, replicas: { job_state: ["servicetitan"] }, actorEmail: "owner@example.test" });
+  await enqueueServiceTitanSync({ businessId: s.id, leadId: other.lead.id });
+  assert.equal((await drainServiceTitanSyncs({ businessId: s.id })).done, 1);
+  assert.equal(fake.bookings.length, 1);
+});
+
+test("a booking is tied to the lead once; a lost reply raises one reconciliation item however often the sweep looks, and status keeps refused and checking apart", async () => {
+  const s = await connectedShop();
+  const { lead } = await leadFor(s);
+  await enqueueServiceTitanSync({ businessId: s.id, leadId: lead.id });
+  await drainServiceTitanSyncs({ businessId: s.id });
+  const tie = await prisma.externalCorrelation.findMany({ where: { businessId: s.id, entityType: "lead", entityId: lead.id, system: "servicetitan" } });
+  assert.deepEqual(tie.map((t) => t.externalId), [String(fake.bookings[0].id)]);
+
+  const lost = await leadFor(s);
+  await enqueueServiceTitanSync({ businessId: s.id, leadId: lost.lead.id });
+  fake.bookingCreate = "serverError";
+  await drainServiceTitanSyncs({ businessId: s.id });
+  fake.bookingCreate = "ok";
+  const later = new Date(Date.now() + 86_400_000);
+  assert.equal((await drainServiceTitanSyncs({ businessId: s.id, now: later })).check, 1);
+  await prisma.serviceTitanSync.update({ where: { leadId: lost.lead.id }, data: { status: "pending", claimedAt: null, nextAttemptAt: new Date(0) } });
+  await drainServiceTitanSyncs({ businessId: s.id, now: new Date(later.getTime() + 86_400_000) });
+  const items = await prisma.reconciliationException.findMany({ where: { businessId: s.id, system: "servicetitan", entityId: lost.lead.id } });
+  assert.equal(items.length, 1, "one item for one lost reply");
+  assert.equal(JSON.parse(items[0].observedJson).reason, "response_lost");
+  assert.equal(fake.bookings.length, 2, "the lost one was sent once and never again");
+
+  const refused = await leadFor(s);
+  await enqueueServiceTitanSync({ businessId: s.id, leadId: refused.lead.id });
+  await prisma.serviceTitanSync.update({ where: { leadId: refused.lead.id }, data: { status: "failed" } });
+  const status = await serviceTitanStatus(s.id);
+  assert.equal(status.checking, 1);
+  assert.equal(status.failed, 1);
+  assert.equal(status.needsAttention, 2);
+
+  const elsewhere = await connectedShop();
+  assert.equal((await prisma.reconciliationException.count({ where: { businessId: elsewhere.id } })), 0);
+});

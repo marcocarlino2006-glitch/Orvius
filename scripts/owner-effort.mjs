@@ -41,6 +41,29 @@ mock.module(new URL("../src/auth.ts", import.meta.url).href, {
   namedExports: { auth: async () => (signedInAs ? { user: { email: signedInAs } } : null), signIn: async () => {}, signOut: async () => {}, handlers: {} },
 });
 
+/*
+  Phone-line work is counted, never done: these are the calls that repair or
+  rewire a shop's number. A settings change should reach none of them.
+*/
+const lineWork = [];
+const twilioPhoneUrl = new URL("../src/lib/twilio-phone.ts", import.meta.url).href;
+const vapiLineUrl = new URL("../src/lib/vapi-line.ts", import.meta.url).href;
+const twilioPhone = await import(twilioPhoneUrl);
+const vapiLine = await import(vapiLineUrl);
+mock.module(twilioPhoneUrl, {
+  namedExports: {
+    ...twilioPhone,
+    configureSmsWebhook: async (phone) => void lineWork.push(`configureSmsWebhook ${phone}`),
+    purchaseLocalNumber: async () => {
+      lineWork.push("purchaseLocalNumber");
+      throw new Error("line purchase blocked in the effort harness");
+    },
+  },
+});
+mock.module(vapiLineUrl, {
+  namedExports: { ...vapiLine, attachAssistantToShopLine: async (p) => void lineWork.push(`attachAssistantToShopLine ${p.phone}`) },
+});
+
 const { prisma } = await import("../src/lib/prisma.ts");
 const { ensureDemoWorkspace, simulateCustomerConfirm } = await import("../src/lib/demo-workspace.ts");
 const { transitionJob } = await import("../src/lib/job-transition.ts");
@@ -54,6 +77,9 @@ const workItemRoute = await import("../src/app/api/work/item/route.ts");
 const workRoute = await import("../src/app/api/work/route.ts");
 const draftRoute = await import("../src/app/api/setup/draft/route.ts");
 const onboardingRoute = await import("../src/app/api/onboarding/route.ts");
+const accountRoute = await import("../src/app/api/account/route.ts");
+const syncAssistantRoute = await import("../src/app/api/account/sync-assistant/route.ts");
+const { getShopOutcomes } = await import("../src/lib/shop-outcomes.ts");
 let outcomeRoute = null;
 try {
   outcomeRoute = await import("../src/app/api/work/outcome/route.ts");
@@ -381,7 +407,7 @@ async function ambiguousRefund() {
       await prisma.payment.create({ data: { businessId: shop.id, invoiceId: invoice.id, amountCents: 21_000, status: "succeeded", method } });
     }
   });
-  const input = { metadata: { businessId: shop.id, kind: "invoice_pay", invoiceId: invoice.id }, amountRefundedCents: 21_000, fullyRefunded: true, chargeId: `ch_${uid()}`, paymentIntentId: `pi_${uid()}`, sessionId: null };
+  const input = { metadata: { businessId: shop.id, kind: "invoice_pay", invoiceId: invoice.id }, amountRefundedCents: 21_000, fullyRefunded: true, chargeId: `ch_${uid()}`, paymentIntentId: `pi_${uid()}`, sessionId: null, account: shop.stripeConnectAccountId };
   let first;
   try {
     first = await applyChargeRefund(input);
@@ -465,8 +491,225 @@ async function reloadMidWorkflow() {
   return t.finish(shop.id);
 }
 
+async function refundSafely(input) {
+  try {
+    return await applyChargeRefund(input);
+  } catch (error) {
+    return { error: error.message };
+  }
+}
+
+async function adjustmentShown(t) {
+  const work = await workList(t);
+  return (work.shopIssues ?? []).some((i) => /refund/i.test(`${i.title} ${i.detail}`));
+}
+
+/*
+  A $300 bill paid $100 cash and $200 by card. Stripe then refunds the card in
+  steps and sends the running total each time, with a replay and a late,
+  smaller event mixed in. The owner should see what was kept, a partial refund
+  should not change what is owed, and the full one (whether
+  the customer owes the $200 again) follows the standing contract: the
+  refunded card share is owed again and the cash stays collected.
+*/
+async function refundTotals() {
+  const t = new Tally("partial_then_full_card_refund");
+  const { shop, email } = await demoShop();
+  signedInAs = email;
+  const invoice = await prisma.invoice.create({
+    data: { businessId: shop.id, amountCents: 30_000, status: "paid", paidAt: new Date(), sentAt: new Date(), publicToken: `tok-${uid()}` },
+  });
+  const session = `cs_${uid()}`;
+  for (const [method, amountCents] of [["cash", 10_000], [`stripe:${session}`, 20_000]]) {
+    await prisma.payment.create({ data: { businessId: shop.id, invoiceId: invoice.id, amountCents, status: "succeeded", method } });
+  }
+  const before = await getShopOutcomes(shop.id);
+  const base = { metadata: { businessId: shop.id, kind: "invoice_pay", invoiceId: invoice.id }, chargeId: `ch_${uid()}`, paymentIntentId: `pi_${uid()}`, sessionId: session, account: shop.stripeConnectAccountId };
+  const partial = { ...base, amountRefundedCents: 5_000, fullyRefunded: false };
+
+  t.check("partial", await refundSafely(partial));
+  t.check("replay", await refundSafely(partial));
+  t.check("lateSmaller", await refundSafely({ ...base, amountRefundedCents: 3_000, fullyRefunded: false }));
+  const afterPartial = await getShopOutcomes(shop.id);
+  const kept = (o) => o.collectedCents - before.collectedCents + 30_000;
+  t.check("keptAfterPartial", kept(afterPartial));
+  t.check("invoiceAfterPartial", (await prisma.invoice.findUnique({ where: { id: invoice.id } })).status);
+  if (kept(afterPartial) !== 25_000) t.recover("work out from Stripe how much of the $300 the shop kept");
+  if ((await prisma.invoice.findUnique({ where: { id: invoice.id } })).status !== "paid") t.recover("stop the customer being chased for a balance after a refund");
+
+  t.check("full", await refundSafely({ ...base, amountRefundedCents: 20_000, fullyRefunded: true }));
+  t.check("fullReplay", await refundSafely({ ...base, amountRefundedCents: 20_000, fullyRefunded: true }));
+  const afterFull = await getShopOutcomes(shop.id);
+  const status = (await prisma.invoice.findUnique({ where: { id: invoice.id } })).status;
+  t.check("keptAfterFull", kept(afterFull));
+  t.check("invoiceAfterFull", status);
+  t.check("refundBreakdownShown", afterFull.money ? afterFull.money : null);
+  if (kept(afterFull) !== 10_000) t.recover("correct the collected total by hand");
+  /* Standing contract: a full card refund reopens that share, so the bill reads part paid. */
+  if (status !== "partial") t.recover("work out what the customer owes after the refund");
+  t.check("openExceptions", await prisma.reconciliationException.count({ where: { businessId: shop.id, status: "open" } }));
+  return t.finish(shop.id);
+}
+
+/* A $50 deposit came off a $420 job; the $370 bill went out; then the deposit was refunded. */
+async function depositRefundAfterBilling() {
+  const t = new Tally("deposit_refund_after_billing");
+  const { shop, email } = await demoShop();
+  signedInAs = email;
+  const lead = await request(shop);
+  const job = await prisma.job.create({ data: { businessId: shop.id, leadId: lead.id, title: "AC not cooling", status: "completed", completedAt: new Date(), finalAmountCents: 42_000 } });
+  const pi = `pi_${uid()}`;
+  const deposit = await prisma.deposit.create({ data: { businessId: shop.id, leadId: lead.id, jobId: job.id, amountCents: 5_000, status: "paid", paidAt: new Date(), stripePaymentIntentId: pi } });
+  const invoice = await prisma.invoice.create({ data: { businessId: shop.id, jobId: job.id, amountCents: 37_000, status: "sent", sentAt: new Date(), publicToken: `tok-${uid()}` } });
+  const before = await getShopOutcomes(shop.id);
+  const input = { metadata: { businessId: shop.id, kind: "booking_deposit", depositId: deposit.id }, amountRefundedCents: 5_000, fullyRefunded: true, chargeId: `ch_${uid()}`, paymentIntentId: pi, sessionId: null, account: shop.stripeConnectAccountId };
+  t.check("refund", await refundSafely(input));
+  t.check("replay", await refundSafely(input));
+  const after = await prisma.invoice.findUnique({ where: { id: invoice.id } });
+  const unchanged = after.amountCents === 37_000 && after.status === "sent";
+  t.check("billUnchanged", unchanged);
+  if (!unchanged) t.recover("explain to the customer why the bill they have changed");
+  const outcomes = await getShopOutcomes(shop.id);
+  t.check("keptDropsByDeposit", before.collectedCents - outcomes.collectedCents);
+  if (before.collectedCents - outcomes.collectedCents !== 5_000) t.recover("take the refunded deposit off the collected total by hand");
+  const shown = await adjustmentShown(t);
+  t.check("decisionInCommand", shown);
+  if (!shown) t.recover("notice the bill no longer accounts for the deposit, and decide what to do");
+  return t.finish(shop.id);
+}
+
+/* A production shop with a receptionist and its own line; the voice provider is a stub. */
+async function liveShop(name) {
+  const ownerEmail = `effort-live-${uid()}@example.test`;
+  const shop = await prisma.business.create({
+    data: {
+      name,
+      slug: `effort-${uid()}`,
+      environment: "production",
+      trade: "HVAC",
+      timezone: "America/Chicago",
+      billingStatus: "active",
+      billingPlan: "pro",
+      ownerEmail,
+      ownerPhone: "+13125550100",
+      vapiAssistantId: `asst_effort_${uid()}`,
+      twilioPhone: "+13125550188",
+      vapiPhoneNumber: "+13125550188",
+      greeting: "Thanks for calling.",
+      hoursJson: JSON.stringify(Object.fromEntries(["monday", "tuesday", "wednesday", "thursday", "friday"].map((d) => [d, { open: "08:00", close: "17:00" }]))),
+    },
+  });
+  signedInAs = ownerEmail;
+  return shop;
+}
+
+/** Vapi, stubbed: each PATCH to the assistant gets the next reply in `replies` (the last one repeats). */
+function stubVoiceProvider(replies) {
+  const realFetch = globalThis.fetch;
+  const prevKey = process.env.VAPI_API_KEY;
+  process.env.VAPI_API_KEY = "effort-harness-not-a-key";
+  const seen = [];
+  let n = 0;
+  globalThis.fetch = async (url, init = {}) => {
+    const u = String(url);
+    seen.push(`${init.method ?? "GET"} ${u.replace(/^https?:\/\/[^/]+/, "")}`);
+    if (/\/assistant\//.test(u) && init.method === "PATCH") {
+      const reply = replies[Math.min(n++, replies.length - 1)];
+      const body = JSON.parse(init.body ?? "{}");
+      if (reply === "fail") return new Response("upstream error", { status: 502 });
+      if (reply === "no-echo") return Response.json({ id: "asst" });
+      return Response.json({ id: "asst", metadata: body.metadata ?? {} });
+    }
+    if (/\/phone-number/.test(u)) lineWork.push(`vapi ${init.method ?? "GET"} phone-number`);
+    return Response.json([]);
+  };
+  return {
+    seen,
+    restore() {
+      globalThis.fetch = realFetch;
+      if (prevKey === undefined) delete process.env.VAPI_API_KEY;
+      else process.env.VAPI_API_KEY = prevKey;
+    },
+  };
+}
+
+/** What the server told the owner about the receptionist; old code only had assistantSynced. */
+function applyState(body) {
+  if (body?.receptionistApply?.state) return body.receptionistApply.state;
+  if (body?.assistantSynced === false || body?.error) return "failed";
+  if (body?.assistantSynced === true || body?.sync?.assistantUpdated) return "applied (no evidence)";
+  return null;
+}
+
+/*
+  The owner changes the greeting. The voice provider refuses the first try.
+  They reload, then apply again. Counts whether the miss stays visible, whether
+  the retry needs the greeting typed again, and whether anything touched the
+  phone line along the way.
+*/
+async function settingsApplyFailure() {
+  const t = new Tally("settings_apply_refused_then_retry");
+  const shop = await liveShop("Effort Heating");
+  const vapi = stubVoiceProvider(["fail", "echo"]);
+  const startLine = lineWork.length;
+  try {
+    t.decide("change the greeting");
+    const greeting = "Thanks for calling Effort Heating, this is the front desk.";
+    const save = await t.call("PATCH /api/account greeting", () => accountRoute.PATCH(patch("/api/account", { greeting })));
+    t.check("saveStatus", save.status);
+    t.check("greetingSaved", (await prisma.business.findUnique({ where: { id: shop.id } })).greeting === greeting);
+    t.check("applyAfterSave", applyState(save.body));
+    t.check("lineWorkDuringSave", lineWork.slice(startLine));
+
+    const back = await t.call("GET /api/account (reload)", () => accountRoute.GET(get("/api/account")));
+    const reloaded = back.body?.receptionistApply?.state ?? null;
+    t.check("applyAfterReload", reloaded);
+    t.check("nextStepAfterReload", back.body?.receptionistApply?.next ?? null);
+    if (reloaded !== "failed" && reloaded !== "unconfirmed") {
+      t.recover("re-save the greeting to find out whether the receptionist has it");
+      t.reenter("greeting");
+    }
+
+    const beforeRetry = lineWork.length;
+    t.decide("apply again");
+    const retry = await t.call("POST /api/account/sync-assistant", () => syncAssistantRoute.POST());
+    t.check("retryStatus", retry.status);
+    t.check("applyAfterRetry", applyState(retry.body));
+    t.check("lineWorkDuringRetry", lineWork.slice(beforeRetry));
+    if (lineWork.length > beforeRetry) t.check("retryTouchedLine", true);
+    if (!/^applied/.test(applyState(retry.body) ?? "")) t.recover("email support to get the receptionist updated");
+
+    const last = await t.call("GET /api/account (after retry)", () => accountRoute.GET(get("/api/account")));
+    t.check("applyShownAfterRetryReload", last.body?.receptionistApply?.state ?? null);
+    t.check("providerCalls", vapi.seen);
+  } finally {
+    vapi.restore();
+  }
+  return t.finish(shop.id);
+}
+
+/* The provider answers 200 but doesn't say it took these settings. */
+async function settingsNoEvidence() {
+  const t = new Tally("settings_apply_without_evidence");
+  const shop = await liveShop("Effort Cooling");
+  const vapi = stubVoiceProvider(["no-echo"]);
+  try {
+    t.decide("change the greeting");
+    const save = await t.call("PATCH /api/account greeting", () => accountRoute.PATCH(patch("/api/account", { greeting: "Effort Cooling, how can we help?" })));
+    const state = applyState(save.body);
+    t.check("applyAfterSave", state);
+    t.check("claimedAppliedWithoutEvidence", /^applied/.test(state ?? ""));
+    const back = await t.call("GET /api/account (reload)", () => accountRoute.GET(get("/api/account")));
+    t.check("applyAfterReload", back.body?.receptionistApply?.state ?? null);
+    if (/^applied/.test(state ?? "")) t.recover("call the line to hear whether the greeting actually changed");
+  } finally {
+    vapi.restore();
+  }
+  return t.finish(shop.id);
+}
+
 const results = [];
-for (const run of [happyPath, noAvailableTech, textingNotReady, failedInvoiceDelivery, completedButInvoiceFailed, ambiguousRefund, draftSave, lostProvisioningReply, reloadMidWorkflow]) {
+for (const run of [happyPath, noAvailableTech, textingNotReady, failedInvoiceDelivery, completedButInvoiceFailed, ambiguousRefund, refundTotals, depositRefundAfterBilling, settingsApplyFailure, settingsNoEvidence, draftSave, lostProvisioningReply, reloadMidWorkflow]) {
   try {
     results.push(await run());
   } catch (error) {

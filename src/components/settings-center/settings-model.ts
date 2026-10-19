@@ -11,6 +11,8 @@ export type JobberLink = {
   lastError: string | null;
   sentLast30Days: number;
   needsAttention: number;
+  checking?: number;
+  failed?: number;
 } | null;
 
 export type HousecallLink = {
@@ -21,6 +23,8 @@ export type HousecallLink = {
   lastError: string | null;
   sentLast30Days: number;
   needsAttention: number;
+  checking?: number;
+  failed?: number;
 } | null;
 
 export type ServiceTitanLink = {
@@ -31,6 +35,8 @@ export type ServiceTitanLink = {
   lastError: string | null;
   sentLast30Days: number;
   needsAttention: number;
+  checking?: number;
+  failed?: number;
 } | null;
 
 export type QuickBooksLink = {
@@ -41,10 +47,14 @@ export type QuickBooksLink = {
   lastError: string | null;
   sentLast30Days: number;
   needsAttention: number;
+  checking?: number;
+  failed?: number;
 } | null;
 
 export type Account = {
   founder?: boolean;
+  /** Whether the saved settings are confirmed on the receptionist, from the record. */
+  receptionistApply?: import("@/lib/assistant-apply").ReceptionistApply | null;
   role?: "owner" | "manager" | "dispatcher" | null;
   calendarFeedUrl?: string | null;
   busyCalendar?: BusyCalendar;
@@ -53,6 +63,8 @@ export type Account = {
   jobber?: JobberLink;
   housecall?: HousecallLink;
   servicetitan?: ServiceTitanLink;
+  /** Connectors whose status couldn't be read for this page, by key: jobber, housecall, servicetitan, quickbooks. */
+  integrationStatusErrors?: string[];
   quickbooks?: QuickBooksLink;
   user?: { name: string | null; email: string | null; image?: string | null };
   business: {
@@ -168,3 +180,67 @@ export function dollars(value: string): number | null {
 export type Business = NonNullable<Account["business"]>;
 
 export type PatchFn = (fields: Patch) => Promise<boolean>;
+
+type Apply = import("@/lib/assistant-apply").ReceptionistApply;
+export type SaveReply = {
+  business?: Partial<Business>;
+  receptionistApply?: Apply | null;
+  assistantSynced?: boolean;
+  syncError?: string | null;
+};
+
+/**
+ * What the screen holds after a save's reply: the server's saved values win
+ * over what was typed (they are normalized), except fields a newer save still
+ * in line is about to change, so a slow reply never undoes a later edit.
+ */
+export function mergeSaved(prev: Business, sent: Patch, reply: SaveReply, changingLater: ReadonlySet<string>): Business {
+  const canonical = reply.business ?? (sent as Partial<Business>);
+  const next = { ...prev } as Record<string, unknown>;
+  for (const [key, value] of Object.entries(canonical)) {
+    if (!changingLater.has(key)) next[key] = value;
+  }
+  return next as Business;
+}
+
+/** A save counts as saved only when the reply carries the saved business record. */
+export function isSaveReply(data: unknown): data is SaveReply & { business: Partial<Business> } {
+  const business = (data as { business?: unknown } | null)?.business;
+  return typeof business === "object" && business !== null && !Array.isArray(business);
+}
+
+/**
+ * After a lost reply: does the saved record already hold what was sent? Only
+ * fields the record reports are compared, and only exact values count, so a
+ * value the server would normalize reads as "not shown" rather than "saved".
+ */
+export function recordHolds(record: Partial<Business>, sent: Patch): "holds" | "differs" | "unknown" {
+  const keys = Object.keys(sent);
+  if (!keys.length || keys.some((key) => !(key in record))) return "unknown";
+  const same = keys.every((key) => {
+    const have = (record as Record<string, unknown>)[key];
+    const want = sent[key];
+    if (typeof want === "boolean" && (typeof have === "string" || have === null)) return want === (have !== null);
+    return (have ?? null) === (want ?? null);
+  });
+  return same ? "holds" : "differs";
+}
+
+/**
+ * Whether the receptionist took the saved settings, from the reply. A reply
+ * without the newer field still says so through assistantSynced/syncError;
+ * that is never read as applied, because a resolved request isn't evidence.
+ */
+export function applyFromReply(reply: SaveReply, previous: Apply | null): Apply | null {
+  if (reply.receptionistApply) return reply.receptionistApply;
+  if (reply.assistantSynced === false) {
+    return {
+      state: "failed",
+      appliedAt: null,
+      error: reply.syncError ?? null,
+      next: "Your settings are saved, but the receptionist didn't confirm them. Apply them again; nothing about your phone line changes.",
+      canApply: true,
+    };
+  }
+  return previous;
+}

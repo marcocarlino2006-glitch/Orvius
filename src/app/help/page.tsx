@@ -15,7 +15,7 @@ export default function HelpPage() {
   return (
     <MarketingShell>
       <section className="tier1-hero tier1-hero-compact">
-        <div className="editorial-wrap max-w-3xl">
+        <div className="editorial-wrap max-w-3xl ov-help">
           <ShellPageIntro
             label="Help center"
             title="How can we help?"
@@ -23,8 +23,8 @@ export default function HelpPage() {
           />
         </div>
       </section>
-      <section className="tier1-story">
-        <div className="editorial-wrap max-w-3xl">
+      <section className="tier1-story ov-surface-canvas">
+        <div className="editorial-wrap max-w-3xl ov-help">
           <HelpSearch
             categories={HELP_CATEGORIES}
             articles={HELP_ARTICLES.map(({ slug, title, summary, category, keywords }) => ({

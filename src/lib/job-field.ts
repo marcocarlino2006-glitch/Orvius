@@ -233,9 +233,16 @@ export async function photoFile(businessId: string, jobId: string, photoId: stri
   return prisma.jobPhoto.findFirst({ where: { id: photoId, jobId, businessId }, select: { mime: true, bytes: true } });
 }
 
+/** Removes the photo and returns what it was, so the job's history can say which one went. */
 export async function deleteJobPhoto(businessId: string, jobId: string, photoId: string) {
+  const photo = await prisma.jobPhoto.findFirst({
+    where: { id: photoId, jobId, businessId },
+    select: { id: true, kind: true, caption: true, takenBy: true, technicianId: true, sizeBytes: true, createdAt: true },
+  });
+  if (!photo) throw new FieldError("Photo not found", 404);
   const gone = await prisma.jobPhoto.deleteMany({ where: { id: photoId, jobId, businessId } });
   if (!gone.count) throw new FieldError("Photo not found", 404);
+  return { ...photo, createdAt: photo.createdAt.toISOString() };
 }
 
 export async function addJobNote(params: { businessId: string; jobId: string; body: unknown; authorKind: "technician" | "person"; authorName: string }) {

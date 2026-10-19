@@ -1,5 +1,6 @@
 "use client";
 
+import { askText } from "@/components/ask-dialog";
 import { OsShell } from "@/components/os-shell";
 import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
 import { ShellPanel } from "@/components/shell-primitives";
@@ -78,7 +79,16 @@ function NewJobForm() {
       const data = await res.json().catch(() => ({}));
       if (res.status === 409 && data.clash && !allowClash) {
         setSaving(false);
-        const reason = window.prompt(`${data.error} To book it anyway, say why. This goes in the job's history.`)?.trim();
+        const reason = (
+          await askText({
+            title: "Book it anyway?",
+            body: `${data.error ?? "This clashes with the schedule."} To book it anyway, say why. This goes in the job's history.`,
+            label: "Why book it anyway",
+            multiline: true,
+            required: true,
+            confirmLabel: "Book anyway",
+          })
+        )?.trim();
         if (reason) await submit(null, reason);
         return;
       }

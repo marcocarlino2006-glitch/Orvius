@@ -1,5 +1,6 @@
 "use client";
 
+import { askConfirm } from "@/components/ask-dialog";
 import { useCallback, useEffect, useState } from "react";
 import { RecordAvatar } from "@/components/record-avatar";
 import { toast } from "@/components/toaster";
@@ -94,8 +95,12 @@ export function TeamAccessGroup() {
   }
 
   async function remove(person: Person) {
-    const verb = person.you ? "Leave this shop?" : `Remove ${person.email}? They lose access right away.`;
-    if (!window.confirm(verb)) return;
+    const confirmed = await askConfirm(
+      person.you
+        ? { title: "Leave this shop?", body: "You lose access right away.", confirmLabel: "Leave", danger: true }
+        : { title: `Remove ${person.email}?`, body: "They lose access right away.", confirmLabel: "Remove", danger: true },
+    );
+    if (!confirmed) return;
     const res = await fetch(`/api/team?id=${encodeURIComponent(person.id ?? "")}`, { method: "DELETE" }).catch(() => null);
     if (!res?.ok) {
       const data = (await res?.json().catch(() => ({}))) as { error?: string } | undefined;

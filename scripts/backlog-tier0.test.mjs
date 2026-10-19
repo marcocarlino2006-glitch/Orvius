@@ -229,11 +229,12 @@ test("a failure after an inbound text is saved can't stop its owner alert", () =
 
 // B10
 test("a full Stripe refund marks the deposit refunded; a partial one only logs it; replays do nothing", async () => {
-  const shop = await makeShop();
+  const shop = await makeShop({ stripeConnectAccountId: `acct_${stamp()}` });
   try {
     const deposit = await prisma.deposit.create({ data: { businessId: shop.id, amountCents: 5000, status: "paid" } });
     const partial = await applyChargeRefund({
       metadata: { kind: "booking_deposit", depositId: deposit.id, businessId: shop.id },
+      account: shop.stripeConnectAccountId,
       amountRefundedCents: 1000,
       fullyRefunded: false,
       chargeId: "ch_partial",
@@ -243,6 +244,7 @@ test("a full Stripe refund marks the deposit refunded; a partial one only logs i
 
     await applyChargeRefund({
       metadata: { kind: "booking_deposit", depositId: deposit.id, businessId: shop.id },
+      account: shop.stripeConnectAccountId,
       amountRefundedCents: 5000,
       fullyRefunded: true,
       chargeId: "ch_full",
@@ -251,6 +253,7 @@ test("a full Stripe refund marks the deposit refunded; a partial one only logs i
 
     const replay = await applyChargeRefund({
       metadata: { kind: "booking_deposit", depositId: deposit.id, businessId: shop.id },
+      account: shop.stripeConnectAccountId,
       amountRefundedCents: 5000,
       fullyRefunded: true,
       chargeId: "ch_full",
@@ -262,7 +265,7 @@ test("a full Stripe refund marks the deposit refunded; a partial one only logs i
 });
 
 test("a full refund on an invoice marks it and its payments refunded; another shop's id matches nothing", async () => {
-  const shop = await makeShop();
+  const shop = await makeShop({ stripeConnectAccountId: `acct_${stamp()}` });
   const other = await makeShop();
   try {
     const invoice = await prisma.invoice.create({ data: { businessId: shop.id, amountCents: 42000, status: "paid" } });
@@ -270,6 +273,7 @@ test("a full refund on an invoice marks it and its payments refunded; another sh
 
     const wrongShop = await applyChargeRefund({
       metadata: { kind: "invoice_pay", invoiceId: invoice.id, businessId: other.id },
+      account: shop.stripeConnectAccountId,
       amountRefundedCents: 42000,
       fullyRefunded: true,
       chargeId: "ch_x",
@@ -278,6 +282,7 @@ test("a full refund on an invoice marks it and its payments refunded; another sh
 
     await applyChargeRefund({
       metadata: { kind: "invoice_pay", invoiceId: invoice.id, businessId: shop.id },
+      account: shop.stripeConnectAccountId,
       amountRefundedCents: 42000,
       fullyRefunded: true,
       chargeId: "ch_inv",

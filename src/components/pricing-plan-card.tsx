@@ -16,6 +16,8 @@ type PricingPlanCardProps = {
   email?: string;
   layout?: "marketing" | "dashboard";
   recommended?: boolean;
+  /** Another plan is recommended, so this one gives up its featured header. */
+  outranked?: boolean;
   interval?: BillingInterval;
 };
 
@@ -24,11 +26,12 @@ export function PricingPlanCard({
   email = "",
   layout = "marketing",
   recommended = false,
+  outranked = false,
   interval = "month",
 }: PricingPlanCardProps) {
   const isPilot = plan.id === "pilot";
   const isMulti = plan.contactSales ?? plan.id === "multi";
-  const featured = plan.featured ?? false;
+  const featured = (plan.featured ?? false) && !outranked;
   const highlight = recommended || featured;
   const monthlyPrice = isPilot || isMulti ? null : getPlanPrice(plan, "month");
   const displayPrice =
@@ -100,7 +103,7 @@ export function PricingPlanCard({
 
   return (
     <article
-      className={`tier1-plan ${highlight ? "tier1-plan-featured" : ""} ${recommended ? "tier1-plan-recommended" : ""}`}
+      className={`tier1-plan ${highlight ? "tier1-plan-featured" : "tier1-plan-quiet"} ${recommended ? "tier1-plan-recommended" : ""}`}
     >
       {recommended ? (
         <p className="tier1-plan-badge type-caption">Recommended</p>

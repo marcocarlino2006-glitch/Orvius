@@ -141,10 +141,10 @@ export async function getCommandMoney(businessId: string, now = new Date(), wind
     }),
     prisma.payment.aggregate({
       where: { businessId, status: { in: COLLECTED_STATUSES }, createdAt: window },
-      _sum: { amountCents: true },
+      _sum: { amountCents: true, refundedCents: true },
       _count: true,
     }),
-    prisma.deposit.aggregate({ where: { businessId, status: "paid", paidAt: window }, _sum: { amountCents: true }, _count: true }),
+    prisma.deposit.aggregate({ where: { businessId, status: "paid", paidAt: window }, _sum: { amountCents: true, refundedCents: true }, _count: true }),
     prisma.invoice.findMany({
       where: { businessId, status: { in: OPEN_INVOICE } },
       select: { amountCents: true, payments: { where: { status: { in: COLLECTED_STATUSES } }, select: { amountCents: true } } },
@@ -159,7 +159,8 @@ export async function getCommandMoney(businessId: string, now = new Date(), wind
     windowDays,
     invoicedCents: invoiced._sum.amountCents ?? 0,
     invoices: invoiced._count,
-    collectedCents: (paid._sum.amountCents ?? 0) + (deposits._sum.amountCents ?? 0),
+    // Kept, not gross: partial refunds come off. Fully refunded rows are no longer collected at all.
+    collectedCents: (paid._sum.amountCents ?? 0) - (paid._sum.refundedCents ?? 0) + (deposits._sum.amountCents ?? 0) - (deposits._sum.refundedCents ?? 0),
     payments: paid._count + deposits._count,
     outstandingCents: balances.reduce((s, b) => s + b, 0),
     outstandingInvoices: balances.length,

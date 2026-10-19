@@ -1,5 +1,6 @@
 "use client";
 
+import { askConfirm } from "@/components/ask-dialog";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "@/components/toaster";
 import { ScGroup, ScRow } from "./settings-primitives";
@@ -101,7 +102,13 @@ export function MoneyGrantsGroup() {
   }
 
   async function revoke(grant: Grant) {
-    if (!window.confirm(`Revoke ${grant.granteeEmail}'s right to ${(SCOPE_LABEL[grant.scope] ?? grant.scope).toLowerCase()}? It stops at once.`)) return;
+    const confirmed = await askConfirm({
+      title: `Revoke ${grant.granteeEmail}'s right to ${(SCOPE_LABEL[grant.scope] ?? grant.scope).toLowerCase()}?`,
+      body: "It stops at once.",
+      confirmLabel: "Revoke",
+      danger: true,
+    });
+    if (!confirmed) return;
     const res = await fetch(`/api/money-grants?id=${encodeURIComponent(grant.id)}`, { method: "DELETE" }).catch(() => null);
     if (!res?.ok) {
       const data = (await res?.json().catch(() => ({}))) as { error?: string } | undefined;

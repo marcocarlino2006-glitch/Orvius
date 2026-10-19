@@ -1,7 +1,9 @@
+import { shopDayBounds } from "@/lib/availability";
 import { isAfterHours } from "@/lib/business";
-import { COLLECTED_STATUSES } from "@/lib/payment-math";
+import { COLLECTED_STATUSES, addTotals, moneyTotals, type MoneyTotals } from "@/lib/payment-math";
 import { estimatedRevenueCents, formatCentsExact } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
+import { weekBounds } from "@/lib/tech-timesheet";
 
 /** How much history the trend draws. Eight weeks fits a screen and a season. */
 const TREND_WEEKS = 8;
@@ -18,16 +20,36 @@ export type OutcomeWeek = {
   partial: boolean;
 };
 
+function shiftDay(isoDay: string, days: number) {
+  const [y, m, d] = isoDay.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d + days, 12)).toISOString().slice(0, 10);
+}
+
 /*
   Monday, not Sunday. A trades week runs Monday to Saturday with emergencies on
   the weekend attached to the week they interrupt, so a Sunday-aligned bucket
-  splits every weekend across two bars.
+  splits every weekend across two bars. Weeks start at midnight where the shop
+  is, not where the server is, so a Sunday-night call stays in its own week.
 */
-function weekStart(at: Date) {
-  const start = new Date(at);
-  start.setHours(0, 0, 0, 0);
-  start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
-  return start;
+export function trendWeeks(timezone: string, now = new Date(), count = TREND_WEEKS) {
+  const today = shopDayBounds(null, timezone, now).day;
+  const current = weekBounds(today, timezone);
+  const monday = shopDayBounds(null, timezone, current.start).day;
+  const weeks = Array.from({ length: count }, (_, i) => {
+    const day = shiftDay(monday, -7 * (count - 1 - i));
+    return { day, start: shopDayBounds(day, timezone).start };
+  });
+  return { weeks, end: current.end };
+}
+
+/** Which of the given weeks a moment falls in, or -1 outside them all. */
+export function weekIndex(weeks: { start: Date }[], end: Date, at: Date) {
+  const t = at.getTime();
+  if (weeks.length === 0 || t < weeks[0].start.getTime() || t >= end.getTime()) return -1;
+  for (let i = weeks.length - 1; i >= 0; i--) {
+    if (t >= weeks[i].start.getTime()) return i;
+  }
+  return -1;
 }
 
 export type ShopOutcomes = {
@@ -61,8 +83,10 @@ export type ShopOutcomes = {
   jobsCompleted: number;
   /** Estimated value only: measured captured jobs × owner-entered avg ticket. */
   capturedDemandEstimatedValueCents: number | null;
-  /** CRM money ring — recorded payments / open estimates / open invoices. */
+  /** Money the shop kept from recorded payments and deposits: gross less refunds. Not revenue, not what anyone owes. */
   collectedCents: number;
+  /** Gross receipts, refunded and kept, from moneyTotals. */
+  money?: MoneyTotals;
   openEstimateCents: number;
   openInvoiceCents: number;
   economicsReady: boolean;
@@ -82,13 +106,6 @@ export async function getShopOutcomes(
   businessId: string,
   windowDays = 7,
 ): Promise<ShopOutcomes> {
-  const since = new Date();
-  since.setDate(since.getDate() - windowDays);
-  since.setHours(0, 0, 0, 0);
-
-  const trendSince = weekStart(new Date());
-  trendSince.setDate(trendSince.getDate() - 7 * (TREND_WEEKS - 1));
-
   const business = await prisma.business.findUnique({
     where: { id: businessId },
     select: {
@@ -99,6 +116,14 @@ export async function getShopOutcomes(
       baselineJobsPerWeek: true,
     },
   });
+  const timezone = business?.timezone ?? "America/New_York";
+  const now = new Date();
+  const since = shopDayBounds(
+    shiftDay(shopDayBounds(null, timezone, now).day, -windowDays),
+    timezone,
+  ).start;
+  const trend = trendWeeks(timezone, now);
+  const trendSince = trend.weeks[0].start;
 
   const [
     calls,
@@ -173,9 +198,10 @@ export async function getShopOutcomes(
       where: {
         businessId,
         createdAt: { gte: since },
-        status: { in: COLLECTED_STATUSES },
+        // Refunded rows still came in once; their refunds come off below. Claims never count.
+        status: { in: [...COLLECTED_STATUSES, "refunded"] },
       },
-      select: { amountCents: true },
+      select: { amountCents: true, status: true, refundedCents: true },
     }),
     prisma.estimate.findMany({
       where: {
@@ -202,16 +228,15 @@ export async function getShopOutcomes(
       select: { createdAt: true, job: { select: { id: true } } },
     }),
     // Invoices bill the balance net of any deposit, so deposits add to payments without counting twice.
-    prisma.deposit.aggregate({
-      where: { businessId, status: "paid", paidAt: { gte: since } },
-      _sum: { amountCents: true },
+    prisma.deposit.findMany({
+      where: { businessId, status: { in: ["paid", "refunded"] }, paidAt: { gte: since } },
+      select: { amountCents: true, status: true, refundedCents: true },
     }),
   ]);
 
   const leadCount = leads.length;
   const bookedFromLeads = leads.filter((l) => l.job).length;
   const hoursJson = business?.hoursJson ?? "{}";
-  const timezone = business?.timezone ?? "America/New_York";
 
   const afterHoursLeadsList = leads.filter((lead) =>
     isAfterHours(lead.createdAt, hoursJson, timezone),
@@ -238,8 +263,8 @@ export async function getShopOutcomes(
       ? Math.round((jobsPerWeek - baselineJobs) * 10) / 10
       : null;
 
-  const collectedCents =
-    payments.reduce((sum, p) => sum + p.amountCents, 0) + (depositsPaid._sum.amountCents ?? 0);
+  const money = addTotals(moneyTotals(payments), moneyTotals(depositsPaid));
+  const collectedCents = money.netCents;
   const openEstimateCents = openEstimates.reduce((sum, e) => sum + e.amountCents, 0);
   const openInvoiceCents = openInvoices.reduce((sum, i) => sum + i.amountCents, 0);
 
@@ -250,29 +275,18 @@ export async function getShopOutcomes(
       baselineJobs != null,
   );
 
-  const currentWeek = weekStart(new Date()).getTime();
-  const buckets = new Map<number, { leads: number; booked: number }>();
-  for (let i = 0; i < TREND_WEEKS; i++) {
-    buckets.set(trendSince.getTime() + i * 7 * 86_400_000, {
-      leads: 0,
-      booked: 0,
-    });
-  }
+  const weekly: OutcomeWeek[] = trend.weeks.map((week, i) => ({
+    start: week.day,
+    leads: 0,
+    booked: 0,
+    partial: i === trend.weeks.length - 1,
+  }));
   for (const lead of trendLeads) {
-    const key = weekStart(lead.createdAt).getTime();
-    const bucket = buckets.get(key);
-    if (!bucket) continue;
-    bucket.leads += 1;
-    if (lead.job) bucket.booked += 1;
+    const i = weekIndex(trend.weeks, trend.end, lead.createdAt);
+    if (i < 0) continue;
+    weekly[i].leads += 1;
+    if (lead.job) weekly[i].booked += 1;
   }
-  const trend: OutcomeWeek[] = [...buckets.entries()]
-    .sort(([a], [b]) => a - b)
-    .map(([at, counts]) => ({
-      start: new Date(at).toISOString().slice(0, 10),
-      leads: counts.leads,
-      booked: counts.booked,
-      partial: at === currentWeek,
-    }));
 
   return {
     windowDays,
@@ -305,10 +319,11 @@ export async function getShopOutcomes(
       capturedDemandJobs,
     ),
     collectedCents,
+    money,
     openEstimateCents,
     openInvoiceCents,
     economicsReady,
-    weeks: trend,
+    weeks: weekly,
   };
 }
 
@@ -333,7 +348,9 @@ export function formatWeeklyProof(outcomes: ShopOutcomes, shopName: string): str
     outcomes.jobsPerWeekVsBaseline != null
       ? `Jobs/week vs owner-reported before-Orvius baseline: ${outcomes.jobsPerWeekVsBaseline >= 0 ? "+" : ""}${outcomes.jobsPerWeekVsBaseline} (context, not attribution)`
       : null,
-    `Collected (recorded payments): ${formatCentsExact(outcomes.collectedCents)}`,
+    outcomes.money && outcomes.money.refundedCents > 0
+      ? `Collected (recorded payments): ${formatCentsExact(outcomes.money.grossCents)} · refunded ${formatCentsExact(outcomes.money.refundedCents)} · kept ${formatCentsExact(outcomes.money.netCents)}`
+      : `Collected (recorded payments): ${formatCentsExact(outcomes.collectedCents)}`,
     `Open estimates: ${formatCentsExact(outcomes.openEstimateCents)} · Open invoices: ${formatCentsExact(outcomes.openInvoiceCents)}`,
     "Label: booking counts and recorded payments are measured CRM events; dollar value uses owner avg ticket and is not audited GAAP revenue.",
   ];

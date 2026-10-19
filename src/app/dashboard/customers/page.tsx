@@ -31,6 +31,7 @@ type CustomerRow = {
   returning: boolean;
   collectedCents: number;
   owedCents: number;
+  refundedCents?: number;
 };
 
 export default function CustomersPage() {
@@ -41,6 +42,7 @@ export default function CustomersPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [forgotten, setForgotten] = useState<"done" | "pending" | null>(null);
   const [attempt, setAttempt] = useState(0);
+  const [more, setMore] = useState({ hasMore: false, moneyPartial: false });
 
   useEffect(() => {
     const state = new URLSearchParams(window.location.search).get("forgotten");
@@ -63,7 +65,10 @@ export default function CustomersPage() {
           if (!res.ok) throw new Error(res.status === 401 ? SESSION_EXPIRED : "Customers didn't load. Nothing changed; try again.");
           return res.json();
         })
-        .then((data) => setCustomers(data.customers ?? []))
+        .then((data) => {
+          setCustomers(Array.isArray(data?.customers) ? data.customers : []);
+          setMore({ hasMore: data?.hasMore === true, moneyPartial: data?.moneyPartial === true });
+        })
         .catch((err) => {
           if (err instanceof DOMException && err.name === "AbortError") return;
           setError(err instanceof Error ? err.message : "Customers didn't load. Nothing changed; try again.");
@@ -175,16 +180,27 @@ export default function CustomersPage() {
                     returning={customer.returning}
                     collectedCents={customer.collectedCents}
                     owedCents={customer.owedCents}
+                    refundedCents={customer.refundedCents ?? 0}
                   />
                 </li>
               ))}
+              {more.hasMore || more.moneyPartial ? (
+                <li className="cp-list-note" role="note">
+                  {[
+                    more.hasMore ? `Showing the ${customers.length} most recent. Search to find anyone else.` : null,
+                    more.moneyPartial ? "Paid and owed amounts here leave out older jobs. Open a customer for their full record." : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                </li>
+              ) : null}
             </ul>
             <div className="cp-side">
               {activeId ? <CustomerPanel customerId={activeId} /> : null}
             </div>
             </div>
           )}
-          {customers.length ? (
+          {customers.length && !more.hasMore ? (
             <ProListEnd count={customers.length} noun="customer" />
           ) : null}
           {!query ? <WinBackCard /> : null}

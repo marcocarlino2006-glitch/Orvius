@@ -190,3 +190,91 @@ Migration first, then the push. Nothing below has been run against production.
 - Failure before step 7: production keeps serving main. A partial apply shows as a `started` ledger row; the statements are idempotent, so a fixed re-run finishes it, and main's code ignores the added tables and columns either way.
 - Bad deploy after step 7: promote the previous production deployment in Vercel, or push a revert commit. Main's code was tested on the migrated schema, so the schema stays.
 - Schema itself must go: restore the Turso copy or the point-in-time time from step 3. That loses every write after the backup, so it is for data loss only, never for a code rollback.
+
+## Refund ledger release (`cursor/operating-truth-10f0`, base `a6ab9de1`)
+
+Not applied anywhere. Prepared and rehearsed on disposable databases only.
+
+- File: `prisma/releases/2026-10-17-refund-ledger.sql`, sha256 `718732b85018cfa56fc01c9f6b65942d7e3367f3c431e6121d0eb3d0ba04de1f`. Two statements: `Payment.refundedCents` and `Deposit.refundedCents`, `INTEGER NOT NULL DEFAULT 0`. The same two lines are appended to `prisma/turso-migrate.sql` for fresh databases.
+- Compatibility: additive with a constant default, so SQLite adds the columns without rebuilding the tables, and existing rows read 0 (no refund recorded). Code from `a6ab9de1` ignores the columns and keeps working against a migrated database. The new code selects the columns, so it must not run against an unmigrated database.
+- Legacy data: rows already marked `refunded` count as fully refunded through `refundedOf`, with no backfill. Partial refunds from before this release left no trace on the row, only audit rows carrying Stripe's running total. `scripts/refund-backfill.mjs` reads those and, per charge, takes the highest running total. It attributes a deposit by `depositId`, and an invoice by `paymentId` or by the invoice's single card receipt. Anything else is listed as ambiguous (several card receipts, no card receipt, no record named, deposit missing) and left alone. It is plan-only by default. `--apply` refuses any non-`file:` database unless `REFUND_BACKFILL_APPROVAL` is set, and only ever raises a value. Tested on disposable databases only; to be run against a copy of production first.
+- Rehearsal: `scripts/operating-truth.test.mjs` applies the file through `applyMigrationPlan` to a disposable database that has old-shape rows, checks they read 0, checks that inserts without the column still work, and checks that a second run changes nothing. Separately, a database built from the `a6ab9de1` `schema.prisma` and then given this file has an empty `prisma migrate diff` against the new schema, so these two columns are the whole gap.
+- Not registered: `MIGRATION_PLAN_FILES` in `scripts/turso-migrate.mjs` was left unchanged, because it is the reviewed-file allowlist for remote migration. Registering this file is a one-line change that belongs to the approval for this release. `ops/migration-targets.json` stays empty.
+- Order: back up, apply the file, verify the two columns exist, then deploy the new code.
+- Rollback: redeploy `a6ab9de1`. It reads the tables correctly with the columns present, so the columns can stay. Dropping them is not needed and would discard recorded refunds.
+
+### Refund and customer-debt policy: proposal for the owner (not implemented)
+
+The standing contract is unchanged in this release, and so are its tests (`money-invariants`, `money-safety`, `backlog-tier0`). When Stripe reports a card payment fully refunded, that payment becomes `refunded` and the invoice is reopened. It goes to `partial` if cash still covers some of it, `paid` if other receipts still cover all of it, and `refunded` if nothing does. The refunded card share therefore shows as owed by the customer again. A partial refund changes no status. Its amount is recorded (`refundedCents`) so totals show gross, refunded and net, and the bill stays as it was. Committed invoices are never rewritten.
+
+The question for the owner is whether a refund should, by default, mean the customer owes that money again. Shops refund for two very different reasons:
+
+1. **Making it right.** Goodwill, a callback, or a disputed charge settled in the customer's favour. The customer should not owe it again, and reopening the bill would put a balance on Still to collect and could trigger reminder texts for money the shop chose to give back.
+2. **Changing how they pay.** The card was refunded so the customer can pay another way, or because the amount was wrong. The balance really is owed again.
+
+Proposed change, for approval before any code changes:
+
+- Keep the current behavior as the default (option 2 above), because it never hides money that is owed.
+- When a full card refund reopens a bill, raise one Command decision instead of a silent reopen: "Stripe refunded $X on <job>. Does <customer> owe it again?" There would be two answers. "Yes, still owed" keeps the reopened balance. "No, we gave it back" closes the balance with a written-off amount and a reason, recorded as an owner money action under the existing money-authority grants.
+- Until the owner answers, reminders for that balance are held. Nothing is texted to the customer about money the shop may have chosen to give back.
+- Reports stay on receipts: gross, refunded and net retained do not depend on the answer. Still to collect and the customer's balance do.
+
+This needs one additive field for a written-off amount and reason, its migration and rehearsal, and changes to the three contract tests. None of that is in this release.
+
+### Also in this branch, after the refund ledger
+
+- Command: Approve and Dismiss read the reply's shape. A lost, unreadable or mismatched reply makes the card read back the plan from the shop's own record (`GET /api/copilot?proposalId=`) instead of saying "Done" or "Nothing changed". Approve returns only if the record shows the plan never took effect. Stored plan details are parsed before any status change, and a decision saved without its history row reports `recorded: false` instead of an error.
+- Bills and completion from the outcome card: a bill counts as sent only when the reply names its invoice, and a completion reply nobody can read keeps the button away until a fresh view arrives.
+- Team: adding, editing, deactivating and time off for technicians need the owner or a manager (`team.manage`, which already existed). Dispatchers keep reading the crew, assigning and scheduling. No grants were migrated.
+- Setup after go-live: each unfinished item says whether it waits on the owner, a provider or real proof, with one next step on top. Customer texting reads carrier approval, and the first job counts only when a person marked it done.
+- Evidence: setup milestones, owner decisions and technician progress are written by the routes where they happen. Workflow numbers are checked against job records, and the owner report shows them as observed, attributable and synthetic, with what stays unknown.
+
+### Recovery and routing guards (same branch, no schema change)
+
+- Routing: when two active shops claim the same line or voice assistant, one live customer shop wins over demo and test shops, and the demo line stays with the demo shop. If two live customer shops collide, nobody gets the call: the voice webhook records it as failed so it can be reclaimed, line watch counts it as unmatched, and `tenant.ambiguous_owner` is logged for the founder to fix. Before, the oldest shop got it silently. A text reply that two shops could own is covered under "Shared-sender replies" below.
+- Technician job texts: a sweep (per-request drain and daily cron) picks up assignments from the last 24 hours with no recorded text. If the carrier took the text and only the reply was lost, the job is stamped and nothing is sent. A send that died mid-lease is closed as unknown, with one owner exception, and is never resent. A text the carrier refused is left to the owner. Each text is keyed to its assignment time, so a technician put back on a job gets a new text and link instead of a stamp from the old one.
+- Command: asking for the same plan again hands back the waiting plan instead of creating a second one. A copy that is running or flagged for a check blocks new copies and blocks approval of older ones. Once one copy runs, the other waiting copies become `superseded` and read back as done from another card.
+- Setup: every progress write is a compare-and-swap on the saved setup state that retries against the latest version. Two devices saving at once, or a test call finishing while the owner types, no longer overwrite each other.
+
+Compatibility: no columns or tables are added. `superseded` is a new `CopilotAction.status` value. Code from `a6ab9de1` lists only `proposed`, `executing`, `reconcile`, `executed` and `cancelled`, so it ignores superseded rows, and they stay unapprovable. Job-text keys gain a `#<assigned-at ms>` suffix. Rows written under the old key are still found by the sweep, which looks up by job, technician and assignment time rather than by the exact key, so a pre-release text is never sent again.
+
+Recovery: rolling back to `a6ab9de1` needs no data change. Superseded plans stay retired, and the old code does not read the new key suffix. A shop whose calls stop because of a live collision shows in the logs as `tenant.ambiguous_owner`. The fix is to correct the duplicate line or assistant on the wrong shop. Failed webhook events from that window are reclaimed by the existing sweep once routing resolves.
+
+### Shared-sender replies, Command card and public craft (same branch, no schema change)
+
+- Shared-sender replies: a text to the shared sender from a phone that two or more shops texted in the last 30 days is no longer handed to the most recent sender. It belongs to one shop only if it comes from that shop's owner or names that shop ("Cool Air", with or without "LLC"; the longer name wins when one contains the other). Otherwise the webhook stores it as a `twilio-sms` / `inbound-held` row with status `held` and the candidate shop ids. Each candidate owner gets one alert with the phone number but not the words, since the text may be for another business. The customer is asked which business they meant. When their reply names one, the held words are released to that shop as an ordinary inbound text (lead, inbox and alert), exactly once, even if the reply is redelivered. STOP and START apply to every candidate shop. HELP gets the program help text. A held row nobody claims within 7 days stays `held`; that row is the founder's repair signal.
+- Command: a request flagged "not a job" clears with one tap on its card (marked spam, kept in history).
+- CSS audit: classes named in the literal head of a template string count as rendered. The one truly dead selector (`.wq`) is gone.
+- Public pages:
+  - The translation runtime used to swap each label's whole content, which deleted the caret on the Product and Resources menus for every visitor, English included. It now changes only the text node.
+  - The browser-call button is 44px, like the fields beside it (it was 40.59px).
+  - The closing CTA pairs on pricing and product use the same 44px pill pair as the page intro (they were 40.59px, 4px corners, weight 500).
+  - Pricing option and result cards use the 4px item radius shared with plan cards and Watch scenarios (they were 8px).
+  - The home proof stage starts 36px higher at 1440px wide (20px on phones). The two closing bridges drop from 96px to 48–64px of padding.
+  - Watch's empty state no longer says "on the left", which is wrong on a phone, and still starts nothing until a call is picked.
+  - Sign-in secondary actions get a 24px target on desktop and 44px on phones (they were 19.5px). Help cards get a quiet arrow cue.
+  - Rendered before/after shots and computed metrics at 1440, 768, 390 and 320 are in the pass's artifacts. `scripts/public-craft.test.mjs` holds the rules.
+
+Compatibility: no columns or tables are added. `inbound-held` and `released` are new `WebhookEvent.eventType` and `status` values. Code from `a6ab9de1` never reads them; it only reads `twilio-sms` rows by exact key.
+
+Recovery: rolling back to `a6ab9de1` routes ambiguous replies to the most recent sender again. Any rows still `held` at rollback are not replayed by the old code, so before rolling back, export `WebhookEvent` rows where `eventType = 'inbound-held' AND status = 'held'` and route them by hand. After the release, list the same rows weekly. A non-empty list means customers who never answered the "which business?" question.
+
+### Product-quality pass (same branch, one additive column)
+
+Not applied anywhere. Prepared and rehearsed on disposable databases only.
+
+- Outbound sender migration: `prisma/releases/2026-10-17-outbound-sender.sql`, sha256 `3b0c09809d1ebda1a4886f849d2cd1eaa08f7a982f87a8200984853a0271b2d7`. One statement: `ALTER TABLE "OutboundSms" ADD COLUMN "fromNormalized" TEXT;`, also appended to `prisma/turso-migrate.sql`. Existing rows read NULL, which the reply resolver treats as "any number", the same as before. `scripts/sms-routing.test.mjs` applies it through `applyMigrationPlan` to a disposable database with old-shape rows, and asserts that the file is not in `MIGRATION_PLAN_FILES`. `ops/migration-targets.json` stays empty.
+- Order: back up, apply the refund-ledger file, then this file, verify that `OutboundSms.fromNormalized` exists, then deploy. Prisma selects every column, so this code must not run against an unmigrated database.
+- Rollback: redeploy `a6ab9de1`. It ignores the column, so the column can stay. Dropping it would only lose which number each text left from.
+- What changed:
+  - Lost replies: public booking, Settings saves, receptionist corrections, pay-link sends, lead follow-ups and Command approvals show "Checking what happened", then read the shop's own record. Repeat presses replay instead of acting twice.
+  - Texting: shared-sender attribution uses the number each text left from, and an ambiguous START restarts nobody. The Inbox shows held, unknown, delivered, undelivered and photo-unavailable states. Follow-ups go through the text-intent ledger. Technician texts held for carrier registration go out once the sender is ready.
+  - Field work: Call back dials only the checked number. A technician's week is Monday to Monday in the shop's timezone. Removing a photo or replacing a signature leaves a history row. Every browser `prompt`/`confirm` is now the app's own dialog.
+  - Money and reports: customer screens show paid and refunded side by side. Lists, the owner report and the CSV say when they stop short. A demo or test report says its money is sample. Customer edits record the person and the fields changed.
+  - Integrations: ServiceTitan checks the record contract at send time, ties each booking to its lead, and raises one reconciliation item per lost reply. Settings separates refused sends from lost replies, and says when a connector's status couldn't be read.
+  - Public pages: the demo explains the microphone before the browser asks. The payment-setup time claim and the search caption were corrected. The replay player fits at 320 and 390. Plan Finder answers are radio groups.
+- Compatibility: aside from the column, no tables or values that old code reads were changed. New audit actions: `job.signature_replaced`, `lead.follow_up_unknown`, `keyword-start-unnamed`. A photo-removal audit row now carries what was removed.
+- Follow-ups (no schema change):
+  - Inbox texts send at most once. Each typed message carries an `operationKey`, recorded as an `owner.text` intent in the existing text-intent ledger. A repeat press, a simultaneous twin request or a retry after a lost reply reads the first send back. A provider that never answered returns 202 with "may have gone out, won't send again". A request without a key, from a client older than this release, sends as before.
+  - The weekly outcome trend starts each week at Monday midnight in the shop's timezone, across clock changes.
+  - Reports and the CSV name card payments made in Stripe test mode, recognised by their stored `cs_test_` checkout session ID. Totals are unchanged.

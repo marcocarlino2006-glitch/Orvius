@@ -870,7 +870,7 @@ function SetupFacts({ sandbox }: { sandbox: Sandbox }) {
               .filter((c) => c.id !== "voice")
               .map((cap) => (
                 <li key={cap.id} className={cap.state === "pending" ? "is-needs_approval" : cap.state === "off" ? "is-not_connected" : "is-live"}>
-                  <span className="ton-check-state">{cap.id === "sms" && cap.state === "ready" ? "Simulated now" : CAP_STATE[cap.state]}</span>
+                  <span className="ton-check-state">{cap.simulated ? "Simulated now" : CAP_STATE[cap.state]}</span>
                   <span className="ton-check-label">{cap.label}</span>
                   <span className="ton-check-detail">{cap.state === "ready" ? cap.detail : (cap.meanwhile ?? cap.detail)}</span>
                 </li>

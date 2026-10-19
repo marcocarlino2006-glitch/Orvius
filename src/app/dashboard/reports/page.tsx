@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { OsShell } from "@/components/os-shell";
 import { formatCents } from "@/lib/money";
-import { MIN_ESTIMATES_FOR_RATE, REPORT_PERIODS, type OwnerReport, type ReportPeriodId, type ReportRow } from "@/lib/owner-report-types";
+import { MIN_ESTIMATES_FOR_RATE, REPORT_PERIODS, type OperatingEvidence, type OwnerReport, type ReportPeriodId, type ReportRow } from "@/lib/owner-report-types";
 
-type ReportResponse = { period: ReportPeriodId; start: string; end: string; previousStart: string; previousEnd: string; timezone: string; report: OwnerReport };
+type ReportResponse = { period: ReportPeriodId; start: string; end: string; previousStart: string; previousEnd: string; timezone: string; report: OwnerReport; truncated?: string[]; testMode?: { payments: number; cents: number } };
 
 const money = (cents: number | null) => (cents == null ? "—" : (formatCents(cents) ?? "$0"));
 const pct = (rate: number | null) => (rate == null ? "—" : `${Math.round(rate * 100)}%`);
@@ -57,6 +57,52 @@ function ProofPanel() {
       </ul>
       <p className="tm-help">{proof.causal.why}</p>
       {gaps.length ? <p className="tm-help">Missing: {gaps.map((m) => `${m.count} ${MISSING_LABEL[m.what] ?? m.what}`).join("; ")}.</p> : null}
+    </section>
+  );
+}
+
+function duration(ms: number | null) {
+  if (ms == null) return "—";
+  const hours = ms / 3_600_000;
+  return hours < 48 ? `${Math.max(1, Math.round(hours))} h` : `${Math.round(hours / 24)} days`;
+}
+
+function OperatingPanel({ o }: { o: OperatingEvidence }) {
+  if (o.shopSynthetic) {
+    return (
+      <section className="tm-section" aria-label="Work through Orvius">
+        <h2 className="tm-h">Work through Orvius</h2>
+        <p className="tm-help">This is a demo or test workspace, so none of its work is counted as real. {o.syntheticLeftOut} simulated events left out.</p>
+      </section>
+    );
+  }
+  return (
+    <section className="tm-section" aria-label="Work through Orvius">
+      <h2 className="tm-h">Work through Orvius</h2>
+      <ul className="rp-open">
+        <li>
+          <span className="rp-open-label">Jobs a person marked done, with what happened</span>
+          <span className="rp-open-money">{o.observed.completedJobs}</span>
+          <span className="rp-open-age">
+            observed · {money(o.observed.money.netCents)} kept on them
+            {o.observed.money.refundedCents ? ` (${money(o.observed.money.grossCents)} in, ${money(o.observed.money.refundedCents)} refunded)` : ""}
+          </span>
+        </li>
+        <li>
+          <span className="rp-open-label">Of those, from a call Orvius answered or a booking approved in Command</span>
+          <span className="rp-open-money">{o.attributableJobs}</span>
+          <span className="rp-open-age">attributable: Orvius had a hand in it, not proof it caused the sale</span>
+        </li>
+        <li>
+          <span className="rp-open-label">Your decisions, problems raised, and problems that cleared</span>
+          <span className="rp-open-money">
+            {o.observed.ownerDecisions} · {o.observed.exceptions} · {o.observed.recovered}
+          </span>
+          <span className="rp-open-age">request to done, middle job: {duration(o.observed.medianStartToCompleteMs)}</span>
+        </li>
+      </ul>
+      {o.syntheticLeftOut ? <p className="tm-help">{o.syntheticLeftOut} demo, test or simulated events left out.</p> : null}
+      <p className="tm-help">Not known: {o.unknown.join(" ")}</p>
     </section>
   );
 }
@@ -188,11 +234,29 @@ export default function ReportsPage() {
       {r && data ? (
         <div aria-busy={loading}>
           <p className="rp-range font-sans">{range(data.start, data.end, data.timezone)}</p>
+          {r.operating?.shopSynthetic ? (
+            <p className="ox-state-copy" role="note">
+              This is a demo or test workspace. Every amount below is sample or test money, not money the business took in.
+            </p>
+          ) : null}
+          {!r.operating?.shopSynthetic && data.testMode?.payments ? (
+            <p className="ox-state-copy" role="note">
+              {money(data.testMode.cents)} of this, from {data.testMode.payments} card payment{data.testMode.payments === 1 ? "" : "s"}, was made in Stripe test mode. No real money moved for {data.testMode.payments === 1 ? "it" : "them"}.
+            </p>
+          ) : null}
+          {data.truncated?.length ? (
+            <p className="ox-state-copy" role="note">
+              Partial: this period has more rows than the report reads at once, so these totals leave some out ({data.truncated.join(", ")}). A shorter period gives full totals.
+            </p>
+          ) : null}
           <div className="rp-tiles">
             <div className="rp-tile">
-              <p className="rp-k">Collected</p>
+              <p className="rp-k">{r.money && r.money.refundedCents > 0 ? "Kept" : "Collected"}</p>
               <p className="rp-v">{money(r.collectedCents)}</p>
-              <p className="rp-note">{change(r.collectedCents, r.previousCollectedCents) ?? `${r.payments} payments.`}</p>
+              <p className="rp-note">
+                {r.money && r.money.refundedCents > 0 ? `${money(r.money.grossCents)} collected, ${money(r.money.refundedCents)} refunded. ` : ""}
+                {change(r.collectedCents, r.previousCollectedCents) ?? `${r.payments} payments.`}
+              </p>
             </div>
             <div className="rp-tile">
               <p className="rp-k">Average invoice</p>
@@ -273,6 +337,7 @@ export default function ReportsPage() {
               </p>
             </div>
           )}
+          {r.operating ? <OperatingPanel o={r.operating} /> : null}
           <ProofPanel />
         </div>
       ) : null}

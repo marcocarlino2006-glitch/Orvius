@@ -443,10 +443,11 @@ export async function drainJobberSyncs(options: { limit?: number; now?: Date; bu
 
 /** What Settings shows. */
 export async function jobberStatus(businessId: string) {
-  const [conn, recent, failing] = await Promise.all([
+  const [conn, recent, failing, checking] = await Promise.all([
     prisma.jobberConnection.findUnique({ where: { businessId }, select: { status: true, accountName: true, connectedAt: true, lastError: true } }),
     prisma.jobberSync.count({ where: { businessId, status: "done", createdAt: { gte: new Date(Date.now() - 30 * 86_400_000) } } }),
     prisma.jobberSync.count({ where: { businessId, status: { in: ["failed", "check"] } } }),
+    prisma.jobberSync.count({ where: { businessId, status: "check" } }),
   ]);
   return {
     available: jobberConfigured(),
@@ -456,6 +457,8 @@ export async function jobberStatus(businessId: string) {
     lastError: conn?.status === "reconnect" ? conn.lastError : null,
     sentLast30Days: recent,
     needsAttention: failing,
+    checking,
+    failed: failing - checking,
   };
 }
 

@@ -57,7 +57,7 @@ export function CapabilitiesGroup({ refreshKey }: { refreshKey?: unknown }) {
           <div key={cap.id} className="sc-row sc-row--stack sc-capability" data-state={cap.state}>
             <div className="sc-row-copy">
               <p className="sc-row-label">
-                {cap.label} <span className={`sc-pill${cap.state === "ready" ? " is-on" : ""}`}>{STATE_LABEL[cap.state]}</span>
+                {cap.label} <span className={`sc-pill${cap.state === "ready" && !cap.simulated ? " is-on" : ""}`}>{cap.simulated ? "Simulated" : STATE_LABEL[cap.state]}</span>
               </p>
               <p className="sc-row-hint">{cap.detail}</p>
               {cap.meanwhile ? <p className="sc-row-hint">{cap.meanwhile}</p> : null}
