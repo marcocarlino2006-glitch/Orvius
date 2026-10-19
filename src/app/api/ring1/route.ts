@@ -16,7 +16,9 @@ import { loadPersonalBrief } from "@/lib/personal-brief-data";
 import { prisma } from "@/lib/prisma";
 import { getShopHealth } from "@/lib/shop-health";
 import { getReceptionistWeek } from "@/lib/receptionist-week";
-import { getShopOutcomes } from "@/lib/shop-outcomes";
+import { getShopOutcomes, type ShopOutcomes } from "@/lib/shop-outcomes";
+import { logError } from "@/lib/logger";
+import { degradedOutcomes, MONEY_PAUSED_ISSUE } from "@/lib/command-degraded";
 import { commandVersion, shopVersion } from "@/lib/shop-version";
 import { getShiftTimeline } from "@/lib/shift-timeline";
 import { requireBusinessSession } from "@/lib/tenant";
@@ -145,7 +147,10 @@ export async function GET(request: Request) {
     }),
     getDispatchBoard(business.id, null, business),
     healthP,
-    getShopOutcomes(business.id, 7),
+    getShopOutcomes(business.id, 7).catch((error: unknown) => {
+      logError("ring1.outcomes_failed", { businessId: business.id, error: error instanceof Error ? error.message : "unknown" });
+      return null;
+    }),
     attentionP.then((rows) => rollUpByPerson(rows).slice(0, 12)),
     getShiftTimeline(business.id),
     listHandled(business.id),
@@ -190,9 +195,15 @@ export async function GET(request: Request) {
       },
     }),
     getCommandFlow(business.id, now),
-    getCommandMoney(business.id, now),
+    getCommandMoney(business.id, now).catch((error: unknown) => {
+      logError("ring1.money_failed", { businessId: business.id, error: error instanceof Error ? error.message : "unknown" });
+      return undefined;
+    }),
     getCommandTomorrow(business.id, now).catch(() => null),
   ]);
+  const moneyPaused = money === undefined || outcomes === null;
+  const outcomesOut: ShopOutcomes = outcomes ?? degradedOutcomes(now);
+  if (moneyPaused) work.shopIssues = [MONEY_PAUSED_ISSUE, ...work.shopIssues];
   const crew = dispatchBoard.crew;
   const boardJobs = [...dispatchBoard.unassigned, ...dispatchBoard.columns.flatMap((c) => c.jobs)];
   const afterHoursNow = isAfterHours(now, business.hoursJson, business.timezone ?? "America/New_York", business.closedDatesJson);
@@ -287,7 +298,7 @@ export async function GET(request: Request) {
       certDone,
       certTotal: 5,
       certIncomplete: certDone < 5,
-      economicsReady: outcomes.economicsReady,
+      economicsReady: outcomesOut.economicsReady,
       proofStale,
       pilotDaysLeft,
       checkoutReady: isStripeCheckoutConfigured(),
@@ -298,15 +309,15 @@ export async function GET(request: Request) {
       newLeads,
       totalCalls,
       totalLeads,
-      leadBookingRate: outcomes.bookingRate,
+      leadBookingRate: outcomesOut.bookingRate,
       lastCallAt: lastCall?.createdAt.toISOString() ?? null,
       lastCaller: lastCall?.callerPhone ?? null,
     },
-    outcomes,
+    outcomes: outcomesOut,
     receptionist,
     commandCounts: {
-      windowDays: outcomes.windowDays,
-      calls: outcomes.calls,
+      windowDays: outcomesOut.windowDays,
+      calls: outcomesOut.calls,
       messagesAndWeb,
       qualified,
       booked: bookedInWindow,
