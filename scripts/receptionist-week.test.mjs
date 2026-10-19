@@ -65,7 +65,7 @@ test("the week counts calls, real callers, bookings, hand-offs and filtered call
 test("Command loads the week with the rest of its data", () => {
   const route = read("src/app/api/ring1/route.ts");
   assert.match(route, /getReceptionistWeek\(business\.id, 7, now\)/);
-  assert.match(route, /outcomes,\n\s*receptionist,/);
+  assert.match(route, /outcomes: outcomesOut,\n\s*receptionist,/);
 });
 
 test.after(() => prisma.$disconnect());
