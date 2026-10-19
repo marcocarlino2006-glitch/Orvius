@@ -8,6 +8,8 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { pricing } from "@/lib/company";
 import { supportMailto, supportPhone } from "@/lib/support";
 import { fetchAccount, invalidateAccount } from "@/lib/account-client";
+import { callUsageLine, type CallUsage } from "@/lib/call-usage";
+import { UpgradeModal } from "@/components/upgrade-modal";
 import { ROLE_LABELS, can, type ShopRole, type ShopSummary } from "@/lib/workspace-access-labels";
 
 type AccountData = {
@@ -29,6 +31,8 @@ type AccountData = {
     configured?: boolean;
     entitled?: boolean;
     pilotEndsAt?: string | null;
+    usage?: CallUsage | null;
+    advice?: string | null;
   };
 };
 
@@ -127,6 +131,7 @@ export function OsSidebarFooter({ newLeads = 0 }: { newLeads?: number }) {
   const [shopQuery, setShopQuery] = useState("");
   const [account, setAccount] = useState<AccountData | null>(null);
   const [accountFailed, setAccountFailed] = useState(false);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
 
@@ -140,6 +145,8 @@ export function OsSidebarFooter({ newLeads = 0 }: { newLeads?: number }) {
       })
       .catch(() => setAccountFailed(true));
   }, []);
+
+  const closeUpgrade = useCallback(() => setUpgradeOpen(false), []);
 
   useEffect(() => {
     loadAccount();
@@ -187,6 +194,10 @@ export function OsSidebarFooter({ newLeads = 0 }: { newLeads?: number }) {
   const sampleWorkspace = environment === "demo" || environment === "test";
   const upgradeLabel = billingStatusOf(account) === "past_due" ? "Fix payment" : "Upgrade";
   const close = () => setOpen(false);
+  /* A shop already paying changes plans in the billing portal; everyone else picks a plan here. */
+  const planStatus = billingStatusOf(account);
+  const livePlan = planStatus === "active" || planStatus === "past_due";
+  const usage = account?.billing?.usage ?? null;
 
   async function openShop(id: string) {
     setSwitching(id);
@@ -298,10 +309,32 @@ export function OsSidebarFooter({ newLeads = 0 }: { newLeads?: number }) {
           <div className="mx-plan">
             <div className="mx-plan-head">
               <span className="mx-plan-name">{planDisplayLabel(account)}</span>
-              <Link href="/dashboard?settings=billing" role="menuitem" className="mx-upgrade" onClick={close}>
-                {upgradeLabel}
-              </Link>
+              {livePlan ? (
+                <Link href="/dashboard?settings=billing" role="menuitem" className="mx-upgrade" onClick={close}>
+                  {upgradeLabel}
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="mx-upgrade"
+                  onClick={() => {
+                    close();
+                    setUpgradeOpen(true);
+                  }}
+                >
+                  {upgradeLabel}
+                </button>
+              )}
             </div>
+            {usage ? (
+              <div className="mx-usage">
+                <div className="mx-meter" data-tone={usage.tone} aria-hidden>
+                  <span style={{ width: `${Math.max(2, Math.round(usage.fraction * 100))}%` }} />
+                </div>
+                <p className="mx-usage-line">{callUsageLine(usage)}</p>
+              </div>
+            ) : null}
             <Link href="/dashboard?settings=billing" role="menuitem" className="mx-plan-row" onClick={close}>
               <MenuIcon name="sparkle" />
               <span>Billing</span>
@@ -392,6 +425,13 @@ export function OsSidebarFooter({ newLeads = 0 }: { newLeads?: number }) {
           {newLeads > 0 ? <span className="mx-dot" aria-hidden /> : null}
         </Link>
       </div>
+
+      <UpgradeModal
+        open={upgradeOpen}
+        onClose={closeUpgrade}
+        usage={usage}
+        advice={account?.billing?.advice ?? null}
+      />
     </div>
   );
 }
