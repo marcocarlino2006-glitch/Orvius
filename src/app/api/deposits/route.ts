@@ -36,11 +36,21 @@ export async function GET() {
   const planGate = requirePlanModule(business, "jobs");
   if ("error" in planGate) return planGate.error;
 
+  /* Explicit select of exactly what the list shows: a full-row read would
+     also name refund columns a not-yet-migrated database does not have. */
   const deposits = await prisma.deposit.findMany({
     where: { businessId: business.id },
     take: 80,
     orderBy: { createdAt: "desc" },
-    include: {
+    select: {
+      id: true,
+      amountCents: true,
+      status: true,
+      applicationFeeCents: true,
+      publicToken: true,
+      sentAt: true,
+      paidAt: true,
+      createdAt: true,
       lead: {
         select: { id: true, name: true, phone: true, serviceType: true },
       },

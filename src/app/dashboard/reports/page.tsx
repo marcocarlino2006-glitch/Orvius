@@ -5,7 +5,7 @@ import { OsShell } from "@/components/os-shell";
 import { formatCents } from "@/lib/money";
 import { MIN_ESTIMATES_FOR_RATE, REPORT_PERIODS, type OperatingEvidence, type OwnerReport, type ReportPeriodId, type ReportRow } from "@/lib/owner-report-types";
 
-type ReportResponse = { period: ReportPeriodId; start: string; end: string; previousStart: string; previousEnd: string; timezone: string; report: OwnerReport; truncated?: string[]; testMode?: { payments: number; cents: number } };
+type ReportResponse = { period: ReportPeriodId; start: string; end: string; previousStart: string; previousEnd: string; timezone: string; report: OwnerReport; truncated?: string[]; testMode?: { payments: number; cents: number }; moneyPaused?: boolean };
 
 const money = (cents: number | null) => (cents == null ? "—" : (formatCents(cents) ?? "$0"));
 const pct = (rate: number | null) => (rate == null ? "—" : `${Math.round(rate * 100)}%`);
@@ -249,18 +249,24 @@ export default function ReportsPage() {
               Partial: this period has more rows than the report reads at once, so these totals leave some out ({data.truncated.join(", ")}). A shorter period gives full totals.
             </p>
           ) : null}
+          {data.moneyPaused ? (
+            <p className="ox-state-copy" role="note">
+              Money numbers are paused right now — payment totals are left out until a database update on our side lands. Calls, jobs and estimates below are exact, and no money data is lost.
+            </p>
+          ) : null}
           <div className="rp-tiles">
             <div className="rp-tile">
               <p className="rp-k">{r.money && r.money.refundedCents > 0 ? "Kept" : "Collected"}</p>
-              <p className="rp-v">{money(r.collectedCents)}</p>
+              <p className="rp-v">{data.moneyPaused ? "Paused" : money(r.collectedCents)}</p>
               <p className="rp-note">
-                {r.money && r.money.refundedCents > 0 ? `${money(r.money.grossCents)} collected, ${money(r.money.refundedCents)} refunded. ` : ""}
-                {change(r.collectedCents, r.previousCollectedCents) ?? `${r.payments} payments.`}
+                {data.moneyPaused
+                  ? "Payment totals are left out until the update lands."
+                  : `${r.money && r.money.refundedCents > 0 ? `${money(r.money.grossCents)} collected, ${money(r.money.refundedCents)} refunded. ` : ""}${change(r.collectedCents, r.previousCollectedCents) ?? `${r.payments} payments.`}`}
               </p>
             </div>
             <div className="rp-tile">
               <p className="rp-k">Average invoice</p>
-              <p className="rp-v">{money(r.averageInvoiceCents)}</p>
+              <p className="rp-v">{data.moneyPaused ? "Paused" : money(r.averageInvoiceCents)}</p>
               <p className="rp-note">Paid invoices only, deposits not included. {r.jobsCompleted} jobs marked done.</p>
             </div>
             <div className="rp-tile">
@@ -319,7 +325,7 @@ export default function ReportsPage() {
             </section>
           ) : null}
 
-          {r.payments ? (
+          {!data.moneyPaused && r.payments ? (
             <>
               <Breakdown title="By technician" rows={r.byTechnician} total={r.collectedCents} tech />
               <Breakdown title="Where the paying work came from" rows={r.bySource} total={r.collectedCents} />
@@ -328,6 +334,13 @@ export default function ReportsPage() {
                 which ad a caller saw.
               </p>
             </>
+          ) : data.moneyPaused ? (
+            <div className="ox-state ox-state--inline">
+              <p className="ox-state-title">Money numbers are paused</p>
+              <p className="ox-state-copy">
+                Payment totals are left out until a database update on our side lands. Nothing is lost.
+              </p>
+            </div>
           ) : (
             <div className="ox-state ox-state--inline">
               <p className="ox-state-title">Nothing collected in this period yet</p>

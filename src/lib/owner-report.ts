@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { isMoneySchemaDrift } from "@/lib/command-degraded";
 import { COLLECTED_STATUSES, RECEIPT_STATUSES, isTestModeReceipt, moneyTotals, refundedOf } from "@/lib/payment-math";
 import { MIN_ESTIMATES_FOR_RATE, type CallLeadRow, type EstimateRow, type JobRow, type MoneyRow, type OpenInvoiceRow, type OperatingEvidence, type OwnerReport, type ReportPeriodId, type ReportRow } from "@/lib/owner-report-types";
 
@@ -213,9 +214,20 @@ export async function buildOwnerReport(businessId: string, period: ReportPeriodI
   const hit = new Set<string>();
   const previousHit = new Set<string>();
   const testMode: TestModeMoney = { payments: 0, cents: 0 };
+  /* Money rows are the one read that can be ahead of the database; pause
+     them (flagged, never zero-filled) and keep every other section exact. */
+  let moneyPaused = false;
+  const moneyOrPaused = (read: Promise<MoneyRow[]>) =>
+    read.catch((error: unknown) => {
+      if (isMoneySchemaDrift(error)) {
+        moneyPaused = true;
+        return [] as MoneyRow[];
+      }
+      throw error;
+    });
   const [money, previousMoney, estimates, jobs, callLeads, technicians, openInvoices] = await Promise.all([
-    moneyIn(businessId, w.start, w.end, hit, testMode),
-    moneyIn(businessId, w.prevStart, w.prevEnd, previousHit),
+    moneyOrPaused(moneyIn(businessId, w.start, w.end, hit, testMode)),
+    moneyOrPaused(moneyIn(businessId, w.prevStart, w.prevEnd, previousHit)),
     prisma.estimate.findMany({
       where: { businessId, sentAt: inWindow },
       select: { amountCents: true, status: true, job: { select: { technicianId: true } } },
@@ -273,6 +285,7 @@ export async function buildOwnerReport(businessId: string, period: ReportPeriodI
     report: operating ? { ...report, operating } : report,
     truncated: [...hit],
     testMode,
+    moneyPaused,
   };
 }
 
@@ -300,7 +313,7 @@ export function operatingEvidence(w: WorkflowReport): OperatingEvidence {
   };
 }
 
-export function reportCsv(report: OwnerReport, truncated: string[] = [], testMode?: TestModeMoney) {
+export function reportCsv(report: OwnerReport, truncated: string[] = [], testMode?: TestModeMoney, moneyPaused = false) {
   const cell = (v: string | number) => {
     const s = String(v);
     return /[",\n]/.test(s) || /^[=+\-@]/.test(s) ? `"${s.replace(/"/g, '""').replace(/^([=+\-@])/, "'$1")}"` : s;
@@ -311,6 +324,7 @@ export function reportCsv(report: OwnerReport, truncated: string[] = [], testMod
     ...report.byTechnician.map((r) => ["Technician", r.label, money(r.collectedCents), r.payments, r.jobsCompleted ?? 0, r.estimatesSent ?? 0, r.estimatesWon ?? 0]),
     ...report.bySource.map((r) => ["Source", r.label, money(r.collectedCents), r.payments, "", "", ""]),
     ["Total", "", money(report.collectedCents), report.payments, report.jobsCompleted, report.estimates.sent, report.estimates.won],
+    ...(moneyPaused ? [["Money", "Money numbers are paused — payment totals are left out until a database update lands.", "", "", "", "", ""]] : []),
     ...(report.money && report.money.refundedCents > 0
       ? [["Before refunds", "", money(report.money.grossCents), "", "", "", ""], ["Refunded", "", money(report.money.refundedCents), "", "", "", ""]]
       : []),

@@ -29,9 +29,9 @@ type CustomerRow = {
   interactionCount: number;
   lastSeenAt: string;
   returning: boolean;
-  collectedCents: number;
-  owedCents: number;
-  refundedCents?: number;
+  collectedCents: number | null;
+  owedCents: number | null;
+  refundedCents?: number | null;
 };
 
 export default function CustomersPage() {
@@ -42,7 +42,7 @@ export default function CustomersPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [forgotten, setForgotten] = useState<"done" | "pending" | null>(null);
   const [attempt, setAttempt] = useState(0);
-  const [more, setMore] = useState({ hasMore: false, moneyPartial: false });
+  const [more, setMore] = useState({ hasMore: false, moneyPartial: false, moneyPaused: false });
 
   useEffect(() => {
     const state = new URLSearchParams(window.location.search).get("forgotten");
@@ -67,7 +67,7 @@ export default function CustomersPage() {
         })
         .then((data) => {
           setCustomers(Array.isArray(data?.customers) ? data.customers : []);
-          setMore({ hasMore: data?.hasMore === true, moneyPartial: data?.moneyPartial === true });
+          setMore({ hasMore: data?.hasMore === true, moneyPartial: data?.moneyPartial === true, moneyPaused: data?.moneyPaused === true });
         })
         .catch((err) => {
           if (err instanceof DOMException && err.name === "AbortError") return;
@@ -178,17 +178,18 @@ export default function CustomersPage() {
                     interactionCount={customer.interactionCount}
                     lastSeenAt={customer.lastSeenAt}
                     returning={customer.returning}
-                    collectedCents={customer.collectedCents}
-                    owedCents={customer.owedCents}
+                    collectedCents={customer.collectedCents ?? undefined}
+                    owedCents={customer.owedCents ?? undefined}
                     refundedCents={customer.refundedCents ?? 0}
                   />
                 </li>
               ))}
-              {more.hasMore || more.moneyPartial ? (
+              {more.hasMore || more.moneyPartial || more.moneyPaused ? (
                 <li className="cp-list-note" role="note">
                   {[
                     more.hasMore ? `Showing the ${customers.length} most recent. Search to find anyone else.` : null,
                     more.moneyPartial ? "Paid and owed amounts here leave out older jobs. Open a customer for their full record." : null,
+                    more.moneyPaused ? "Money numbers are paused right now — paid and owed amounts are hidden until a database update on our side lands. Nothing is lost." : null,
                   ]
                     .filter(Boolean)
                     .join(" ")}

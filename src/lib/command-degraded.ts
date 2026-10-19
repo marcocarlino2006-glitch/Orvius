@@ -40,6 +40,19 @@ export function degradedOutcomes(now: Date): ShopOutcomes {
   };
 }
 
+/**
+ * True when a money read failed only because the database is behind the
+ * release — a column the code selects (e.g. Payment.refundedCents) does not
+ * exist yet. Callers degrade those reads to "money paused" instead of
+ * failing the whole screen. Any other error keeps throwing.
+ */
+export function isMoneySchemaDrift(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  if ((error as { code?: unknown }).code === "P2022") return true;
+  const message = error instanceof Error ? error.message : "";
+  return message.includes("does not exist in the current database");
+}
+
 export const MONEY_PAUSED_ISSUE: ShopIssue = {
   id: "money-paused",
   kind: "billing_gap",

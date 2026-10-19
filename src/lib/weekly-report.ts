@@ -50,6 +50,9 @@ export function buildWeeklyReportEmail(outcomes: ShopOutcomes, shopName: string,
   } else if (outcomes.collectedCents > 0) {
     moneyLines.push(`• ${money(outcomes.collectedCents)} in payments you recorded`);
   }
+  if (outcomes.moneyPaused) {
+    moneyLines.push(`• Money numbers are paused right now — the calls and bookings above are exact.`);
+  }
   if (outcomes.capturedDemandEstimatedValueCents != null && outcomes.capturedDemandJobs > 0) {
     moneyLines.push(
       `• About ${money(outcomes.capturedDemandEstimatedValueCents)} in work from calls Orvius answered (${plural(outcomes.capturedDemandJobs, "job")} at your average ticket)`,

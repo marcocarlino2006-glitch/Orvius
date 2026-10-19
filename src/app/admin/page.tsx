@@ -1063,7 +1063,7 @@ function ScoreboardCard({ board }: { board: CompanyScoreboard }) {
     { label: "From calls and texts Orvius answered", value: (w) => String(w.jobsFromOrvius ?? 0) },
     { label: "Customer confirmed", value: (w) => String(w.jobsCustomerConfirmed ?? 0) },
     { label: "Completed", value: (w) => String(w.jobsCompleted ?? 0) },
-    { label: "Shops' customer payments (not our revenue)", value: (w) => dollars(w.collectedCents) },
+    { label: "Shops' customer payments (not our revenue)", value: (w) => (w.collectedCents == null ? "paused" : dollars(w.collectedCents)) },
     { label: "Orvius platform fees", value: (w) => dollars(w.platformFeeCents ?? 0) },
   ];
   return (
@@ -1081,6 +1081,11 @@ function ScoreboardCard({ board }: { board: CompanyScoreboard }) {
         </p>
         <p className="w-full font-sans text-xs text-ash">{activationText(board.activation30d)}</p>
         <p className="w-full font-sans text-xs text-ash">{retentionText(board.retention)}</p>
+        {board.moneyPaused ? (
+          <p className="w-full font-sans text-xs text-ash" role="note">
+            Money numbers are paused — payment totals are unreadable until the database update lands.
+          </p>
+        ) : null}
       </div>
       <table className="mt-4 w-full font-sans text-sm">
         <thead>

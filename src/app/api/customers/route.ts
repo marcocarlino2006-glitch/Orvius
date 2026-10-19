@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isMoneySchemaDrift } from "@/lib/command-degraded";
 import { customerDisplayName, interactionFloor } from "@/lib/customer";
 import { summarizeCustomerMoney, type CustomerMoney } from "@/lib/customer-money";
 import { RECEIPT_STATUSES } from "@/lib/payment-math";
@@ -48,6 +49,9 @@ export async function GET(request: Request) {
   /* Lifetime value from their invoices: paid bills at face, open bills by balance left. */
   const moneyByCustomer = new Map<string, CustomerMoney>();
   let moneyPartial = false;
+  /* Refund reads can be ahead of the database; pause money (null below,
+     flagged) and keep the customer list itself exact. */
+  let moneyPaused = false;
   if (customers.length) {
     const jobs = await prisma.job.findMany({
       where: { businessId: business.id, customerId: { in: customers.map((c) => c.id) } },
@@ -63,6 +67,12 @@ export async function GET(request: Request) {
       },
       orderBy: { createdAt: "desc" },
       take: MONEY_JOB_CAP + 1,
+    }).catch((error: unknown) => {
+      if (isMoneySchemaDrift(error)) {
+        moneyPaused = true;
+        return [];
+      }
+      throw error;
     });
     moneyPartial = jobs.length > MONEY_JOB_CAP;
     for (const [id, slot] of summarizeCustomerMoney(jobs.slice(0, MONEY_JOB_CAP))) moneyByCustomer.set(id, slot);
@@ -86,9 +96,9 @@ export async function GET(request: Request) {
         business: customer.business,
         leadCount: customer._count.leads,
         callCount: customer._count.calls,
-        collectedCents: money.collected,
-        owedCents: money.owed,
-        refundedCents: money.refunded,
+        collectedCents: moneyPaused ? null : money.collected,
+        owedCents: moneyPaused ? null : money.owed,
+        refundedCents: moneyPaused ? null : money.refunded,
         returning:
           customer.interactionCount > 1 ||
           customer._count.leads > 1 ||
@@ -99,5 +109,6 @@ export async function GET(request: Request) {
     total: customers.length,
     hasMore,
     moneyPartial,
+    moneyPaused,
   });
 }
