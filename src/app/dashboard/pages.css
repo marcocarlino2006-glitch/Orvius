@@ -87,6 +87,17 @@
   margin-top: 1rem;
 }
 
+.cmd-head + .cmd-ask,
+.cmd-wow + .cmd-ask {
+  margin-top: 1rem;
+}
+
+/* Counts and ahead-money sit below the feed, as detail — not the headline. */
+.cmd-detail-strip {
+  display: grid;
+  gap: 1rem;
+}
+
 .cs-grid:has(> :nth-child(3):last-child) {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }

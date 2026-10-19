@@ -19,7 +19,7 @@ import { useRing1, type Ring1Data } from "@/lib/ring1-context";
 import { formatWhen } from "@/lib/when";
 
 const NEEDS_YOU_SHOWN = 4;
-const RECENT_SHOWN = 3;
+const RECENT_SHOWN = 5;
 
 /* Shop problems a test alert proves fixed. */
 const ALERT_KINDS = new Set<string>(["alert_failed", "alert_setup", "alerts_muted"]);
@@ -131,10 +131,10 @@ function AheadStrip({ tomorrow, money }: { tomorrow?: CommandTomorrow | null; mo
 }
 
 /**
- * Command answers "what needs my attention?". A banner only when something is
- * disconnected or failing, three counts, the one bar that directs Orvius, the
- * action queue (read from Work, so counts match everywhere), and what was done
- * with its result. Records live on their own screens.
+ * Command is the front-office feed, in the order an owner thinks: direct
+ * Orvius in one bar, what needs you, what Orvius did — each with its result.
+ * Counts, schedule and money depth sit below the feed; records live on their
+ * own screens. The queue reads from Work, so counts match everywhere.
  */
 export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
   const { data, locked, loading, loadError, lastUpdatedAt, refresh } = useRing1();
@@ -302,10 +302,6 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
         </section>
       ) : null}
 
-      <CommandSignals signals={signals} loading={loading} />
-
-      {data ? <AheadStrip tomorrow={data.tomorrow} money={data.money} /> : null}
-
       <div className="cmd-ask">
         <AskBar onChange={() => void refresh()} below={setup} />
       </div>
@@ -315,7 +311,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
           <section className="cmd-section" aria-labelledby="cmd-needs">
             <div className="cmd-section-head">
               <h3 id="cmd-needs" className="cmd-section-title">
-                Action queue <span className="cmd-count">{data ? needsYou : "–"}</span>
+                Needs you <span className="cmd-count">{data ? needsYou : "–"}</span>
               </h3>
               <Link href="/dashboard/work" className="cmd-section-link">
                 All open work{work ? ` · ${work.open}` : ""} →
@@ -370,6 +366,51 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
             ) : null}
           </section>
 
+          <section className="cmd-section" aria-labelledby="cmd-handled">
+            <div className="cmd-section-head">
+              <h3 id="cmd-handled" className="cmd-section-title">
+                What Orvius did
+              </h3>
+              <span className="cmd-section-note">Last 24 hours</span>
+            </div>
+            {handled?.events.length ? (
+              <ul className="cmd-feed">
+                {(showAllRecent ? handled.events : handled.events.slice(0, RECENT_SHOWN)).map((e) => (
+                  <li key={e.id}>
+                    <span className="cmd-feed-dot" aria-hidden />
+                    <span className="cmd-feed-body">
+                      {e.jobId || e.leadId ? (
+                        <Link href={e.jobId ? `/dashboard/jobs/${e.jobId}` : `/dashboard/inbox/${e.leadId}`} className="cmd-feed-text">
+                          {e.summary}
+                        </Link>
+                      ) : (
+                        <span className="cmd-feed-text">{e.summary}</span>
+                      )}
+                      <span className="cmd-feed-result">
+                        {e.result} · {e.by}
+                      </span>
+                    </span>
+                    <time className="cmd-feed-at" dateTime={e.at}>
+                      {formatWhen(e.at)}
+                    </time>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="cmd-empty">{data ? "Nothing yet in the last day. Booked jobs, confirmations and follow-ups land here as Orvius works." : "Reading…"}</p>
+            )}
+            {(handled?.events.length ?? 0) > RECENT_SHOWN ? (
+              <button type="button" className="cmd-more" onClick={() => setShowAllRecent((v) => !v)}>
+                {showAllRecent ? "Show fewer" : `Show all ${handled!.events.length}`}
+              </button>
+            ) : null}
+          </section>
+
+          <div className="cmd-detail-strip" aria-label="At a glance">
+            <CommandSignals signals={signals} loading={loading} />
+            {data ? <AheadStrip tomorrow={data.tomorrow} money={data.money} /> : null}
+          </div>
+
           <section className="cmd-section" aria-labelledby="cmd-today">
             <div className="cmd-section-head">
               <h3 id="cmd-today" className="cmd-section-title">
@@ -399,47 +440,6 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
               <MoneyLine money={data.money} />
             </section>
           ) : null}
-
-          <section className="cmd-section" aria-labelledby="cmd-handled">
-            <div className="cmd-section-head">
-              <h3 id="cmd-handled" className="cmd-section-title">
-                Recent actions
-              </h3>
-              <span className="cmd-section-note">Last 24 hours</span>
-            </div>
-            {handled?.events.length ? (
-              <ul className="cmd-feed">
-                {(showAllRecent ? handled.events : handled.events.slice(0, RECENT_SHOWN)).map((e) => (
-                  <li key={e.id}>
-                    <span className="cmd-feed-dot" aria-hidden />
-                    <span className="cmd-feed-body">
-                      {e.jobId || e.leadId ? (
-                        <Link href={e.jobId ? `/dashboard/jobs/${e.jobId}` : `/dashboard/inbox/${e.leadId}`} className="cmd-feed-text">
-                          {e.summary}
-                        </Link>
-                      ) : (
-                        <span className="cmd-feed-text">{e.summary}</span>
-                      )}
-                      <span className="cmd-feed-result">
-                        {e.result} · {e.by}
-                      </span>
-                    </span>
-                    <time className="cmd-feed-at" dateTime={e.at}>
-                      {formatWhen(e.at)}
-                    </time>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="cmd-empty">{data ? "No actions in the last day." : "Reading…"}</p>
-            )}
-            {(handled?.events.length ?? 0) > RECENT_SHOWN ? (
-              <button type="button" className="cmd-more" onClick={() => setShowAllRecent((v) => !v)}>
-                {showAllRecent ? "Show fewer" : `Show all ${handled!.events.length}`}
-              </button>
-            ) : null}
-          </section>
-
 
           {data && !data.business?.testMode && !data.business?.referenceImplementation ? (
             <section className="cmd-section" aria-label="Left to turn on">
