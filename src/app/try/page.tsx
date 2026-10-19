@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
 import { ShopPreviewForm } from "@/components/shop-preview-form";
+import { PublicDemo } from "@/components/public-demo";
+import { publicScenarios } from "@/lib/public-demo";
 import { DemoLineBusy } from "@/components/demo-line-busy";
 import { TalkInBrowser } from "@/components/talk-in-browser";
 import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
@@ -63,8 +65,23 @@ export default async function TryPage({
             )}
           </div>
           <p className="pd-scenario-sub" style={{ marginTop: "1.25rem" }}>
-            Rather click than call? <Link href="/watch">Watch Orvius run a demo HVAC shop</Link>, no account needed.
+            Prefer clicking to talking? Run a scripted call below — the same pipeline, start to finish.
           </p>
+        </div>
+      </section>
+      <section className="tier1-story" aria-labelledby="try-demo-heading">
+        <div className="editorial-wrap" style={{ maxWidth: "64rem" }}>
+          <p className="tier1-eyebrow type-eyebrow">The other way to see it</p>
+          <h2 id="try-demo-heading" className="tier1-section-title type-headline">
+            Watch it run a call instead.
+          </h2>
+          <p className="tier1-section-lead font-sans">
+            Six scripted calls through the same pipeline a real one takes: playbook, schedule check, booking,
+            confirmation, owner alerts and an audit trail you can read. Texts are simulated.
+          </p>
+          <div style={{ marginTop: "2rem" }}>
+            <PublicDemo scenarios={publicScenarios()} />
+          </div>
         </div>
       </section>
     </MarketingShell>

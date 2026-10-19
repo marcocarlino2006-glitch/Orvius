@@ -19,7 +19,9 @@ import {
 export function PricingPagePlans({ selfServeReady = true, terms }: { selfServeReady?: boolean; terms?: ReactNode }) {
   const paidPlans = getPaidPlans();
   const multi = getPlanById("multi");
-  const [interval, setInterval] = useState<BillingInterval>("year");
+  /* Lead with the monthly price a shop actually pays month to month;
+     annual is the discount a toggle away, never the first number seen. */
+  const [interval, setInterval] = useState<BillingInterval>("month");
   const [recommendedPlanId, setRecommendedPlanId] = useState<
     PaidPlanId | "multi" | null
   >(null);
