@@ -16,6 +16,11 @@ test("schema drift is recognised by Prisma code and by message", () => {
     isMoneySchemaDrift(new Error("The column `main.Payment.refundedCents` does not exist in the current database.")),
     true,
   );
+  /* The same failure through the Turso/libsql driver adapter, in SQLite's words. */
+  assert.equal(isMoneySchemaDrift(new Error("no such column: main.Payment.refundedCents")), true);
+  assert.equal(isMoneySchemaDrift(new Error("Raw query failed. Code: `1`. Message: `no such column: refundedCents`")), true);
+  assert.equal(isMoneySchemaDrift(new Error("table Payment has no column named refundedCents")), true);
+  assert.equal(isMoneySchemaDrift(new Error("no such table: Payment")), false);
   assert.equal(isMoneySchemaDrift(new Error("connection refused")), false);
   assert.equal(isMoneySchemaDrift(Object.assign(new Error("x"), { code: "P2025" })), false);
   assert.equal(isMoneySchemaDrift(null), false);

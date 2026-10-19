@@ -50,7 +50,11 @@ export function isMoneySchemaDrift(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
   if ((error as { code?: unknown }).code === "P2022") return true;
   const message = error instanceof Error ? error.message : "";
-  return message.includes("does not exist in the current database");
+  if (message.includes("does not exist in the current database")) return true;
+  /* Through the Turso/libsql driver adapter the same failure can arrive in
+     SQLite's own words instead of Prisma's — match those too, or production
+     money reads throw straight past the degradation. */
+  return /no such column/i.test(message) || /has no column named/i.test(message);
 }
 
 export const MONEY_PAUSED_ISSUE: ShopIssue = {
