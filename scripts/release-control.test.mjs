@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /*
  * Release control, offline: builds stay pure, paid voice runs never start from a
- * PR, schedule or label, effectful scheduled sweeps need an explicit target
- * that is listed and serving the approved release (checked by the caller and
- * again by the server before any effect), and verification compares the
- * serving deployment's own identity.
+ * PR, schedule or label, effectful scheduled sweeps need the one target the
+ * owner listed in ops/drain-targets.json, serving the release the caller runs
+ * from (checked by the caller and again by the server before any effect), and
+ * verification compares the serving deployment's own identity.
  */
 import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
@@ -49,15 +49,24 @@ test("no workflow runs untrusted PR code with secrets, and paid voice is manual 
   for (const src of [nightly, gate]) assert.match(src, /ref: \$\{\{ fromJSON\(inputs\.authorization\)\.commit \}\}/);
 });
 
-test("effectful scheduled sweeps have no default target", () => {
+test("effectful scheduled sweeps name the one listed target and the release they run from", () => {
   for (const file of ["alert-drain.yml", "line-watch.yml", "sweep-heartbeat.yml"]) {
     const src = read(`.github/workflows/${file}`);
     assert.doesNotMatch(src, /api\.orvius\.im|\|\| 'https/, `${file}: no implicit production fallback`);
     assert.doesNotMatch(src, /curl .*api\/cron/, `${file}: sweeps go through scheduled-drain.mjs`);
-    assert.match(src, /DRAIN_TARGET_URL: \$\{\{ vars\.DRAIN_TARGET_URL \}\}/);
-    assert.match(src, /DRAIN_EXPECTED_RELEASE: \$\{\{ vars\.APPROVED_RELEASE_COMMIT \}\}/);
+    assert.match(src, /DRAIN_TARGET_URL: https:\/\/orvius\.im/, `${file}: the one production target, named in the open`);
+    assert.match(src, /DRAIN_TARGET_ENV: production/, `${file}: the one environment, named in the open`);
+    assert.match(
+      src,
+      /DRAIN_EXPECTED_RELEASE: \$\{\{ github\.sha \}\}/,
+      `${file}: the approved release is the commit the run checked out`,
+    );
   }
-  assert.deepEqual(Object.values(JSON.parse(read("ops/drain-targets.json"))).flat(), [], "no target is listed until the owner adds one");
+  assert.deepEqual(
+    JSON.parse(read("ops/drain-targets.json")),
+    { production: ["orvius.im"], preview: [], staging: [] },
+    "the owner has listed exactly the production deployment, and no other",
+  );
 });
 
 const targets = { production: ["app.example.test"], staging: ["staging.example.test"] };
