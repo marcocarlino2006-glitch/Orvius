@@ -63,6 +63,7 @@ type BillingAccount = {
     pilotEndsAt?: string | null;
     usage?: CallUsage | null;
     valueLine?: string | null;
+    valuePaused?: boolean;
     advice?: string | null;
     interval?: "month" | "year";
     pause?: PlanPause | null;
@@ -239,12 +240,45 @@ export function BillingContent() {
                   >
                     <span style={{ width: `${Math.round(account.billing.usage.fraction * 100)}%` }} />
                   </div>
-                  <p className="billing-usage-foot">
-                    {account.billing.usage.overCalls > 0
-                      ? `${account.billing.usage.overCalls.toLocaleString("en-US")} × ${OVERAGE_CENTS_PER_CALL}¢ = $${(account.billing.usage.overageCents / 100).toFixed(2)} so far. Calls never stop at the limit.`
-                      : `Past the allowance every call is still answered, at ${OVERAGE_CENTS_PER_CALL}¢ each. Resets on the 1st.`}
-                  </p>
+                  <p className="billing-usage-foot">Calls never stop at the limit.</p>
                   {account.billing.advice ? <p className="billing-usage-advice">{account.billing.advice}</p> : null}
+                </div>
+              ) : null}
+              {account?.billing.usage ? (
+                <div className="sc-ledger" aria-label="This month's usage in detail">
+                  <div className="sc-ledger-row">
+                    <span className="sc-ledger-label">Included calls</span>
+                    <span className="sc-ledger-value">
+                      {account.billing.usage.used.toLocaleString("en-US")} / {account.billing.usage.included.toLocaleString("en-US")}
+                    </span>
+                  </div>
+                  <div className="sc-ledger-row">
+                    <span className="sc-ledger-label">Overage so far</span>
+                    <span className="sc-ledger-value">
+                      {account.billing.usage.overCalls > 0
+                        ? `${account.billing.usage.overCalls.toLocaleString("en-US")} × ${OVERAGE_CENTS_PER_CALL}¢ · $${(account.billing.usage.overageCents / 100).toFixed(2)}`
+                        : "$0.00"}
+                    </span>
+                  </div>
+                  <div className="sc-ledger-row">
+                    <span className="sc-ledger-label">Resets</span>
+                    <span className="sc-ledger-value">
+                      {(() => {
+                        const start = new Date(account.billing.usage.periodStart);
+                        return new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 1)).toLocaleDateString("en-US", {
+                          month: "long",
+                          day: "numeric",
+                          timeZone: "UTC",
+                        });
+                      })()}
+                    </span>
+                  </div>
+                  {account.billing.valuePaused ? (
+                    <div className="sc-ledger-row">
+                      <span className="sc-ledger-label">Collected this month</span>
+                      <span className="sc-ledger-value">Paused</span>
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
               {account?.billing.valueLine ? <p className="billing-value-line font-sans">{account.billing.valueLine}</p> : null}
