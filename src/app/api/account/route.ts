@@ -34,6 +34,7 @@ import {
   resolvePilotEndsAt,
 } from "@/lib/billing-entitlement";
 import { getShopHealth } from "@/lib/shop-health";
+import { logError } from "@/lib/logger";
 import { summarizeCallUsage, usagePeriodStart } from "@/lib/call-usage";
 import { planAdvice, planAdviceLine } from "@/lib/plan-advice";
 import { getMonthValue, monthValueLine } from "@/lib/month-value";
@@ -190,10 +191,22 @@ export async function GET(request: Request) {
 
   /* Readiness costs three round trips and no screen reads it from here; Command gets it from ring1. */
   const withReadiness = new URL(request.url).searchParams.get("include") === "readiness";
+  /* The value line and the usage meter decorate the bill; Settings must load
+     without them rather than not at all, whatever the money reads hit. */
   const [health, monthValue, billableCalls, receptionistApply] = await Promise.all([
     business && withReadiness ? getShopHealth(business.id) : null,
-    business ? getMonthValue(business.id) : null,
-    businessRecord ? countBillableCalls(businessRecord, { gte: usagePeriodStart() }) : null,
+    business
+      ? getMonthValue(business.id).catch((error: unknown) => {
+          logError("account.month_value_failed", { businessId: business.id, error: error instanceof Error ? error.message : String(error) });
+          return null;
+        })
+      : null,
+    businessRecord
+      ? countBillableCalls(businessRecord, { gte: usagePeriodStart() }).catch((error: unknown) => {
+          logError("account.billable_calls_failed", { businessId: businessRecord.id, error: error instanceof Error ? error.message : String(error) });
+          return null;
+        })
+      : null,
     // An unreadable record reads as unconfirmed, never as applied.
     businessRecord
       ? receptionistApplyStatus(businessRecord).catch(
