@@ -165,9 +165,8 @@ function plural(n: number, one: string, many = `${one}s`) {
 }
 
 /**
- * What the week produced, from the same outcomes the reports read, so the
- * line on Command and the report never disagree. Money appears only when it
- * was actually collected; nothing here is estimated.
+ * What the week produced, from the same outcomes the reports read. Money
+ * appears only when it was actually collected; nothing here is estimated.
  */
 export function weekResultLine(o: { windowDays: number; leads: number; leadsBooked: number; collectedCents: number } | undefined): string | null {
   if (!o || o.leads === 0) return null;

@@ -200,8 +200,7 @@ test("without the rail, Command puts the numbers above the board and System last
   assert.match(block, /\.cc-main,\s*\.cc-rail \{\s*display: contents;/);
   assert.match(block, /\.cc > \* > \.cs-grid \{ order: 1; \}/, "the summary numbers stay first");
   const shell = read("src/components/ring1-command-center.tsx");
-  assert.ok(shell.indexOf("CommandSignals") < shell.indexOf('className="cc"'), "the numbers render above the board");
-  assert.ok(shell.indexOf('className="cc-rail"') > shell.indexOf('className="cc-main"'), "the rail (System health) renders last");
+  assert.doesNotMatch(shell, /<CommandSignals|<OrviusPulse|className="cc-rail"/, "Command no longer carries the numbers rail");
 });
 
 test("Work's tabs use plain words", () => {
@@ -214,7 +213,6 @@ test("Work's tabs use plain words", () => {
 test("Command's headline keeps its own color past the night theme's muted paragraphs", () => {
   const command = read("src/components/ring1-command-center.tsx");
   assert.match(command, /className="cmd-headline os-own-color"/);
-  assert.match(command, /className="cmd-sub os-own-color"/);
 });
 
 test("Dispatch names the day in words and leads with the day's jobs", () => {

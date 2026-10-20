@@ -25,19 +25,19 @@ test("Command exposes failed refreshes and a real retry action", () => {
   assert.match(command, /useRing1/);
   assert.match(command, /await refresh\(\)/);
   assert.match(command, /"Retry"/);
-  assert.match(command, /stale=\{Boolean\(loadError && data\)\}/);
+  assert.match(command, /const stale = Boolean\(loadError && data\)/);
+  assert.match(command, /Live refresh paused/);
   assert.match(ctx, /Live refresh is temporarily unavailable/);
   assert.match(ctx, /can't reach the network/);
   assert.doesNotMatch(command, /fetch\("\/api\/ring1"\)/);
 });
 
-test("Command keeps one flagship hierarchy and one control rail", () => {
+test("Command keeps one column and no control rail", () => {
   const command = read("src/components/ring1-command-center.tsx");
   assert.doesNotMatch(command, /workMode/);
-  assert.match(command, /<CommandSignals/);
+  assert.doesNotMatch(command, /<CommandSignals|<OrviusPulse|<aside className="cc-rail"/);
   assert.match(command, /<WorkCard/);
-  assert.match(command, /<OrviusPulse/);
-  assert.equal((command.match(/<aside className="cc-rail"/g) ?? []).length, 1);
+  assert.match(command, /className="cmd cmd-one"/);
   assert.doesNotMatch(command, /<ProCommandOutcomes|<ProLaunchControl/);
   assert.doesNotMatch(command, /<ProNightWatch|<ProLineWatch|<ProSetupScore/);
   assert.match(command, /data\?\.work/, "Command reads what needs you from Work");

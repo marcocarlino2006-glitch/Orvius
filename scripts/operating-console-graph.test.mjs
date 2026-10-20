@@ -108,20 +108,14 @@ test("work age is human, not a timestamp", () => {
   assert.equal(formatAge("2026-09-22T12:00:00.000Z", now), "2d");
 });
 
-test("Command reads as a front-office feed: direct, needs you, what Orvius did, then detail; Pulse in the rail", () => {
+test("Command is one column: the session, then one piece of work; the rail is gone", () => {
   const command = read("src/components/ring1-command-center.tsx");
   assert.doesNotMatch(command, /workMode/);
-  assert.doesNotMatch(command, /<OpsBriefing|<ProShiftTimeline|<ProCommandOutcomes/);
-  const signalsIdx = command.indexOf("<CommandSignals");
+  assert.doesNotMatch(command, /<OpsBriefing|<ProShiftTimeline|<ProCommandOutcomes|<CommandSignals|<OrviusPulse/);
   const askIdx = command.indexOf("<AskBar");
   const workIdx = command.indexOf("<WorkCard");
-  const recentIdx = command.indexOf("What Orvius did");
-  const pulseIdx = command.indexOf("<OrviusPulse");
-  assert.ok(askIdx >= 0 && workIdx > askIdx && recentIdx > workIdx && signalsIdx > recentIdx && pulseIdx > signalsIdx, "feed first, counts demoted below it");
-  assert.ok(command.indexOf('<aside className="cc-rail"') < pulseIdx, "Pulse lives in the rail");
+  assert.ok(askIdx >= 0 && workIdx > askIdx, "the session comes before the one piece of work");
   assert.match(command, /issue\.severity === "critical" \|\| issue\.severity === "high"/, "the readiness banner is only for what is failing");
-  assert.match(command, /\{e\.result\} · \{e\.by\}/, "recent actions show what came of them");
-  assert.match(command, /groupWorkItems/);
   assert.equal(existsSync(join(root, "src/components/ops-briefing.tsx")), false);
 
   const pulse = read("src/components/orvius-pulse.tsx");
@@ -139,7 +133,7 @@ test("work cards show the problem, the customer, the work, when, who has it, and
   assert.match(card, /formatWhen/);
   assert.match(card, /item\.responsible\.label/);
   assert.match(card, /ox-btn--primary/);
-  assert.match(read("src/components/ring1-command-center.tsx"), /You&apos;re clear/);
+  assert.match(read("src/components/ring1-command-center.tsx"), /The rest is in Work/);
 });
 
 test("the board's approvals lane shows the plan and an approval button", () => {

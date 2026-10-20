@@ -76,10 +76,8 @@ const signalsOnCommand = (commandSrc.match(/<CommandSignals/g) ?? []).length;
 results.push(
   economicsOnCommand === 0 &&
     outcomesOnCommand === 0 &&
-    signalsOnCommand === 1
-    ? pass(
-        "Command uses one summary row of record counts, no guessed dollars",
-      )
+    signalsOnCommand === 0
+    ? pass("Command does not guess dollars or stack a counts rail")
     : fail(
         `Command money stack wrong — economics=${economicsOnCommand} outcomes=${outcomesOnCommand} signals=${signalsOnCommand}`,
       ),
@@ -87,17 +85,11 @@ results.push(
 
 const workMode = /workMode/.test(commandSrc);
 const askLead = commandSrc.indexOf("<AskBar");
-const signalsLead = commandSrc.indexOf("<CommandSignals");
 const exceptionBoard = commandSrc.indexOf("<WorkCard");
-const pulse = commandSrc.indexOf("<OrviusPulse");
 results.push(
-  !workMode &&
-    askLead >= 0 &&
-    exceptionBoard > askLead &&
-    signalsLead > exceptionBoard &&
-    pulse > signalsLead
-    ? pass("Command always-on: feed (direct → needs you → did) → summary → Pulse (no workMode XOR)")
-    : fail("Command must keep signals, work queue, and Pulse visible — never XOR"),
+  !workMode && askLead >= 0 && exceptionBoard > askLead && !commandSrc.includes("<OrviusPulse")
+    ? pass("Command is the session, then one piece of work")
+    : fail("Command must stay one column: session, then one piece of work"),
 );
 
 const outcomesSrc = readFileSync(resolve(root, "src/lib/shop-outcomes.ts"), "utf8");

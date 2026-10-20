@@ -53,10 +53,11 @@ export function WorkCard({
   approval?: Pick<BoardItem, "proposalId"> & { preview?: string | null; title?: string } | null;
   technicians: Array<{ id: string; name: string }>;
   onChange: () => void;
-  /** On the work's own page the title, owner and history are already on screen. */
-  variant?: "list" | "page";
+  /** On the work's own page the title, owner and history are already on screen. Command's one object drops the queue chrome. */
+  variant?: "list" | "page" | "now";
 }) {
-  const inList = variant === "list";
+  const now = variant === "now";
+  const inList = variant !== "page";
   const [open, setOpen] = useState<"history" | "slots" | null>(null);
   const [slots, setSlots] = useState<{ action: string; windows: { at: string; label: string }[] } | null>(null);
   const [proposal, setProposal] = useState<Proposal | null>(
@@ -160,6 +161,7 @@ export function WorkCard({
     <li className={`wc${inList ? "" : " wc--page"}${settled ? " wc--settled" : ""}${top ? ` wc--${top.severity}` : item.urgent ? " wc--high" : ""}`}>
       <div className="wc-head">
         <div className="wc-main">
+          {now ? null : (
           <p className="wc-tags">
             {inList ? (
               top ? (
@@ -180,6 +182,7 @@ export function WorkCard({
               </>
             )}
           </p>
+          )}
           {inList ? (
             <Link href={item.href} className="wc-title">
               {item.title}
@@ -189,9 +192,9 @@ export function WorkCard({
           <p className="wc-detail">
             {top?.detail ?? item.nextAction ?? (item.waitingOn === "customer" || item.waitingOn === "technician" ? WAITING_LABEL[item.waitingOn] : CLOSED_DETAIL[item.stage] ?? "On track. Nothing for you to do right now.")}
           </p>
-          {top && item.nextAction ? <p className="wc-next">Next: {item.nextAction}</p> : null}
+          {top && item.nextAction && !now ? <p className="wc-next">Next: {item.nextAction}</p> : null}
         </div>
-        <div className="wc-meta" hidden={!inList}>
+        <div className="wc-meta" hidden={!inList || now}>
           {item.scheduledAt ? <span className="wc-when">{formatWhen(item.scheduledAt)}</span> : <span className="wc-when">{formatWhen(item.createdAt)}</span>}
           <span className="wc-owner">
             {item.responsible.kind === "owner" ? "Yours" : `With ${item.responsible.label}`}

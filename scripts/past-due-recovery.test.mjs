@@ -96,5 +96,8 @@ test("the funnel is scoped to its week and names past-due work instead of saying
   assert.match(strip, /None waiting this week/);
   assert.match(strip, /passed the visit time without starting — contact, reschedule or close/);
   assert.match(strip, /also covers older work, calls, bills and setup/);
-  assert.match(read("src/components/ring1-command-center.tsx"), /<FlowStrip flow=\{data\.flow\} needsYou=\{needsYou\} \/>/);
+  const command = read("src/components/ring1-command-center.tsx");
+  assert.doesNotMatch(command, /<FlowStrip/);
+  assert.match(command, /<WorkCard/);
+  assert.match(command, /The rest is in Work/);
 });
