@@ -8,6 +8,7 @@ import {
 } from "@/lib/customer";
 import { formatCents } from "@/lib/money";
 import { jobOutcomeLabel } from "@/lib/job-outcome";
+import { ownerNote, spokenName } from "@/lib/spoken-name";
 
 const STOP = new Set([
   "the",
@@ -273,8 +274,8 @@ export async function retrieveShopMemory(
       type: "call" as const,
       id: call.id,
       href: `/dashboard/calls/${call.id}`,
-      title: call.customer?.name ?? call.callerPhone ?? "Inbound call",
-      summary: [formatWhen(call.createdAt, tz), call.summary?.slice(0, 160)]
+      title: spokenName(call.customer?.name) || (call.callerPhone ? displayPhone(call.callerPhone) : "") || "Inbound call",
+      summary: [formatWhen(call.createdAt, tz), ownerNote(call.summary)?.slice(0, 160)]
         .filter(Boolean)
         .join(" · "),
       score: 1,
@@ -438,11 +439,11 @@ export async function retrieveShopMemory(
       type: "call",
       id: call.id,
       href: `/dashboard/calls/${call.id}`,
-      title: call.customer?.name ?? call.callerPhone ?? "Inbound call",
+      title: spokenName(call.customer?.name) || (call.callerPhone ? displayPhone(call.callerPhone) : "") || "Inbound call",
       summary: [
         call.status,
         formatWhen(call.createdAt, tz),
-        call.summary?.slice(0, 160),
+        ownerNote(call.summary)?.slice(0, 160),
       ]
         .filter(Boolean)
         .join(" · "),
