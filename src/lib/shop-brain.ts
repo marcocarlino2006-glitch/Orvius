@@ -14,7 +14,7 @@ import {
 } from "@/lib/shop-operate";
 import { answerFromRecords } from "@/lib/ask-answer";
 import { answerDirect } from "@/lib/ask-direct";
-import { answerWithModel } from "@/lib/ask-model";
+import { answerWithModel, type AskHistoryTurn } from "@/lib/ask-model";
 import {
   composeMemoryAnswer,
   retrieveShopMemory,
@@ -165,9 +165,79 @@ export type AskResult = {
   stats: ShopMemory["stats"];
   /** Present when the answer rests on individual records. */
   brief?: AskBrief;
+  /** A next question worth asking, when the answer opens one up. */
+  followUp?: string | null;
 };
 
-export async function askShop(question: string, businessId: string): Promise<AskResult> {
+/**
+ * Follow-ups rarely name the record again ("and tomorrow?", "text her back").
+ * When a question reads like a continuation, search with the last question's
+ * words attached so the same records surface. Facts still come from records.
+ */
+const REFERENTIAL =
+  /^(and|but|so|what about|how about|why|when|where|who else|which|what else|text|call|email|him|her|them|they|that|this|it|the same|same|ok|okay|then)\b/i;
+
+export function retrievalQuery(question: string, history: AskHistoryTurn[] = []): string {
+  const last = history[history.length - 1];
+  if (!last) return question;
+  const short = question.trim().split(/\s+/).length <= 5;
+  if (!short && !REFERENTIAL.test(question.trim())) return question;
+  return `${last.question} ${question}`;
+}
+
+const TIME_WORD = /\b(today|tomorrow|yesterday|tonight|overnight|week|month|morning|afternoon|evening)\b/i;
+
+export type AskOpening = {
+  headline: string;
+  detail: string;
+  suggestions: string[];
+};
+
+/**
+ * What Ask says before the owner types: where the shop stands right now and
+ * the questions that follow from it. Built from the same attention queue and
+ * outcomes Command reads, so the two screens never disagree.
+ */
+export async function askOpening(businessId: string): Promise<AskOpening> {
+  const [attention, outcomes] = await Promise.all([
+    getAttentionQueue(businessId).catch(() => []),
+    getShopOutcomes(businessId, 7).catch(() => null),
+  ]);
+  const suggestions: string[] = [];
+  if (attention.length) suggestions.push("What should I do now?");
+  if (outcomes && outcomes.afterHoursLeads > 0) suggestions.push("What happened overnight?");
+  if (attention.some((i) => /unassigned|technician/i.test(`${i.title} ${i.recommendedAction}`))) {
+    suggestions.push("What's unassigned on dispatch?");
+  }
+  if (outcomes && outcomes.jobsBooked > 0) suggestions.push("How many jobs did we book this week?");
+  suggestions.push("Which customers are waiting on a callback?");
+  const unique = [...new Set(suggestions)].slice(0, 4);
+
+  if (attention.length) {
+    const top = attention
+      .slice(0, 2)
+      .map((i) => (i.title.length < 40 ? `${i.title} — ${i.recommendedAction}` : i.title).replace(/\.$/, ""));
+    return {
+      headline: attention.length === 1 ? "One thing needs you." : `${attention.length} things need you.`,
+      detail: `${top.join(". ")}. Ask me about any of it — or tell me what you want handled first.`,
+      suggestions: unique,
+    };
+  }
+  if (outcomes && outcomes.calls > 0) {
+    return {
+      headline: "The shop is covered.",
+      detail: `In the last 7 days Orvius took ${outcomes.calls} ${outcomes.calls === 1 ? "call" : "calls"} and booked ${outcomes.jobsBooked} ${outcomes.jobsBooked === 1 ? "job" : "jobs"}. Nothing is waiting on you right now.`,
+      suggestions: unique,
+    };
+  }
+  return {
+    headline: "Ask what happened, what matters, and what to do next.",
+    detail: "Every answer cites the records it used. When Orvius proposes an action, it tells you exactly what will happen and waits for your approval.",
+    suggestions: unique,
+  };
+}
+
+export async function askShop(question: string, businessId: string, history: AskHistoryTurn[] = []): Promise<AskResult> {
   if (isNextActionQuestion(question)) {
     const { next, top } = await loadOperateNext(businessId);
     const hits: MemoryHit[] = [
@@ -200,7 +270,15 @@ export async function askShop(question: string, businessId: string): Promise<Ask
     };
   }
 
-  const exact = await answerDirect(question, businessId);
+  /*
+   * A follow-up about a record ("and is her job booked?") must not be hijacked
+   * by the exact-answer matcher, which would list today's jobs and never
+   * mention her. Follow-ups with their own time word still belong to it.
+   */
+  const expanded = retrievalQuery(question, history);
+  const followUpAboutRecord = expanded !== question && !TIME_WORD.test(question);
+
+  const exact = followUpAboutRecord ? null : await answerDirect(question, businessId);
   if (exact) {
     return {
       answer: exact.answer,
@@ -210,7 +288,7 @@ export async function askShop(question: string, businessId: string): Promise<Ask
     };
   }
 
-  if (isOutcomesQuestion(question)) {
+  if (!followUpAboutRecord && isOutcomesQuestion(question)) {
     const outcomes = await getShopOutcomes(businessId, 7);
     return {
       answer: formatOutcomesAnswer(outcomes),
@@ -225,13 +303,20 @@ export async function askShop(question: string, businessId: string): Promise<Ask
     };
   }
 
-  const memory = await retrieveShopMemory(question, businessId);
+  /*
+   * Generic words in a follow-up ("her job", "booked?") would flood retrieval
+   * with every job on the board. About a record, search for the record.
+   */
+  const recordQuery = followUpAboutRecord
+    ? expanded.replace(/\b(jobs?|booked|booking|calls?|called|customers?|schedule|appointments?)\b/gi, " ")
+    : expanded;
+  const memory = await retrieveShopMemory(recordQuery, businessId);
   const [direct, brief] = await Promise.all([
     answerFromRecords({ businessId, hits: memory.hits }),
     buildAskBrief({ businessId, hits: memory.hits, modelWorded: false }),
   ]);
   const grounded = direct ?? composeMemoryAnswer(memory);
-  const model = await answerWithModel({ question, memory, brief, direct, businessId });
+  const model = await answerWithModel({ question, memory, brief, direct, businessId, history });
 
   if (!model) {
     return { answer: grounded, source: "memory", hits: memory.hits, stats: memory.stats, brief };
@@ -243,6 +328,7 @@ export async function askShop(question: string, businessId: string): Promise<Ask
     source: "memory+model",
     hits,
     stats: memory.stats,
+    followUp: model.followUp,
     brief: {
       ...brief,
       uncertainty: [...(model.unsure ? [model.unsure] : []), ...brief.uncertainty].slice(0, 4),

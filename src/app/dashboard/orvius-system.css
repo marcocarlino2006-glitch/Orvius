@@ -769,6 +769,22 @@ a.cs-card:hover {
 .op-tone--attention .op-dot { background: var(--ox-yellow); }
 .op-tone--risk .op-dot { background: var(--ox-red); }
 
+/* A healthy line breathes. Stillness reads as "dead screen" — this is the sign of life. */
+@media (prefers-reduced-motion: no-preference) {
+  .op-tone--ok .op-dot {
+    animation: op-breathe 2.4s ease-in-out infinite;
+  }
+  @keyframes op-breathe {
+    0%, 100% { box-shadow: 0 0 0 3px var(--ox-green-soft); }
+    50% { box-shadow: 0 0 0 6px transparent; }
+  }
+}
+
+.op-live-clock {
+  font-variant-numeric: tabular-nums;
+  color: var(--ox-mute);
+}
+
 .op-row-label {
   margin: 0;
   font-size: 0.8125rem;
@@ -2388,6 +2404,53 @@ html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-signout:hover {
 .ask-thinking {
   margin: 0;
   font-size: 0.875rem;
+  color: var(--ox-mute);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ask-live-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--ox-green);
+  flex: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ask-live-dot {
+    animation: op-breathe 1.6s ease-in-out infinite;
+  }
+  .ask-caret {
+    animation: ask-caret-blink 0.9s steps(1) infinite;
+  }
+}
+
+.ask-caret {
+  display: inline-block;
+  width: 0.55rem;
+  height: 1.05em;
+  margin-left: 0.15rem;
+  vertical-align: text-bottom;
+  background: var(--ox-text);
+}
+
+@keyframes ask-caret-blink {
+  0%, 55% { opacity: 1; }
+  56%, 100% { opacity: 0; }
+}
+
+.ask-followup-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.ask-followup-label {
+  font-size: 0.75rem;
+  font-weight: 600;
   color: var(--ox-mute);
 }
 

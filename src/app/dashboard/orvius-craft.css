@@ -884,6 +884,13 @@ a.dt-row:focus-visible,
   margin-top: 0.625rem;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  .cb-ask-result,
+  .cb-outcome {
+    animation: cmd-feed-in 0.4s ease both;
+  }
+}
+
 .cb-ask-message,
 .cb-muted {
   margin: 0;

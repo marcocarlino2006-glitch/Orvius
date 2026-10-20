@@ -132,7 +132,16 @@ export function OrviusPulse({
       <header className="op-head">
         <p className="op-title">System</p>
         <span className={`op-fresh ${stale ? "is-stale" : ""}`}>
-          {stale ? "Stale" : formatFreshness(lastUpdatedAt, now)}
+          {stale ? (
+            "Stale"
+          ) : (
+            <>
+              Live · {formatFreshness(lastUpdatedAt, now)} ·{" "}
+              <span className="op-live-clock">
+                {new Date(now).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+              </span>
+            </>
+          )}
         </span>
       </header>
 
