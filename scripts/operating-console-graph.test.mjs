@@ -108,13 +108,13 @@ test("work age is human, not a timestamp", () => {
   assert.equal(formatAge("2026-09-22T12:00:00.000Z", now), "2d");
 });
 
-test("Command is one column: the session, then one piece of work; the rail is gone", () => {
+test("Command is one column: one piece of work, then the line you talk on; the rail is gone", () => {
   const command = read("src/components/ring1-command-center.tsx");
   assert.doesNotMatch(command, /workMode/);
   assert.doesNotMatch(command, /<OpsBriefing|<ProShiftTimeline|<ProCommandOutcomes|<CommandSignals|<OrviusPulse/);
   const askIdx = command.indexOf("<AskBar");
   const workIdx = command.indexOf("<WorkCard");
-  assert.ok(askIdx >= 0 && workIdx > askIdx, "the session comes before the one piece of work");
+  assert.ok(workIdx >= 0 && askIdx > workIdx, "the one piece of work, then the line you talk on");
   assert.match(command, /issue\.severity === "critical" \|\| issue\.severity === "high"/, "the readiness banner is only for what is failing");
   assert.equal(existsSync(join(root, "src/components/ops-briefing.tsx")), false);
 

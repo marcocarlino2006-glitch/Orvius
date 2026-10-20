@@ -87,9 +87,9 @@ const workMode = /workMode/.test(commandSrc);
 const askLead = commandSrc.indexOf("<AskBar");
 const exceptionBoard = commandSrc.indexOf("<WorkCard");
 results.push(
-  !workMode && askLead >= 0 && exceptionBoard > askLead && !commandSrc.includes("<OrviusPulse")
-    ? pass("Command is the session, then one piece of work")
-    : fail("Command must stay one column: session, then one piece of work"),
+  !workMode && askLead >= 0 && exceptionBoard >= 0 && exceptionBoard < askLead && !commandSrc.includes("<OrviusPulse")
+    ? pass("Command is one piece of work, then the line you talk on")
+    : fail("Command must stay one column: the decision, then the line you talk on"),
 );
 
 const outcomesSrc = readFileSync(resolve(root, "src/lib/shop-outcomes.ts"), "utf8");

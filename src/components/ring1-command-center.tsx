@@ -14,10 +14,10 @@ import { formatWhen } from "@/lib/when";
 const ALERT_KINDS = new Set<string>(["alert_failed", "alert_setup", "alerts_muted"]);
 
 /**
- * Command is one column: one sentence, the session, and the one thing
- * happening now. The queue lives on Work, the day on Schedule, the record
- * of calls on Calls. A fourth block on this screen means it became a
- * dashboard again.
+ * Command is one column: the sentence, the one thing happening, then the
+ * line you talk on. The queue lives on Work, the day on Schedule, the
+ * record of calls on Calls. A fourth block on this screen means it became
+ * a dashboard again.
  */
 export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
   const { data, locked, loading, loadError, refresh } = useRing1();
@@ -143,14 +143,6 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
         </h2>
       </header>
 
-      <div className="cmd-ask">
-        <AskBar onChange={() => void refresh()} below={setup} />
-        {data?.business?.demoWorkspace ? <DemoPanel onChange={() => void refresh()} /> : null}
-        {data && !data.business?.demoWorkspace && !data.business?.referenceImplementation ? (
-          <TryDemo empty={!data.metrics.totalCalls} />
-        ) : null}
-      </div>
-
       <section className="cmd-live" aria-label="Now">
         {liveApproval ? (
           <ul className="wc-list cmd-queue">
@@ -186,6 +178,14 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
           </p>
         ) : null}
       </section>
+
+      <div className="cmd-ask">
+        <AskBar onChange={() => void refresh()} below={setup} />
+        {data?.business?.demoWorkspace ? <DemoPanel onChange={() => void refresh()} /> : null}
+        {data && !data.business?.demoWorkspace && !data.business?.referenceImplementation ? (
+          <TryDemo empty={!data.metrics.totalCalls} />
+        ) : null}
+      </div>
     </div>
   );
 }
