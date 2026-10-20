@@ -23,6 +23,12 @@ test("the account menu shows real usage, and Upgrade opens the picker in place",
   assert.match(footer, /settings=billing/, "the Billing row and the portal path stay");
 });
 
+test("the picker mounts at the shell root, never inside the sidebar's stacking context", () => {
+  const modal = read("src/components/upgrade-modal.tsx");
+  assert.match(modal, /createPortal/, "the overlay portals out of the sidebar footer");
+  assert.match(modal, /document\.querySelector\("\.os-shell"\) \?\? document\.body/, "to the shell root (body as fallback), where its z-index faces the page directly");
+});
+
 test("the picker prices every plan from checkout's own read", () => {
   const modal = read("src/components/upgrade-modal.tsx");
   assert.match(modal, /fetch\("\/api\/billing\/checkout", \{ cache: "no-store" \}\)/);

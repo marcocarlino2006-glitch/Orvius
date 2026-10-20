@@ -307,14 +307,53 @@ async function isEmptyDemo(businessId: string) {
   return (await prisma.job.count({ where: { businessId } })) === 0;
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * A seeded demo's story plays out in about eight days — the oldest sample is
+ * six days back, the last visit two days ahead. After that the honest health
+ * signals decay on fiction: visits read "passed, never started", the line
+ * reads "no call in N days", and a prospect meets a shop that died weeks
+ * ago. So when the whole story is in the past AND the owner has not touched
+ * the sandbox in three days, opening the demo starts it over at today.
+ * Recent owner play — simulated calls, new requests — always wins: their
+ * demo is theirs, however old the seed underneath it is.
+ */
+async function demoIsStale(businessId: string, now = new Date()): Promise<boolean> {
+  const cutoff = new Date(now.getTime() - 3 * DAY_MS);
+  const [lastCall, lastLead, lastJob, lastScheduled] = await Promise.all([
+    prisma.call.aggregate({ where: { businessId }, _max: { createdAt: true } }),
+    prisma.lead.aggregate({ where: { businessId }, _max: { createdAt: true } }),
+    prisma.job.aggregate({ where: { businessId }, _max: { createdAt: true } }),
+    prisma.job.aggregate({ where: { businessId }, _max: { scheduledAt: true } }),
+  ]);
+  const activity = [lastCall._max.createdAt, lastLead._max.createdAt, lastJob._max.createdAt]
+    .filter((d): d is Date => d != null)
+    .sort((a, b) => b.getTime() - a.getTime())[0];
+  if (!activity) return false; // nothing seeded yet — the empty-demo path owns it
+  if (activity > cutoff) return false; // played with recently; leave it alone
+  const nextVisit = lastScheduled._max.scheduledAt;
+  return nextVisit == null || nextVisit < now; // and nothing ahead on the board
+}
+
 async function ensureDemoWorkspaceHeld(owner: string, options: DemoOptions) {
   // One demo per person: the oldest is the one; any left by an older race go.
   const [existing, ...extra] = (await ownerDemos(owner)).filter((b) => b.isActive);
   for (const duplicate of extra) await deleteDemo(duplicate, owner);
   if (existing) {
     const empty = options.seed ? await isEmptyDemo(existing.id) : false;
-    if (empty) await seedDemoDataset(existing);
-    return { business: existing, created: false, seeded: empty };
+    if (empty) {
+      await seedDemoDataset(existing);
+      return { business: existing, created: false, seeded: true };
+    }
+    if (options.seed && (await demoIsStale(existing.id))) {
+      // The story is over and the owner has been away: start the demo over
+      // at today (same path as an explicit reset) instead of handing back
+      // a shop frozen weeks in the past.
+      await deleteDemo(existing, owner);
+    } else {
+      return { business: existing, created: false, seeded: false };
+    }
   }
   const business = await prisma.business.create({
     data: {
@@ -322,7 +361,7 @@ async function ensureDemoWorkspaceHeld(owner: string, options: DemoOptions) {
       slug: `${OWNER_DEMO_SLUG_PREFIX}${randomUUID().slice(0, 12)}`,
       environment: "demo",
       trade: "HVAC",
-      timezone: validTimezone(options.timezone),
+      timezone: validTimezone(options.timezone ?? existing?.timezone),
       greeting: "Thanks for calling Summit Heating & Air, this is Orvius. What's going on?",
       ownerEmail: owner,
       ownerPhone: DEMO_OWNER_PHONE,

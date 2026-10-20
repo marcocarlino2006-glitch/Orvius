@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { callUsageLine, type CallUsage } from "@/lib/call-usage";
 import {
   ANNUAL_DISCOUNT_LABEL,
@@ -105,6 +106,13 @@ export function UpgradeModal({ open, onClose, usage, advice }: UpgradeModalProps
 
   if (!open) return null;
 
+  // Mount at the shell root, not in the sidebar footer where this component
+  // lives: the sticky sidebar is its own stacking context, so the backdrop's
+  // z-index only ranked inside the sidebar and main-column cards painted
+  // over the modal. Portaled to the shell, the overlay competes with the
+  // page directly (and the .os-shell-scoped styles still apply).
+  const portalTarget = document.querySelector(".os-shell") ?? document.body;
+
   const selected = plans.find((plan) => plan.id === selectedId) ?? null;
   const anyReady = plans.some((plan) => plan.checkoutReady || plan.checkoutReadyAnnual);
   const selectedReady = selected ? readyFor(selected, interval) : false;
@@ -167,7 +175,7 @@ export function UpgradeModal({ open, onClose, usage, advice }: UpgradeModalProps
     }
   }
 
-  return (
+  return createPortal(
     <div
       className="upg-backdrop"
       onClick={(event) => {
@@ -327,6 +335,7 @@ export function UpgradeModal({ open, onClose, usage, advice }: UpgradeModalProps
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    portalTarget,
   );
 }

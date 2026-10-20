@@ -147,6 +147,40 @@ test("an old empty demo is filled on open; reset starts over at today and never 
   await assert.rejects(() => seedDemoDataset(real), /only goes into a demo workspace/);
 });
 
+const backdateDemo = async (businessId, days) => {
+  const then = new Date(Date.now() - days * 86_400_000);
+  await prisma.call.updateMany({ where: { businessId }, data: { createdAt: then } });
+  await prisma.lead.updateMany({ where: { businessId }, data: { createdAt: then } });
+  await prisma.job.updateMany({ where: { businessId }, data: { createdAt: then, scheduledAt: then } });
+};
+
+test("a demo whose story has fully played out starts over at today on open", async () => {
+  const email = `stale-${stamp()}@orvius.test`;
+  const { business } = await ensureDemoWorkspace(email, { seed: true });
+  cleanup.push(business.id);
+  await backdateDemo(business.id, 30); // six weeks of silence, like a demo opened once and forgotten
+
+  const reopened = await ensureDemoWorkspace(email, { seed: true });
+  cleanup.push(reopened.business.id);
+  assert.notEqual(reopened.business.id, business.id, "the dead demo is replaced, not handed back");
+  assert.equal(reopened.seeded, true);
+  assert.equal(await prisma.business.findUnique({ where: { id: business.id } }), null, "the old demo is gone");
+  const jobs = await prisma.job.findMany({ where: { businessId: reopened.business.id } });
+  assert.ok(jobs.some((j) => j.scheduledAt && Math.abs(j.scheduledAt.getTime() - Date.now()) < 8 * H), "the new story is dated today");
+});
+
+test("a demo the owner has played with recently is never re-anchored behind their back", async () => {
+  const email = `played-${stamp()}@orvius.test`;
+  const { business } = await ensureDemoWorkspace(email, { seed: true });
+  cleanup.push(business.id);
+  await backdateDemo(business.id, 30);
+  await prisma.lead.create({ data: { businessId: business.id, name: "Owner Play", phone: "+13125550200", status: "new" } });
+
+  const reopened = await ensureDemoWorkspace(email, { seed: true });
+  assert.equal(reopened.business.id, business.id, "recent owner activity keeps their demo exactly as they left it");
+  assert.equal(reopened.seeded, false);
+});
+
 test("Command shows the demo bar with a reset, and the demo is reachable from any real shop", () => {
   const cc = readFileSync(new URL("../src/components/ring1-command-center.tsx", import.meta.url), "utf8");
   assert.match(cc, /data\?\.business\?\.demoWorkspace \? <DemoWorkspaceBar/);
