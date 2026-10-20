@@ -268,7 +268,12 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
       <header className="cmd-head">
         <p className="cmd-greeting os-own-color">{brief?.greeting ?? "Command"}</p>
         <h2 className="cmd-headline os-own-color" aria-live="polite">
-          {!data ? "Reading the shop…" : needsYou ? `${plural(needsYou, "thing")} ${needsYou === 1 ? "needs" : "need"} your attention` : "Nothing needs your attention right now"}
+          {!data
+            ? "Reading the shop…"
+            : (brief?.headline ??
+              (needsYou
+                ? `${plural(needsYou, "thing")} ${needsYou === 1 ? "needs" : "need"} your attention`
+                : "The board is clear."))}
         </h2>
         <p className="cmd-sub os-own-color">
           {data ? handledLine(handled) : null}

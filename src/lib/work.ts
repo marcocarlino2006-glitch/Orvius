@@ -390,6 +390,9 @@ export function problemsFrom(board: { exceptions: BoardItem[]; approvals: BoardI
     }
     const rule = e.exception ? EXCEPTION_PROBLEM[e.exception] : undefined;
     if (!rule) {
+      // A practice shop's undeliverable number is refused on purpose. That is
+      // not the shop being down, and it does not get the page-level banner.
+      if (/Simulated carrier/.test(e.detail ?? "")) continue;
       out.shop.push({ id: e.id, kind: e.exception ?? "alert_setup", title: e.title, detail: e.detail, action: "Fix alerts", href: "/dashboard?settings=notifications", severity: "critical" });
       continue;
     }
