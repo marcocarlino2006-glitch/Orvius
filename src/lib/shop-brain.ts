@@ -278,7 +278,11 @@ export async function askShop(question: string, businessId: string, history: Ask
   const expanded = retrievalQuery(question, history);
   const followUpAboutRecord = expanded !== question && !TIME_WORD.test(question);
 
-  const exact = followUpAboutRecord ? null : await answerDirect(question, businessId);
+  /* One shop lookup per question, shared by every reader below. */
+  const shopRow = await prisma.business.findUnique({ where: { id: businessId }, select: { timezone: true } });
+  const tz = shopRow?.timezone ?? undefined;
+
+  const exact = followUpAboutRecord ? null : await answerDirect(question, businessId, new Date(), tz);
   if (exact) {
     return {
       answer: exact.answer,
@@ -310,9 +314,9 @@ export async function askShop(question: string, businessId: string, history: Ask
   const recordQuery = followUpAboutRecord
     ? expanded.replace(/\b(jobs?|booked|booking|calls?|called|customers?|schedule|appointments?)\b/gi, " ")
     : expanded;
-  const memory = await retrieveShopMemory(recordQuery, businessId);
+  const memory = await retrieveShopMemory(recordQuery, businessId, tz);
   const [direct, brief] = await Promise.all([
-    answerFromRecords({ businessId, hits: memory.hits }),
+    answerFromRecords({ businessId, hits: memory.hits, knownTimezone: tz }),
     buildAskBrief({ businessId, hits: memory.hits, modelWorded: false }),
   ]);
   const grounded = direct ?? composeMemoryAnswer(memory);

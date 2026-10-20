@@ -50,15 +50,15 @@ export async function answerFromRecords(params: {
   businessId: string;
   hits: MemoryHit[];
   now?: number;
+  knownTimezone?: string;
 }): Promise<string | null> {
   const now = params.now ?? Date.now();
   const top = params.hits.find((h) => h.type !== "operate");
   if (!top) return null;
-  const business = await prisma.business.findUnique({
-    where: { id: params.businessId },
-    select: { timezone: true },
-  });
-  const tz = business?.timezone || "America/New_York";
+  const tz =
+    params.knownTimezone ??
+    (await prisma.business.findUnique({ where: { id: params.businessId }, select: { timezone: true } }))?.timezone ??
+    "America/New_York";
   const tenant = { id: top.id, businessId: params.businessId };
   const others = params.hits.filter((h) => h.type !== "operate").length - 1;
   const more = others > 0 ? ` ${others} related record${others === 1 ? "" : "s"} below.` : "";
