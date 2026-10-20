@@ -38,6 +38,7 @@ type DemandCategory = {
  */
 const SALES_PATTERNS = [
   "sales call",
+  "sales pitch",
   "solicit",
   "telemarket",
   "robocall",
@@ -55,6 +56,15 @@ const SALES_PATTERNS = [
   "business loan",
   "press one to",
   "press 1 to",
+  // Vendor pitches to the shop itself. Phrased as a seller speaks — a
+  // homeowner asking "do you honor my warranty?" must never match these.
+  "we sell",
+  "sell extended warrant",
+  "sell warranty",
+  "handles purchasing",
+  "who handles",
+  "our rep will",
+  "rep will call",
 ];
 
 /** A caller selling to the business, not a customer with a property. */

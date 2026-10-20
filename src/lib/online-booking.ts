@@ -12,7 +12,7 @@ import { buildLeadAlertDedupeKey, enqueueOwnerAlert } from "@/lib/notifications"
 import { prisma } from "@/lib/prisma";
 import { recordAudit } from "@/lib/audit";
 import { formatShopTime, safeTimezone } from "@/lib/availability";
-import { isInServiceArea } from "@/lib/service-area";
+import { extractPostalCode, isInServiceArea, parseServiceZips } from "@/lib/service-area";
 import { classifyRequest, parseServiceOverrides, resolveTrade, TRADE_PLAYBOOKS } from "@/lib/trade-playbooks";
 
 /**
@@ -227,7 +227,14 @@ export async function bookOnline(shop: BookingShop, input: BookingInput): Promis
     };
   }
 
-  if (isInServiceArea(input.address, shop.serviceZipsJson) === false) {
+  // This is a form, and a form can demand the ZIP a text thread cannot:
+  // allowlist set + no ZIP in the address is a refusal with instructions,
+  // exactly like a known foreign ZIP. isInServiceArea stays "unknown" for
+  // conversational channels (see service-area.ts).
+  const formRefused =
+    isInServiceArea(input.address, shop.serviceZipsJson) === false ||
+    (parseServiceZips(shop.serviceZipsJson).length > 0 && !extractPostalCode(input.address));
+  if (formRefused) {
     return {
       ok: false,
       reason: "out_of_area",

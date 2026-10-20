@@ -8,7 +8,7 @@ import { outsideScope } from "@/lib/trade-scope";
 import { callerWords } from "@/lib/transcript";
 import { getEffectivePlanId } from "@/lib/plan-features";
 import { prisma } from "@/lib/prisma";
-import { isInServiceArea } from "@/lib/service-area";
+import { extractPostalCode, isInServiceArea } from "@/lib/service-area";
 
 /** Sort / capture priority — emergency and same-day surface first. */
 export function isPriorityUrgency(urgency?: string | null): boolean {
@@ -425,7 +425,11 @@ export async function maybeAutoBookLead(
   }
 
   const inArea = isInServiceArea(lead.address, lead.business.serviceZipsJson);
-  if (inArea === false) {
+  // A form can demand a ZIP; a text message cannot. An address with no ZIP
+  // is unknown territory, not outside it — book it and let the owner decide,
+  // where a known foreign ZIP is still refused outright.
+  const refused = inArea === false && Boolean(extractPostalCode(lead.address));
+  if (refused) {
     await decide("service_area.checked", "Outside the service area — held for the owner to decide", { inArea });
     return {
       jobId: null,

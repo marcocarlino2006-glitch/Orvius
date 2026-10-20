@@ -84,6 +84,8 @@ export function isInServiceArea(
   const allowed = parseServiceZips(serviceZipsJson);
   if (!allowed.length) return null;
   const zip = extractPostalCode(address);
-  if (!zip) return false;
+  // No ZIP means unknown, not outside: a texter who writes "915 Hinman Ave,
+  // Evanston" has given a real address. Callers treat only `false` as out.
+  if (!zip) return null;
   return allowed.includes(zip);
 }

@@ -95,7 +95,10 @@ test("a late status event can't make a finished call live again", () => {
 test("a call labelled non-service still reaches the owner when the caller gave an address or is a returning customer", () => {
   const ingest = read("src/lib/call-ingest.ts");
   assert.match(ingest, /=== "other\.non_service" && !looksLikeWork/);
-  assert.match(ingest, /looksLikeWork = Boolean\(freshLead\.address\?\.trim\(\) \|\| \(link && !link\.created\)\)/);
+  // Returning means the customer record predates this call — the call-start
+  // handler creates a row for every caller, so existence alone proved nothing.
+  assert.match(ingest, /const returningCustomer = Boolean\(/);
+  assert.match(ingest, /looksLikeWork = Boolean\(freshLead\.address\?\.trim\(\) \|\| returningCustomer\)/);
 });
 
 test("a non-service label never silences a caller who stayed on the line", () => {
