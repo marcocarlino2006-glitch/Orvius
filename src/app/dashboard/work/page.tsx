@@ -16,6 +16,8 @@ type Payload = { items: WorkItem[]; truncated: boolean; assignees: Assignee[]; n
 const FILTERS: Array<{ id: string; label: string; match: (i: WorkItem) => boolean }> = [
   { id: "you", label: "Needs you", match: (i) => i.needsYou },
   { id: "all", label: "All open", match: () => true },
+  { id: "requests", label: "Requests", match: (i) => i.kind === "request" },
+  { id: "jobs", label: "Jobs", match: (i) => i.kind === "job" },
   { id: "callback", label: "Needs a callback", match: (i) => i.stage === "needs_callback" },
   { id: "time", label: "Needs a time", match: (i) => i.stage === "needs_time" },
   { id: "scheduled", label: "Scheduled", match: (i) => i.stage === "scheduled" || i.stage === "confirmed" },

@@ -112,9 +112,9 @@ test("AI authority follows the shop's settings", () => {
   assert.ok(alert.blocked.length > 0);
 });
 
-test("nav is Command, Inbox, Calls, Jobs, Schedule, Customers, Team — no Ask, no Dispatch", () => {
+test("nav is five doors — Command, Work, Schedule, Calls, Customers — no Ask, no Dispatch", () => {
   const labels = osProductNav.map((i) => i.label);
-  assert.deepEqual(labels, ["Command", "Inbox", "Calls", "Jobs", "Schedule", "Customers", "Team"]);
+  assert.deepEqual(labels, ["Command", "Work", "Schedule", "Calls", "Customers"]);
   assert.ok(!osProductNav.some((i) => i.href === "/dashboard/ask" || i.href === "/dashboard/dispatch"));
   assert.match(read("src/app/dashboard/dispatch/page.tsx"), /redirect\("\/dashboard\/schedule"\)/);
 });

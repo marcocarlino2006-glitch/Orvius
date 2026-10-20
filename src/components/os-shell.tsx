@@ -29,7 +29,7 @@ type OsShellProps = {
   actions?: React.ReactNode;
 };
 
-const TAB_HREFS = ["/dashboard", "/dashboard/inbox", "/dashboard/jobs", "/dashboard/schedule"];
+const TAB_HREFS = ["/dashboard", "/dashboard/work", "/dashboard/schedule", "/dashboard/calls"];
 
 function navActive(pathname: string, href: string) {
   if (href === "/dashboard" && pathname === "/dashboard") return true;
@@ -87,7 +87,7 @@ export function OsShell({
       label: navLabel(item),
       icon: item.icon,
       active: navActive(pathname, item.href),
-      badge: item.href === "/dashboard/inbox" && newLeads > 0 ? String(newLeads) : undefined,
+      badge: item.href === "/dashboard/work" && newLeads > 0 ? String(newLeads) : undefined,
     }));
 
   useEffect(() => {
@@ -169,7 +169,7 @@ export function OsShell({
             const enabled = ringEnabled && planAllowed;
             const active = navActive(pathname, item.href);
             const badge =
-              item.href === "/dashboard/inbox" && newLeads > 0
+              item.href === "/dashboard/work" && newLeads > 0
                 ? String(newLeads)
                 : item.href === "/dashboard/schedule" && unassignedJobs > 0
                   ? String(unassignedJobs)
