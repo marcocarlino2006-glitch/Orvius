@@ -4,17 +4,11 @@ import Link from "next/link";
 import { KeyboardShortcuts } from "@/components/keyboard-shortcuts";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { OS_NAV_ALIASES, osCurrentRing, osProductNav } from "@/lib/os-nav";
 import { displayPhone } from "@/lib/customer";
 import { useBusiness } from "@/lib/use-business";
-import { industryTerms } from "@/lib/industry-terms";
-import { usePlanAccess } from "@/lib/use-plan-access";
-import { getPlanById } from "@/lib/pricing-plans";
-import { minimumPlanForModule, navHrefToModule } from "@/lib/plan-features";
 import { OrviusLogo } from "@/components/orvius-logo";
 import { OsIcon } from "@/components/os-icons";
 import { OsCommandPalette } from "@/components/os-command-palette";
-import { OsMobileNavBackdrop, OsTabBar, type OsTab } from "@/components/os-mobile-nav";
 import { OsSidebarFooter } from "@/components/os-sidebar-footer";
 import { PayPromptModal } from "@/components/pay-prompt-modal";
 import { Toaster } from "@/components/toaster";
@@ -29,11 +23,10 @@ type OsShellProps = {
   actions?: React.ReactNode;
 };
 
-const TAB_HREFS = ["/dashboard", "/dashboard/work", "/dashboard/schedule", "/dashboard/calls"];
-
-function navActive(pathname: string, href: string) {
-  if (href === "/dashboard" && pathname === "/dashboard") return true;
-  return [...(href === "/dashboard" ? [] : [href]), ...(OS_NAV_ALIASES[href] ?? [])].some((h) => pathname === h || pathname.startsWith(`${h}/`));
+/** Command and Work speak with their own headline. Every other screen keeps a quiet name. */
+function chromeTitle(title: string) {
+  if (title === "Command" || title === "Work") return null;
+  return title;
 }
 
 export function OsShell({
@@ -45,17 +38,8 @@ export function OsShell({
 }: OsShellProps) {
   const pathname = usePathname();
   const { business, loading: businessLoading } = useBusiness();
-  const { access } = usePlanAccess();
   const businessName = businessNameProp ?? business?.name ?? "Your business";
-  const terms = industryTerms(business?.trade);
-  const navLabel = (item: { href: string; label: string }) =>
-    item.href === "/dashboard/jobs" ? terms.Jobs : item.label;
   const newLeads = business?.metrics.newLeads ?? 0;
-  /* A shop whose access ended still opens every screen to read; the pay prompt lives on Command. */
-  const navAllowed = (module: NonNullable<ReturnType<typeof navHrefToModule>>) =>
-    access?.entitled === false || (access?.canAccess(module) ?? true);
-  const unassignedJobs = business?.signals.unassignedJobs ?? 0;
-  const [navOpen, setNavOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   /*
     Decided on the server, against the shop's own hours and timezone. Reading
@@ -75,26 +59,8 @@ export function OsShell({
       : onSettings
         ? null
         : "Line not set up";
+  const pageName = chromeTitle(title);
 
-  const tabs: OsTab[] = osProductNav
-    .filter((item) => TAB_HREFS.includes(item.href))
-    .filter((item) => {
-      const navModule = navHrefToModule(item.href);
-      return (item.ring ?? osCurrentRing) <= osCurrentRing + 1 && (navModule ? navAllowed(navModule) : true);
-    })
-    .map((item) => ({
-      href: item.href,
-      label: navLabel(item),
-      icon: item.icon,
-      active: navActive(pathname, item.href),
-      badge: item.href === "/dashboard/work" && newLeads > 0 ? String(newLeads) : undefined,
-    }));
-
-  useEffect(() => {
-    setNavOpen(false);
-  }, [pathname]);
-
-  /* "System" keeps following the OS while the app is open, not just at first paint. */
   useEffect(() => {
     if (readThemeChoice() !== "system") return;
     const query = window.matchMedia(DARK_QUERY);
@@ -114,145 +80,48 @@ export function OsShell({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  useEffect(() => {
-    document.body.style.overflow = navOpen ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [navOpen]);
-
-  const sidebar = (
-    <div className="os-sidebar-inner">
-      <Link href="/dashboard" className="os-sidebar-brand">
-            <OrviusLogo size="md" variant="void" />
+  const line = businessLoading ? (
+    "Checking line…"
+  ) : business?.line ? (
+    <>
+      <span className="os-ring-status-dot" aria-hidden />
+      {displayPhone(business.line)}
+    </>
+  ) : business?.testMode ? (
+    <>
+      Test mode ·{" "}
+      <Link href="/dashboard/onboarding?step=live" className="os-sidebar-inline-link">
+        Go live
       </Link>
-
-      <div className="os-ring-status">
-        <p className="os-ring-status-title font-sans">{businessName}</p>
-        <p className="os-ring-status-module font-sans">
-          {businessLoading ? (
-            "Checking line…"
-          ) : business?.line ? (
-            <>
-              <span className="os-ring-status-dot" aria-hidden />
-              {displayPhone(business.line)}
-            </>
-          ) : business?.testMode ? (
-            <>
-              Test mode ·{" "}
-              <Link href="/dashboard/onboarding?step=live" className="os-sidebar-inline-link">
-                Go live
-              </Link>
-            </>
-          ) : business?.sample ? (
-            "Demo — calls are simulated"
-          ) : onSettings ? (
-            "Set your line below"
-          ) : (
-            <>
-              Line not set ·{" "}
-              <Link href="/dashboard/onboarding" className="os-sidebar-inline-link">
-                Finish setup
-              </Link>
-            </>
-          )}
-        </p>
-      </div>
-
-      <nav className="os-sidebar-nav" aria-label="Daily work">
-        <ul>
-          {osProductNav.map((item) => {
-            const ring = item.ring ?? osCurrentRing;
-            const ringEnabled = ring <= osCurrentRing + 1;
-            const navModule = navHrefToModule(item.href);
-            const planAllowed = navModule ? navAllowed(navModule) : true;
-            const enabled = ringEnabled && planAllowed;
-            const active = navActive(pathname, item.href);
-            const badge =
-              item.href === "/dashboard/work" && newLeads > 0
-                ? String(newLeads)
-                : item.href === "/dashboard/schedule" && unassignedJobs > 0
-                  ? String(unassignedJobs)
-                  : item.badge;
-            const badgeWarn = item.href === "/dashboard/schedule" && unassignedJobs > 0;
-            const upgradePlan = navModule
-              ? getPlanById(minimumPlanForModule(navModule))
-              : null;
-
-            return (
-              <li key={item.href}>
-                {enabled ? (
-                  <Link
-                    href={item.href}
-                    className={`os-nav-link font-sans ${active ? "os-nav-link-active" : ""}`}
-                    aria-current={active ? "page" : undefined}
-                  >
-                    <OsIcon name={item.icon} />
-                    <span className="os-nav-label">{navLabel(item)}</span>
-                    {badge ? (
-                      <span
-                        className={`os-nav-badge ${badgeWarn ? "os-nav-badge-warn" : ""}`}
-                        title={
-                          badgeWarn ? `${terms.Jobs} with no ${terms.worker} assigned` : "Requests waiting for a response"
-                        }
-                      >
-                        {badge}
-                      </span>
-                    ) : null}
-                  </Link>
-                ) : planAllowed === false && upgradePlan ? (
-                  <Link
-                    href="/dashboard/pricing"
-                    className="os-nav-link os-nav-link-locked font-sans"
-                    title={`Upgrade to ${upgradePlan.name}`}
-                  >
-                    <OsIcon name={item.icon} />
-                    <span className="os-nav-label">{navLabel(item)}</span>
-                    <span className="os-nav-lock">Pro</span>
-                  </Link>
-                ) : (
-                  <span className="os-nav-link os-nav-link-disabled font-sans">
-                    <OsIcon name={item.icon} />
-                    <span className="os-nav-label">{navLabel(item)}</span>
-                  </span>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
-
-      {/*
-        Account links live in the profile menu below and nowhere else. This
-        corner used to hold both: an "Account" nav section listing Settings,
-        Profile and Billing, and directly beneath it a profile button whose
-        menu listed the same three. Every shop we watched picked one.
-      */}
-      <OsSidebarFooter newLeads={newLeads} />
-    </div>
+    </>
+  ) : business?.sample ? (
+    "Demo — calls are simulated"
+  ) : onSettings ? (
+    "Set your line below"
+  ) : (
+    <>
+      Line not set ·{" "}
+      <Link href="/dashboard/onboarding" className="os-sidebar-inline-link">
+        Finish setup
+      </Link>
+    </>
   );
 
   return (
     <div className="os-shell os-shell-pro os-shell-night min-h-screen">
-      <OsMobileNavBackdrop open={navOpen} onClose={() => setNavOpen(false)} />
       <Toaster />
-
-      <aside
-        className={`os-sidebar os-sidebar-pro ${navOpen ? "os-sidebar-open" : ""}`}
-        aria-label="Workspace"
-        aria-hidden={!navOpen ? undefined : false}
-      >
-        {sidebar}
-      </aside>
 
       <div className="os-main os-main-pro">
         <header className="os-topbar os-topbar-pro os-topbar-night">
-          <div className="os-topbar-row">
-            <div className="os-topbar-copy">
-              <h1 className="os-topbar-title font-sans">{title}</h1>
-              {subtitle ? (
-                <p className="os-topbar-sub font-sans">{subtitle}</p>
-              ) : null}
+          <div className="os-topbar-identity">
+            <Link href="/dashboard" className="os-topbar-brand" aria-label="Orvius">
+              <OrviusLogo size="md" variant="void" />
+            </Link>
+            <div className="os-topbar-shop">
+              <p className="os-topbar-shop-name font-sans">{businessName}</p>
+              <p className="os-topbar-shop-line font-sans">{line}</p>
+              {pageName ? <h1 className="os-topbar-page font-sans">{pageName}</h1> : null}
+              {pageName && subtitle ? <p className="os-topbar-sub font-sans">{subtitle}</p> : null}
             </div>
           </div>
           <div className="os-topbar-actions">
@@ -282,6 +151,7 @@ export function OsShell({
               <span className="os-topbar-search-label">Help</span>
             </Link>
             {actions}
+            <OsSidebarFooter newLeads={newLeads} />
           </div>
         </header>
 
@@ -296,7 +166,6 @@ export function OsShell({
           </div>
         ) : null}
         <main className="os-content os-content-pro">{children}</main>
-        <OsTabBar tabs={tabs} moreOpen={navOpen} onMore={() => setNavOpen((v) => !v)} />
         <KeyboardShortcuts />
         <OsCommandPalette
           open={paletteOpen}

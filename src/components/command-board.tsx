@@ -368,17 +368,10 @@ export function AskBar({ onChange, below }: { onChange: () => void; below?: Reac
                     ))}
                   </div>
                 ) : null}
-                {turn.revealed && result.kind === "answer" && result.records?.length ? (
-                  <ul className="cb-records">
-                    {result.records.map((r) => (
-                      <li key={r.href}>
-                        <a href={r.href} className="cb-record">
-                          <span className="cb-record-title">{r.title}</span>
-                          <span className="cb-record-sum">{r.summary}</span>
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
+                {turn.revealed && result.kind === "answer" && result.records?.[0] ? (
+                  <a href={result.records[0].href} className="cb-open">
+                    Open the record
+                  </a>
                 ) : null}
                 {turn.revealed && result.kind === "proposal" && !turn.outcome ? (
                   <>

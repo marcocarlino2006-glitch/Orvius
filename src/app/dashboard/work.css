@@ -14,6 +14,27 @@
   padding-top: clamp(1.5rem, 8vh, 4.5rem);
 }
 
+.cmd-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.85rem;
+}
+
+.cmd-filters button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ox-text-2);
+  font: inherit;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.cmd-filters button.is-on {
+  color: var(--ox-text);
+  font-weight: 560;
+}
+
 .cmd-one .cmd-headline {
   font-size: clamp(1.75rem, 1.1rem + 1.8vw, 2.375rem);
   font-weight: 560;

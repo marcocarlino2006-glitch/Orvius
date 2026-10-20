@@ -14,6 +14,7 @@ import type { BoardItem } from "@/lib/command-board";
 import { jobPastDue } from "@/lib/job-status";
 import type { WorkItem, WorkSeverity } from "@/lib/work";
 import { sendWrite } from "@/lib/client-write";
+import { spokenName, spokenText } from "@/lib/spoken-name";
 import { formatWhen } from "@/lib/when";
 
 const send = (url: string, method: "POST" | "PATCH", body: unknown) => sendWrite<Record<string, unknown>>(url, method, body);
@@ -151,7 +152,9 @@ export function WorkCard({
   const needsTech = isJob && item.nextAction === "Assign a technician";
   const canMove = item.stage === "needs_callback" || item.stage === "needs_time" || (isJob && (item.stage === "scheduled" || item.stage === "confirmed"));
   const primaryCall = Boolean(item.phone) && (pastDue || item.stage === "needs_callback" || kinds.has("emergency") || kinds.has("unconfirmed_soon") || kinds.has("failed_message") || kinds.has("invoice_undelivered") || kinds.has("customer_no_show") || kinds.has("open_invoice") || kinds.has("estimate_failed") || kinds.has("wants_human"));
-  const who = item.customer?.trim() || item.phone || "Unknown caller";
+  const person = spokenName(item.customer);
+  const who = person || item.phone || "Unknown caller";
+  const firstName = person.split(" ")[0] || "them";
   const askTech = isJob && kinds.has("tech_unanswered") && Boolean(item.technician?.phone);
   const unconfirmed = isJob && !pastDue && (item.stage === "scheduled" || kinds.has("unconfirmed_soon")) && Boolean(item.technician) && !kinds.has("failed_message") && !askTech;
   const fieldStatus = isJob && !late ? JOB_STATUS_FOR_STAGE[item.stage] : undefined;
@@ -185,14 +188,14 @@ export function WorkCard({
           )}
           {inList ? (
             <Link href={item.href} className="wc-title">
-              {item.title}
+              {spokenText(item.title)}
               <span className="wc-who"> · {who}</span>
             </Link>
           ) : null}
           <p className="wc-detail">
-            {top?.detail ?? item.nextAction ?? (item.waitingOn === "customer" || item.waitingOn === "technician" ? WAITING_LABEL[item.waitingOn] : CLOSED_DETAIL[item.stage] ?? "On track. Nothing for you to do right now.")}
+            {spokenText(top?.detail ?? item.nextAction) || (item.waitingOn === "customer" || item.waitingOn === "technician" ? WAITING_LABEL[item.waitingOn] : CLOSED_DETAIL[item.stage] ?? "On track. Nothing for you to do right now.")}
           </p>
-          {top && item.nextAction && !now ? <p className="wc-next">Next: {item.nextAction}</p> : null}
+          {top && item.nextAction && !now ? <p className="wc-next">Next: {spokenText(item.nextAction)}</p> : null}
         </div>
         <div className="wc-meta" hidden={!inList || now}>
           {item.scheduledAt ? <span className="wc-when">{formatWhen(item.scheduledAt)}</span> : <span className="wc-when">{formatWhen(item.createdAt)}</span>}
@@ -233,7 +236,7 @@ export function WorkCard({
             <MarkNotAJobButton leadId={notAJob} onDone={onChange} primary />
           ) : primaryCall && item.phone ? (
             <a href={tel(item.phone)} className="ox-btn ox-btn--primary ox-btn--sm">
-              Call {item.customer?.split(" ")[0] || "them"}
+              Call {firstName}
             </a>
           ) : askTech ? (
             <a href={tel(item.technician!.phone!)} className="ox-btn ox-btn--primary ox-btn--sm">
@@ -261,7 +264,7 @@ export function WorkCard({
         <div className={`wc-actions${busy ? " is-instant-pending" : ""}`}>
           {primaryCall && item.phone ? (
             <a href={tel(item.phone)} className="ox-btn ox-btn--primary ox-btn--sm">
-              Call {item.customer?.split(" ")[0] || "them"}
+              Call {firstName}
             </a>
           ) : null}
           {askTech ? (
@@ -328,7 +331,7 @@ export function WorkCard({
               <div className="wc-more-menu" role="menu">
                 {!primaryCall ? (
                   <a role="menuitem" href={tel(item.phone)} className="wc-more-item">
-                    Call {item.customer?.split(" ")[0] || "the customer"}
+                    Call {firstName === "them" ? "the customer" : firstName}
                   </a>
                 ) : null}
                 {unconfirmed && item.waitingOn === "customer" ? (
