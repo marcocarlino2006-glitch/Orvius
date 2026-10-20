@@ -7,7 +7,12 @@ export function ownerNote(note: string | null | undefined): string | null {
 
 /** A drill labels sample people with "Sim ". That prefix is not their name. */
 export function spokenName(name: string | null | undefined): string {
-  return (name ?? "").trim().replace(/^Sim\s+/, "");
+  return spokenText(name).trim();
+}
+
+/** The same label, anywhere in a sentence the owner reads. */
+export function spokenText(text: string | null | undefined): string {
+  return (text ?? "").replace(/\bSim\s+/g, "");
 }
 
 export function spokenPhone(phone: string | null | undefined): string {

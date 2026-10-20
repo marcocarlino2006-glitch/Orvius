@@ -2404,15 +2404,7 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
-@media (min-width: 1024px) {
-  .os-shell {
-    grid-template-columns: 16.5rem minmax(0, 1fr);
-  }
-  /* The desk is the column. Departments stay in Search and on the phone. */
-  .os-sidebar-nav {
-    display: none;
-  }
-}
+/* One column. The shop lives in the top bar. Departments stay in Search. */
 
 .os-shell-pro {
   background: var(--os-paper, #16181b) !important;
@@ -3799,11 +3791,88 @@
   cursor: wait;
 }
 
-.os-topbar-row {
+.os-topbar-row,
+.os-topbar-identity {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.875rem;
   min-width: 0;
+}
+
+.os-topbar-brand {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  color: inherit;
+}
+
+.os-topbar-shop {
+  min-width: 0;
+}
+
+.os-topbar-shop-name {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.os-topbar-shop-line {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.1rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.3;
+  color: var(--ash);
+}
+
+.os-topbar-page {
+  margin: 0.35rem 0 0;
+  font-size: 0.8125rem;
+  font-weight: 560;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.os-topbar-actions {
+  align-items: center;
+  margin-left: auto;
+}
+
+.os-topbar {
+  align-items: center;
+}
+
+.os-topbar .mx-footer {
+  margin-top: 0 !important;
+  padding: 0 !important;
+}
+
+.os-topbar .mx-chip {
+  flex: 0 1 auto;
+  color: inherit;
+}
+
+.os-topbar .mx-bar-icon {
+  color: inherit;
+}
+
+.os-topbar .mx-menu {
+  top: calc(100% + 6px);
+  right: 0;
+  bottom: auto;
+  left: auto;
+  transform-origin: top right;
+}
+
+@media (max-width: 640px) {
+  .os-topbar .mx-chip-name,
+  .os-topbar-search-label,
+  .os-topbar kbd {
+    display: none;
+  }
 }
 
 .os-mobile-nav-backdrop {

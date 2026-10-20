@@ -2,6 +2,7 @@
  * The one sentence on Command. A decision waiting leads. A tally of zeros
  * never sits on top of real work, and never leads when the line is clear.
  */
+import { spokenText } from "@/lib/spoken-name";
 
 export type CommandSentenceInput = {
   loaded: boolean;
@@ -18,7 +19,7 @@ function isZeroDay(brief: string): boolean {
 }
 
 function finish(text: string): string {
-  const trimmed = text.trim();
+  const trimmed = spokenText(text).trim();
   if (!trimmed) return "";
   return /[.!?]$/.test(trimmed) ? trimmed : `${trimmed}.`;
 }
@@ -30,14 +31,14 @@ function fromAction(action: string): string {
 
 export function commandSentence(input: CommandSentenceInput): string {
   if (!input.loaded) return "Reading the shop…";
-  if (input.live?.who.trim()) return `${input.live.who.trim()} is on the line.`;
+  if (input.live?.who.trim()) return `${spokenText(input.live.who).trim()} is on the line.`;
   if (input.approval) {
     const title = finish(input.approval.title);
     return input.approval.needsCheck ? `Check this. ${title}` : title || "Orvius is waiting on your OK.";
   }
   if (input.item) {
     if (input.item.nextAction) return fromAction(input.item.nextAction);
-    const who = input.item.customer?.trim();
+    const who = spokenText(input.item.customer).trim();
     return who ? `${who}. ${finish(input.item.title)}` : finish(input.item.title);
   }
   if (input.lastSummary) return finish(input.lastSummary);

@@ -359,6 +359,15 @@
   }
 }
 
+.cb-open {
+  display: inline-block;
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--ox-text-2);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
 .cb-records {
   display: grid;
   gap: 0.375rem;
