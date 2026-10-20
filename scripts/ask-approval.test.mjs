@@ -20,7 +20,8 @@ for (const key of ["TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_PHONE_NUMB
 
 const { buildAskBrief } = await import("../src/lib/ask-brief.ts");
 const { executeProposal } = await import("../src/lib/copilot-execute.ts");
-const { answerFromRecords } = await import("../src/lib/ask-answer.ts");
+const { answerFromRecords, speakCall } = await import("../src/lib/ask-answer.ts");
+const { ownerNote } = await import("../src/lib/spoken-name.ts");
 const { retrieveShopMemory } = await import("../src/lib/shop-memory.ts");
 const { getCustomerProperties } = await import("../src/lib/customer.ts");
 
@@ -315,6 +316,23 @@ test("asking about one customer cites that customer, not everyone on file", asyn
   } finally {
     await drop(shop.id);
   }
+});
+
+test("a call is said the way a dispatcher would, without the drill label", () => {
+  assert.equal(
+    speakCall({ name: "Sim Maria Lopez", phone: "+13125556070", service: "AC not cooling", ago: "9h ago", waiting: true }),
+    "Maria Lopez called 9h ago about AC not cooling. Nobody has called them back.",
+  );
+  assert.equal(
+    speakCall({ name: null, phone: "+15125550777", service: null, ago: "9h ago", waiting: true }),
+    "+1 512 555 0777 called 9h ago. Nobody has called them back.",
+  );
+  assert.doesNotMatch(
+    speakCall({ name: "Sim Maria Lopez", phone: "+13125556070", service: "AC not cooling", ago: "2 min ago", waiting: true }),
+    /Sim |Partial data|automated drill|Call from/,
+  );
+  assert.equal(ownerNote("Partial data — callback only — automated drill"), null);
+  assert.equal(ownerNote("The capacitor is bad."), "The capacitor is bad.");
 });
 
 test.after(() => prisma.$disconnect());

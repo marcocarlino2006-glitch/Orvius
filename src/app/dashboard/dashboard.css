@@ -2408,6 +2408,10 @@
   .os-shell {
     grid-template-columns: 16.5rem minmax(0, 1fr);
   }
+  /* The desk is the column. Departments stay in Search and on the phone. */
+  .os-sidebar-nav {
+    display: none;
+  }
 }
 
 .os-shell-pro {

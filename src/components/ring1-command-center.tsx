@@ -9,16 +9,11 @@ import { WorkCard } from "@/components/work-card";
 import { commandSentence } from "@/lib/command-sentence";
 import { isLiveCall } from "@/lib/live-call";
 import { useRing1 } from "@/lib/ring1-context";
+import { spokenName, spokenPhone } from "@/lib/spoken-name";
 import { formatWhen } from "@/lib/when";
 
 function callerName(name: string | null | undefined, phone: string | null | undefined): string {
-  const who = name?.trim();
-  if (who) return who;
-  const digits = (phone ?? "").replace(/\D/g, "");
-  if (digits.length === 11 && digits.startsWith("1")) {
-    return `+1 ${digits.slice(1, 4)} ${digits.slice(4, 7)} ${digits.slice(7)}`;
-  }
-  return phone?.trim() || "A caller";
+  return spokenName(name) || spokenPhone(phone) || "A caller";
 }
 
 function minutesOnTheLine(createdAt: string): string {

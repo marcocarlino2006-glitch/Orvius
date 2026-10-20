@@ -3,6 +3,7 @@ import { COLLECTED_STATUSES } from "@/lib/payment-math";
 import { formatCents } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
 import type { MemoryHit } from "@/lib/shop-memory";
+import { spokenName, spokenPhone } from "@/lib/spoken-name";
 
 const OPEN = new Set(["scheduled", "confirmed", "en_route", "on_site"]);
 
@@ -40,6 +41,20 @@ async function paidCents(businessId: string, job: Prisma.JobWhereInput) {
 }
 
 const street = (address: string | null) => address?.split(",")[0]?.trim() || null;
+
+/** One sentence a dispatcher would say. The record underneath can carry the rest. */
+export function speakCall(call: {
+  name: string | null;
+  phone: string | null;
+  service: string | null;
+  ago: string;
+  waiting: boolean;
+}): string {
+  const who = spokenName(call.name) || (call.phone ? spokenPhone(call.phone) : "") || "Someone";
+  const about = call.service?.trim();
+  const waiting = call.waiting ? " Nobody has called them back." : "";
+  return `${who} called ${call.ago}${about ? ` about ${about}` : ""}.${waiting}`;
+}
 
 /**
  * One or two sentences that answer the question from the best-matching record,
@@ -149,10 +164,25 @@ export async function answerFromRecords(params: {
   }
 
   if (top.type === "call") {
-    const call = await prisma.call.findFirst({ where: tenant, select: { callerPhone: true, summary: true, createdAt: true } });
+    const call = await prisma.call.findFirst({
+      where: tenant,
+      select: {
+        callerPhone: true,
+        summary: true,
+        createdAt: true,
+        lead: { select: { name: true, serviceType: true, job: { select: { id: true } } } },
+      },
+    });
     if (!call) return null;
-    const about = call.summary ? `: ${call.summary.replace(/\.$/, "")}` : "";
-    return `Call from ${call.callerPhone ?? "an unknown number"} ${sinceText(call.createdAt, now)}${about}.${more}`;
+    const unbooked = Boolean(call.lead && !call.lead.job);
+    const callback = /callback/i.test(call.summary ?? "");
+    return `${speakCall({
+      name: call.lead?.name ?? null,
+      phone: call.callerPhone,
+      service: call.lead?.serviceType ?? null,
+      ago: sinceText(call.createdAt, now),
+      waiting: unbooked || (!call.lead && callback),
+    })}${more}`;
   }
 
   return null;
