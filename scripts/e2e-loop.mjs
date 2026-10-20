@@ -154,12 +154,17 @@ async function main() {
 
     const open = (path) => page.goto(`${APP_URL}${path}`, { waitUntil: "domcontentloaded", timeout: 120_000 });
 
-    await step("Command names the shop and what Orvius did", async () => {
+    await step("Command names the shop and the one thing happening", async () => {
       await open("/dashboard");
       await page.getByText(shop.name).first().waitFor();
-      const handled = page.locator(".cmd-feed-text").first();
-      await handled.waitFor();
-      return (await handled.innerText()).slice(0, 90);
+      const headline = page.locator(".cmd-headline");
+      await headline.waitFor();
+      await page.waitForFunction(() => {
+        const text = document.querySelector(".cmd-headline")?.textContent ?? "";
+        return text.trim().length > 0 && !text.includes("Reading the shop");
+      });
+      await page.waitForFunction(() => (document.querySelector(".cmd-live")?.textContent ?? "").trim().length > 0);
+      return (await headline.innerText()).trim().slice(0, 90);
     });
 
     await step("Inbox lists the caller", async () => {
