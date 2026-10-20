@@ -94,8 +94,14 @@ function haystack(...parts: Array<string | null | undefined>): string {
 function scoreText(text: string, terms: string[]): number {
   if (!text || !terms.length) return 0;
   let score = 0;
+  const padded = ` ${text} `;
   for (const term of terms) {
-    if (text.includes(term)) score += term.length > 5 ? 3 : 2;
+    // Short words match on boundaries only — "her" must not hit "Thermostat".
+    const hit =
+      term.length <= 3
+        ? new RegExp(`[^a-z0-9]${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}[^a-z0-9]`).test(padded)
+        : text.includes(term);
+    if (hit) score += term.length > 5 ? 3 : 2;
   }
   return score;
 }

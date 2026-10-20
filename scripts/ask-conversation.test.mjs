@@ -75,6 +75,12 @@ test("a model follow-up survives parsing and grounding", async () => {
   assert.equal(out.followUp, "Want me to check if Chris confirmed?");
 });
 
+test("a follow-up about a record is not hijacked by the exact-answer matcher", () => {
+  const brain = read("src/lib/shop-brain.ts");
+  assert.match(brain, /followUpAboutRecord/, "record follow-ups skip the today-list matcher");
+  assert.match(brain, /TIME_WORD/, "unless the follow-up names its own time window");
+});
+
 test("the page holds a conversation: history out, opening in, answer revealed progressively", () => {
   const page = read("src/app/dashboard/ask/page.tsx");
   assert.match(page, /body: JSON\.stringify\(\{ question: q, history \}\)/, "finished turns are sent back");

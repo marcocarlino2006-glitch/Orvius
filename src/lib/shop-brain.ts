@@ -185,6 +185,8 @@ export function retrievalQuery(question: string, history: AskHistoryTurn[] = [])
   return `${last.question} ${question}`;
 }
 
+const TIME_WORD = /\b(today|tomorrow|yesterday|tonight|overnight|week|month|morning|afternoon|evening)\b/i;
+
 export type AskOpening = {
   headline: string;
   detail: string;
@@ -212,7 +214,9 @@ export async function askOpening(businessId: string): Promise<AskOpening> {
   const unique = [...new Set(suggestions)].slice(0, 4);
 
   if (attention.length) {
-    const top = attention.slice(0, 2).map((i) => i.title.replace(/\.$/, ""));
+    const top = attention
+      .slice(0, 2)
+      .map((i) => (i.title.length < 40 ? `${i.title} — ${i.recommendedAction}` : i.title).replace(/\.$/, ""));
     return {
       headline: attention.length === 1 ? "One thing needs you." : `${attention.length} things need you.`,
       detail: `${top.join(". ")}. Ask me about any of it — or tell me what you want handled first.`,
@@ -266,7 +270,15 @@ export async function askShop(question: string, businessId: string, history: Ask
     };
   }
 
-  const exact = await answerDirect(question, businessId);
+  /*
+   * A follow-up about a record ("and is her job booked?") must not be hijacked
+   * by the exact-answer matcher, which would list today's jobs and never
+   * mention her. Follow-ups with their own time word still belong to it.
+   */
+  const expanded = retrievalQuery(question, history);
+  const followUpAboutRecord = expanded !== question && !TIME_WORD.test(question);
+
+  const exact = followUpAboutRecord ? null : await answerDirect(question, businessId);
   if (exact) {
     return {
       answer: exact.answer,
@@ -276,7 +288,7 @@ export async function askShop(question: string, businessId: string, history: Ask
     };
   }
 
-  if (isOutcomesQuestion(question)) {
+  if (!followUpAboutRecord && isOutcomesQuestion(question)) {
     const outcomes = await getShopOutcomes(businessId, 7);
     return {
       answer: formatOutcomesAnswer(outcomes),
@@ -291,7 +303,14 @@ export async function askShop(question: string, businessId: string, history: Ask
     };
   }
 
-  const memory = await retrieveShopMemory(retrievalQuery(question, history), businessId);
+  /*
+   * Generic words in a follow-up ("her job", "booked?") would flood retrieval
+   * with every job on the board. About a record, search for the record.
+   */
+  const recordQuery = followUpAboutRecord
+    ? expanded.replace(/\b(jobs?|booked|booking|calls?|called|customers?|schedule|appointments?)\b/gi, " ")
+    : expanded;
+  const memory = await retrieveShopMemory(recordQuery, businessId);
   const [direct, brief] = await Promise.all([
     answerFromRecords({ businessId, hits: memory.hits }),
     buildAskBrief({ businessId, hits: memory.hits, modelWorded: false }),
