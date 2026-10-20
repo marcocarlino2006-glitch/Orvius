@@ -361,8 +361,13 @@ export async function finishCallReport(input: Omit<Captured, "duplicate">): Prom
     const wantsHuman = leadWantsHuman({ notes: `${freshLead.notes ?? ""} ${spoken}`, serviceType: freshLead.serviceType });
     /* Sales reps routinely ask for the owner, so a request for a person does not rescue a non-service call.
        An address or a known customer does: that's someone with a property, and the label is the model's guess. */
-    // Every caller gets a customer row, so only a returning one counts here.
-    const looksLikeWork = Boolean(freshLead.address?.trim() || (link && !link.created));
+    // Every caller gets a customer row — this call's own start handler makes
+    // it — so "returning" must mean the row predates this call, not merely
+    // that it exists by now. Without that, every spam caller looks known.
+    const returningCustomer = Boolean(
+      link && link.customer.createdAt && call.createdAt && link.customer.createdAt.getTime() < call.createdAt.getTime(),
+    );
+    const looksLikeWork = Boolean(freshLead.address?.trim() || returningCustomer);
     const nonService = !safety && !autoBook.jobId && freshLead.categoryCode === "other.non_service" && !looksLikeWork;
     /* A label is the model's guess; minutes on the line are a fact. A caller
        who talked for a minute is worth a glance even when the intake came

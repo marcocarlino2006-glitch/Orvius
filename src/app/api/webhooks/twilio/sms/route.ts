@@ -36,6 +36,7 @@ import { twimlMessage as twimlResponse } from "@/lib/twiml";
 import { tooManyRequests, webhookAuthFailureLimited } from "@/lib/rate-limit";
 import { recordAudit } from "@/lib/audit";
 import { answerFollowUpReply } from "@/lib/lead-follow-up";
+import { extractStreetAddress } from "@/lib/street-address";
 import { hasActiveOwnerConversation, inboundMediaFromForm, PHOTO_ONLY_BODY, recordMessage } from "@/lib/messages";
 import { hasOpenWebChat } from "@/lib/web-chat";
 import { handleOwnerText } from "@/lib/owner-text-commands";
@@ -301,6 +302,9 @@ export async function POST(request: NextRequest) {
         status: "new",
         categoryCode: demand.categoryCode,
         postalCode: demand.postalCode,
+        // A texter who writes their address down has told us where to go;
+        // without this the lead sat unbookable as "missing address".
+        address: extractStreetAddress(body),
       },
     });
   } catch (error) {
@@ -372,7 +376,7 @@ export async function POST(request: NextRequest) {
       phone: from,
       serviceType,
       urgency,
-      address: null,
+      address: lead.address ?? null,
     },
     job: bookedJob,
     autoBooked: autoBook.created,
