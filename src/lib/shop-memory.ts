@@ -121,6 +121,7 @@ function formatWhen(iso: Date | string | null | undefined, timeZone: string) {
 export async function retrieveShopMemory(
   query: string,
   businessId: string,
+  knownTimezone?: string,
 ): Promise<ShopMemory> {
   const q = query.trim();
   const wantsToday = /\btoday\b/i.test(q);
@@ -132,48 +133,126 @@ export async function retrieveShopMemory(
   if (wantsEmergency && !terms.includes("emergency")) terms.push("emergency");
   const phone = normalizePhone(q) ?? (q.replace(/\D/g, "").length >= 7 ? q.replace(/\D/g, "") : null);
   const now = new Date();
-  const shop = await prisma.business.findUnique({ where: { id: businessId }, select: { timezone: true } });
-  const tz = shop?.timezone || "America/New_York";
+  const tz = knownTimezone ?? (await prisma.business.findUnique({ where: { id: businessId }, select: { timezone: true } }))?.timezone ?? "America/New_York";
   const { start: startOfToday, end: endOfToday } = shopDayBounds(null, tz, now);
   const endOfTomorrow = shopDayBounds(null, tz, new Date(endOfToday.getTime() + 60 * 60 * 1000)).end;
   const tenant = { businessId };
 
-  const [customers, jobs, leads, calls, stats] = await Promise.all([
-    prisma.customer.findMany({
-      where: tenant,
-      take: 200,
-      orderBy: { lastSeenAt: "desc" },
-      include: { business: { select: { name: true } } },
-    }),
-    prisma.job.findMany({
-      where: tenant,
-      take: 120,
-      orderBy: [{ scheduledAt: "asc" }, { createdAt: "desc" }],
-      include: {
-        customer: { select: { name: true, phone: true } },
-        lead: { select: { name: true, phone: true } },
-        technician: { select: { name: true } },
-      },
-    }),
-    prisma.lead.findMany({
-      where: tenant,
-      take: 80,
-      orderBy: { createdAt: "desc" },
-      include: { customer: { select: { name: true } }, job: { select: { id: true } } },
-    }),
-    prisma.call.findMany({
-      where: tenant,
-      take: 80,
-      orderBy: { createdAt: "desc" },
-      include: { customer: { select: { name: true } } },
-    }),
-    Promise.all([
-      prisma.customer.count({ where: tenant }),
-      prisma.job.count({ where: tenant }),
-      prisma.lead.count({ where: tenant }),
-      prisma.call.count({ where: tenant }),
-    ]),
+  const customerInclude = { business: { select: { name: true } } } as const;
+  const jobInclude = {
+    customer: { select: { name: true, phone: true } },
+    lead: { select: { name: true, phone: true } },
+    technician: { select: { name: true } },
+  } as const;
+  const leadInclude = { customer: { select: { name: true } }, job: { select: { id: true } } } as const;
+  const callInclude = { customer: { select: { name: true } } } as const;
+
+  const statsP = Promise.all([
+    prisma.customer.count({ where: tenant }),
+    prisma.job.count({ where: tenant }),
+    prisma.lead.count({ where: tenant }),
+    prisma.call.count({ where: tenant }),
   ]);
+
+  /** The old way: newest rows only. A customer outside the newest 200 was invisible to Ask. */
+  const loadRecent = () =>
+    Promise.all([
+      prisma.customer.findMany({ where: tenant, take: 200, orderBy: { lastSeenAt: "desc" }, include: customerInclude }),
+      prisma.job.findMany({
+        where: tenant,
+        take: 120,
+        orderBy: [{ scheduledAt: "asc" }, { createdAt: "desc" }],
+        include: jobInclude,
+      }),
+      prisma.lead.findMany({ where: tenant, take: 80, orderBy: { createdAt: "desc" }, include: leadInclude }),
+      prisma.call.findMany({ where: tenant, take: 80, orderBy: { createdAt: "desc" }, include: callInclude }),
+    ]);
+
+  /**
+   * Search the database, not the newest slice of it: matching rows wherever
+   * they sit in the shop's history. Falls back to the recent slice when the
+   * targeted read finds nothing (a word that only lives in a call transcript,
+   * say), so no question that worked before stops working.
+   */
+  const loadTargeted = () => {
+    const probe = terms.slice(0, 5);
+    const flat = (groups: Array<Record<string, unknown>[]>) => groups.flat();
+    return Promise.all([
+      prisma.customer.findMany({
+        where: {
+          ...tenant,
+          OR: [
+            ...flat(probe.map((term) => [{ name: { contains: term } }, { phone: { contains: term } }, { email: { contains: term } }, { address: { contains: term } }, { notes: { contains: term } }])),
+            ...(phone ? [{ phone: { contains: phone } }, { phoneNormalized: { contains: phone } }] : []),
+          ],
+        },
+        take: 60,
+        orderBy: { lastSeenAt: "desc" },
+        include: customerInclude,
+      }),
+      prisma.job.findMany({
+        where: {
+          ...tenant,
+          OR: [
+            ...flat(
+              probe.map((term) => [
+                { title: { contains: term } },
+                { serviceType: { contains: term } },
+                { address: { contains: term } },
+                { notes: { contains: term } },
+                { customer: { name: { contains: term } } },
+                { technician: { name: { contains: term } } },
+                { lead: { name: { contains: term } } },
+              ]),
+            ),
+            ...(phone ? [{ customer: { phone: { contains: phone } } }, { lead: { phone: { contains: phone } } }] : []),
+          ],
+        },
+        take: 60,
+        orderBy: [{ scheduledAt: "asc" }, { createdAt: "desc" }],
+        include: jobInclude,
+      }),
+      prisma.lead.findMany({
+        where: {
+          ...tenant,
+          OR: [
+            ...flat(
+              probe.map((term) => [
+                { name: { contains: term } },
+                { phone: { contains: term } },
+                { serviceType: { contains: term } },
+                { address: { contains: term } },
+                { notes: { contains: term } },
+              ]),
+            ),
+            ...(phone ? [{ phone: { contains: phone } }] : []),
+          ],
+        },
+        take: 60,
+        orderBy: { createdAt: "desc" },
+        include: leadInclude,
+      }),
+      prisma.call.findMany({
+        where: {
+          ...tenant,
+          OR: [
+            ...flat(probe.map((term) => [{ callerPhone: { contains: term } }, { summary: { contains: term } }, { customer: { name: { contains: term } } }])),
+            ...(phone ? [{ callerPhone: { contains: phone } }] : []),
+          ],
+        },
+        take: 60,
+        orderBy: { createdAt: "desc" },
+        include: callInclude,
+      }),
+    ]);
+  };
+
+  const targeted = terms.length > 0 || Boolean(phone);
+  const [loaded, stats] = await Promise.all([targeted ? loadTargeted() : loadRecent(), statsP]);
+  let [customers, jobs, leads, calls] = loaded;
+  if (targeted && !customers.length && !jobs.length && !leads.length && !calls.length) {
+    [customers, jobs, leads, calls] = await loadRecent();
+  }
 
   if (!terms.length && !phone && !wantsToday && !wantsTomorrow && !wantsJobs && !wantsCalls) {
     const briefingJobs = jobs.slice(0, 4).map((job) => {

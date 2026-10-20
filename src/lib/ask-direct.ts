@@ -102,9 +102,12 @@ export async function answerDirect(
   question: string,
   businessId: string,
   now = new Date(),
+  knownTimezone?: string,
 ): Promise<{ answer: string; hits: MemoryHit[]; kind: AskKind } | null> {
-  const shop = await prisma.business.findUnique({ where: { id: businessId }, select: { timezone: true } });
-  const timezone = shop?.timezone ?? "America/New_York";
+  const timezone =
+    knownTimezone ??
+    (await prisma.business.findUnique({ where: { id: businessId }, select: { timezone: true } }))?.timezone ??
+    "America/New_York";
   const intent = readAskIntent(question, timezone, now);
   if (!intent) return null;
   const { window: w, topic, topicLabel } = intent;
