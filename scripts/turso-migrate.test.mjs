@@ -236,7 +236,14 @@ test("builds are pure: the Vercel build command generates and compiles, and neve
   const vercel = JSON.parse(readFileSync(join(repoRoot, "vercel.json"), "utf8"));
   assert.doesNotMatch(vercel.buildCommand, /migrate|db push|seed|turso/i);
   const allow = JSON.parse(readFileSync(join(repoRoot, "ops/migration-targets.json"), "utf8"));
-  assert.deepEqual(Object.values(allow).flat(), [], "no database is allow-listed until the owner adds it");
+  // The allowlist is an owner decision, written down. Exactly one production
+  // host may ever be named here (registered 2026-10-20 for the founder-
+  // directed migration; the ledger row is the application record). Preview
+  // and staging stay empty until their own isolated databases exist —
+  // migrationAuthorization refuses a host listed under two targets anyway.
+  assert.deepEqual(allow.production, ["orvius-marcocarlino2006-glitch.aws-us-east-1.turso.io"], "only the one registered production host is allow-listed");
+  assert.deepEqual(allow.preview ?? [], [], "no preview database is allow-listed");
+  assert.deepEqual(allow.staging ?? [], [], "no staging database is allow-listed");
 });
 
 test("a trigger body stays one statement", () => {
