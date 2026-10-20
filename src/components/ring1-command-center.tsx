@@ -106,7 +106,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
   const liveCall = (data?.recentCalls ?? []).find((call) => isLiveCall(call.status, call.createdAt)) ?? null;
   const shopIssues = (work?.shopIssues ?? []).filter((issue) => issue.kind !== "billing_action" && !issue.resolveId);
   const blocking = shopIssues.filter((issue) => {
-    if (issue.severity !== "critical" && issue.severity !== "high") return false;
+    if (!(issue.severity === "critical" || issue.severity === "high")) return false;
     // One caller is the column, not a breakdown. Two at once still stops the page.
     if (liveCall && issue.kind === "concurrent_calls" && issue.id === `concurrent_calls:${liveCall.id}`) return false;
     return true;
