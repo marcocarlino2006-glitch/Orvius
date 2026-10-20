@@ -412,10 +412,8 @@ export function DemoPanel({ onChange }: { onChange: () => void }) {
   }
   return (
     <section className="cb-demo" aria-label="Simulate a call">
-      <p className="cb-demo-title">Demo workspace — place a call</p>
-      <p className="cb-muted">
-        Runs the real pipeline. Texts are simulated — nothing reaches a real phone.
-      </p>
+      <p className="cb-demo-title">Place a call</p>
+      <p className="cb-muted">Runs the same pipeline as a live line.</p>
       <div className="cb-demo-grid">
         {scenarios.map((s) => (
           <button key={s.id} type="button" className="cb-demo-btn" disabled={Boolean(busy)} onClick={() => void run(s.id)} title={s.expect}>
@@ -448,9 +446,9 @@ export function TryDemo({ empty }: { empty: boolean }) {
     <p className="cb-try">
       {empty ? "No calls yet. " : ""}
       <button type="button" className="cb-try-link" disabled={busy} onClick={() => void open()}>
-        {busy ? "Opening the demo shop…" : "Try it in a demo shop"}
+        {busy ? "Opening…" : "Open a practice shop"}
       </button>
-      {" "}— a separate sample shop dated today. Your real line and customers stay untouched.
+      {" "}— dated today, separate from this one.
     </p>
   );
 }
@@ -480,25 +478,18 @@ export function DemoWorkspaceBar({ sampleFrom, onChange }: { sampleFrom: string 
   return (
     <section className={`cb-demo-bar${stale ? " is-stale" : ""}`} aria-label="Demo shop">
       <div className="cb-demo-bar-copy">
-        <p className="cb-demo-title">Demo shop — separate from your real shop</p>
+        <p className="cb-demo-title">{stale ? "This morning is out of date" : "The day is on the board"}</p>
         <p className="cb-muted">
           {stale && from
-            ? `The sample week is dated from ${from.toLocaleDateString(undefined, { month: "short", day: "numeric" })}, so some of it has gone overdue. Reset to start it at today.`
-            : "A sample week dated today: requests, a plan waiting for approval, today's crew, bills and payments. Texts are simulated and every number is fictional."}
+            ? `Dated from ${from.toLocaleDateString(undefined, { month: "short", day: "numeric" })}. Reset to start at today.`
+            : "Requests, today's crew, bills and payments. Reset any time for a fresh morning."}
         </p>
       </div>
       <div className="cb-demo-bar-actions">
         <button type="button" className={`ox-btn ${stale ? "ox-btn--primary" : "ox-btn--quiet"} ox-btn--sm`} disabled={busy} onClick={() => void reset()}>
           {busy ? "Resetting…" : "Reset to today"}
         </button>
-        <Link href="/dashboard/onboarding" className="ox-btn ox-btn--quiet ox-btn--sm">
-          Set up your real business
-        </Link>
       </div>
-      <p className="cb-muted cb-demo-bar-trail">
-        Open any job or call to see its history: who called, what Orvius decided and why, every text, and what you approved. Your real
-        business starts in test mode and answers nobody until you choose what Orvius may do and turn your line on.
-      </p>
       <DemoPanel onChange={onChange} />
     </section>
   );

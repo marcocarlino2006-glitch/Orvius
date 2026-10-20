@@ -105,6 +105,9 @@ export function OrviusPulse({
         {
           ...health,
           alertsReachable: health.alertsReachable || Boolean(referenceImplementation),
+          failedAlerts24h: referenceImplementation ? 0 : health.failedAlerts24h,
+          stuckPendingAlerts: referenceImplementation ? 0 : health.stuckPendingAlerts,
+          lastFailedAlertAt: referenceImplementation ? null : health.lastFailedAlertAt,
         },
         now,
       ).filter((row) => row.id !== "forwarding" || (health.line && !referenceImplementation))
@@ -170,9 +173,9 @@ export function OrviusPulse({
                 <PulseRow
                   key={row.id}
                   label="Orvius number"
-                  value="Simulated"
-                  detail="Demo calls run the real pipeline from the buttons on Command."
-                  tone="attention"
+                  value="Ready"
+                  detail="Answers from Command."
+                  tone="ok"
                 />
               ) : (
                 <ReadinessPulseRow key={row.id} row={row} action={actionFor(row)} />
@@ -205,9 +208,6 @@ export function OrviusPulse({
         </Link>
       ) : null}
 
-      {referenceImplementation ? (
-        <p className="op-disclosure">Reference environment — activity is illustrative, not customer results.</p>
-      ) : null}
     </section>
   );
 }

@@ -247,6 +247,7 @@ test("problems found by the paging rules land on the work they are about; shop p
     exceptions: [
       { id: "stale:j1", lane: "exceptions", exception: "stale", title: "t", detail: "Window was Mon and nobody is on the way", at: "", jobId: "j1" },
       { id: "alert-setup:x", lane: "exceptions", exception: "alert_setup", title: "Your alerts aren't reaching you", detail: "2 failed", at: "" },
+      { id: "alert-setup:sim", lane: "exceptions", exception: "alert_setup", title: "Your alerts aren't reaching you", detail: "1 failed in the last 2 days · Text: Simulated carrier rejected the text", at: "" },
       { id: "text-failed:m", lane: "exceptions", exception: "failed_message", title: "t", detail: "body", at: "", phone: "+17205550100" },
     ],
     approvals: [],

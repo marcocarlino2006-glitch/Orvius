@@ -190,8 +190,6 @@ export function OsSidebarFooter({ newLeads = 0 }: { newLeads?: number }) {
   const otherShops = (account?.shops ?? []).filter((shop) => shop.id !== currentId);
   const needle = shopQuery.trim().toLowerCase();
   const shownShops = needle ? otherShops.filter((shop) => shop.name.toLowerCase().includes(needle)) : otherShops;
-  const environment = account?.business?.environment ?? "production";
-  const sampleWorkspace = environment === "demo" || environment === "test";
   const upgradeLabel = billingStatusOf(account) === "past_due" ? "Fix payment" : "Upgrade";
   const close = () => setOpen(false);
   /* A shop already paying changes plans in the billing portal; everyone else picks a plan here. */
@@ -219,12 +217,6 @@ export function OsSidebarFooter({ newLeads = 0 }: { newLeads?: number }) {
 
   return (
     <div ref={rootRef} className="os-sidebar-footer mx-footer font-sans">
-      {sampleWorkspace ? (
-        <p className="mx-env" role="status">
-          {environment === "test" ? "Test workspace — not a real shop" : "Demo workspace — sample data"}
-        </p>
-      ) : null}
-
       {open ? (
         <div id={menuId} className="mx-menu" role="menu" aria-label="Account menu">
           {view === "locations" ? (
