@@ -268,49 +268,12 @@ export function AskBar({ onChange, below }: { onChange: () => void; below?: Reac
 
   return (
     <div className="cb-ask">
-      <div className="cb-ask-stack">
-        <form className="cb-ask-form" onSubmit={(e) => void ask(e)}>
-          <label className="sr-only" htmlFor="cb-ask-input">
-            Ask Orvius to book, move, assign, or check work
-          </label>
-          <textarea
-            id="cb-ask-input"
-            ref={inputRef}
-            className="cb-ask-input"
-            rows={2}
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-                e.preventDefault();
-                void ask();
-              }
-            }}
-            placeholder="Ask Orvius to book, move, assign, or check work."
-            autoComplete="off"
-          />
-          <div className="cb-ask-bar">
-            {text.trim() || result || busy ? (
-              <span className="cb-ask-note">
-                <AskIcon d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
-                {busy ? "Reading the shop…" : "Nothing changes until you approve"}
-              </span>
-            ) : (
-              <span />
-            )}
-            <button
-              type="submit"
-              className="cb-ask-send"
-              aria-label={busy ? "Checking…" : "Plan it"}
-              title="Plan it"
-              disabled={busy || text.trim().length < 2}
-            >
-              <AskIcon d="M12 19V5M5 12l7-7 7 7" />
-            </button>
-          </div>
-        </form>
-        {below}
-      </div>
+      {busy && !result ? (
+        <p className="cb-ask-live" role="status">
+          <span className="ask-live-dot" aria-hidden />
+          Reading the shop…
+        </p>
+      ) : null}
       {result ? (
         <div className="cb-ask-result" role="status">
           <p className="cb-ask-message">{result.message}</p>
@@ -377,6 +340,49 @@ export function AskBar({ onChange, below }: { onChange: () => void; below?: Reac
           ) : null}
         </div>
       ) : null}
+      <div className="cb-ask-stack">
+        <form className="cb-ask-form" onSubmit={(e) => void ask(e)}>
+          <label className="sr-only" htmlFor="cb-ask-input">
+            Ask Orvius to book, move, assign, or check work
+          </label>
+          <textarea
+            id="cb-ask-input"
+            ref={inputRef}
+            className="cb-ask-input"
+            rows={2}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                e.preventDefault();
+                void ask();
+              }
+            }}
+            placeholder="Ask Orvius to book, move, assign, or check work."
+            autoComplete="off"
+          />
+          <div className="cb-ask-bar">
+            {text.trim() || result || busy ? (
+              <span className="cb-ask-note">
+                <AskIcon d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
+                {busy ? "Reading the shop…" : "Nothing changes until you approve"}
+              </span>
+            ) : (
+              <span />
+            )}
+            <button
+              type="submit"
+              className="cb-ask-send"
+              aria-label={busy ? "Checking…" : "Plan it"}
+              title="Plan it"
+              disabled={busy || text.trim().length < 2}
+            >
+              <AskIcon d="M12 19V5M5 12l7-7 7 7" />
+            </button>
+          </div>
+        </form>
+        {below}
+      </div>
       <div className="cb-ask-chips" aria-label="Start with">
         {ASK_STARTERS.map((s) => (
           <button key={s.label} type="button" className="cb-ask-chip" onClick={() => start(s.text)}>

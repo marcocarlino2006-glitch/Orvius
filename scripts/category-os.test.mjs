@@ -68,14 +68,14 @@ test("profile popover carries identity and the account menu", () => {
   assert.match(footer, /settings=billing/);
 });
 
-test("Command is one sentence, the session, then the one thing happening", () => {
+test("Command is one sentence, the one thing happening, then the line you talk on", () => {
   const command = read("src/components/ring1-command-center.tsx");
   const board = read("src/components/command-board.tsx");
   const page = read("src/app/dashboard/page.tsx");
   const headline = command.indexOf("cmd-headline");
   const needs = command.indexOf("<WorkCard");
   const ask = command.indexOf("<AskBar");
-  assert.ok(headline > 0 && headline < ask && ask < needs);
+  assert.ok(headline > 0 && headline < needs && needs < ask, "the decision, then the line you talk on");
   assert.doesNotMatch(command, /<TodaySchedule|<CommandSignals|<OrviusPulse|What Orvius did/);
   assert.match(command, /The rest is in Work/);
   assert.match(page, /setup=\{/);

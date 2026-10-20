@@ -6,7 +6,7 @@
   font-family: var(--font-sans, inherit);
 }
 
-/* One column. The sentence, the session, the one thing happening. */
+/* One column. The sentence, the one thing happening, then the line you talk on. */
 .cmd-one {
   max-width: 38rem;
   margin-inline: auto;
@@ -109,6 +109,40 @@
 .cmd-ask .cb-ask {
   display: grid;
   gap: 0.75rem;
+}
+
+/* The talk line sits under the decision. The stacked sheets draw a card; this wins. */
+html body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one .cb-ask-stack,
+html body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one .cb-ask-form {
+  border: 0 !important;
+  border-bottom: 1px solid var(--ox-line) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one .cb-ask-stack:focus-within {
+  border-color: var(--ox-text) !important;
+  box-shadow: none !important;
+}
+
+.cmd-one .cb-ask-live {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  color: var(--ox-text-2);
+  font-size: 0.9375rem;
+}
+
+/* Starters stay off the first view. They appear when the line is the thing you're using. */
+html body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one .cb-ask-chips {
+  display: none;
+  justify-content: flex-start;
+}
+
+html body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one .cb-ask:focus-within .cb-ask-chips {
+  display: flex;
 }
 
 .cmd-section {

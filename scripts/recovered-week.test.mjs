@@ -50,10 +50,10 @@ test("an empty week has no headline, and callers alone still count", () => {
   assert.deepEqual(buildRecoveredWeek({ ...base, leads: 1 }).headline, { value: "1 caller", label: "captured this week", estimate: false });
 });
 
-test("Command is one column: sentence, session, the one thing now — no counts rail", async () => {
+test("Command is one column: sentence, the one thing now, then the line you talk on — no counts rail", async () => {
   const { readFileSync } = await import("node:fs");
   const src = readFileSync(new URL("../src/components/ring1-command-center.tsx", import.meta.url), "utf8");
-  assert.match(src, /cmd-headline[\s\S]*<AskBar[\s\S]*<WorkCard/);
+  assert.match(src, /cmd-headline[\s\S]*<WorkCard[\s\S]*<AskBar/);
   assert.doesNotMatch(src, /<CommandSignals|<OrviusPulse|<aside/);
   assert.doesNotMatch(src, /<CommandRecovered/);
 });
