@@ -27,11 +27,15 @@ test("a texted address is read the way customers actually write it", () => {
   assert.match(route, /address: extractStreetAddress\(body\)/, "the SMS lead is created with the address it was handed");
 });
 
-test("an address without a ZIP is unknown territory, not outside it", () => {
+test("the service-area refusal is split by layer: forms demand ZIPs, texts are not held for missing one", () => {
   const zips = JSON.stringify(["60201", "60202"]);
-  assert.equal(isInServiceArea("915 Hinman Ave, Evanston", zips), null, "no ZIP: the shop decides, the job is not auto-held");
+  assert.equal(isInServiceArea("915 Hinman Ave, Evanston", zips), null, "no ZIP: unknown, not outside — a text cannot be asked to re-type one");
   assert.equal(isInServiceArea("915 Hinman Ave, Evanston IL 60201", zips), true);
   assert.equal(isInServiceArea("1 Congress Ave, Austin TX 78701", zips), false, "a known foreign ZIP is still out");
+  const autoJob = read("src/lib/auto-job.ts");
+  assert.match(autoJob, /inArea === false && Boolean\(extractPostalCode\(lead\.address\)\)/, "auto-job refuses only when a ZIP is present and outside");
+  const form = read("src/lib/online-booking.ts");
+  assert.match(form, /parseServiceZips\(shop\.serviceZipsJson\)\.length > 0 && !extractPostalCode\(input\.address\)/, "the booking FORM keeps its strict no-ZIP refusal (did-it-happen pins the behavior)");
 });
 
 test("vendor pitches match sales patterns; homeowners asking about warranties do not", () => {
