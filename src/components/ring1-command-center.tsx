@@ -6,15 +6,12 @@ import { AskBar, CheckCard, DemoPanel, PlanCard, TryDemo } from "@/components/co
 import { SupportContact } from "@/components/support-contact";
 import { TestAlertButton } from "@/components/test-alert-button";
 import { WorkCard } from "@/components/work-card";
+import { commandSentence } from "@/lib/command-sentence";
 import { useRing1 } from "@/lib/ring1-context";
 import { formatWhen } from "@/lib/when";
 
 /* Shop problems a test alert proves fixed. */
 const ALERT_KINDS = new Set<string>(["alert_failed", "alert_setup", "alerts_muted"]);
-
-function plural(n: number, one: string, many = `${one}s`) {
-  return `${n} ${n === 1 ? one : many}`;
-}
 
 /**
  * Command is one column: one sentence, the session, and the one thing
@@ -94,12 +91,15 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
   const liveApproval = looseApprovals[0] ?? null;
   const liveItem = items[0] ?? null;
   const lastDone = data?.handled?.events[0] ?? null;
-  const sentence = !data
-    ? "Reading the shop…"
-    : (brief?.headline ??
-      (needsYou
-        ? `${plural(needsYou, "thing")} ${needsYou === 1 ? "needs" : "need"} your attention`
-        : "The board is clear."));
+  const sentence = commandSentence({
+    loaded: Boolean(data),
+    brief: brief?.headline ?? null,
+    approval: liveApproval ? { title: liveApproval.preview ?? liveApproval.title, needsCheck: Boolean(liveApproval.needsCheck) } : null,
+    item: liveItem
+      ? { title: liveItem.title, customer: liveItem.customer, nextAction: liveItem.nextAction }
+      : null,
+    lastSummary: !liveApproval && !liveItem ? (lastDone?.summary ?? null) : null,
+  });
   const stale = Boolean(loadError && data);
 
   return (
@@ -167,7 +167,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
           </ul>
         ) : liveItem ? (
           <ul className="wc-list cmd-queue">
-            <WorkCard key={liveItem.key} item={liveItem} approval={approvalFor(liveItem.approvalId)} technicians={data?.technicians ?? []} onChange={() => void refresh()} />
+            <WorkCard key={liveItem.key} item={liveItem} approval={approvalFor(liveItem.approvalId)} technicians={data?.technicians ?? []} onChange={() => void refresh()} variant="now" />
           </ul>
         ) : lastDone ? (
           <p className="cmd-live-trace">
