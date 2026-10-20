@@ -81,6 +81,9 @@ test("Command is one sentence, the one thing happening, then the line you talk o
   assert.match(page, /setup=\{/);
   assert.match(board, /<textarea/);
   assert.match(board, /Nothing changes until you approve/);
+  assert.match(command, /isLiveCall/, "a call in progress takes the column");
+  assert.match(command, /concurrent_calls:\$\{liveCall\.id\}/, "one caller is the column, not a breakdown");
+  assert.ok(command.indexOf("cmd-live-call") < command.indexOf("<WorkCard"), "the live call is the thing happening");
   assert.match(board, /cb-turn-q/, "the question stays on the page");
   assert.match(board, /function SessionReveal/, "the answer arrives in place");
   assert.match(board, /Reading shop records/);

@@ -114,6 +114,14 @@ export type Ring1Data = {
   coverage?: CoverageState;
   lastWeeklyProofAt?: string | null;
   personalBrief?: PersonalBrief | null;
+  recentCalls?: Array<{
+    id: string;
+    callerPhone: string | null;
+    status: string;
+    createdAt: string;
+    leadName: string | null;
+    serviceType: string | null;
+  }>;
   sinceUsed?: string | null;
   version?: string;
   gates?: {
