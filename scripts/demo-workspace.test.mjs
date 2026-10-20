@@ -181,9 +181,9 @@ test("a demo the owner has played with recently is never re-anchored behind thei
   assert.equal(reopened.seeded, false);
 });
 
-test("Command shows the demo bar with a reset, and the demo is reachable from any real shop", () => {
+test("A practice shop runs a call from the session, and a real shop can still open one", () => {
   const cc = readFileSync(new URL("../src/components/ring1-command-center.tsx", import.meta.url), "utf8");
-  assert.match(cc, /data\?\.business\?\.demoWorkspace \? <DemoWorkspaceBar/);
+  assert.match(cc, /data\?\.business\?\.demoWorkspace \? <DemoPanel/);
   assert.match(cc, /<TryDemo empty=\{!data\.metrics\.totalCalls\} \/>/);
   const board = readFileSync(new URL("../src/components/command-board.tsx", import.meta.url), "utf8");
   assert.match(board, /Reset to today/);

@@ -31,9 +31,11 @@ test("degraded outcomes fabricate nothing: no rate, no estimates, not economics-
   assert.match(MONEY_PAUSED_ISSUE.detail, /no money data is lost/);
 });
 
-test("the paused-money state is loud on Command, and the strip never claims 'nothing outstanding'", () => {
+test("the paused-money state is loud on Command, and Command never claims nothing is outstanding", () => {
   assert.match(route, /MONEY_PAUSED_ISSUE, \.\.\.work\.shopIssues/);
   assert.match(readFileSync(new URL("../src/lib/command-degraded.ts", import.meta.url), "utf8"), /title: "Money numbers are paused"/);
-  assert.match(center, /Money isn't loading right now/);
-  assert.doesNotMatch(center, /money\?\.outstandingCents \? `\$\{formatCents\(money\.outstandingCents\)\} still owed` : "Nothing outstanding"/);
+  assert.match(center, /issue\.severity === "critical" \|\| issue\.severity === "high"/);
+  assert.match(center, /Something needs fixing before Orvius can run normally/);
+  assert.doesNotMatch(center, /Nothing outstanding/);
+  assert.doesNotMatch(center, /money\?\.outstandingCents/);
 });

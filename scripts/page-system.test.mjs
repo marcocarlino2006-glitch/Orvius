@@ -125,7 +125,7 @@ test("Command asks for work in one bar and shows propose → approve → result"
   assert.match(board, /Proposed change/);
   assert.match(board, /Your approval/);
   const center = read("src/components/ring1-command-center.tsx");
-  assert.match(center, /Needs you/);
-  assert.match(center, /What Orvius did/);
+  assert.match(center, /cmd-one/);
+  assert.match(center, /The rest is in Work/);
   assert.doesNotMatch(center, /revenue at risk/i);
 });

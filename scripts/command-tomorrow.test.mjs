@@ -30,8 +30,8 @@ test("command tomorrow counts tomorrow's open jobs and the dormant prize", async
   assert.ok(seen[0].where.scheduledAt.gte instanceof Date && seen[0].where.scheduledAt.lt > seen[0].where.scheduledAt.gte);
 });
 
-test("the forward strip is wired from the ring1 route to the Command home", () => {
+test("tomorrow is still read for the shop, and Command does not turn it into a second strip", () => {
   assert.match(read("src/app/api/ring1/route.ts"), /getCommandTomorrow\(business\.id, now\)/);
-  assert.match(read("src/components/ring1-command-center.tsx"), /AheadStrip/);
-  assert.match(read("src/components/ring1-command-center.tsx"), /Dormant customers/);
+  assert.match(read("src/lib/command-tomorrow.ts"), /dormantCustomers/);
+  assert.doesNotMatch(read("src/components/ring1-command-center.tsx"), /AheadStrip|Dormant customers/);
 });

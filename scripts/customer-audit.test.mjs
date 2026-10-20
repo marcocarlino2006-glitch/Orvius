@@ -140,7 +140,7 @@ test("a call that lost its hang-up report stops showing as live after the 10-min
   }
 });
 
-test("Command leads with what the week produced, from the same numbers as the report", () => {
+test("the week line is a pure read of the same numbers, and Command leads with the day's sentence", () => {
   assert.equal(
     weekResultLine({ windowDays: 7, leads: 16, leadsBooked: 12, collectedCents: 182600 }),
     "Last 7 days: 12 of 16 requests became jobs, $1,826 collected.",
@@ -148,7 +148,9 @@ test("Command leads with what the week produced, from the same numbers as the re
   assert.equal(weekResultLine({ windowDays: 7, leads: 1, leadsBooked: 0, collectedCents: 0 }), "Last 7 days: 0 of 1 request became a job.");
   assert.equal(weekResultLine({ windowDays: 7, leads: 0, leadsBooked: 0, collectedCents: 5000 }), null, "nothing to report on an empty week");
   assert.equal(weekResultLine(undefined), null);
-  assert.match(read("src/components/ring1-command-center.tsx"), /weekResultLine\(data\?\.outcomes\)/);
+  const command = read("src/components/ring1-command-center.tsx");
+  assert.match(command, /brief\?\.headline/);
+  assert.doesNotMatch(command, /weekResultLine/);
 });
 
 test("no page sends a ready buyer to the waitlist while signup is open", () => {
