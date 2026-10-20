@@ -21,6 +21,30 @@
   line-height: 1.12;
 }
 
+.cmd-live-call {
+  display: flex;
+  align-items: baseline;
+  gap: 0.625rem;
+  margin: 0;
+  font-size: 1.0625rem;
+}
+
+.cmd-live-call a {
+  color: var(--ox-text);
+  font-weight: 560;
+}
+
+.cmd-live-about {
+  color: var(--ox-text-2);
+}
+
+.cmd-live-call time {
+  margin-left: auto;
+  color: var(--ox-mute);
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+
 .cmd-live-trace {
   display: flex;
   align-items: baseline;

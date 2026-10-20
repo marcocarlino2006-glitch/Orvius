@@ -6,6 +6,8 @@
 export type CommandSentenceInput = {
   loaded: boolean;
   brief: string | null;
+  /** Someone is on the phone right now. That leads, ahead of anything waiting. */
+  live: { who: string } | null;
   approval: { title: string; needsCheck: boolean } | null;
   item: { title: string; customer: string | null; nextAction: string | null } | null;
   lastSummary: string | null;
@@ -28,6 +30,7 @@ function fromAction(action: string): string {
 
 export function commandSentence(input: CommandSentenceInput): string {
   if (!input.loaded) return "Reading the shop…";
+  if (input.live?.who.trim()) return `${input.live.who.trim()} is on the line.`;
   if (input.approval) {
     const title = finish(input.approval.title);
     return input.approval.needsCheck ? `Check this. ${title}` : title || "Orvius is waiting on your OK.";

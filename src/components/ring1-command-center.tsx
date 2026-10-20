@@ -7,8 +7,25 @@ import { SupportContact } from "@/components/support-contact";
 import { TestAlertButton } from "@/components/test-alert-button";
 import { WorkCard } from "@/components/work-card";
 import { commandSentence } from "@/lib/command-sentence";
+import { isLiveCall } from "@/lib/live-call";
 import { useRing1 } from "@/lib/ring1-context";
 import { formatWhen } from "@/lib/when";
+
+function callerName(name: string | null | undefined, phone: string | null | undefined): string {
+  const who = name?.trim();
+  if (who) return who;
+  const digits = (phone ?? "").replace(/\D/g, "");
+  if (digits.length === 11 && digits.startsWith("1")) {
+    return `+1 ${digits.slice(1, 4)} ${digits.slice(4, 7)} ${digits.slice(7)}`;
+  }
+  return phone?.trim() || "A caller";
+}
+
+function minutesOnTheLine(createdAt: string): string {
+  const minutes = Math.max(0, Math.floor((Date.now() - new Date(createdAt).getTime()) / 60_000));
+  if (minutes < 1) return "Just connected";
+  return minutes === 1 ? "1 min" : `${minutes} min`;
+}
 
 /* Shop problems a test alert proves fixed. */
 const ALERT_KINDS = new Set<string>(["alert_failed", "alert_setup", "alerts_muted"]);
@@ -86,14 +103,22 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
   const approvalFor = (id: string | null) => (id ? approvals.find((a) => a.proposalId === id) ?? null : null);
   const brief = data?.personalBrief ?? null;
   const needsYou = work?.needsYou ?? 0;
+  const liveCall = (data?.recentCalls ?? []).find((call) => isLiveCall(call.status, call.createdAt)) ?? null;
   const shopIssues = (work?.shopIssues ?? []).filter((issue) => issue.kind !== "billing_action" && !issue.resolveId);
-  const blocking = shopIssues.filter((issue) => issue.severity === "critical" || issue.severity === "high");
+  const blocking = shopIssues.filter((issue) => {
+    if (!(issue.severity === "critical" || issue.severity === "high")) return false;
+    // One caller is the column, not a breakdown. Two at once still stops the page.
+    if (liveCall && issue.kind === "concurrent_calls" && issue.id === `concurrent_calls:${liveCall.id}`) return false;
+    return true;
+  });
   const liveApproval = looseApprovals[0] ?? null;
   const liveItem = items[0] ?? null;
   const lastDone = data?.handled?.events[0] ?? null;
+  const onTheLine = liveCall ? callerName(liveCall.leadName, liveCall.callerPhone) : null;
   const sentence = commandSentence({
     loaded: Boolean(data),
     brief: brief?.headline ?? null,
+    live: onTheLine ? { who: onTheLine } : null,
     approval: liveApproval ? { title: liveApproval.preview ?? liveApproval.title, needsCheck: Boolean(liveApproval.needsCheck) } : null,
     item: liveItem
       ? { title: liveItem.title, customer: liveItem.customer, nextAction: liveItem.nextAction }
@@ -144,7 +169,14 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
       </header>
 
       <section className="cmd-live" aria-label="Now">
-        {liveApproval ? (
+        {liveCall ? (
+          <p className="cmd-live-call">
+            <span className="ask-live-dot" aria-hidden />
+            <Link href={`/dashboard/calls/${liveCall.id}`}>{onTheLine}</Link>
+            <span className="cmd-live-about">{liveCall.serviceType?.trim() || "On the line"}</span>
+            <time dateTime={liveCall.createdAt}>{minutesOnTheLine(liveCall.createdAt)}</time>
+          </p>
+        ) : liveApproval ? (
           <ul className="wc-list cmd-queue">
             <li className="wc wc--approval">
               <p className="wc-tags">
@@ -172,7 +204,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
             <time dateTime={lastDone.at}>{formatWhen(lastDone.at)}</time>
           </p>
         ) : null}
-        {needsYou > 1 ? (
+        {(liveCall ? needsYou > 0 : needsYou > 1) ? (
           <p className="cmd-rest">
             <Link href="/dashboard/work">The rest is in Work</Link>
           </p>
