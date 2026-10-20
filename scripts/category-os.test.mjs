@@ -81,6 +81,9 @@ test("Command is one sentence, the one thing happening, then the line you talk o
   assert.match(page, /setup=\{/);
   assert.match(board, /<textarea/);
   assert.match(board, /Nothing changes until you approve/);
+  assert.match(board, /cb-turn-q/, "the question stays on the page");
+  assert.match(board, /function SessionReveal/, "the answer arrives in place");
+  assert.match(board, /Reading shop records/);
   for (const chip of ["Book a job", "Move a job", "Send a tech"]) assert.match(board, new RegExp(chip));
   assert.doesNotMatch(board, /export function CommandBoard/, "Command's lanes are gone; what needs you is read from Work");
 });

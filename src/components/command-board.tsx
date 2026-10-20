@@ -218,20 +218,96 @@ function AskIcon({ d }: { d: string }) {
   );
 }
 
+const SESSION_STEPS = ["Reading shop records…", "Checking calls, jobs and money…", "Putting the answer together…"];
+
+/** The line is working. The words change so the wait is something you can see. */
+function SessionThinking() {
+  const [step, setStep] = useState(0);
+  useEffect(() => {
+    const id = window.setInterval(() => setStep((s) => Math.min(s + 1, SESSION_STEPS.length - 1)), 900);
+    return () => window.clearInterval(id);
+  }, []);
+  return (
+    <p className="cb-ask-live" role="status">
+      <span className="ask-live-dot" aria-hidden />
+      {SESSION_STEPS[step]}
+    </p>
+  );
+}
+
+/** The answer arrives in place. A click, or reduced motion, shows the whole line. */
+function SessionReveal({ text, onDone }: { text: string; onDone: () => void }) {
+  const [shown, setShown] = useState(0);
+  const doneRef = useRef(false);
+  useEffect(() => {
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced || text.length < 48) {
+      setShown(text.length);
+      if (!doneRef.current) {
+        doneRef.current = true;
+        onDone();
+      }
+      return;
+    }
+    const step = Math.max(2, Math.ceil(text.length / 70));
+    const id = window.setInterval(() => {
+      setShown((current) => {
+        const next = Math.min(text.length, current + step);
+        if (next >= text.length) {
+          window.clearInterval(id);
+          if (!doneRef.current) {
+            doneRef.current = true;
+            onDone();
+          }
+        }
+        return next;
+      });
+    }, 16);
+    return () => window.clearInterval(id);
+    // The finish callback is owned by this turn; re-running it would restart the line.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [text]);
+  const typing = shown < text.length;
+  return (
+    <p
+      className="cb-turn-a"
+      onClick={() => {
+        if (!typing) return;
+        setShown(text.length);
+        if (!doneRef.current) {
+          doneRef.current = true;
+          onDone();
+        }
+      }}
+    >
+      {text.slice(0, shown)}
+      {typing ? <span className="ask-caret" aria-hidden /> : null}
+    </p>
+  );
+}
+
+type SessionTurn = {
+  id: number;
+  question: string;
+  status: "pending" | "done";
+  result?: AskResult;
+  revealed?: boolean;
+  outcome?: PlanOutcome | null;
+};
+
 /**
- * The composer at the top of Command. Every ask ends in a plan to approve or a
- * plain question; nothing on the schedule changes from typing alone.
+ * The line under the decision. A turn stays on the page: the question, the
+ * wait, then the answer. Nothing on the schedule changes from typing alone.
  */
 export function AskBar({ onChange, below }: { onChange: () => void; below?: ReactNode }) {
   const [text, setText] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [result, setResult] = useState<AskResult | null>(null);
-  const [outcome, setOutcome] = useState<PlanOutcome | null>(null);
+  const [turns, setTurns] = useState<SessionTurn[]>([]);
+  const nextId = useRef(1);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const busy = turns.some((turn) => turn.status === "pending");
 
   function start(prefix: string) {
     setText(prefix);
-    setResult(null);
     requestAnimationFrame(() => {
       const el = inputRef.current;
       if (!el) return;
@@ -240,106 +316,109 @@ export function AskBar({ onChange, below }: { onChange: () => void; below?: Reac
     });
   }
 
+  function settle(id: number, result: AskResult) {
+    setTurns((current) => current.map((turn) => (turn.id === id ? { ...turn, status: "done", result, revealed: false } : turn)));
+  }
+
   async function ask(event?: React.FormEvent) {
     event?.preventDefault();
-    if (busy || text.trim().length < 2) return;
-    setBusy(true);
-    setOutcome(null);
+    const question = text.trim();
+    if (busy || question.length < 2) return;
+    const id = nextId.current++;
+    setText("");
+    setTurns((current) => [...current, { id, question, status: "pending" }]);
     try {
-      setResult(await post<AskResult>("/api/command/ask", { text }));
+      settle(id, await post<AskResult>("/api/command/ask", { text: question }));
     } catch (err) {
-      setResult({ kind: "refused", message: err instanceof Error ? err.message : "That didn't go through — nothing changed" });
-    } finally {
-      setBusy(false);
+      settle(id, { kind: "refused", message: err instanceof Error ? err.message : "That didn't go through — nothing changed" });
     }
   }
 
-  async function pick(option: { action: string; at: string; leadId?: string; jobId?: string }) {
-    setBusy(true);
+  async function pick(id: number, option: { action: string; at: string; leadId?: string; jobId?: string }) {
+    setTurns((current) => current.map((turn) => (turn.id === id ? { ...turn, status: "pending", result: undefined, revealed: false } : turn)));
     try {
       const data = await post("/api/copilot", option);
-      setResult({ kind: "proposal", proposal: { proposalId: data.proposalId, preview: data.preview }, message: "Here's the plan." });
+      settle(id, { kind: "proposal", proposal: { proposalId: data.proposalId, preview: data.preview }, message: "Here's the plan." });
     } catch (err) {
-      setResult({ kind: "refused", message: err instanceof Error ? err.message : "That didn't go through — nothing changed" });
-    } finally {
-      setBusy(false);
+      settle(id, { kind: "refused", message: err instanceof Error ? err.message : "That didn't go through — nothing changed" });
     }
+  }
+
+  function reveal(id: number) {
+    setTurns((current) => current.map((turn) => (turn.id === id ? { ...turn, revealed: true } : turn)));
   }
 
   return (
     <div className="cb-ask">
-      {busy && !result ? (
-        <p className="cb-ask-live" role="status">
-          <span className="ask-live-dot" aria-hidden />
-          Reading the shop…
-        </p>
-      ) : null}
-      {result ? (
-        <div className="cb-ask-result" role="status">
-          <p className="cb-ask-message">{result.message}</p>
-          {result.kind === "choices" ? (
-            <div className="cb-slots">
-              {result.options.map((o) => (
-                <button key={o.at} type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => void pick(o)}>
-                  {o.label}
-                </button>
-              ))}
-            </div>
-          ) : null}
-          {result.kind === "answer" && result.records?.length ? (
-            <ul className="cb-records">
-              {result.records.map((r) => (
-                <li key={r.href}>
-                  <a href={r.href} className="cb-record">
-                    <span className="cb-record-title">{r.title}</span>
-                    <span className="cb-record-sum">{r.summary}</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-          {result.kind === "proposal" ? (
-            <>
-              <ol className="cb-steps" aria-label="Progress">
-                <li className="is-done">Proposed change</li>
-                <li className="is-now">Your approval</li>
-                <li>Result</li>
-              </ol>
-              <PlanCard
-                proposal={result.proposal}
-                onResult={setOutcome}
-                onDone={() => {
-                  setResult(null);
-                  setText("");
-                  onChange();
-                }}
-              />
-            </>
-          ) : null}
-        </div>
-      ) : null}
-      {outcome ? (
-        <div className={`cb-outcome${outcome.ok ? " is-ok" : ""}`} role="status">
-          <ol className="cb-steps" aria-label="Progress">
-            <li className="is-done">Proposed change</li>
-            <li className="is-done">{outcome.ok ? "Approved" : "Dismissed"}</li>
-            <li className="is-done">Result</li>
-          </ol>
-          <p className="cb-outcome-text">{outcome.text}</p>
-          <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" onClick={() => setOutcome(null)}>
-            Clear
-          </button>
-          {outcome.outcome ? (
-            <OutcomeCard
-              outcome={outcome.outcome}
-              onChange={(next) => {
-                setOutcome({ ...outcome, outcome: next });
-                onChange();
-              }}
-            />
-          ) : null}
-        </div>
-      ) : null}
+      {turns.map((turn) => {
+        const result = turn.result;
+        return (
+          <article key={turn.id} className="cb-turn">
+            <p className="cb-turn-q">{turn.question}</p>
+            {turn.status === "pending" ? <SessionThinking /> : null}
+            {result ? (
+              <div className="cb-ask-result" role="status">
+                <SessionReveal text={result.message} onDone={() => reveal(turn.id)} />
+                {turn.revealed && result.kind === "choices" ? (
+                  <div className="cb-slots">
+                    {result.options.map((o) => (
+                      <button key={o.at} type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => void pick(turn.id, o)}>
+                        {o.label}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+                {turn.revealed && result.kind === "answer" && result.records?.length ? (
+                  <ul className="cb-records">
+                    {result.records.map((r) => (
+                      <li key={r.href}>
+                        <a href={r.href} className="cb-record">
+                          <span className="cb-record-title">{r.title}</span>
+                          <span className="cb-record-sum">{r.summary}</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+                {turn.revealed && result.kind === "proposal" && !turn.outcome ? (
+                  <>
+                    <ol className="cb-steps" aria-label="Progress">
+                      <li className="is-done">Proposed change</li>
+                      <li className="is-now">Your approval</li>
+                      <li>Result</li>
+                    </ol>
+                    <PlanCard
+                      proposal={result.proposal}
+                      onResult={(outcome) => setTurns((current) => current.map((item) => (item.id === turn.id ? { ...item, outcome } : item)))}
+                      onDone={() => onChange()}
+                    />
+                  </>
+                ) : null}
+              </div>
+            ) : null}
+            {turn.outcome ? (
+              <div className={`cb-outcome${turn.outcome.ok ? " is-ok" : ""}`} role="status">
+                <ol className="cb-steps" aria-label="Progress">
+                  <li className="is-done">Proposed change</li>
+                  <li className="is-done">{turn.outcome.ok ? "Approved" : "Dismissed"}</li>
+                  <li className="is-done">Result</li>
+                </ol>
+                <p className="cb-outcome-text">{turn.outcome.text}</p>
+                {turn.outcome.outcome ? (
+                  <OutcomeCard
+                    outcome={turn.outcome.outcome}
+                    onChange={(next) =>
+                      setTurns((current) =>
+                        current.map((item) => (item.id === turn.id && item.outcome ? { ...item, outcome: { ...item.outcome, outcome: next } } : item)),
+                      )
+                    }
+                  />
+                ) : null}
+              </div>
+            ) : null}
+          </article>
+        );
+      })}
       <div className="cb-ask-stack">
         <form className="cb-ask-form" onSubmit={(e) => void ask(e)}>
           <label className="sr-only" htmlFor="cb-ask-input">
@@ -362,10 +441,10 @@ export function AskBar({ onChange, below }: { onChange: () => void; below?: Reac
             autoComplete="off"
           />
           <div className="cb-ask-bar">
-            {text.trim() || result || busy ? (
+            {text.trim() || turns.length || busy ? (
               <span className="cb-ask-note">
                 <AskIcon d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
-                {busy ? "Reading the shop…" : "Nothing changes until you approve"}
+                Nothing changes until you approve
               </span>
             ) : (
               <span />

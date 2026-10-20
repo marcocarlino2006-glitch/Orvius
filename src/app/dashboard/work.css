@@ -135,6 +135,25 @@ html body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one .cb-as
   font-size: 0.9375rem;
 }
 
+.cmd-one .cb-turn {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.cmd-one .cb-turn-q {
+  margin: 0;
+  color: var(--ox-text-2);
+  font-size: 0.9375rem;
+  line-height: 1.4;
+}
+
+.cmd-one .cb-turn-a {
+  margin: 0;
+  color: var(--ox-text);
+  font-size: 1.0625rem;
+  line-height: 1.45;
+}
+
 /* Starters stay off the first view. They appear when the line is the thing you're using. */
 html body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one .cb-ask-chips {
   display: none;
