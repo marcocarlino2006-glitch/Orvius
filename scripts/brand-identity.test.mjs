@@ -24,7 +24,9 @@ test("the logo is the symbol beside the ORVIUS wordmark, in one ink", () => {
   assert.match(css, /aspect-ratio: 756\.31 \/ 100/);
   assert.match(css, /\.os-sidebar-brand \.orvius-logo-mark \{[^}]*color: black !important;/);
   assert.match(css, /\.orvius-logo-mark \{[^}]*background: white !important;/);
+  assert.match(css, /\.orvius-logo-word,\s*\.orvius-logo-svg \{\s*color: black !important;/);
   assert.match(read("src/app/public-v2.css"), /\.ov-public \.orvius-logo-mark \{[^}]*color: black !important;/);
+  assert.match(read("src/app/public-v2.css"), /\.ov-public \.orvius-logo-word \{[^}]*color: black !important;/);
   assert.doesNotMatch(read("src/app/public-v2.css"), /\.orvius-logo-mark \{[^}]*--ov-copper/);
 });
 
@@ -60,7 +62,7 @@ test("public surfaces use the lockup, and the social card carries the artwork", 
   const og = read("src/app/opengraph-image.tsx");
   assert.match(og, /<OrviusMarkGraphic size=\{84\} variant="light" \/>/);
   assert.match(og, /background: "#ffffff"/);
-  assert.match(og, /<OrviusWordmarkGraphic width=\{300\} \/>/);
+  assert.match(og, /<OrviusWordmarkGraphic width=\{300\} color="#000000" \/>/);
   for (const name of ["orvius-wordmark-white.svg", "orvius-wordmark-black.svg", "orvius-mark.svg"]) {
     const svg = read(`public/brand/${name}`);
     assert.match(svg, /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg" viewBox=/);
