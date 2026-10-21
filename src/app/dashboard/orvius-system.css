@@ -3625,7 +3625,7 @@ html[data-theme="day"] .os-shell.os-shell-night :is(.os-main,  .os-topbar,  .os-
   color: var(--ox-text) !important;
 }
 
-html[data-theme="day"] .os-shell.os-shell-night :is(.orvius-logo-word,  .orvius-logo-void,  h2) {
+html[data-theme="day"] .os-shell.os-shell-night h2 {
   color: var(--ox-text) !important;
 }
 

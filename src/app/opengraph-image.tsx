@@ -22,21 +22,19 @@ export default function OpenGraphImage() {
           padding: "72px 80px",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 22 }} aria-label={brandWordmark}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 96,
-              height: 96,
-              borderRadius: 22,
-              background: "#ffffff",
-            }}
-          >
-            <OrviusMarkGraphic size={84} variant="light" />
-          </div>
-          <OrviusWordmarkGraphic width={300} />
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 22,
+            background: "#ffffff",
+            borderRadius: 28,
+            padding: "16px 28px 16px 16px",
+          }}
+          aria-label={brandWordmark}
+        >
+          <OrviusMarkGraphic size={84} variant="light" />
+          <OrviusWordmarkGraphic width={300} color="#000000" />
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
