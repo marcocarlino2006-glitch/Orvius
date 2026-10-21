@@ -1028,6 +1028,10 @@ html .ov-public .pricing-chapter-compare .pricing-matrix-scroll {
 }
 
 @media (max-width: 560px) {
+  .ov-signin-mobile-head .orvius-logo-word {
+    font-size: 1.35rem;
+  }
+
   .ov-signin .ov-signin-panel {
     padding-top: 1.5rem;
   }

@@ -1209,7 +1209,7 @@ body {
 
 @media (max-width: 1024px) {
   .ov-signin {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .ov-signin-canvas {
