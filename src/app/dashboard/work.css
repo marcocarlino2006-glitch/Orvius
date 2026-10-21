@@ -12,7 +12,7 @@
   flex-direction: column;
   flex: 1 1 auto;
   width: 100%;
-  max-width: 52rem;
+  max-width: 72rem;
   margin-inline: auto;
   gap: 1.5rem;
   padding-top: 1.25rem;
@@ -297,59 +297,91 @@
   color: var(--ox-text);
 }
 
-.cmd-day {
-  margin: 0;
+html body .os-shell.os-shell-pro .cmd.cmd-one {
+  max-width: 72rem;
 }
 
-.cmd-day-kicker {
-  margin: 0 0 0.25rem;
+.cmd-desk {
+  display: grid;
+  gap: 1.75rem;
+}
+
+html[data-theme="day"] body .os-shell.os-shell-night .cmd-desk .cmd-today {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+html[data-theme="day"] body .os-shell.os-shell-night .cmd-desk .cmd-today-lane {
+  border: 1px solid var(--ox-line) !important;
+  border-radius: var(--ox-radius) !important;
+  background: var(--ox-s1) !important;
+}
+
+@media (max-width: 720px) {
+  html[data-theme="day"] body .os-shell.os-shell-night .cmd-desk .cmd-today {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cmd-open-group + .cmd-open-group {
+  margin-top: 0.75rem;
+}
+
+.cmd-open-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 0.15rem;
   font-size: 0.8125rem;
   font-weight: 560;
-  letter-spacing: 0;
-  color: var(--ox-mute);
+  color: var(--ox-text-2);
 }
 
-.cmd-day ul {
+.cmd-open ul {
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.cmd-day-row {
+.cmd-open-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 0.15rem 1rem;
   align-items: baseline;
-  padding: 0.85rem 0;
+  padding: 0.7rem 0;
   border-top: 1px solid var(--ox-line);
   color: inherit;
   text-decoration: none;
 }
 
-.cmd-day-main,
-.cmd-day-side {
+.cmd-open-main,
+.cmd-open-side {
   display: grid;
   min-width: 0;
   gap: 0.1rem;
 }
 
-.cmd-day-who {
+.cmd-open-who {
   overflow: hidden;
   font-weight: 560;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.cmd-day-what,
-.cmd-day-side {
+.cmd-open-what,
+.cmd-open-side {
   color: var(--ox-text-2);
   font-size: 0.875rem;
 }
 
-.cmd-day-side {
+.cmd-open-side {
   justify-items: end;
   font-variant-numeric: tabular-nums;
   text-align: right;
+}
+
+.cmd-open .cmd-more {
+  margin-top: 0.35rem;
 }
 
 .cmd-one .cmd-ask {

@@ -25,6 +25,61 @@ export type CommandFlow = {
   pastDue: number;
 };
 
+export type DeskJob = {
+  id: string;
+  technician?: { name: string } | null;
+};
+
+export type DeskItem = {
+  key: string;
+  id: string;
+  kind: string;
+  stage: string;
+  stageLabel: string;
+};
+
+const OPEN_STAGE_ORDER = ["needs_callback", "needs_time", "scheduled", "confirmed", "on_the_way", "on_site", "done"];
+
+/** Today's visits, one lane per technician. Unassigned leads so an open job is the first thing read. */
+export function lanesForToday<T extends DeskJob>(jobs: readonly T[]): Array<{ tech: string; jobs: T[] }> {
+  const groups = new Map<string, T[]>();
+  for (const job of jobs) {
+    const tech = job.technician?.name?.trim() || "Unassigned";
+    const list = groups.get(tech);
+    if (list) list.push(job);
+    else groups.set(tech, [job]);
+  }
+  return [...groups.entries()]
+    .sort(([a], [b]) => (a === "Unassigned" ? -1 : b === "Unassigned" ? 1 : a.localeCompare(b)))
+    .map(([tech, list]) => ({ tech, jobs: list }));
+}
+
+/**
+ * Open work that is not already the decision on screen and not already on
+ * today's board, grouped by stage in the order a job actually moves.
+ */
+export function openGroups<T extends DeskItem>(
+  items: readonly T[],
+  asideKey: string | null,
+  onToday: ReadonlySet<string>,
+): Array<{ stage: string; label: string; items: T[] }> {
+  const groups = new Map<string, T[]>();
+  for (const item of items) {
+    if (item.key === asideKey) continue;
+    if (item.kind === "job" && onToday.has(item.id)) continue;
+    const list = groups.get(item.stage);
+    if (list) list.push(item);
+    else groups.set(item.stage, [item]);
+  }
+  return [...groups.entries()]
+    .sort(([a], [b]) => {
+      const ia = OPEN_STAGE_ORDER.indexOf(a);
+      const ib = OPEN_STAGE_ORDER.indexOf(b);
+      return (ia < 0 ? OPEN_STAGE_ORDER.length : ia) - (ib < 0 ? OPEN_STAGE_ORDER.length : ib);
+    })
+    .map(([stage, list]) => ({ stage, label: list[0]?.stageLabel ?? stage, items: list }));
+}
+
 export type CommandMoney = {
   windowDays: number;
   invoicedCents: number;

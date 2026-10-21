@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { AskBar, CheckCard, DemoPanel, PlanCard, TryDemo } from "@/components/command-board";
+import { DeskBoard } from "@/components/desk-board";
 import { SupportContact } from "@/components/support-contact";
 import { TestAlertButton } from "@/components/test-alert-button";
 import { WorkCard } from "@/components/work-card";
 import { commandSentence } from "@/lib/command-sentence";
 import { isLiveCall } from "@/lib/live-call";
 import { useRing1 } from "@/lib/ring1-context";
-import { spokenName, spokenText } from "@/lib/spoken-name";
+import { spokenName } from "@/lib/spoken-name";
 import { formatBeat, formatWhen } from "@/lib/when";
 
 function callerName(name: string | null | undefined): string {
@@ -26,8 +27,8 @@ function minutesOnTheLine(createdAt: string): string {
 const ALERT_KINDS = new Set<string>(["alert_failed", "alert_setup", "alerts_muted"]);
 
 /**
- * Command is the desk: the sentence, the one thing happening, the rest of
- * the day, then the line you talk on.
+ * Command is the desk: the sentence, the one thing happening, today's crew,
+ * the money, what is still open, then the line you talk on.
  */
 export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
   const { data, locked, loading, loadError, refresh } = useRing1();
@@ -105,7 +106,6 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
   });
   const liveApproval = looseApprovals[0] ?? null;
   const liveItem = items.find((item) => item.needsYou) ?? null;
-  const day = items.filter((item) => item.key !== liveItem?.key);
   const lastDone = data?.handled?.events[0] ?? null;
   const onTheLine = liveCall ? callerName(liveCall.leadName) : null;
   const sentence = commandSentence({
@@ -207,30 +207,14 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
         ) : null}
       </section>
 
-      {day.length ? (
-        <section className="cmd-day" aria-label="The day">
-          <h3 className="cmd-day-kicker">The day</h3>
-          <ul>
-            {day.map((item) => {
-              const when = formatBeat(item.scheduledAt ?? item.createdAt, data?.coverage?.timezone);
-              const who = spokenName(item.customer) || "A caller";
-              return (
-                <li key={item.key}>
-                  <Link href={item.href} className="cmd-day-row">
-                    <span className="cmd-day-main">
-                      <span className="cmd-day-who">{who}</span>
-                      <span className="cmd-day-what">{spokenText(item.title)}</span>
-                    </span>
-                    <span className="cmd-day-side">
-                      <time dateTime={item.scheduledAt ?? item.createdAt}>{when}</time>
-                      <span>{item.amountLabel ?? item.stageLabel}</span>
-                    </span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
+      {data ? (
+        <DeskBoard
+          jobs={data.dispatchToday?.jobs ?? []}
+          money={data.money}
+          items={items}
+          asideKey={liveItem?.key ?? null}
+          timezone={data.coverage?.timezone}
+        />
       ) : null}
 
       <div className="cmd-ask">

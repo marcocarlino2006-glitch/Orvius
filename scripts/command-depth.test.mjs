@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { PrismaClient } from "@prisma/client";
 
-import { getCommandFlow, getCommandMoney, summarizeFlow } from "../src/lib/command-depth.ts";
+import { getCommandFlow, getCommandMoney, lanesForToday, openGroups, summarizeFlow } from "../src/lib/command-depth.ts";
 
 const prisma = new PrismaClient();
 const stamp = () => `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
@@ -88,4 +88,39 @@ test("money reads billed, collected and owed from invoices and payments in the w
   assert.equal(stage(flow, "booked").count, 5);
   assert.equal(stage(flow, "done").count, 4);
   assert.equal(stage(flow, "paid").count, 1);
+});
+
+test("today's board leads with unassigned work and keeps each technician's jobs together", () => {
+  const lanes = lanesForToday([
+    { id: "a", technician: { name: "Ana Ruiz" } },
+    { id: "b", technician: null },
+    { id: "c", technician: { name: "Ana Ruiz" } },
+    { id: "d", technician: { name: "  " } },
+  ]);
+  assert.deepEqual(
+    lanes.map((lane) => [lane.tech, lane.jobs.map((job) => job.id)]),
+    [
+      ["Unassigned", ["b", "d"]],
+      ["Ana Ruiz", ["a", "c"]],
+    ],
+  );
+});
+
+test("open work leaves out the decision and today's jobs, and follows the stage a job moves through", () => {
+  const items = [
+    { key: "live", id: "live", kind: "job", stage: "needs_callback", stageLabel: "Needs a callback" },
+    { key: "today", id: "today", kind: "job", stage: "scheduled", stageLabel: "Scheduled" },
+    { key: "site", id: "site", kind: "job", stage: "on_site", stageLabel: "On site" },
+    { key: "book", id: "book", kind: "request", stage: "needs_time", stageLabel: "Needs a time" },
+    { key: "call", id: "call", kind: "request", stage: "needs_callback", stageLabel: "Needs a callback" },
+  ];
+  const groups = openGroups(items, "live", new Set(["today"]));
+  assert.deepEqual(
+    groups.map((group) => [group.label, group.items.map((item) => item.key)]),
+    [
+      ["Needs a callback", ["call"]],
+      ["Needs a time", ["book"]],
+      ["On site", ["site"]],
+    ],
+  );
 });
