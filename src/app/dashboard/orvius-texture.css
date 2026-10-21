@@ -400,7 +400,7 @@ html .os-shell .sc-dialog :is(.sc-btn,  .ox-btn,  .btn,  .btn-secondary,  .btn-v
     margin: 0 0 0.4rem;
     padding: 0 0.85rem;
     border: 0 !important;
-    border-radius: 0.625rem !important;
+    border-radius: 0.75rem !important;
     background: color-mix(in srgb, var(--ox-text) 8%, transparent);
     color: var(--ox-mute);
     font: inherit;
@@ -458,7 +458,7 @@ html .os-shell .sc-dialog :is(.sc-btn,  .ox-btn,  .btn,  .btn-secondary,  .btn-v
     max-height: min(78vh, 36rem);
     border: 0;
     border-top: 1px solid var(--ox-line);
-    border-radius: 1rem 1rem 0 0;
+    border-radius: 1.25rem 1.25rem 0 0;
     background: var(--ox-bg) !important;
     color: var(--ox-text);
     box-shadow: none !important;
@@ -494,7 +494,7 @@ html .os-shell .sc-dialog :is(.sc-btn,  .ox-btn,  .btn,  .btn-secondary,  .btn-v
     min-width: 0;
     min-height: 2.75rem;
     padding: 0 0.85rem;
-    border-radius: 0.625rem;
+    border-radius: 0.75rem;
     background: color-mix(in srgb, var(--ox-text) 7%, transparent);
   }
 
@@ -599,7 +599,7 @@ html .os-shell .sc-dialog :is(.sc-btn,  .ox-btn,  .btn,  .btn-secondary,  .btn-v
     border-radius: 0.5rem;
     background: transparent;
     color: var(--ox-mute) !important;
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     font-weight: 500;
     letter-spacing: -0.01em;
     line-height: 1;
