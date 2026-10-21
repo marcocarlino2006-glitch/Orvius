@@ -99,6 +99,20 @@ test("a request's stage and next action follow its status", () => {
   assert.equal(item.key, "request:l1");
   assert.equal(item.href, "/dashboard/inbox/l1");
   assert.deepEqual(item.responsible, { kind: "owner", label: "You", email: null });
+  assert.deepEqual(
+    item.path.map((beat) => [beat.label, beat.state]),
+    [
+      ["Called", "done"],
+      ["Booked", "now"],
+    ],
+  );
+  assert.deepEqual(
+    work.requestWorkItem(lead({ status: "booked" })).path.map((beat) => [beat.label, beat.state]),
+    [
+      ["Called", "done"],
+      ["Booked", "done"],
+    ],
+  );
 });
 
 const jobItem = (j) => work.jobWorkItem(j, now.getTime());
@@ -110,8 +124,24 @@ test("a job's stage and next action follow the visit", () => {
 
   const tech = { id: "t1", name: "Ray" };
   assert.equal(jobItem(job({ technician: tech })).nextAction, "Confirm the time with the customer");
+  assert.deepEqual(
+    jobItem(job()).path.map((beat) => [beat.label, beat.state]),
+    [
+      ["Booked", "done"],
+      ["Confirmed", "now"],
+      ["Tech", "wait"],
+    ],
+  );
   const unanswered = jobItem(job({ technician: tech, customerConfirmedAt: now }));
   assert.equal(unanswered.nextAction, "Waiting on Ray to accept");
+  assert.deepEqual(
+    unanswered.path.map((beat) => [beat.label, beat.state]),
+    [
+      ["Booked", "done"],
+      ["Confirmed", "done"],
+      ["Ray", "now"],
+    ],
+  );
   assert.equal(unanswered.waitingOn, "technician");
   assert.equal(unanswered.needsYou, false, "waiting on the technician isn't the owner's job until it goes stale");
   assert.equal(jobItem(job({ technician: tech, customerConfirmedAt: now, techAcceptedAt: now })).nextAction, null);
@@ -129,10 +159,21 @@ test("a job's stage and next action follow the visit", () => {
   assert.equal(paid.open, false);
   const owes = jobItem(job({ status: "completed", invoices: [{ status: "sent", paidAt: null, amountCents: 100 }] }));
   assert.equal(owes.open, true);
-  assert.equal(owes.nextAction, "Waiting on Dana to pay");
+  assert.equal(owes.nextAction, "Waiting on Dana to pay $1");
   assert.equal(owes.waitingOn, "customer");
+  assert.deepEqual(
+    owes.path.map((beat) => [beat.label, beat.state]),
+    [
+      ["Booked", "done"],
+      ["Confirmed", "done"],
+      ["Tech", "done"],
+      ["Unpaid", "now"],
+    ],
+  );
   const draft = jobItem(job({ status: "completed", invoices: [{ status: "draft", paidAt: null, amountCents: 100 }] }));
-  assert.equal(draft.nextAction, "Send the invoice");
+  assert.equal(draft.nextAction, "Send the $1 invoice");
+  const claimed = jobItem(job({ status: "completed", invoices: [{ status: "sent", paidAt: null, amountCents: 4902, payments: [{ status: "claimed" }] }] }));
+  assert.equal(claimed.nextAction, "Confirm Dana's $49.02 payment arrived");
   assert.equal(draft.needsYou, true);
   assert.equal(jobItem(job({ status: "completed", invoices: [{ status: "void", paidAt: null, amountCents: 1 }] })).open, false);
   assert.equal(jobItem(job({ status: "cancelled" })).open, false);

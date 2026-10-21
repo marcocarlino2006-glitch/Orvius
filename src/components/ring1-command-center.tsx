@@ -9,11 +9,11 @@ import { WorkCard } from "@/components/work-card";
 import { commandSentence } from "@/lib/command-sentence";
 import { isLiveCall } from "@/lib/live-call";
 import { useRing1 } from "@/lib/ring1-context";
-import { spokenName, spokenPhone } from "@/lib/spoken-name";
+import { spokenName } from "@/lib/spoken-name";
 import { formatWhen } from "@/lib/when";
 
-function callerName(name: string | null | undefined, phone: string | null | undefined): string {
-  return spokenName(name) || spokenPhone(phone) || "A caller";
+function callerName(name: string | null | undefined): string {
+  return spokenName(name) || "A caller";
 }
 
 function minutesOnTheLine(createdAt: string): string {
@@ -108,16 +108,26 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
   const liveApproval = looseApprovals[0] ?? null;
   const liveItem = items[0] ?? null;
   const lastDone = data?.handled?.events[0] ?? null;
-  const onTheLine = liveCall ? callerName(liveCall.leadName, liveCall.callerPhone) : null;
+  const onTheLine = liveCall ? callerName(liveCall.leadName) : null;
   const sentence = commandSentence({
     loaded: Boolean(data),
     brief: brief?.headline ?? null,
     live: onTheLine ? { who: onTheLine } : null,
     approval: liveApproval ? { title: liveApproval.preview ?? liveApproval.title, needsCheck: Boolean(liveApproval.needsCheck) } : null,
     item: liveItem
-      ? { title: liveItem.title, customer: liveItem.customer, nextAction: liveItem.nextAction }
+      ? {
+          title: liveItem.title,
+          customer: liveItem.customer,
+          nextAction: liveItem.nextAction,
+          needsYou: liveItem.needsYou,
+          when: liveItem.scheduledAt ? formatWhen(liveItem.scheduledAt) : null,
+          tech: liveItem.technician?.name ? spokenName(liveItem.technician.name).split(/\s+/)[0] || null : null,
+        }
       : null,
     lastSummary: !liveApproval && !liveItem ? (lastDone?.summary ?? null) : null,
+    lineOff: Boolean(
+      data && !data.business?.line && !data.business?.referenceImplementation && !data.business?.demoWorkspace && !data.business?.testMode,
+    ),
   });
   const stale = Boolean(loadError && data);
 

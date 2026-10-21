@@ -118,6 +118,44 @@
   white-space: nowrap;
 }
 
+.cmd-one .cmd-path {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.15rem 0;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  max-width: 100%;
+  min-width: 0;
+  list-style: none;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+}
+
+.cmd-one .cmd-path-beat {
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--ox-text-2);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.cmd-one .cmd-path-beat + .cmd-path-beat::before {
+  content: "·";
+  margin: 0 0.45rem;
+  color: var(--ox-mute);
+  font-weight: 400;
+}
+
+.cmd-one .cmd-path-beat.is-now {
+  color: var(--ox-text);
+  font-weight: 560;
+}
+
+.cmd-one .cmd-path-beat.is-wait {
+  color: var(--ox-mute);
+}
+
 /* The one object is a line of type. The list wrapper is what still draws the card. */
 :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one .wc-list {
   gap: 0 !important;

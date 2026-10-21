@@ -3889,7 +3889,8 @@
 }
 
 @media (max-width: 720px) {
-  html body .os-topbar .mx-bar-icon {
+  /* :not(#tap-floor) matches the touch-floor rule's id weight, which otherwise forces this icon back on. */
+  html body .os-topbar .mx-bar-icon:not(#tap-floor) {
     display: none !important;
   }
 }
