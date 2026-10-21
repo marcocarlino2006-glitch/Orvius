@@ -2,7 +2,7 @@ import { brandWordmark } from "@/lib/brand-typography";
 import { company } from "@/lib/company";
 import { DEMO_LINE_DISPLAY } from "@/lib/demo-line";
 import { ImageResponse } from "next/og";
-import { OrviusWordmarkGraphic } from "@/lib/orvius-mark-graphic";
+import { OrviusMarkGraphic, OrviusWordmarkGraphic } from "@/lib/orvius-mark-graphic";
 
 export const alt = `Orvius — ${company.tagline.replace(/\.$/, "")}`;
 export const size = { width: 1200, height: 630 };
@@ -22,7 +22,8 @@ export default function OpenGraphImage() {
           padding: "72px 80px",
         }}
       >
-        <div style={{ display: "flex" }} aria-label={brandWordmark}>
+        <div style={{ display: "flex", alignItems: "center", gap: 18 }} aria-label={brandWordmark}>
+          <OrviusMarkGraphic size={46} variant="dark" />
           <OrviusWordmarkGraphic width={300} />
         </div>
 

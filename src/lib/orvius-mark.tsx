@@ -1,6 +1,6 @@
 import { MARK_PATH, MARK_VIEWBOX } from "@/lib/orvius-wordmark";
 
-/** The Orvius mark: the wordmark's O, with its chamfered counter. */
+/** The Orvius mark: four blades around an open star. */
 
 export type OrviusMarkSvgProps = {
   className?: string;
@@ -17,7 +17,7 @@ export function OrviusMarkSvg({ className = "", size }: OrviusMarkSvgProps) {
       className={`orvius-mark-svg ${className}`.trim()}
       aria-hidden
     >
-      <path d={MARK_PATH} fill="currentColor" />
+      <path d={MARK_PATH} fill="currentColor" fillRule="evenodd" />
     </svg>
   );
 }

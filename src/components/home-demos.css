@@ -92,13 +92,21 @@
 }
 
 .hd-logo {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.22em;
   color: #fff;
 }
 
 .hd-logo svg {
   display: block;
-  width: 5.2em;
+  width: 0.95em;
+  height: 0.95em;
+  flex-shrink: 0;
+}
+
+.hd-logo svg + svg {
+  width: 5.4em;
   height: auto;
 }
 

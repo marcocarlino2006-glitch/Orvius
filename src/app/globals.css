@@ -397,7 +397,7 @@ h3 {
 
 /* Shell header */
 
-/* Orvius brand — the wordmark artwork alone. The O is favicon chrome only. */
+/* Orvius brand — the four-blade symbol beside the ORVIUS wordmark, one ink. */
 .orvius-logo {
   display: inline-flex;
   align-items: center;
@@ -416,25 +416,31 @@ h3 {
   color: inherit;
 }
 
-/* Sizes come from logoSizes via --logo-word-*, so the lockup is tuned in one
-   place instead of here and in TypeScript. */
+/* The lockup lives inside the word span so a later font-size still scales both. */
 .orvius-logo-word {
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22em;
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: var(--logo-word-size, 1.5rem);
   font-weight: 800;
   letter-spacing: -0.075em;
-  line-height: 0.9;
-  text-transform: lowercase;
+  line-height: 1;
   color: inherit;
 }
 
-/* Cap height of the artwork tracks the font-size every surface already sets. */
+.orvius-logo-word .orvius-logo-mark {
+  width: 0.86em;
+  height: 0.86em;
+  color: inherit;
+}
+
+/* Letter height tracks the font-size every surface already sets. */
 .orvius-logo-svg {
   display: block;
-  height: 0.7em;
+  height: 0.78em;
   width: auto;
-  aspect-ratio: 622 / 98.3;
+  aspect-ratio: 756.31 / 100;
   overflow: visible;
 }
 
@@ -3127,9 +3133,9 @@ label:has(> input[type="radio"]) {
 }
 
 .os-sidebar-brand .orvius-logo-mark {
-  width: 1.75rem !important;
-  height: 1.75rem !important;
-  color: var(--signal) !important;
+  width: 0.86em !important;
+  height: 0.86em !important;
+  color: inherit !important;
 }
 
 .pro-panel {

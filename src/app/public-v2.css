@@ -128,7 +128,7 @@ body {
 }
 
 .ov-public .orvius-logo-mark {
-  color: var(--ov-copper) !important;
+  color: inherit !important;
 }
 
 .ov-public .orvius-logo-word {
