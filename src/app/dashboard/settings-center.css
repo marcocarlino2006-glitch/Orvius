@@ -9,8 +9,9 @@
   justify-content: center;
   min-height: 0 !important;
   padding: 1.5rem;
-  background: rgb(0 0 0 / 0.6);
-  backdrop-filter: blur(2px);
+  background: rgb(0 0 0 / 0.28);
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
   animation: sc-fade 140ms ease-out;
 }
 

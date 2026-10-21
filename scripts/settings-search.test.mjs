@@ -29,6 +29,14 @@ test("the rail is six places, and every section belongs to one of them", () => {
   assert.match(center, /if \(!aboutTheLine\) return null/, "the line warning stays on the pages that change the line");
 });
 
+test("opening settings blurs the desk behind it", () => {
+  const texture = readFileSync(new URL("../src/app/dashboard/orvius-texture.css", import.meta.url), "utf8");
+  const instant = readFileSync(new URL("../src/app/dashboard/orvius-instant.css", import.meta.url), "utf8");
+  assert.match(instant, /\.sc-overlay \{\s*background: rgb\(0 0 0 \/ 0\.18\) !important;\s*backdrop-filter: blur\(18px\) saturate\(1\.2\) !important;/);
+  assert.match(instant, /data-theme="day"[\s\S]*sc-overlay \{\s*background: rgb\(255 255 255 \/ 0\.16\) !important;/);
+  assert.doesNotMatch(texture, /\.os-shell\.sc-overlay \{[^}]*backdrop-filter: none/);
+});
+
 test("owners find settings in their own words", () => {
   const first = (q) => searchSettings(q)[0]?.section;
   assert.equal(first("transfer"), "receptionist");

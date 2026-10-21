@@ -69,3 +69,14 @@
     animation: none;
   }
 }
+
+/* Settings sits on the desk. The sheet behind it is a blur, not a cover. */
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro.sc-overlay {
+  background: rgb(0 0 0 / 0.18) !important;
+  backdrop-filter: blur(18px) saturate(1.2) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.2) !important;
+}
+
+:root[data-theme="day"] body .os-shell.os-shell-night.os-shell-pro.os-shell-pro.sc-overlay {
+  background: rgb(255 255 255 / 0.16) !important;
+}
