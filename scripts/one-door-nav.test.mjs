@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { existsSync, readFileSync } from "node:fs";
 
-import { osMoreNav, osNavCurrent, osProductNav, osWorkspaceNav } from "../src/lib/os-nav.ts";
+import { osMoreNav, osNavCurrent, osProductNav, osWideNav, osWorkspaceNav } from "../src/lib/os-nav.ts";
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 
@@ -30,6 +30,10 @@ test("the bar is the five places the owner runs", () => {
   assert.equal(osNavCurrent("/dashboard", "/dashboard"), true);
   assert.equal(osNavCurrent("/dashboard/jobs/abc", "/dashboard"), false);
   assert.equal(osNavCurrent("/dashboard/jobs/abc", "/dashboard/jobs"), true);
+  assert.deepEqual(
+    osWideNav.map((item) => item.label),
+    ["Home", "Schedule", "Inbox", "Calls", "Customers", "Jobs", "Work", "Ask"],
+  );
 });
 
 test("the operating pages stay open, and dispatch opens the schedule", () => {
@@ -53,6 +57,7 @@ test("the shell paints the five places, and Work is not a table", () => {
   assert.match(shell, /os-product-nav/);
   assert.match(shell, /os-tabbar/);
   assert.match(shell, /osProductNav/);
+  assert.match(shell, /osWideNav/);
   assert.match(read("src/components/desk-board.tsx"), /href="\/dashboard\/schedule"/);
   assert.match(read("src/components/desk-board.tsx"), /href="\/dashboard\/reports"/);
   assert.match(read("src/components/os-command-palette.tsx"), /osMoreNav/);

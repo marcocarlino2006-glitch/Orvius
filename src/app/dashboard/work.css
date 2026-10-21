@@ -301,6 +301,33 @@ html body .os-shell.os-shell-pro .cmd.cmd-one {
   max-width: 72rem;
 }
 
+@media (min-width: 768px) {
+  html body .os-shell.os-shell-pro .cmd.cmd-one {
+    max-width: none;
+  }
+
+  .cmd-desk {
+    grid-template-columns: minmax(0, 1.6fr) minmax(17rem, 0.85fr);
+    align-items: start;
+  }
+
+  .cmd-desk > :first-child {
+    grid-row: 1 / span 2;
+  }
+
+  .cmd-desk .cmd-money {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cmd-desk .cmd-money-cell:nth-child(3) {
+    border-left: 0;
+  }
+
+  .cmd-desk .cmd-money-cell:nth-child(n + 3) {
+    border-top: 1px solid var(--ox-line);
+  }
+}
+
 .cmd-desk {
   display: grid;
   gap: 1.75rem;
