@@ -15,7 +15,8 @@ for (const key of ["TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_PHONE_NUMB
 const nextServer = await import("next/server");
 mock.module("next/server", { namedExports: { ...nextServer, after: () => {} } });
 
-const { completionDecision, transitionJob, JOB_TRANSITION_POLICY_VERSION } = await import("../src/lib/job-transition.ts");
+const { completionAmountCents, completionDecision, transitionJob, JOB_TRANSITION_POLICY_VERSION } = await import("../src/lib/job-transition.ts");
+const { invoiceCompletedJob } = await import("../src/lib/invoice-pay.ts");
 const { updateJobStatus, JobTransitionError } = await import("../src/lib/job.ts");
 const { parseOwnerCommand, handleOwnerText } = await import("../src/lib/owner-text-commands.ts");
 const { prisma } = await import("../src/lib/prisma.ts");
@@ -90,6 +91,52 @@ test("Orvius can't mark a job done, and the old status writer refuses completion
   await rejects(transitionJob({ businessId: shop.id, jobId: j.id, to: "completed", actor: { kind: "ai" }, via: "system", completion: { resolutionCode: "repaired", noCharge: true } }), 403);
   await assert.rejects(updateJobStatus(j.id, "completed"), JobTransitionError);
   assert.equal((await prisma.job.findUnique({ where: { id: j.id } })).status, "on_site");
+});
+
+test("no-charge is $0 even when the job has priced lines, and those lines are the bill otherwise", () => {
+  const lines = [
+    { kind: "service", quantity: 1, unitCents: 18_000 },
+    { kind: "discount", quantity: 1, unitCents: 3_000 },
+  ];
+  assert.equal(completionAmountCents({ noCharge: true, typedCents: 25_000, lines }), 0);
+  assert.equal(completionAmountCents({ noCharge: false, typedCents: 25_000, lines }), 15_000);
+  assert.equal(completionAmountCents({ noCharge: false, typedCents: 25_000, lines: [] }), 25_000);
+});
+
+test("marking a lined job no-charge does not leave a bill for the lines", async () => {
+  const shop = await makeShop();
+  const j = await job(shop);
+  await prisma.jobLineItem.create({ data: { businessId: shop.id, jobId: j.id, name: "Capacitor", kind: "part", quantity: 1, unitCents: 18_000 } });
+  await transitionJob({
+    businessId: shop.id,
+    jobId: j.id,
+    to: "completed",
+    actor: { kind: "technician" },
+    via: "tech_app",
+    completion: { resolutionCode: "repaired", noCharge: true },
+  });
+  const done = await prisma.job.findUnique({ where: { id: j.id } });
+  assert.equal(done.finalAmountCents, 0);
+  assert.deepEqual(await invoiceCompletedJob(j.id), { invoiced: false, reason: "no_amount" });
+});
+
+test("a lined job is billed the lines, not a stale or missing total", async () => {
+  const shop = await makeShop();
+  const j = await job(shop, { finalAmountCents: 1_00 });
+  await prisma.jobLineItem.create({ data: { businessId: shop.id, jobId: j.id, name: "Diagnostic", kind: "service", quantity: 1, unitCents: 15_000 } });
+  await transitionJob({
+    businessId: shop.id,
+    jobId: j.id,
+    to: "completed",
+    actor: { kind: "technician" },
+    via: "tech_app",
+    completion: { resolutionCode: "diagnostic_only" },
+  });
+  assert.equal((await prisma.job.findUnique({ where: { id: j.id } })).finalAmountCents, 15_000);
+  const billed = await invoiceCompletedJob(j.id);
+  assert.equal(billed.invoiced, true);
+  assert.equal(billed.invoice.amountCents, 15_000);
+  assert.equal(billed.invoice.status, "open");
 });
 
 test("a field completion records the path, disposition and policy version", async () => {

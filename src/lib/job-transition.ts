@@ -2,6 +2,7 @@ import { recordAudit, type AuditActor } from "@/lib/audit";
 import { recordSetupMilestone } from "@/lib/workflow-events";
 import { DEFAULT_JOB_DURATION_MIN } from "@/lib/availability";
 import { JobTransitionError, ownerScheduleClash, updateJobStatus } from "@/lib/job";
+import { lineTotalCents } from "@/lib/job-field";
 import { isJobOutcomeCode, parseFinalAmountCents, type JobOutcomeCode } from "@/lib/job-outcome";
 import { jobStatusLabel, jobTransitionProblem, type JobStatus } from "@/lib/job-status";
 import { prisma } from "@/lib/prisma";
@@ -107,6 +108,23 @@ export function completionDecision(params: {
   return { ok: true, plan: { ...base, path: "correction", evidenceSource: e.evidenceSource } };
 }
 
+type BillLine = { kind: string; quantity: number; unitCents: number };
+
+/**
+ * What the completed job is worth.
+ * No-charge is $0 even when the job has lines. Otherwise the lines are the
+ * bill; a typed total is used only when there are no lines.
+ */
+export function completionAmountCents(params: {
+  noCharge: boolean;
+  typedCents: number | null;
+  lines: BillLine[];
+}): number {
+  if (params.noCharge) return 0;
+  if (params.lines.length) return params.lines.reduce((sum, line) => sum + lineTotalCents(line), 0);
+  return params.typedCents ?? 0;
+}
+
 function auditActor(actor: TransitionActor): { actor: AuditActor; actorEmail?: string } {
   if (actor.kind === "ai" || actor.kind === "system") return { actor: "system" };
   if (actor.kind === "technician") return { actor: "technician" };
@@ -169,20 +187,28 @@ export async function transitionJob(params: {
   const because = reason ? ` Reason: ${reason}` : "";
 
   if (params.to === "completed") {
-    const [policy, lines] = await Promise.all([
+    const [policy, lineRows] = await Promise.all([
       getSchedulingPolicy(params.businessId),
-      prisma.jobLineItem.count({ where: { jobId: job.id } }),
+      prisma.jobLineItem.findMany({
+        where: { jobId: job.id },
+        select: { kind: true, quantity: true, unitCents: true },
+      }),
     ]);
     const decision = completionDecision({
       from,
       actor: params.actor,
       evidence: params.completion,
       remoteCompletionAllowed: policy.remoteCompletionAllowed,
-      hasLineItems: lines > 0,
+      hasLineItems: lineRows.length > 0,
       reason,
     });
     if (!decision.ok) throw new JobTransitionError(decision.error, decision.status);
     const plan = decision.plan;
+    const amountCents = completionAmountCents({
+      noCharge: plan.noCharge,
+      typedCents: plan.finalAmountCents,
+      lines: lineRows,
+    });
     const now = params.at ?? new Date();
     const moved = await prisma.job.updateMany({
       where: { id: job.id, status: from },
@@ -191,7 +217,7 @@ export async function transitionJob(params: {
         completedAt: now,
         resolutionCode: plan.resolutionCode,
         resolutionSummary: plan.resolutionSummary,
-        finalAmountCents: lines > 0 ? job.finalAmountCents : plan.noCharge ? 0 : plan.finalAmountCents,
+        finalAmountCents: amountCents,
         outcomeCapturedAt: now,
       },
     });
@@ -210,8 +236,8 @@ export async function transitionJob(params: {
         path: plan.path,
         evidenceSource: plan.evidenceSource,
         resolutionCode: plan.resolutionCode,
-        disposition: plan.noCharge ? "no_charge" : lines > 0 ? "line_items" : "priced",
-        finalAmountCents: plan.finalAmountCents,
+        disposition: plan.noCharge ? "no_charge" : lineRows.length > 0 ? "line_items" : "priced",
+        finalAmountCents: amountCents,
         reason,
         via: params.via,
       },
