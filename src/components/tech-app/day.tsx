@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { cachedGet, forgetEverything, isGone, useFieldSync, useTechShell } from "@/components/tech-app/offline";
 import { StatusPill, SyncBar, timeLabel, whenLabel } from "@/components/tech-app/shared";
+import { spokenName } from "@/lib/spoken-name";
 
 type DayJob = {
   id: string;
@@ -34,7 +35,7 @@ function JobRow({ token, job, tz, showDay }: { token: string; job: DayJob; tz: s
         <span className="ta-job-time">{showDay ? whenLabel(job.scheduledAt, tz) : timeLabel(job.scheduledAt, tz)}</span>
         <span className="ta-job-body">
           <span className="ta-job-title">{job.title}</span>
-          <span className="ta-job-meta">{[job.customerName, job.address?.split(",")[0]].filter(Boolean).join(" · ") || "No address yet"}</span>
+          <span className="ta-job-meta">{[spokenName(job.customerName), job.address?.split(",")[0]].filter(Boolean).join(" · ") || "No address yet"}</span>
           {job.needsAnswer ? <span className="ta-job-ask">Needs your answer</span> : null}
         </span>
         <StatusPill status={job.status} urgency={job.urgency} />
@@ -115,12 +116,23 @@ export function TechDay({ token }: { token: string }) {
   const today = day.days.find((d) => d.label === "Today");
   const left = today?.jobs.filter((j) => j.status !== "completed").length ?? 0;
   const dateLine = new Date().toLocaleDateString("en-US", { timeZone: tz, weekday: "long", month: "long", day: "numeric" });
+  const next = day.now[0] ?? day.late[0] ?? today?.jobs.find((job) => job.status !== "completed" && job.status !== "cancelled") ?? null;
+  const rest = (jobs: DayJob[]) => (next ? jobs.filter((job) => job.id !== next.id) : jobs);
+  const nextWhen = next ? whenLabel(next.scheduledAt, tz) : "";
+  const nextWhere = next ? [spokenName(next.customerName), next.address?.split(",")[0]].filter(Boolean).join(" · ") : "";
 
   return (
     <main className="ta">
       <header className="ta-head">
         <p className="ta-kicker">{day.shop.name}</p>
-        <h1 className="ta-title">{first}&apos;s day</h1>
+        {next ? (
+          <Link href={`/tech/${token}/jobs/${next.id}`} className="ta-next">
+            <h1 className="ta-title">{nextWhen}. {next.title}</h1>
+            {nextWhere ? <p className="ta-sub">{nextWhere}</p> : null}
+          </Link>
+        ) : (
+          <h1 className="ta-title">{first}&apos;s day</h1>
+        )}
         <p className="ta-sub">
           {dateLine} · {left ? `${left} job${left === 1 ? "" : "s"} left today` : "Nothing left today"}
         </p>
@@ -134,37 +146,40 @@ export function TechDay({ token }: { token: string }) {
         </p>
       ) : null}
 
-      {day.now.length ? (
+      {rest(day.now).length ? (
         <section aria-label="In progress">
           <h2 className="ta-h2">Right now</h2>
           <ul className="ta-list ta-list--now">
-            {day.now.map((job) => (
+            {rest(day.now).map((job) => (
               <JobRow key={job.id} token={token} job={job} tz={tz} showDay />
             ))}
           </ul>
         </section>
       ) : null}
 
-      {day.late.length ? (
+      {rest(day.late).length ? (
         <section aria-label="Overdue">
           <h2 className="ta-h2 ta-h2--late">Not finished from earlier</h2>
           <ul className="ta-list">
-            {day.late.map((job) => (
+            {rest(day.late).map((job) => (
               <JobRow key={job.id} token={token} job={job} tz={tz} showDay />
             ))}
           </ul>
         </section>
       ) : null}
 
-      {day.days.map((d) => (
+      {day.days.map((d) => {
+        const jobs = rest(d.jobs);
+        if (!jobs.length && d.jobs.length) return null;
+        return (
         <section key={d.key} aria-label={d.label}>
           <h2 className="ta-h2">
             {d.label}
-            <span>{d.jobs.length ? `${d.jobs.length} job${d.jobs.length === 1 ? "" : "s"}` : ""}</span>
+            <span>{jobs.length ? `${jobs.length} job${jobs.length === 1 ? "" : "s"}` : ""}</span>
           </h2>
-          {d.jobs.length ? (
+          {jobs.length ? (
             <ul className="ta-list">
-              {d.jobs.map((job) => (
+              {jobs.map((job) => (
                 <JobRow key={job.id} token={token} job={job} tz={tz} />
               ))}
             </ul>
@@ -172,7 +187,8 @@ export function TechDay({ token }: { token: string }) {
             <p className="ta-card ta-muted">Nothing on your schedule {d.label === "Today" ? "today" : "this day"}.</p>
           )}
         </section>
-      ))}
+        );
+      })}
     </main>
   );
 }

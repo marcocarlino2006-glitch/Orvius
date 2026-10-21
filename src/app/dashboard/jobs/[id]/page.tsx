@@ -18,7 +18,8 @@ import { displayPhone } from "@/lib/customer";
 import { PAST_DUE_LABEL, jobPastDue, nextJobStatus, pastDueDetail } from "@/lib/job-status";
 import { jobLifecycle, jobSteps, type TextDelivery } from "@/lib/job-lifecycle";
 import { StatusDot } from "@/components/status-dot";
-import { formatShopTime, shopWallInput } from "@/lib/when";
+import { formatCentsTidy } from "@/lib/money";
+import { formatBeat, formatShopTime, shopWallInput } from "@/lib/when";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
@@ -225,6 +226,25 @@ export default function JobDetailPage() {
   const next = pastDue ? null : nextJobStatus(job.status);
   const phone = job.customer?.phone ?? job.lead?.phone;
   const who = job.customer?.name ?? job.lead?.name ?? phone ?? null;
+  const openBill = (() => {
+    const invoice = bill?.invoice;
+    if (!invoice?.amountCents) return null;
+    const status = invoice.status.toLowerCase();
+    if (["paid", "void", "refunded"].includes(status)) return null;
+    const figure = formatCentsTidy(invoice.amountCents);
+    if (!figure) return null;
+    return status === "draft" ? `Send ${figure}` : `${figure} open`;
+  })();
+  const estimateLine = (() => {
+    if (openBill || !job.estimate?.amountCents || job.estimate.invoice) return null;
+    const figure = formatCentsTidy(job.estimate.amountCents);
+    if (!figure) return null;
+    const status = job.estimate.status.toLowerCase();
+    if (status === "accepted" || status === "approved") return `${figure} accepted`;
+    if (status === "declined") return `${figure} declined`;
+    return `${figure} estimate`;
+  })();
+  const moneyLine = openBill ?? estimateLine;
   const refreshWork = () => load();
   const tz = job.business?.timezone ?? null;
   const open = job.status !== "completed" && job.status !== "cancelled";
@@ -320,7 +340,18 @@ export default function JobDetailPage() {
         </ShellPanel>
       ) : null}
 
-      <ShellPanel title="Money" dense>
+      <ShellPanel title={moneyLine ?? "Money"} dense>
+        {bill && openBill ? (
+          <JobBillSection
+            key={bill.invoice?.id ?? "new"}
+            jobId={job.id}
+            bill={bill}
+            defaultCents={job.estimate?.amountCents ?? null}
+            depositPaidCents={deposit?.status === "paid" ? deposit.amountCents : 0}
+            customerPhone={job.lead?.phone ?? job.customer?.phone ?? null}
+            onRefresh={load}
+          />
+        ) : null}
         <JobMoneyPanel
           jobId={job.id}
           avgTicketCents={job.business?.avgTicketCents ?? null}
@@ -332,7 +363,7 @@ export default function JobDetailPage() {
           jobClosed={!open}
           onRefresh={load}
         />
-        {bill ? (
+        {bill && !openBill ? (
           <JobBillSection
             key={bill.invoice?.id ?? "new"}
             jobId={job.id}
@@ -350,7 +381,7 @@ export default function JobDetailPage() {
   return (
     <OsShell
       title={job.title}
-      subtitle={[who, job.address].filter(Boolean).join(" · ") || "Job"}
+      subtitle={[job.scheduledAt ? formatBeat(job.scheduledAt, tz) : null, who, moneyLine].filter(Boolean).join(" · ") || "Job"}
       businessName={job.business?.name ?? undefined}
       actions={
         <div className="flex flex-wrap gap-2">

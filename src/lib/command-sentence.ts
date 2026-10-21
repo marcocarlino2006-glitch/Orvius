@@ -45,11 +45,17 @@ function isMoney(action: string | null): boolean {
   return Boolean(action && /pay|invoice|bill/i.test(action));
 }
 
-function visitSentence(item: NonNullable<CommandSentenceInput["item"]>): string {
+/** The visit, then the state of it. A wait is said. A clear visit says so. */
+function quietLine(item: NonNullable<CommandSentenceInput["item"]>): string {
   const when = item.when!.trim();
-  const title = finish(item.title);
+  const title = spokenText(item.title).trim().replace(/[.!?]+$/, "");
   const tech = spokenText(item.tech).trim();
-  return tech ? `${when}. ${title} ${tech}.` : `${when}. ${title}`;
+  const action = (item.nextAction ?? "").replace(/\s+[—–-]\s+.*$/, "").trim();
+  const head = `${when}. ${title}`;
+  if (/^waiting on\b/i.test(action)) return finish(`${head}. ${action}`);
+  if (/^mark arrived$/i.test(action)) return finish(tech ? `${head}. ${tech} is on the way` : `${head}. On the way`);
+  if (/^mark done$/i.test(action)) return finish(tech ? `${head}. ${tech} is there` : `${head}. On site`);
+  return finish(tech ? `${head}. ${tech}. You're clear` : `${head}. You're clear`);
 }
 
 function inSpanish(text: string, spanish?: boolean): string {
@@ -67,7 +73,7 @@ export function commandSentence(input: CommandSentenceInput): string {
   if (input.item) {
     const quietVisit = input.item.needsYou === false && Boolean(input.item.when?.trim()) && !isMoney(input.item.nextAction);
     const said = quietVisit
-      ? visitSentence(input.item)
+      ? quietLine(input.item)
       : input.item.nextAction
         ? fromAction(input.item.nextAction)
         : spokenText(input.item.customer).trim()

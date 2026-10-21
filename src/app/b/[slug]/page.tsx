@@ -245,8 +245,8 @@ export default function BookPage() {
   return (
     <main className="pf bk">
       <div className="pf-head">
-        <p className="pf-kicker">Book online</p>
-        <h1 className="pf-title">{info.business.name}</h1>
+        <p className="pf-kicker">{slot ? info.business.name : "Book online"}</p>
+        <h1 className="pf-title">{slot ? slot.label : info.business.name}</h1>
         {phone ? (
           <p className="pf-sub">
             Rather talk? <a href={`tel:${phone}`}>{formatPhone(phone)}</a>
@@ -256,7 +256,7 @@ export default function BookPage() {
 
       <section className="pf-card" aria-labelledby="bk-service">
         <h2 id="bk-service" className="pf-h2">
-          1. What do you need?
+          What do you need?
         </h2>
         <div className="bk-chips">
           {info.services.map((name) => (
@@ -277,7 +277,7 @@ export default function BookPage() {
       {service ? (
         <section className="pf-card" aria-labelledby="bk-time">
           <h2 id="bk-time" className="pf-h2">
-            2. Pick a time
+            When
           </h2>
           {slotsLoading ? (
             <p className="pf-muted">Finding open times…</p>
@@ -326,7 +326,7 @@ export default function BookPage() {
           }}
         >
           <h2 id="bk-you" className="pf-h2">
-            3. Your details
+            Where should we reach you?
           </h2>
           <input
             className="pf-input"

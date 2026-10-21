@@ -2,6 +2,7 @@
 
 import { askConfirm } from "@/components/ask-dialog";
 import { useEffect, useState } from "react";
+import { connectedLine } from "@/lib/connected-line";
 import { displayPhone } from "@/lib/customer";
 import type { SettingsSectionId } from "@/lib/settings-center";
 import { BusyCalendarGroup } from "../busy-calendar-group";
@@ -278,8 +279,10 @@ export function IntegrationsSection({
     unread("servicetitan", "ServiceTitan", servicetitan) ?? serviceTitanRow(servicetitan, stNote, scheduleLine(schedule, "servicetitan")),
     unread("quickbooks", "QuickBooks", quickbooks) ?? quickbooksRow(quickbooks, qbNote),
   ];
+  const lead = connectedLine(rows.filter((row) => !row.hidden && row.on).map((row) => row.name));
   return (
     <>
+    <p className="sc-lead">{lead}</p>
     <ScGroup>
       {rows.filter((row) => !row.hidden).map((row) => (
         <div key={row.name} className="sc-row sc-connector">
