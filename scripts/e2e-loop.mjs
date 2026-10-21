@@ -3,7 +3,7 @@
  * The operating loop in a real browser, against a running build:
  *
  *   fresh shop → caller reports a problem (Vapi end-of-call) → lead + auto-booked job
- *   → Command, Inbox, Calls and Jobs all show it → a Settings change saves
+ *   → Command shows it, the call record and the job record open → a Settings change saves
  *
  * Seeds its own test-environment shop so it never touches a real one, and fails
  * on any page error. Run against `next start`:
@@ -167,22 +167,24 @@ async function main() {
       return (await headline.innerText()).trim().slice(0, 90);
     });
 
-    await step("Inbox lists the caller", async () => {
-      await open("/dashboard/inbox");
-      await page.getByRole("tab", { name: /^Resolved/ }).first().click();
-      await page.getByText(caller.name).first().waitFor();
+    await step("Command shows the caller", async () => {
+      await open("/dashboard");
+      await page.getByText(new RegExp(`${caller.name}|${caller.service}`)).first().waitFor();
       return caller.name;
     });
 
-    await step("Calls shows the call with a review", async () => {
-      await open("/dashboard/calls");
-      await page.getByText(caller.name).first().waitFor();
-      await page.getByText(/^(Booked|Held for review|Safety escalation)$/).first().waitFor();
+    await step("The call record carries the outcome", async () => {
+      const call = await prisma.call.findFirst({ where: { businessId: business.id }, orderBy: { createdAt: "desc" } });
+      if (!call) throw new Error("no call");
+      await open(`/dashboard/calls/${call.id}`);
+      await page.getByText(/Booked|Held for review|Safety escalation/).first().waitFor();
       return "graded";
     });
 
-    await step("Jobs shows the booked job", async () => {
-      await open("/dashboard/jobs");
+    await step("The job record is the booking", async () => {
+      const job = await prisma.job.findFirst({ where: { businessId: business.id } });
+      if (!job) throw new Error("no job");
+      await open(`/dashboard/jobs/${job.id}`);
       await page.getByText(caller.service).first().waitFor();
       return caller.service;
     });

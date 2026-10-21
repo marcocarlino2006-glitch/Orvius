@@ -39,7 +39,6 @@ export function OsShell({
   const pathname = usePathname();
   const { business, loading: businessLoading } = useBusiness();
   const businessName = businessNameProp ?? business?.name ?? "Your business";
-  const newLeads = business?.metrics.newLeads ?? 0;
   const [paletteOpen, setPaletteOpen] = useState(false);
   /*
     Decided on the server, against the shop's own hours and timezone. Reading
@@ -151,7 +150,7 @@ export function OsShell({
               <span className="os-topbar-search-label">Help</span>
             </Link>
             {actions}
-            <OsSidebarFooter newLeads={newLeads} />
+            <OsSidebarFooter />
           </div>
         </header>
 

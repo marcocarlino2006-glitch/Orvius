@@ -10,7 +10,7 @@ import { supportMailto, supportPhone } from "@/lib/support";
 import { fetchAccount, invalidateAccount } from "@/lib/account-client";
 import { callUsageLine, type CallUsage } from "@/lib/call-usage";
 import { UpgradeModal } from "@/components/upgrade-modal";
-import { ROLE_LABELS, can, type ShopRole, type ShopSummary } from "@/lib/workspace-access-labels";
+import { ROLE_LABELS, type ShopRole, type ShopSummary } from "@/lib/workspace-access-labels";
 
 type AccountData = {
   business: {
@@ -66,7 +66,6 @@ const accountLinks: MenuItem[] = [
   { href: "/dashboard?settings=account", label: "Account", icon: "account" },
   { href: "/dashboard?settings=receptionist", label: "Receptionist", icon: "personalization" },
   { href: "/dashboard/price-book", label: "Price book", icon: "pricebook" },
-  { href: "/dashboard/reports", label: "Reports", icon: "reports" },
   { href: "/dashboard?settings=general", label: "Settings", icon: "settings" },
 ];
 
@@ -122,7 +121,7 @@ function clearWorkspaceSessionState() {
   }
 }
 
-export function OsSidebarFooter({ newLeads = 0 }: { newLeads?: number }) {
+export function OsSidebarFooter() {
   const { data: session } = useSession();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -336,7 +335,7 @@ export function OsSidebarFooter({ newLeads = 0 }: { newLeads?: number }) {
           </div>
 
           <div className="mx-group">
-            {accountLinks.filter((item) => item.href !== "/dashboard/reports" || !account?.role || can(account.role, "reports.view")).map((item) => (
+            {accountLinks.map((item) => (
               <Link key={item.label} href={item.href} role="menuitem" className="mx-link" onClick={close}>
                 <MenuIcon name={item.icon} />
                 <span>{item.label}</span>
@@ -407,14 +406,6 @@ export function OsSidebarFooter({ newLeads = 0 }: { newLeads?: number }) {
         </button>
         <Link href="/dashboard?settings=phone" className="mx-bar-icon" aria-label="Phone line settings">
           <MenuIcon name="phone" />
-        </Link>
-        <Link
-          href="/dashboard/inbox"
-          className="mx-bar-icon"
-          aria-label={newLeads > 0 ? `Inbox, ${newLeads} new` : "Inbox"}
-        >
-          <MenuIcon name="bell" />
-          {newLeads > 0 ? <span className="mx-dot" aria-hidden /> : null}
         </Link>
       </div>
 

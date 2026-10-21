@@ -112,11 +112,9 @@ test("AI authority follows the shop's settings", () => {
   assert.ok(alert.blocked.length > 0);
 });
 
-test("nav is five doors — Command, Work, Schedule, Calls, Customers — no Ask, no Dispatch", () => {
-  const labels = osProductNav.map((i) => i.label);
-  assert.deepEqual(labels, ["Command", "Work", "Schedule", "Calls", "Customers"]);
-  assert.ok(!osProductNav.some((i) => i.href === "/dashboard/ask" || i.href === "/dashboard/dispatch"));
-  assert.match(read("src/app/dashboard/dispatch/page.tsx"), /redirect\("\/dashboard\/schedule"\)/);
+test("the old departments are not a nav", () => {
+  assert.deepEqual(osProductNav, []);
+  assert.match(read("src/app/dashboard/dispatch/page.tsx"), /redirect\("\/dashboard"\)/);
 });
 
 test("Command asks for work in one bar and shows propose → approve → result", () => {
@@ -126,6 +124,6 @@ test("Command asks for work in one bar and shows propose → approve → result"
   assert.match(board, /Your approval/);
   const center = read("src/components/ring1-command-center.tsx");
   assert.match(center, /cmd-one/);
-  assert.match(center, /The rest is in Work/);
+  assert.doesNotMatch(center, /The rest is in Work/);
   assert.doesNotMatch(center, /revenue at risk/i);
 });
