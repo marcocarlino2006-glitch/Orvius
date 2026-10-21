@@ -14,6 +14,7 @@ import type { BoardItem } from "@/lib/command-board";
 import { jobPastDue } from "@/lib/job-status";
 import type { WorkItem, WorkSeverity } from "@/lib/work";
 import { sendWrite } from "@/lib/client-write";
+import { shownBeatLabel } from "@/lib/path-label";
 import { spokenName, spokenText } from "@/lib/spoken-name";
 import { formatWhen } from "@/lib/when";
 
@@ -191,13 +192,14 @@ export function WorkCard({
               <p className="cmd-fact">
                 <Link href={item.href}>{who}</Link>
                 <span className="cmd-fact-what">{spokenText(item.title)}</span>
+                {item.amountLabel ? <span className="cmd-fact-money">{item.amountLabel}</span> : null}
                 <time dateTime={item.scheduledAt ?? item.createdAt}>{formatWhen(item.scheduledAt ?? item.createdAt)}</time>
               </p>
               {item.path?.length ? (
                 <ol className="cmd-path">
                   {item.path.map((beat) => (
                     <li key={beat.key} className={`cmd-path-beat is-${beat.state}`}>
-                      {beat.label}
+                      {shownBeatLabel(beat, item)}
                     </li>
                   ))}
                 </ol>

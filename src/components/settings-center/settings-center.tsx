@@ -17,6 +17,7 @@ import { displayPhone } from "@/lib/customer";
 import type { ManusPostStep } from "@/lib/manus-post";
 import { useOptionalRing1 } from "@/lib/ring1-context";
 import { SETTINGS_SECTIONS, searchSettings, settingsNavLabel, type SettingsSectionId } from "@/lib/settings-center";
+import type { ShopSetupStepId } from "@/lib/shop-setup-checklist";
 import {
   parseHoursForm,
   serializeHoursForm,
@@ -47,6 +48,17 @@ import { TeamSection } from "./sections/team-section";
 */
 const accountSaves = serialQueue();
 const savesInLine = new Map<string, number>();
+
+const NEXT_SECTION: Record<ShopSetupStepId, SettingsSectionId> = {
+  identity: "business",
+  trade: "hours",
+  service_area: "hours",
+  hours: "hours",
+  line: "phone",
+  calendar: "team",
+  owner_alerts: "notifications",
+  verify: "phone",
+};
 
 const GROUP_LABELS: Record<string, string | null> = {
   business: "Business",
@@ -509,6 +521,12 @@ export function SettingsCenter({
               aria-label="Search settings"
             />
           </label>
+          {crew !== null && checklist.next && !query ? (
+            <button type="button" className="sc-next" onClick={() => go(NEXT_SECTION[checklist.next!.id])}>
+              <span className="sc-next-kicker">Next</span>
+              <span className="sc-next-label">{checklist.next.detail}</span>
+            </button>
+          ) : null}
           <nav className="sc-nav-list">
             {sections.map((item, index) => {
               const heading = GROUP_LABELS[item.group];

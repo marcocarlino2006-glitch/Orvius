@@ -3,6 +3,7 @@ import { COLLECTED_STATUSES } from "@/lib/payment-math";
 import { formatCents } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
 import type { MemoryHit } from "@/lib/shop-memory";
+import { callerSpokeSpanish } from "@/lib/caller-language";
 import { spokenName } from "@/lib/spoken-name";
 
 const OPEN = new Set(["scheduled", "confirmed", "en_route", "on_site"]);
@@ -49,11 +50,13 @@ export function speakCall(call: {
   service: string | null;
   ago: string;
   waiting: boolean;
+  spanish?: boolean;
 }): string {
   const who = spokenName(call.name) || "A caller";
   const about = call.service?.trim();
   const waiting = call.waiting ? " Nobody has called them back." : "";
-  return `${who} called ${call.ago}${about ? ` about ${about}` : ""}.${waiting}`;
+  const language = call.spanish ? " in Spanish" : "";
+  return `${who} called${language} ${call.ago}${about ? ` about ${about}` : ""}.${waiting}`;
 }
 
 /**
@@ -121,7 +124,7 @@ export async function answerFromRecords(params: {
       },
     });
     if (!customer) return null;
-    const name = customer.name ?? customer.phone;
+    const name = spokenName(customer.name) || "A caller";
     const paid = await paidCents(params.businessId, { customerId: customer.id });
     const upcoming = customer.jobs
       .filter((j) => OPEN.has(j.status) && j.scheduledAt)
@@ -149,7 +152,7 @@ export async function answerFromRecords(params: {
       include: { job: { select: { title: true, scheduledAt: true } } },
     });
     if (!lead) return null;
-    const name = lead.name ?? lead.phone ?? "A caller";
+    const name = spokenName(lead.name) || "A caller";
     const asked = `${name} asked about ${lead.serviceType?.toLowerCase() ?? "service"} ${sinceText(lead.createdAt, now)}`;
     if (lead.job) {
       return `${asked} and is booked: ${lead.job.title}${lead.job.scheduledAt ? `, ${when(lead.job.scheduledAt, tz)}` : ""}.${more}`;
@@ -169,6 +172,7 @@ export async function answerFromRecords(params: {
       select: {
         callerPhone: true,
         summary: true,
+        transcript: true,
         createdAt: true,
         lead: { select: { name: true, serviceType: true, job: { select: { id: true } } } },
       },
@@ -182,6 +186,7 @@ export async function answerFromRecords(params: {
       service: call.lead?.serviceType ?? null,
       ago: sinceText(call.createdAt, now),
       waiting: unbooked || (!call.lead && callback),
+      spanish: callerSpokeSpanish(call.transcript),
     })}${more}`;
   }
 

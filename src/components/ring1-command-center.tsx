@@ -122,6 +122,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
           needsYou: liveItem.needsYou,
           when: liveItem.scheduledAt ? formatWhen(liveItem.scheduledAt) : null,
           tech: liveItem.technician?.name ? spokenName(liveItem.technician.name).split(/\s+/)[0] || null : null,
+          spanish: liveItem.lang === "es",
         }
       : null,
     lastSummary: !liveApproval && !liveItem ? (lastDone?.summary ?? null) : null,

@@ -327,6 +327,10 @@ test("a call is said the way a dispatcher would, without the drill label", () =>
     speakCall({ name: null, phone: "+15125550777", service: null, ago: "9h ago", waiting: true }),
     "A caller called 9h ago. Nobody has called them back.",
   );
+  assert.equal(
+    speakCall({ name: "Maria Lopez", phone: "+13125556070", service: "no water", ago: "9h ago", waiting: true, spanish: true }),
+    "Maria Lopez called in Spanish 9h ago about no water. Nobody has called them back.",
+  );
   assert.doesNotMatch(
     speakCall({ name: "Sim Maria Lopez", phone: "+13125556070", service: "AC not cooling", ago: "2 min ago", waiting: true }),
     /Sim |Partial data|automated drill|Call from/,
