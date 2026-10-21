@@ -16,7 +16,7 @@ import type { CaptureMode, CarrierId } from "@/lib/carrier-forward";
 import { displayPhone } from "@/lib/customer";
 import type { ManusPostStep } from "@/lib/manus-post";
 import { useOptionalRing1 } from "@/lib/ring1-context";
-import { SETTINGS_SECTIONS, searchSettings, settingsNavLabel, type SettingsSectionId } from "@/lib/settings-center";
+import { SETTINGS_PLACES, SETTINGS_SECTIONS, placeFor, searchSettings, settingsNavLabel, type SettingsSectionId } from "@/lib/settings-center";
 import type { ShopSetupStepId } from "@/lib/shop-setup-checklist";
 import {
   parseHoursForm,
@@ -58,15 +58,6 @@ const NEXT_SECTION: Record<ShopSetupStepId, SettingsSectionId> = {
   calendar: "team",
   owner_alerts: "notifications",
   verify: "phone",
-};
-
-const GROUP_LABELS: Record<string, string | null> = {
-  business: "Business",
-  connections: "Connections",
-  authority: "The line",
-  escalation: "Alerts",
-  account: "Account",
-  founder: "Founder",
 };
 
 export function SettingsCenter({
@@ -385,6 +376,9 @@ export function SettingsCenter({
       `${s.label} ${settingsNavLabel(s)}`.toLowerCase().includes(query),
   );
   const current = SETTINGS_SECTIONS.find((s) => s.id === section) ?? SETTINGS_SECTIONS[0];
+  const here = placeFor(section);
+  const places = SETTINGS_PLACES.filter((place) => place.id !== "internal" || account?.founder);
+  const more = here && section === here.sections[0].id ? here.sections.slice(1) : [];
   const name = account?.user?.name ?? b?.name ?? "Owner";
   const email = account?.user?.email ?? b?.ownerEmail ?? "";
 
@@ -392,6 +386,23 @@ export function SettingsCenter({
     onSection(next);
     setPane("pane");
   }
+
+  const placeRows = more.length ? (
+    <div className="sc-place-more">
+      {more.map((item) => {
+        const meta = SETTINGS_SECTIONS.find((s) => s.id === item.id);
+        return (
+          <button key={item.id} type="button" className="sc-place-row" onClick={() => go(item.id)}>
+            <span className="sc-row-copy">
+              <span className="sc-row-label">{meta ? settingsNavLabel(meta) : item.id}</span>
+              <span className="sc-row-hint">{item.detail}</span>
+            </span>
+            <SettingsIcon name="back" />
+          </button>
+        );
+      })}
+    </div>
+  ) : null;
 
   function renderSection() {
     if (section === "general") {
@@ -505,8 +516,8 @@ export function SettingsCenter({
               <span className="sc-nav-user-copy">
                 <span className="sc-nav-user-name">{name}</span>
                 <span className="sc-nav-user-sub">{b?.name ?? "Your shop"}</span>
+                {account ? <span className="sc-nav-user-plan">{planLabel(account)}</span> : null}
               </span>
-              <SettingsIcon name="updown" />
             </button>
             <button type="button" className="sc-icon-btn sc-mobile-only" aria-label="Close settings" onClick={onClose}>
               <SettingsIcon name="close" />
@@ -528,61 +539,58 @@ export function SettingsCenter({
             </button>
           ) : null}
           <nav className="sc-nav-list">
-            {sections.map((item, index) => {
-              const heading = GROUP_LABELS[item.group];
-              const first = index === 0 || sections[index - 1].group !== item.group;
-              return (
-                <div key={item.id} className="sc-nav-item-wrap">
-                  {first && heading ? <p className="sc-nav-heading">{heading}</p> : null}
-                  <button
-                    type="button"
-                    className={`sc-nav-item${item.id === section ? " is-active" : ""}`}
-                    aria-current={item.id === section ? "page" : undefined}
-                    onClick={() => go(item.id)}
-                  >
-                    <SettingsIcon name={item.id} />
-                    <span className="sc-nav-item-label">{settingsNavLabel(item)}</span>
-                    {item.id === "account" && checklist.next ? (
-                      <span className="sc-nav-badge">
-                        {checklist.doneCount}/{checklist.totalCount}
-                      </span>
-                    ) : null}
-                  </button>
-                </div>
-              );
-            })}
-            {!sections.length ? <p className="sc-nav-empty">No settings match “{navQuery.trim()}”.</p> : null}
+            {query
+              ? sections.map((item) => (
+                  <div key={item.id} className="sc-nav-item-wrap">
+                    <button
+                      type="button"
+                      className={`sc-nav-item${item.id === section ? " is-active" : ""}`}
+                      aria-current={item.id === section ? "page" : undefined}
+                      onClick={() => go(item.id)}
+                    >
+                      <SettingsIcon name={item.id} />
+                      <span className="sc-nav-item-label">{settingsNavLabel(item)}</span>
+                    </button>
+                  </div>
+                ))
+              : places.map((place) => (
+                  <div key={place.id} className="sc-nav-item-wrap">
+                    <button
+                      type="button"
+                      className={`sc-nav-item${here?.id === place.id ? " is-active" : ""}`}
+                      aria-current={here?.id === place.id ? "page" : undefined}
+                      onClick={() => go(place.sections[0].id)}
+                    >
+                      <SettingsIcon name={place.icon} />
+                      <span className="sc-nav-item-label">{place.label}</span>
+                    </button>
+                  </div>
+                ))}
+            {query && !sections.length ? <p className="sc-nav-empty">No settings match “{navQuery.trim()}”.</p> : null}
           </nav>
-          {account?.billing ? (
-            <div className="sc-rail-plan">
-              <div className="sc-rail-plan-row">
-                <span className="sc-rail-plan-name">{planLabel(account)}</span>
-                <button type="button" className="sc-btn sc-btn--primary" onClick={() => go("billing")}>
-                  {account.billing.status === "active" ? "Manage" : "Upgrade"}
-                </button>
-              </div>
-              {account.billing.usage ? (
-                <p className="sc-rail-plan-usage">
-                  {account.billing.usage.used.toLocaleString("en-US")} of {account.billing.usage.included.toLocaleString("en-US")} calls this month
-                </p>
-              ) : null}
-            </div>
-          ) : null}
-          <a className="sc-nav-item sc-nav-help" href="/help" target="_blank" rel="noreferrer">
-            <SettingsIcon name="help" />
-            <span>Get help</span>
-            <SettingsIcon name="external" />
-          </a>
         </aside>
 
         <section className="sc-main">
           <header className="sc-head">
-            <button type="button" className="sc-icon-btn sc-mobile-only" aria-label="All settings" onClick={() => setPane("nav")}>
+            <button
+              type="button"
+              className="sc-icon-btn sc-mobile-only"
+              aria-label="All settings"
+              onClick={() => (here && section !== here.sections[0].id ? go(here.sections[0].id) : setPane("nav"))}
+            >
               <SettingsIcon name="back" />
             </button>
-            <h2 id="sc-title" className="sc-title">
-              {current.label}
-            </h2>
+            <div className="sc-head-copy">
+              {here && section !== here.sections[0].id ? (
+                <button type="button" className="sc-crumb" onClick={() => go(here.sections[0].id)}>
+                  <SettingsIcon name="back" />
+                  {here.label}
+                </button>
+              ) : null}
+              <h2 id="sc-title" className="sc-title">
+                {current.label}
+              </h2>
+            </div>
             <span className="sc-save" aria-live="polite">
               {saveState === "saving" ? "Saving…" : saveState === "checking" ? CHECKING : saveState === "saved" ? "Saved" : ""}
             </span>
@@ -606,15 +614,21 @@ export function SettingsCenter({
                 </button>
               </div>
             ) : !account ? (
-              <div className="sc-skeleton" aria-busy="true">
-                <span className="skeleton" />
-                <span className="skeleton" />
-                <span className="skeleton" />
-              </div>
+              <>
+                {placeRows}
+                <div className="sc-skeleton" aria-busy="true">
+                  <span className="skeleton" />
+                  <span className="skeleton" />
+                  <span className="skeleton" />
+                </div>
+              </>
             ) : !b && section !== "general" ? (
-              <p className="sc-muted">
-                No shop linked yet. <Link href="/dashboard/onboarding">Finish setup</Link> to connect your line.
-              </p>
+              <>
+                {placeRows}
+                <p className="sc-muted">
+                  No shop linked yet. <Link href="/dashboard/onboarding">Finish setup</Link> to connect your line.
+                </p>
+              </>
             ) : (
               <>
                 {account.role === "dispatcher" && section !== "team" && section !== "account" ? (
@@ -622,6 +636,7 @@ export function SettingsCenter({
                     You&apos;re a Dispatcher here, so settings are view-only. The shop owner or a manager can change them.
                   </p>
                 ) : null}
+                {placeRows}
                 {renderSection()}
               </>
             )}
@@ -638,6 +653,8 @@ export function SettingsCenter({
  * a confirmation is shown as when it happened, not as the line being healthy.
  */
 function ReceptionistApplyBanner({ apply, section, applying, onApply }: { apply: ReceptionistApply; section: SettingsSectionId; applying: boolean; onApply: () => void }) {
+  const aboutTheLine = section === "business" || section === "hours" || section === "receptionist";
+  if (!aboutTheLine) return null;
   const receptionistPane = section === "receptionist" || section === "hours";
   if (apply.state === "applied") {
     return receptionistPane && apply.appliedAt ? (

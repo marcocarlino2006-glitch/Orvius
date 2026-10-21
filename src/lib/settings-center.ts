@@ -1,7 +1,7 @@
 /**
- * Settings answer "how is Orvius allowed to run?", in five groups: the
- * business it serves, what it is connected to, what it may do alone, when it
- * hands off to a person, and the account itself.
+ * Settings answer "how is Orvius allowed to run?". The rail lists places.
+ * A place opens on its first section; the rest of that place are rows under
+ * the title.
  */
 export const SETTINGS_SECTIONS = [
   { id: "business", label: "Business profile", group: "business" },
@@ -21,6 +21,79 @@ export const SETTINGS_SECTIONS = [
 ] as const;
 
 export type SettingsSectionId = (typeof SETTINGS_SECTIONS)[number]["id"];
+
+/**
+ * What the rail shows. A place opens on its first section. The rest of its
+ * sections are rows on that page, so the rail stays a short list.
+ */
+export const SETTINGS_PLACES: Array<{
+  id: string;
+  label: string;
+  icon: SettingsSectionId;
+  sections: Array<{ id: SettingsSectionId; detail: string }>;
+}> = [
+  {
+    id: "account",
+    label: "Account",
+    icon: "account",
+    sections: [
+      { id: "account", detail: "Your name, email, and sign-in" },
+      { id: "general", detail: "How this browser behaves" },
+      { id: "team", detail: "People who can open the shop, and the technicians" },
+      { id: "activity", detail: "What changed, and who changed it" },
+      { id: "data", detail: "Download the shop, or delete it" },
+    ],
+  },
+  {
+    id: "business",
+    label: "Shop",
+    icon: "business",
+    sections: [
+      { id: "business", detail: "Name, trade, and address" },
+      { id: "hours", detail: "When you're open, the work you take, and where" },
+    ],
+  },
+  {
+    id: "line",
+    label: "The line",
+    icon: "receptionist",
+    sections: [{ id: "receptionist", detail: "What Orvius may do on a call" }],
+  },
+  {
+    id: "connections",
+    label: "Connections",
+    icon: "integrations",
+    sections: [
+      { id: "phone", detail: "The number Orvius answers" },
+      { id: "integrations", detail: "Calendars, payments, and other shop software" },
+    ],
+  },
+  {
+    id: "alerts",
+    label: "Alerts",
+    icon: "notifications",
+    sections: [{ id: "notifications", detail: "When Orvius texts or emails you" }],
+  },
+  {
+    id: "plan",
+    label: "Plan",
+    icon: "billing",
+    sections: [
+      { id: "billing", detail: "What you pay, and how customers pay you" },
+      { id: "performance", detail: "The numbers you compare a week against" },
+    ],
+  },
+  {
+    id: "internal",
+    label: "Founder",
+    icon: "internal",
+    sections: [{ id: "internal", detail: "Founder tools" }],
+  },
+];
+
+export function placeFor(section: SettingsSectionId) {
+  return SETTINGS_PLACES.find((place) => place.sections.some((item) => item.id === section)) ?? null;
+}
 
 /** The rail name: one line at the rail's width. The page title keeps the full label. */
 export function settingsNavLabel(section: (typeof SETTINGS_SECTIONS)[number]): string {
