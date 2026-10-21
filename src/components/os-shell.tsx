@@ -6,11 +6,13 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { displayPhone } from "@/lib/customer";
 import { useBusiness } from "@/lib/use-business";
+import { OsIcon } from "@/components/os-icons";
 import { OrviusLogo } from "@/components/orvius-logo";
 import { OsCommandPalette } from "@/components/os-command-palette";
 import { OsSidebarFooter } from "@/components/os-sidebar-footer";
 import { PayPromptModal } from "@/components/pay-prompt-modal";
 import { Toaster } from "@/components/toaster";
+import { osNavCurrent, osProductNav } from "@/lib/os-nav";
 import { DARK_QUERY, applyResolvedTheme, readThemeChoice, resolveTheme } from "@/lib/theme";
 
 type OsShellProps = {
@@ -122,6 +124,16 @@ export function OsShell({
               {pageName && subtitle ? <p className="os-topbar-sub font-sans">{subtitle}</p> : null}
             </div>
           </div>
+          <nav className="os-product-nav" aria-label="Shop">
+            {osProductNav.map((item) => {
+              const active = osNavCurrent(pathname, item.href);
+              return (
+                <Link key={item.href} href={item.href} className={active ? "is-active" : undefined} aria-current={active ? "page" : undefined}>
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
           <div className="os-topbar-actions">
             {lineAlert ? (
               <span className={`os-line-alert font-sans${business?.line ? "" : " is-off"}`} title={lineAlert} aria-label={lineAlert}>{lineAlert}</span>
@@ -159,6 +171,19 @@ export function OsShell({
           </div>
         ) : null}
         <main className="os-content os-content-pro">{children}</main>
+        <nav className="os-tabbar" aria-label="Shop">
+          {osProductNav.map((item) => {
+            const active = osNavCurrent(pathname, item.href);
+            return (
+              <Link key={item.href} href={item.href} className={`os-tab${active ? " is-active" : ""}`} aria-current={active ? "page" : undefined}>
+                <span className="os-tab-icon">
+                  <OsIcon name={item.icon} />
+                </span>
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
         <KeyboardShortcuts />
         <OsCommandPalette
           open={paletteOpen}

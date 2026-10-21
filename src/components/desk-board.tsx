@@ -80,7 +80,7 @@ function Money({ money }: { money: CommandMoney }) {
   return (
     <section className="cmd-section" aria-labelledby="desk-money">
       <h3 id="desk-money" className="cmd-section-title">
-        Money
+        <Link href="/dashboard/reports">Money</Link>
       </h3>
       <div className="cmd-money">
         {cells.map((cell) => (
@@ -156,7 +156,7 @@ export function DeskBoard({
       <section className="cmd-section" aria-labelledby="desk-today">
         <div className="cmd-section-head">
           <h3 id="desk-today" className="cmd-section-title">
-            Today
+            <Link href="/dashboard/schedule">Today</Link>
           </h3>
           <span className="cmd-section-note">{jobs.length === 1 ? "1 job" : `${jobs.length} jobs`}</span>
         </div>
