@@ -53,3 +53,37 @@ test("the last thing that happened speaks when nothing is waiting", () => {
   assert.equal(commandSentence({ ...clear, lastSummary: "Booked Dana Cole for Thursday" }), "Booked Dana Cole for Thursday.");
   assert.equal(commandSentence({ ...clear, loaded: false, brief: "Today: 5 jobs booked, 4 completed." }), "Reading the shop…");
 });
+
+test("a visit that does not need you is the day, and money still speaks", () => {
+  assert.equal(
+    commandSentence({
+      ...clear,
+      item: { title: "Water heater", customer: "Dana", nextAction: "Waiting on Ray to accept", needsYou: false, when: "Oct 23, 10:00 AM", tech: "Ray" },
+    }),
+    "Oct 23, 10:00 AM. Water heater. Ray.",
+  );
+  assert.equal(
+    commandSentence({
+      ...clear,
+      item: { title: "Water heater", customer: "Dana", nextAction: "Waiting on Dana to pay $1", needsYou: false, when: "Oct 23, 10:00 AM", tech: "Ray" },
+    }),
+    "Waiting on Dana to pay $1.",
+  );
+  assert.equal(
+    commandSentence({
+      ...clear,
+      item: { title: "Water heater", customer: "Dana", nextAction: "Assign a technician", needsYou: true, when: "Oct 23, 10:00 AM", tech: null },
+    }),
+    "Assign a technician.",
+  );
+});
+
+test("a shop with no line hears that one next step when the day is empty", () => {
+  assert.equal(commandSentence({ ...clear, lineOff: true }), "Connect the line. Orvius answers once it is on.");
+  assert.equal(commandSentence({ ...clear, lineOff: true, brief: "Today: 0 jobs booked, 0 completed." }), "Connect the line. Orvius answers once it is on.");
+  assert.equal(commandSentence({ ...clear, lineOff: true, brief: "Today: 5 jobs booked, 4 completed." }), "Today: 5 jobs booked, 4 completed.");
+  assert.equal(
+    commandSentence({ ...clear, lineOff: true, item: { title: "AC not cooling", customer: "Maria", nextAction: "Call Maria back", needsYou: true } }),
+    "Call Maria back.",
+  );
+});

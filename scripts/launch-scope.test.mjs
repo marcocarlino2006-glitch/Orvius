@@ -138,7 +138,7 @@ test("the jobs list reads the job's own bill, not just the estimate's", () => {
   );
   assert.equal(f.money.kind, "claimed");
   const work = read("src/lib/work.ts");
-  assert.match(work, /Confirm \$\{who\}'s payment arrived/);
+  assert.match(work, /Confirm \$\{who\}'s\$\{money\} payment arrived/);
   const queue = read("src/lib/attention-queue.ts");
   assert.match(queue, /Confirm payment/);
 });

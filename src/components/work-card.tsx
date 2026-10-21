@@ -153,7 +153,7 @@ export function WorkCard({
   const canMove = item.stage === "needs_callback" || item.stage === "needs_time" || (isJob && (item.stage === "scheduled" || item.stage === "confirmed"));
   const primaryCall = Boolean(item.phone) && (pastDue || item.stage === "needs_callback" || kinds.has("emergency") || kinds.has("unconfirmed_soon") || kinds.has("failed_message") || kinds.has("invoice_undelivered") || kinds.has("customer_no_show") || kinds.has("open_invoice") || kinds.has("estimate_failed") || kinds.has("wants_human"));
   const person = spokenName(item.customer);
-  const who = person || item.phone || "Unknown caller";
+  const who = person || "A caller";
   const firstName = person.split(" ")[0] || "them";
   const askTech = isJob && kinds.has("tech_unanswered") && Boolean(item.technician?.phone);
   const unconfirmed = isJob && !pastDue && (item.stage === "scheduled" || kinds.has("unconfirmed_soon")) && Boolean(item.technician) && !kinds.has("failed_message") && !askTech;
@@ -187,11 +187,22 @@ export function WorkCard({
           </p>
           )}
           {now ? (
-            <p className="cmd-fact">
-              <Link href={item.href}>{who}</Link>
-              <span className="cmd-fact-what">{spokenText(item.title)}</span>
-              <time dateTime={item.scheduledAt ?? item.createdAt}>{formatWhen(item.scheduledAt ?? item.createdAt)}</time>
-            </p>
+            <>
+              <p className="cmd-fact">
+                <Link href={item.href}>{who}</Link>
+                <span className="cmd-fact-what">{spokenText(item.title)}</span>
+                <time dateTime={item.scheduledAt ?? item.createdAt}>{formatWhen(item.scheduledAt ?? item.createdAt)}</time>
+              </p>
+              {item.path?.length ? (
+                <ol className="cmd-path">
+                  {item.path.map((beat) => (
+                    <li key={beat.key} className={`cmd-path-beat is-${beat.state}`}>
+                      {beat.label}
+                    </li>
+                  ))}
+                </ol>
+              ) : null}
+            </>
           ) : inList ? (
             <Link href={item.href} className="wc-title">
               {spokenText(item.title)}

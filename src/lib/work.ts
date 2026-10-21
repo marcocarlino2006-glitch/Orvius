@@ -1,9 +1,11 @@
 import { collectAttention } from "@/lib/attention-queue";
 import { PAST_DUE_LABEL, jobPastDue } from "@/lib/job-status";
+import { formatCentsTidy } from "@/lib/money";
 import { personName } from "@/lib/people";
 import type { AttentionItem, AttentionKind } from "@/lib/attention-types";
 import { buildCommandBoard, type BoardItem, type ExceptionKind } from "@/lib/command-board";
 import { prisma } from "@/lib/prisma";
+import { spokenName } from "@/lib/spoken-name";
 
 /*
   Work is one list of everything a shop has to do for a customer, from the
@@ -57,6 +59,9 @@ export type WorkProblem = {
 
 /** Who the next step is waiting on. Only "you" (or a problem) puts work in front of a person. */
 export type WaitingOn = "you" | "customer" | "technician" | null;
+
+/** One beat of the work, in order. The first unfinished beat is the one happening. */
+export type WorkPathBeat = { key: string; label: string; state: "done" | "now" | "wait" };
 
 export type WorkRequest = {
   id: string;
@@ -118,6 +123,8 @@ export type WorkItem = {
   /** A person took this customer's texts over from Orvius. */
   takenOver: boolean;
   needsYou: boolean;
+  /** Booked, confirmed, the technician, and the bill when money is in play. */
+  path: WorkPathBeat[];
   scheduledAt: string | null;
   updatedAt: string;
   createdAt: string;
@@ -166,6 +173,64 @@ function finish(item: Omit<WorkItem, "needsYou">): WorkItem {
   return { ...item, needsYou: item.open && (item.waitingOn === "you" || item.problems.length > 0 || Boolean(item.approvalId)) };
 }
 
+function pathOf(steps: Array<{ key: string; label: string; done: boolean; hold?: boolean }>): WorkPathBeat[] {
+  let marked = false;
+  return steps.map((step) => {
+    if (step.done) return { key: step.key, label: step.label, state: "done" };
+    if (step.hold || marked) return { key: step.key, label: step.label, state: "wait" };
+    marked = true;
+    return { key: step.key, label: step.label, state: "now" };
+  });
+}
+
+function techLabel(name: string | null | undefined): string {
+  return spokenName(name).split(/\s+/)[0] || "Tech";
+}
+
+function owedPhrase(job: Pick<WorkJob, "invoices">): string {
+  const owed = unpaidInvoices(job);
+  const amount = formatCentsTidy(owed.reduce((sum, invoice) => sum + invoice.amountCents, 0));
+  return amount ? ` ${amount}` : "";
+}
+
+function requestPath(lead: WorkRequest): WorkPathBeat[] {
+  if (lead.status === "lost" || lead.status === "spam") {
+    return [
+      { key: "called", label: "Called", state: "done" },
+      { key: "booked", label: "Booked", state: "wait" },
+    ];
+  }
+  return pathOf([
+    { key: "called", label: "Called", done: true },
+    { key: "booked", label: "Booked", done: lead.status === "booked" },
+  ]);
+}
+
+function jobPath(job: WorkJob, stage: WorkStage): WorkPathBeat[] {
+  const tech = job.technician ? techLabel(job.technician.name) : "Tech";
+  if (stage === "cancelled") {
+    return [
+      { key: "booked", label: "Booked", state: "done" },
+      { key: "confirmed", label: "Confirmed", state: "wait" },
+      { key: "tech", label: tech, state: "wait" },
+    ];
+  }
+  const field = stage === "on_the_way" || stage === "on_site" || stage === "done";
+  const confirmed = Boolean(job.customerConfirmedAt) || stage === "confirmed" || field;
+  const accepted = Boolean(job.techAcceptedAt) || field;
+  const owed = unpaidInvoices(job);
+  const steps: Array<{ key: string; label: string; done: boolean; hold?: boolean }> = [
+    { key: "booked", label: "Booked", done: true },
+    { key: "confirmed", label: "Confirmed", done: confirmed },
+    { key: "tech", label: tech, done: accepted, hold: !accepted && !job.technician },
+  ];
+  if (stage === "done" || owed.length > 0) {
+    const paid = owed.length === 0;
+    steps.push({ key: "bill", label: paid ? "Paid" : "Unpaid", done: paid });
+  }
+  return pathOf(steps);
+}
+
 export function requestWorkItem(lead: WorkRequest): WorkItem {
   const stage = requestStage(lead.status);
   const who = lead.name?.trim() || "the caller";
@@ -201,6 +266,7 @@ export function requestWorkItem(lead: WorkRequest): WorkItem {
     problems: [],
     approvalId: null,
     takenOver: false,
+    path: requestPath(lead),
     scheduledAt: null,
     updatedAt: lead.updatedAt.toISOString(),
     createdAt: lead.createdAt.toISOString(),
@@ -231,10 +297,12 @@ export function jobWorkItem(job: WorkJob, now = Date.now()): WorkItem {
         return ["Mark arrived", "technician"];
       case "on_site":
         return ["Mark done", "technician"];
-      case "done":
+      case "done": {
         if (!owed.length) return [null, null];
-        if (owed.some((i) => i.payments?.some((p) => p.status === "claimed"))) return [`Confirm ${who}'s payment arrived`, "you"];
-        return owed.some((i) => i.status === "draft") ? ["Send the invoice", "you"] : [`Waiting on ${who} to pay`, "customer"];
+        const money = owedPhrase(job);
+        if (owed.some((i) => i.payments?.some((p) => p.status === "claimed"))) return [`Confirm ${who}'s${money} payment arrived`, "you"];
+        return owed.some((i) => i.status === "draft") ? [`Send the${money} invoice`, "you"] : [`Waiting on ${who} to pay${money}`, "customer"];
+      }
       default:
         return [null, null];
     }
@@ -261,6 +329,7 @@ export function jobWorkItem(job: WorkJob, now = Date.now()): WorkItem {
     problems: [],
     approvalId: null,
     takenOver: false,
+    path: jobPath(job, stage),
     scheduledAt: job.scheduledAt?.toISOString() ?? null,
     updatedAt: job.updatedAt.toISOString(),
     createdAt: job.createdAt.toISOString(),

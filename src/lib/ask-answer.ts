@@ -3,7 +3,7 @@ import { COLLECTED_STATUSES } from "@/lib/payment-math";
 import { formatCents } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
 import type { MemoryHit } from "@/lib/shop-memory";
-import { spokenName, spokenPhone } from "@/lib/spoken-name";
+import { spokenName } from "@/lib/spoken-name";
 
 const OPEN = new Set(["scheduled", "confirmed", "en_route", "on_site"]);
 
@@ -50,7 +50,7 @@ export function speakCall(call: {
   ago: string;
   waiting: boolean;
 }): string {
-  const who = spokenName(call.name) || (call.phone ? spokenPhone(call.phone) : "") || "Someone";
+  const who = spokenName(call.name) || "A caller";
   const about = call.service?.trim();
   const waiting = call.waiting ? " Nobody has called them back." : "";
   return `${who} called ${call.ago}${about ? ` about ${about}` : ""}.${waiting}`;
