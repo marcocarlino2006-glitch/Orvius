@@ -513,7 +513,8 @@ export async function invoiceCompletedJob(
   const totalCents =
     job.finalAmountCents ??
     (job.estimate?.status === "accepted" ? job.estimate.amountCents : null);
-  if (!totalCents) return { invoiced: false as const, reason: "no_amount" as const };
+  /* Zero and a negative line total (discounts larger than the work) are not a bill. */
+  if (totalCents == null || totalCents <= 0) return { invoiced: false as const, reason: "no_amount" as const };
 
   const { invoice, repriceHeld } = await upsertJobInvoice({
     businessId: job.businessId,
