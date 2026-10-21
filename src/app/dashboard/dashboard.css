@@ -4489,6 +4489,16 @@
   overflow: hidden;
 }
 
+.os-palette-grab,
+.os-palette-mark,
+.os-palette-cancel {
+  display: none;
+}
+
+.os-palette-query {
+  display: contents;
+}
+
 .os-palette-field {
   display: flex;
   align-items: center;
