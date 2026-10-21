@@ -7,6 +7,7 @@ import { toast } from "@/components/toaster";
 import { OutcomeCard } from "@/components/outcome-card";
 import { WorkCard } from "@/components/work-card";
 import type { Outcome } from "@/lib/outcome";
+import { shownBeatLabel } from "@/lib/path-label";
 import type { WorkItem, WorkStage } from "@/lib/work";
 import { WorkHistory } from "@/components/work-history-view";
 import type { HistoryEvent } from "@/lib/work-history";
@@ -37,10 +38,21 @@ function trackStep(item: WorkItem): number {
   return byStage[item.stage];
 }
 
-function StageTrack({ item }: { item: WorkItem }) {
+function StageTrack({ item, timezone }: { item: WorkItem; timezone?: string | null }) {
   const step = trackStep(item);
   if (step < 0) {
     return <p className="wp-closed">{item.stage === "spam" ? "Marked spam" : "Cancelled"} — nothing else happens to this work.</p>;
+  }
+  if (item.path.length) {
+    return (
+      <ol className="cmd-path" aria-label="Where this work stands">
+        {item.path.map((beat) => (
+          <li key={beat.key} className={`cmd-path-beat is-${beat.state}`}>
+            {shownBeatLabel(beat, item, timezone)}
+          </li>
+        ))}
+      </ol>
+    );
   }
   return (
     <ol className="wp-track" aria-label={`Stage: ${item.stageLabel}`}>
@@ -149,7 +161,7 @@ export function WorkPanel({
   return (
     <div className="wp-stack">
       <section className="wp" aria-label="Where this work stands">
-        <StageTrack item={item} />
+        <StageTrack item={item} timezone={data.timezone} />
         {movedOn ? (
           <p className="wp-moved">
             This request is booked. <Link href={item.href}>Open the job →</Link>

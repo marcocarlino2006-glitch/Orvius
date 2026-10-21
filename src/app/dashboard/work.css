@@ -109,6 +109,14 @@
   white-space: nowrap;
 }
 
+.cmd-fact-money {
+  flex: 0 0 auto;
+  color: var(--ox-text);
+  font-weight: 560;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 .cmd-fact time,
 .cmd-live-call time {
   flex: 0 0 auto;
@@ -118,7 +126,7 @@
   white-space: nowrap;
 }
 
-.cmd-one .cmd-path {
+.cmd-path {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
@@ -132,7 +140,7 @@
   line-height: 1.35;
 }
 
-.cmd-one .cmd-path-beat {
+.cmd-path-beat {
   max-width: 100%;
   overflow: hidden;
   color: var(--ox-text-2);
@@ -140,19 +148,19 @@
   text-overflow: ellipsis;
 }
 
-.cmd-one .cmd-path-beat + .cmd-path-beat::before {
+.cmd-path-beat + .cmd-path-beat::before {
   content: "·";
   margin: 0 0.45rem;
   color: var(--ox-mute);
   font-weight: 400;
 }
 
-.cmd-one .cmd-path-beat.is-now {
+.cmd-path-beat.is-now {
   color: var(--ox-text);
   font-weight: 560;
 }
 
-.cmd-one .cmd-path-beat.is-wait {
+.cmd-path-beat.is-wait {
   color: var(--ox-mute);
 }
 

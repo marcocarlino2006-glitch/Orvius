@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { detectAssistantPromises } from "@/lib/assistant-promises";
 import type { CallFinding, CallGrade } from "@/lib/call-quality";
 import { SAFETY_GUIDANCE } from "@/lib/safety-guidance";
-import { parseTranscript } from "@/lib/transcript";
+import { callerSpokeSpanish } from "@/lib/caller-language";
 import { classifyRequest } from "@/lib/trade-playbooks";
 
 /**
@@ -76,8 +76,6 @@ const HAZARD_LINE: Record<string, string> = {
   burning_unit: "Also, there's a burning smell coming from the unit.",
 };
 
-const SPANISH = /\b(hola|gracias|por favor|calefacci[oó]n|aire acondicionado|no funciona|mi casa|necesito|se[nñ]or|se[nñ]ora|buenas)\b/i;
-
 function seed(id: string) {
   return createHash("sha256").update(`orvius-learned:${id}`).digest();
 }
@@ -92,12 +90,6 @@ export function syntheticCaller(id: string) {
   const houseNumber = 100 + (h.readUInt16BE(4) % 2800);
   const street = STREETS[h[6] % STREETS.length];
   return { name: `${first} ${last}`, first, last, number, digits: `312555${tail}`, houseNumber, address: `${houseNumber} ${street}, Evanston 60201` };
-}
-
-function callerSpokeSpanish(transcript: string | null) {
-  const caller = parseTranscript(transcript).filter((l) => l.role === "caller");
-  if (!caller.length) return false;
-  return caller.filter((l) => SPANISH.test(l.text)).length * 2 >= caller.length;
 }
 
 export function learnScenario(call: LearnableCall): LearnedScenario | null {

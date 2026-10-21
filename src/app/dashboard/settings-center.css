@@ -70,6 +70,38 @@
   background: var(--sc-bg);
 }
 
+.sc-next {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  width: 100%;
+  margin: 0 0 0.5rem;
+  padding: 0.55rem 0.5rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sc-next:hover {
+  background: rgb(var(--ox-tint) / 0.05);
+}
+
+.sc-next-kicker {
+  color: var(--sc-mute);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.sc-next-label {
+  color: var(--sc-text, var(--ox-text));
+  font-size: 14px;
+  font-weight: 560;
+  line-height: 1.35;
+}
+
 .sc-nav-list {
   flex: 1 1 auto;
   min-height: 0;

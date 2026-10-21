@@ -22,6 +22,8 @@ mock.module(new URL("../src/auth.ts", import.meta.url).href, {
 
 const { prisma } = await import("../src/lib/prisma.ts");
 const work = await import("../src/lib/work.ts");
+const { formatBeat } = await import("../src/lib/when.ts");
+const { shownBeatLabel } = await import("../src/lib/path-label.ts");
 
 const uid = () => Math.random().toString(36).slice(2, 10);
 const phone = () => `+1720${2_000_000 + Math.floor(Math.random() * 7.7e6)}`;
@@ -88,6 +90,11 @@ test("a request's stage and next action follow its status", () => {
   assert.equal(work.requestWorkItem(lead({ status: "contacted" })).nextAction, "Pick a time with Dana");
   assert.equal(work.requestWorkItem(lead({ status: "booked" })).nextAction, "Put the booked time on the schedule");
   assert.equal(work.requestWorkItem(lead({ name: null })).nextAction, "Call the caller back");
+  assert.equal(work.requestWorkItem(lead()).lang, null);
+  assert.equal(
+    work.requestWorkItem(lead({ call: { transcript: "Caller: Hola, necesito ayuda\nCaller: mi casa no tiene agua\nAI: I can help" } })).lang,
+    "es",
+  );
 
   const lost = work.requestWorkItem(lead({ status: "lost" }));
   assert.equal(lost.stage, "cancelled");
@@ -116,6 +123,15 @@ test("a request's stage and next action follow its status", () => {
 });
 
 const jobItem = (j) => work.jobWorkItem(j, now.getTime());
+
+test("a booked time and an open bill read as the value", () => {
+  assert.equal(formatBeat("2026-10-06T12:00:00Z", "UTC"), "Tue, 12 PM");
+  assert.equal(formatBeat("2026-10-19T19:30:00Z", "America/Chicago"), "Mon 2:30 PM");
+  assert.equal(formatBeat("2026-10-06T12:30:00Z", "UTC"), "Tue 12:30 PM");
+  assert.notEqual(shownBeatLabel({ key: "booked", label: "Booked", state: "done" }, { scheduledAt: "2026-10-06T12:00:00Z", amountLabel: null }), "Booked");
+  assert.equal(shownBeatLabel({ key: "bill", label: "Unpaid", state: "now" }, { scheduledAt: null, amountLabel: "$1" }), "$1");
+  assert.equal(shownBeatLabel({ key: "bill", label: "Paid", state: "done" }, { scheduledAt: null, amountLabel: "$1" }), "Paid");
+});
 
 test("a job's stage and next action follow the visit", () => {
   assert.equal(jobItem(job({ scheduledAt: null })).stage, "needs_time");
@@ -159,7 +175,8 @@ test("a job's stage and next action follow the visit", () => {
   assert.equal(paid.open, false);
   const owes = jobItem(job({ status: "completed", invoices: [{ status: "sent", paidAt: null, amountCents: 100 }] }));
   assert.equal(owes.open, true);
-  assert.equal(owes.nextAction, "Waiting on Dana to pay $1");
+  assert.equal(owes.nextAction, "$1 waiting on Dana to pay");
+  assert.equal(owes.amountLabel, "$1");
   assert.equal(owes.waitingOn, "customer");
   assert.deepEqual(
     owes.path.map((beat) => [beat.label, beat.state]),
@@ -174,6 +191,7 @@ test("a job's stage and next action follow the visit", () => {
   assert.equal(draft.nextAction, "Send the $1 invoice");
   const claimed = jobItem(job({ status: "completed", invoices: [{ status: "sent", paidAt: null, amountCents: 4902, payments: [{ status: "claimed" }] }] }));
   assert.equal(claimed.nextAction, "Confirm Dana's $49.02 payment arrived");
+  assert.equal(claimed.amountLabel, "$49.02");
   assert.equal(draft.needsYou, true);
   assert.equal(jobItem(job({ status: "completed", invoices: [{ status: "void", paidAt: null, amountCents: 1 }] })).open, false);
   assert.equal(jobItem(job({ status: "cancelled" })).open, false);

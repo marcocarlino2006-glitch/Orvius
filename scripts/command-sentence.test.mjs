@@ -78,6 +78,16 @@ test("a visit that does not need you is the day, and money still speaks", () => 
   );
 });
 
+test("a Spanish call is said in the sentence", () => {
+  assert.equal(
+    commandSentence({
+      ...clear,
+      item: { title: "No water", customer: "Maria", nextAction: "Call Maria back", needsYou: true, spanish: true },
+    }),
+    "Call Maria back. They called in Spanish.",
+  );
+});
+
 test("a shop with no line hears that one next step when the day is empty", () => {
   assert.equal(commandSentence({ ...clear, lineOff: true }), "Connect the line. Orvius answers once it is on.");
   assert.equal(commandSentence({ ...clear, lineOff: true, brief: "Today: 0 jobs booked, 0 completed." }), "Connect the line. Orvius answers once it is on.");

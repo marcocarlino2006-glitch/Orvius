@@ -18,6 +18,8 @@ export type CommandSentenceInput = {
     needsYou?: boolean;
     when?: string | null;
     tech?: string | null;
+    /** The caller spoke Spanish. The sentence says so. */
+    spanish?: boolean;
   } | null;
   lastSummary: string | null;
   /** A real shop with nothing on the line yet. Sample and test shops leave this off. */
@@ -50,6 +52,11 @@ function visitSentence(item: NonNullable<CommandSentenceInput["item"]>): string 
   return tech ? `${when}. ${title} ${tech}.` : `${when}. ${title}`;
 }
 
+function inSpanish(text: string, spanish?: boolean): string {
+  if (!spanish || /spanish/i.test(text)) return text;
+  return `${text.replace(/[.!?]$/, "")}. They called in Spanish.`;
+}
+
 export function commandSentence(input: CommandSentenceInput): string {
   if (!input.loaded) return "Reading the shop…";
   if (input.live?.who.trim()) return `${spokenText(input.live.who).trim()} is on the line.`;
@@ -59,10 +66,14 @@ export function commandSentence(input: CommandSentenceInput): string {
   }
   if (input.item) {
     const quietVisit = input.item.needsYou === false && Boolean(input.item.when?.trim()) && !isMoney(input.item.nextAction);
-    if (quietVisit) return visitSentence(input.item);
-    if (input.item.nextAction) return fromAction(input.item.nextAction);
-    const who = spokenText(input.item.customer).trim();
-    return who ? `${who}. ${finish(input.item.title)}` : finish(input.item.title);
+    const said = quietVisit
+      ? visitSentence(input.item)
+      : input.item.nextAction
+        ? fromAction(input.item.nextAction)
+        : spokenText(input.item.customer).trim()
+          ? `${spokenText(input.item.customer).trim()}. ${finish(input.item.title)}`
+          : finish(input.item.title);
+    return inSpanish(said, input.item.spanish);
   }
   if (input.lastSummary) return finish(input.lastSummary);
   const brief = input.brief?.trim() ?? "";

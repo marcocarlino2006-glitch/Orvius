@@ -17,7 +17,9 @@ import { CALL_OUTCOME_LABEL, type CallOutcome } from "@/lib/call-outcome";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { callerSpokeSpanish } from "@/lib/caller-language";
 import { displayPhone } from "@/lib/customer";
+import { spokenName } from "@/lib/spoken-name";
 import { jobStatusTitle } from "@/lib/job-status";
 import { formatDay, formatWhen, statusWord } from "@/lib/when";
 
@@ -133,11 +135,8 @@ export default function CallDetailPage() {
     );
   }
 
-  const who =
-    call.lead?.name ??
-    call.customer?.name ??
-    call.callerPhone ??
-    "Unknown caller";
+  const who = spokenName(call.lead?.name ?? call.customer?.name) || "A caller";
+  const spanish = callerSpokeSpanish(call.transcript);
 
   /* The request's number is the checked callback (what the caller said, or caller ID); the button dials what the page shows. */
   const phone = call.lead ? call.lead.phone : call.callerPhone;
@@ -150,7 +149,7 @@ export default function CallDetailPage() {
   return (
     <OsShell
       title={who}
-      subtitle={[service, formatWhen(call.createdAt)].filter(Boolean).join(" · ")}
+      subtitle={[spanish ? "In Spanish" : null, service, formatWhen(call.createdAt)].filter(Boolean).join(" · ")}
       businessName={call.business?.name ?? "Your shop"}
       actions={
         <div className="flex flex-wrap gap-2">

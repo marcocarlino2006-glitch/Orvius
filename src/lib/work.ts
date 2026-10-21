@@ -5,6 +5,7 @@ import { personName } from "@/lib/people";
 import type { AttentionItem, AttentionKind } from "@/lib/attention-types";
 import { buildCommandBoard, type BoardItem, type ExceptionKind } from "@/lib/command-board";
 import { prisma } from "@/lib/prisma";
+import { callerSpokeSpanish } from "@/lib/caller-language";
 import { spokenName } from "@/lib/spoken-name";
 
 /*
@@ -74,6 +75,7 @@ export type WorkRequest = {
   assigneeEmail: string | null;
   createdAt: Date;
   updatedAt: Date;
+  call?: { transcript: string | null } | null;
 };
 
 export type WorkJob = {
@@ -125,6 +127,10 @@ export type WorkItem = {
   needsYou: boolean;
   /** Booked, confirmed, the technician, and the bill when money is in play. */
   path: WorkPathBeat[];
+  /** Dollars still owed, the way a charge list prints the amount. Null when nothing is owed. */
+  amountLabel: string | null;
+  /** Set when the caller spoke Spanish. Null when the call was English or there is no transcript. */
+  lang: "es" | null;
   scheduledAt: string | null;
   updatedAt: string;
   createdAt: string;
@@ -187,10 +193,10 @@ function techLabel(name: string | null | undefined): string {
   return spokenName(name).split(/\s+/)[0] || "Tech";
 }
 
-function owedPhrase(job: Pick<WorkJob, "invoices">): string {
+function owedAmount(job: Pick<WorkJob, "invoices">): string | null {
   const owed = unpaidInvoices(job);
-  const amount = formatCentsTidy(owed.reduce((sum, invoice) => sum + invoice.amountCents, 0));
-  return amount ? ` ${amount}` : "";
+  if (!owed.length) return null;
+  return formatCentsTidy(owed.reduce((sum, invoice) => sum + invoice.amountCents, 0));
 }
 
 function requestPath(lead: WorkRequest): WorkPathBeat[] {
@@ -267,6 +273,8 @@ export function requestWorkItem(lead: WorkRequest): WorkItem {
     approvalId: null,
     takenOver: false,
     path: requestPath(lead),
+    amountLabel: null,
+    lang: callerSpokeSpanish(lead.call?.transcript) ? "es" : null,
     scheduledAt: null,
     updatedAt: lead.updatedAt.toISOString(),
     createdAt: lead.createdAt.toISOString(),
@@ -299,9 +307,12 @@ export function jobWorkItem(job: WorkJob, now = Date.now()): WorkItem {
         return ["Mark done", "technician"];
       case "done": {
         if (!owed.length) return [null, null];
-        const money = owedPhrase(job);
-        if (owed.some((i) => i.payments?.some((p) => p.status === "claimed"))) return [`Confirm ${who}'s${money} payment arrived`, "you"];
-        return owed.some((i) => i.status === "draft") ? [`Send the${money} invoice`, "you"] : [`Waiting on ${who} to pay${money}`, "customer"];
+        const figure = owedAmount(job);
+        if (owed.some((i) => i.payments?.some((p) => p.status === "claimed"))) {
+          return [figure ? `Confirm ${who}'s ${figure} payment arrived` : `Confirm ${who}'s payment arrived`, "you"];
+        }
+        if (owed.some((i) => i.status === "draft")) return [figure ? `Send the ${figure} invoice` : "Send the invoice", "you"];
+        return [figure ? `${figure} waiting on ${who} to pay` : `Waiting on ${who} to pay`, "customer"];
       }
       default:
         return [null, null];
@@ -330,6 +341,8 @@ export function jobWorkItem(job: WorkJob, now = Date.now()): WorkItem {
     approvalId: null,
     takenOver: false,
     path: jobPath(job, stage),
+    amountLabel: owedAmount(job),
+    lang: null,
     scheduledAt: job.scheduledAt?.toISOString() ?? null,
     updatedAt: job.updatedAt.toISOString(),
     createdAt: job.createdAt.toISOString(),
@@ -555,6 +568,7 @@ const requestSelect = {
   assigneeEmail: true,
   createdAt: true,
   updatedAt: true,
+  call: { select: { transcript: true } },
 } as const;
 
 export type WorkView = "open" | "closed";

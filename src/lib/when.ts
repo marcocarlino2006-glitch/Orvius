@@ -1,3 +1,23 @@
+/** "Thu, 10 AM" — the day and the hour, for a path beat. Minutes only when they are not :00. */
+export function formatBeat(value: Date | string | number | null | undefined, timezone?: string | null): string {
+  if (value == null) return "";
+  const at = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(at.getTime())) return "";
+  const minute = Number(
+    new Intl.DateTimeFormat("en-US", {
+      minute: "numeric",
+      hourCycle: "h23",
+      ...(timezone ? { timeZone: timezone } : {}),
+    }).format(at),
+  );
+  return at.toLocaleString("en-US", {
+    weekday: "short",
+    hour: "numeric",
+    ...(minute ? { minute: "2-digit" } : {}),
+    ...(timezone ? { timeZone: timezone } : {}),
+  });
+}
+
 /** "Sep 25, 5:53 AM" — the year only when it is not this one, never seconds. Pass the shop's timezone to read it on the shop's clock. */
 export function formatWhen(value: Date | string | number | null | undefined, now = new Date(), timezone?: string | null): string {
   if (value == null) return "";
