@@ -10,11 +10,30 @@ export type OsNavItem = {
 };
 
 /**
- * The owner lives on Command. Work, Schedule, Calls, Customers, Inbox, Jobs,
- * Ask and Reports are not places to go. A specific call, job or person still
- * opens. Search reaches the shop's rules.
+ * The places the owner runs. Home is the decision. Schedule, Inbox,
+ * Customers and Jobs are where the day, the requests, the person and the
+ * bill get finished. Calls, Work and Ask stay reachable in search.
+ * Money on Home opens the report.
  */
-export const osProductNav: OsNavItem[] = [];
+export const osProductNav: OsNavItem[] = [
+  { href: "/dashboard", label: "Home", icon: "command" },
+  { href: "/dashboard/schedule", label: "Schedule", icon: "dispatch" },
+  { href: "/dashboard/inbox", label: "Inbox", icon: "inbox" },
+  { href: "/dashboard/customers", label: "Customers", icon: "customers" },
+  { href: "/dashboard/jobs", label: "Jobs", icon: "jobs" },
+];
+
+/** Real screens that are not in the bar. Search opens them. */
+export const osMoreNav: OsNavItem[] = [
+  { href: "/dashboard/calls", label: "Calls", icon: "calls" },
+  { href: "/dashboard/work", label: "Work", icon: "jobs" },
+  { href: "/dashboard/ask", label: "Ask", icon: "ask" },
+];
+
+export function osNavCurrent(pathname: string, href: string): boolean {
+  if (href === "/dashboard") return pathname === "/dashboard";
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 /** Kept so older aliases have a home. Nothing in the shell paints them. */
 export const OS_NAV_ALIASES: Record<string, string[]> = {};

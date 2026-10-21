@@ -42,9 +42,9 @@ test("a technician's week runs Monday to Monday in the shop's timezone, across c
   assert.equal(lateSunday.start.toISOString(), "2026-10-05T07:00:00.000Z");
 });
 
-test("the hours view is served by the dispatch API while Dispatch itself opens Command", () => {
+test("the hours view is served by the dispatch API while Dispatch opens the schedule", () => {
   const page = readFileSync(new URL("../src/app/dashboard/dispatch/page.tsx", import.meta.url), "utf8");
   const route = readFileSync(new URL("../src/app/api/dispatch/route.ts", import.meta.url), "utf8");
-  assert.match(page, /redirect\("\/dashboard"\)/);
+  assert.match(page, /redirect\("\/dashboard\/schedule"\)/);
   assert.match(route, /get\("view"\) === "hours"/);
 });

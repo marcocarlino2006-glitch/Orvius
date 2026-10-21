@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SHOW_SHORTCUTS_EVENT } from "@/lib/keyboard-shortcuts";
 import { useRouter } from "next/navigation";
 import { OsIcon, type OsIconName } from "@/components/os-icons";
-import { osProductNav, osWorkspaceNav } from "@/lib/os-nav";
+import { osMoreNav, osProductNav, osWorkspaceNav } from "@/lib/os-nav";
 import { copyWeeklyProofRitual } from "@/lib/weekly-proof-client";
 import { SETTINGS_SECTIONS, openSettings, searchSettings } from "@/lib/settings-center";
 import type { SearchHit } from "@/app/api/search/route";
@@ -98,7 +98,7 @@ export function OsCommandPalette({
   const items = useMemo<PaletteItem[]>(() => {
     const q = query.trim().toLowerCase();
 
-    const screens: PaletteItem[] = [...osProductNav, ...osWorkspaceNav].map((nav) => ({
+    const screens: PaletteItem[] = [...osProductNav, ...osMoreNav, ...osWorkspaceNav].map((nav) => ({
       id: `nav:${nav.href}`,
       label: nav.label,
       hint: "Screen",

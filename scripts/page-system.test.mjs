@@ -112,9 +112,12 @@ test("AI authority follows the shop's settings", () => {
   assert.ok(alert.blocked.length > 0);
 });
 
-test("the old departments are not a nav", () => {
-  assert.deepEqual(osProductNav, []);
-  assert.match(read("src/app/dashboard/dispatch/page.tsx"), /redirect\("\/dashboard"\)/);
+test("the bar is Home, Schedule, Inbox, Customers and Jobs", () => {
+  assert.deepEqual(
+    osProductNav.map((item) => item.label),
+    ["Home", "Schedule", "Inbox", "Customers", "Jobs"],
+  );
+  assert.match(read("src/app/dashboard/dispatch/page.tsx"), /redirect\("\/dashboard\/schedule"\)/);
 });
 
 test("Command asks for work in one bar and shows propose → approve → result", () => {
