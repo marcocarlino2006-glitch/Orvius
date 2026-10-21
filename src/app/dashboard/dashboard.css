@@ -3871,14 +3871,21 @@
   text-underline-offset: 2px;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
+  .os-shell .os-topbar.os-topbar-pro {
+    flex-wrap: wrap;
+  }
+
   .os-product-nav {
     display: flex;
-    flex: 1 1 auto;
+    flex: 1 1 100%;
+    order: 5;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
     gap: 0.15rem;
     min-width: 0;
+    padding-top: 0.85rem;
   }
 
   .os-product-nav a {

@@ -12,7 +12,7 @@ import { OsCommandPalette } from "@/components/os-command-palette";
 import { OsSidebarFooter } from "@/components/os-sidebar-footer";
 import { PayPromptModal } from "@/components/pay-prompt-modal";
 import { Toaster } from "@/components/toaster";
-import { osNavCurrent, osProductNav } from "@/lib/os-nav";
+import { osNavCurrent, osProductNav, osWideNav } from "@/lib/os-nav";
 import { DARK_QUERY, applyResolvedTheme, readThemeChoice, resolveTheme } from "@/lib/theme";
 
 type OsShellProps = {
@@ -125,7 +125,7 @@ export function OsShell({
             </div>
           </div>
           <nav className="os-product-nav" aria-label="Shop">
-            {osProductNav.map((item) => {
+            {osWideNav.map((item) => {
               const active = osNavCurrent(pathname, item.href);
               return (
                 <Link key={item.href} href={item.href} className={active ? "is-active" : undefined} aria-current={active ? "page" : undefined}>

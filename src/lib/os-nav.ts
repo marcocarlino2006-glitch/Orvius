@@ -23,12 +23,28 @@ export const osProductNav: OsNavItem[] = [
   { href: "/dashboard/jobs", label: "Jobs", icon: "jobs" },
 ];
 
-/** Real screens that are not in the bar. Search opens them. */
+/** Real screens a phone keeps in search. An iPad and a computer show them in the bar. */
 export const osMoreNav: OsNavItem[] = [
   { href: "/dashboard/calls", label: "Calls", icon: "calls" },
   { href: "/dashboard/work", label: "Work", icon: "jobs" },
   { href: "/dashboard/ask", label: "Ask", icon: "ask" },
 ];
+
+const WIDE_ORDER = [
+  "/dashboard",
+  "/dashboard/schedule",
+  "/dashboard/inbox",
+  "/dashboard/calls",
+  "/dashboard/customers",
+  "/dashboard/jobs",
+  "/dashboard/work",
+  "/dashboard/ask",
+];
+
+/** Every place, in the order an iPad or a computer shows across the top. */
+export const osWideNav: OsNavItem[] = WIDE_ORDER.map(
+  (href) => [...osProductNav, ...osMoreNav].find((item) => item.href === href)!,
+);
 
 export function osNavCurrent(pathname: string, href: string): boolean {
   if (href === "/dashboard") return pathname === "/dashboard";

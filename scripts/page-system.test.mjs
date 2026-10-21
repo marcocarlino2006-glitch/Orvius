@@ -112,11 +112,13 @@ test("AI authority follows the shop's settings", () => {
   assert.ok(alert.blocked.length > 0);
 });
 
-test("the bar is Home, Schedule, Inbox, Customers and Jobs", () => {
+test("a phone keeps five places, and an iPad or a computer shows every place", () => {
   assert.deepEqual(
     osProductNav.map((item) => item.label),
     ["Home", "Schedule", "Inbox", "Customers", "Jobs"],
   );
+  assert.match(read("src/components/os-shell.tsx"), /osWideNav/);
+  assert.match(read("src/app/dashboard/dashboard.css"), /min-width: 768px/);
   assert.match(read("src/app/dashboard/dispatch/page.tsx"), /redirect\("\/dashboard\/schedule"\)/);
 });
 
