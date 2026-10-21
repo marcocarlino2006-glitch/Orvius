@@ -29,6 +29,14 @@ test("the rail is six places, and every section belongs to one of them", () => {
   assert.match(center, /if \(!aboutTheLine\) return null/, "the line warning stays on the pages that change the line");
 });
 
+test("the account menu blurs the desk behind it", () => {
+  const footer = readFileSync(new URL("../src/components/os-sidebar-footer.tsx", import.meta.url), "utf8");
+  const instant = readFileSync(new URL("../src/app/dashboard/orvius-instant.css", import.meta.url), "utf8");
+  assert.match(footer, /createPortal\([\s\S]*className="mx-blur"/);
+  assert.match(instant, /button\.mx-blur \{[^}]*backdrop-filter: blur\(18px\) saturate\(1\.2\);/);
+  assert.match(instant, /\.os-topbar:has\(\.mx-menu\) \{\s*position: relative;\s*z-index: 80;/);
+});
+
 test("opening settings blurs the desk behind it", () => {
   const texture = readFileSync(new URL("../src/app/dashboard/orvius-texture.css", import.meta.url), "utf8");
   const instant = readFileSync(new URL("../src/app/dashboard/orvius-instant.css", import.meta.url), "utf8");

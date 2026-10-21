@@ -57,6 +57,11 @@ test("CI audits every page on phone, iPad and desktop", async () => {
   assert.ok(APP_PAGES.includes("/dashboard") && APP_PAGES.includes("/dashboard/team"));
 });
 
+test("the account menu hangs from the avatar and stays on the phone", () => {
+  const css = read("src/app/dashboard/dashboard.css");
+  assert.match(css, /\.os-shell\.os-shell-night \.os-topbar \.mx-menu \{\s*top: calc\(100% \+ 6px\);\s*right: 0;\s*bottom: auto;\s*left: auto;/);
+});
+
 test("phones keep Sign in in the header and a menu that scrolls instead of overlapping", () => {
   const css = read("src/app/public-polish.css");
   assert.match(css, /\.mkt-nav-actions \.mkt-nav-login:not\(\.mkt-nav-contact\) \{\s*display: inline-flex !important;/);
