@@ -110,6 +110,32 @@ export function OsShell({
   return (
     <div className="os-shell os-shell-pro os-shell-night min-h-screen">
       <Toaster />
+      <aside className="os-sidebar os-sidebar-pro">
+        <div className="os-sidebar-inner">
+          <Link href="/dashboard" className="os-sidebar-brand" aria-label="Orvius">
+            <OrviusLogo size="md" variant="void" />
+          </Link>
+          <nav className="os-sidebar-nav" aria-label="Shop">
+            <ul>
+              {osWideNav.map((item) => {
+                const active = osNavCurrent(pathname, item.href);
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      className={`os-nav-link${active ? " os-nav-link-active" : ""}`}
+                      aria-current={active ? "page" : undefined}
+                    >
+                      <OsIcon name={item.icon} />
+                      <span className="os-nav-label">{item.label}</span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+        </div>
+      </aside>
 
       <div className="os-main os-main-pro">
         <header className="os-topbar os-topbar-pro os-topbar-night">
@@ -124,16 +150,6 @@ export function OsShell({
               {pageName && subtitle ? <p className="os-topbar-sub font-sans">{subtitle}</p> : null}
             </div>
           </div>
-          <nav className="os-product-nav" aria-label="Shop">
-            {osWideNav.map((item) => {
-              const active = osNavCurrent(pathname, item.href);
-              return (
-                <Link key={item.href} href={item.href} className={active ? "is-active" : undefined} aria-current={active ? "page" : undefined}>
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
           <div className="os-topbar-actions">
             {lineAlert ? (
               <span className={`os-line-alert font-sans${business?.line ? "" : " is-off"}`} title={lineAlert} aria-label={lineAlert}>{lineAlert}</span>

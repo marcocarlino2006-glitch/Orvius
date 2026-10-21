@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
  * Home, Schedule, Inbox, Customers and Jobs are the places the owner runs.
- * Calls, Work and Ask open from search. Money on Home opens the report. A specific call, job or
+ * Calls, Work and Ask open from search on a phone, and from the left sidebar on an iPad or a computer. Money on Home opens the report. A specific call, job or
  * person still has its own URL. Dispatch opens the schedule.
  */
 import assert from "node:assert/strict";
@@ -54,10 +54,11 @@ test("the shell paints the five places, and Work is not a table", () => {
   assert.match(work, /<WorkCard /);
   assert.doesNotMatch(work, /role="table"/);
   const shell = read("src/components/os-shell.tsx");
-  assert.match(shell, /os-product-nav/);
+  assert.match(shell, /os-sidebar-nav/);
   assert.match(shell, /os-tabbar/);
   assert.match(shell, /osProductNav/);
   assert.match(shell, /osWideNav/);
+  assert.doesNotMatch(shell, /os-product-nav/);
   assert.match(read("src/components/desk-board.tsx"), /href="\/dashboard\/schedule"/);
   assert.match(read("src/components/desk-board.tsx"), /href="\/dashboard\/reports"/);
   assert.match(read("src/components/os-command-palette.tsx"), /osMoreNav/);
