@@ -413,7 +413,9 @@ h3 {
 }
 
 .orvius-logo-mark {
-  color: inherit;
+  color: #000000;
+  background: #ffffff;
+  border-radius: 22%;
 }
 
 /* The lockup lives inside the word span so a later font-size still scales both. */
@@ -2768,13 +2770,22 @@ button.btn {
 
 /* ── LOGO LOCK — never inherit button DIN / gothic onto the letterset ── */
 .orvius-logo,
-.orvius-logo-mark,
 .mkt-nav-brand .orvius-logo {
   font-family: inherit !important;
   text-transform: none !important;
   letter-spacing: normal !important;
   font-weight: inherit !important;
   border-radius: 0 !important;
+}
+
+.orvius-logo-mark {
+  font-family: inherit !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  font-weight: inherit !important;
+  color: #000000 !important;
+  background: #ffffff !important;
+  border-radius: 22% !important;
 }
 
 /* ── Company presence — sparse product atmosphere ── */
@@ -3135,7 +3146,8 @@ label:has(> input[type="radio"]) {
 .os-sidebar-brand .orvius-logo-mark {
   width: 1.63em !important;
   height: 1.63em !important;
-  color: inherit !important;
+  color: #000000 !important;
+  background: #ffffff !important;
 }
 
 .pro-panel {
@@ -4986,7 +4998,6 @@ html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated {
 
 html[data-theme="night"] .mkt-nav-brand .orvius-logo,
 html[data-theme="night"] .mkt-nav-brand .orvius-logo-word,
-html[data-theme="night"] .mkt-nav-brand .orvius-logo-mark,
 html[data-theme="night"] .mkt-nav--institution .mkt-nav-links a,
 html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated .mkt-nav-links a,
 html[data-theme="night"] .mkt-nav--institution .mkt-nav-login,
@@ -5025,8 +5036,7 @@ html[data-theme="night"] .mkt-footer--institution {
 
 html[data-theme="night"] .mkt-footer-heading,
 html[data-theme="night"] .mkt-footer .orvius-logo,
-html[data-theme="night"] .mkt-footer .orvius-logo-word,
-html[data-theme="night"] .mkt-footer .orvius-logo-mark {
+html[data-theme="night"] .mkt-footer .orvius-logo-word {
   color: #edecec !important;
 }
 

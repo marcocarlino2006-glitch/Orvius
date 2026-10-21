@@ -99,9 +99,9 @@ html[data-theme="day"] body button.mx-blur {
   background: rgb(255 255 255 / 0.12);
 }
 
-html body .os-shell .os-topbar:has(.mx-menu) {
-  position: relative;
-  z-index: 80;
+html body .os-shell .os-sidebar:has(.mx-menu) {
+  z-index: 80 !important;
+  overflow: visible !important;
 }
 
 /* Phone search sits above five tabs. These beat the later field and dialog shadows. */

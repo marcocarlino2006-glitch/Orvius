@@ -128,7 +128,8 @@ body {
 }
 
 .ov-public .orvius-logo-mark {
-  color: inherit !important;
+  color: #000000 !important;
+  background: #ffffff !important;
 }
 
 .ov-public .orvius-logo-word {

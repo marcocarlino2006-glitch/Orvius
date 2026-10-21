@@ -134,6 +134,7 @@ export function OsShell({
               })}
             </ul>
           </nav>
+          <OsSidebarFooter />
         </div>
       </aside>
 
@@ -172,7 +173,6 @@ export function OsShell({
               </svg>
             </button>
             {actions}
-            <OsSidebarFooter />
           </div>
         </header>
 

@@ -14,11 +14,11 @@ export default function AppleIcon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#000000",
+          background: "#ffffff",
           borderRadius: 36,
         }}
       >
-        <OrviusMarkGraphic size={132} variant="dark" />
+        <OrviusMarkGraphic size={132} variant="light" />
       </div>
     ),
     { ...size },

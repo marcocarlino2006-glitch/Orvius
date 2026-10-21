@@ -34,7 +34,7 @@ test("the account menu blurs the desk behind it", () => {
   const instant = readFileSync(new URL("../src/app/dashboard/orvius-instant.css", import.meta.url), "utf8");
   assert.match(footer, /createPortal\([\s\S]*className="mx-blur"/);
   assert.match(instant, /button\.mx-blur \{[^}]*backdrop-filter: blur\(18px\) saturate\(1\.2\);/);
-  assert.match(instant, /\.os-topbar:has\(\.mx-menu\) \{\s*position: relative;\s*z-index: 80;/);
+  assert.match(instant, /\.os-sidebar:has\(\.mx-menu\) \{\s*z-index: 80 !important;/);
 });
 
 test("opening settings blurs the desk behind it", () => {

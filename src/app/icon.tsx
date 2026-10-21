@@ -14,10 +14,10 @@ export default function Icon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#000000",
+          background: "#ffffff",
         }}
       >
-        <OrviusMarkGraphic size={28} variant="dark" />
+        <OrviusMarkGraphic size={28} variant="light" />
       </div>
     ),
     { ...size },
