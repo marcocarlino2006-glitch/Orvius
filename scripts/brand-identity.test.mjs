@@ -36,7 +36,9 @@ test("the symbol is its own mark, and the favicon stays black", async () => {
   assert.ok(Math.abs(WORDMARK_ASPECT - 756.31 / 100) < 0.0001);
   assert.notEqual(MARK_PATH, WORDMARK_PATH);
   assert.equal(WORDMARK_PATH.startsWith(MARK_PATH), false);
-  assert.match(MARK_PATH, /\bA[\d.]+ /, "the symbol is drawn with arcs so the blades stay smooth");
+  assert.match(MARK_PATH, /\bC[\d.]+ /, "the symbol is the traced sheet, drawn with curves");
+  assert.equal((MARK_PATH.match(/\bM/g) ?? []).length, 4, "four blades from the sheet");
+  assert.equal(MARK_PATH.startsWith("M95.99"), false, "the simplified star is gone");
   for (const file of ["src/lib/orvius-mark.tsx", "src/lib/orvius-mark-graphic.tsx"]) {
     assert.match(read(file), /MARK_PATH/);
     assert.match(read(file), /fillRule="evenodd"/);
