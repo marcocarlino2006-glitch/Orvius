@@ -413,8 +413,8 @@ h3 {
 }
 
 .orvius-logo-mark {
-  color: #000000;
-  background: #ffffff;
+  color: black;
+  background: white;
   border-radius: 22%;
 }
 
@@ -2783,8 +2783,8 @@ button.btn {
   text-transform: none !important;
   letter-spacing: normal !important;
   font-weight: inherit !important;
-  color: #000000 !important;
-  background: #ffffff !important;
+  color: black !important;
+  background: white !important;
   border-radius: 22% !important;
 }
 
@@ -3146,8 +3146,8 @@ label:has(> input[type="radio"]) {
 .os-sidebar-brand .orvius-logo-mark {
   width: 1.63em !important;
   height: 1.63em !important;
-  color: #000000 !important;
-  background: #ffffff !important;
+  color: black !important;
+  background: white !important;
 }
 
 .pro-panel {
