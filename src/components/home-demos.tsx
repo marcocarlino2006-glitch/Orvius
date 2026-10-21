@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { WORDMARK_PATH, WORDMARK_VIEWBOX } from "@/lib/orvius-wordmark";
+import { MARK_PATH, MARK_VIEWBOX, WORDMARK_PATH, WORDMARK_VIEWBOX } from "@/lib/orvius-wordmark";
 import "./home-demos.css";
 
 type Biz = {
@@ -177,8 +177,11 @@ function Window({ title, biz, children, nav }: { title: string; biz: Biz; childr
     <div className="hd-window" aria-hidden>
       <aside className="hd-side">
         <span className="hd-logo" role="img" aria-label="Orvius">
+          <svg viewBox={MARK_VIEWBOX} aria-hidden>
+            <path d={MARK_PATH} fill="currentColor" fillRule="evenodd" />
+          </svg>
           <svg viewBox={WORDMARK_VIEWBOX} aria-hidden>
-            <path d={WORDMARK_PATH} fill="currentColor" />
+            <path d={WORDMARK_PATH} fill="currentColor" fillRule="evenodd" />
           </svg>
         </span>
         <span className="hd-shop">{biz.name}</span>

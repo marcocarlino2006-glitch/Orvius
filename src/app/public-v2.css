@@ -128,7 +128,7 @@ body {
 }
 
 .ov-public .orvius-logo-mark {
-  color: var(--ov-copper) !important;
+  color: inherit !important;
 }
 
 .ov-public .orvius-logo-word {
@@ -1209,7 +1209,7 @@ body {
 
 @media (max-width: 1024px) {
   .ov-signin {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .ov-signin-canvas {

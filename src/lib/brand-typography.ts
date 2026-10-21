@@ -13,11 +13,9 @@ export const typeScale = {
 } as const;
 
 /**
- * Brand lockups (Stripe way until a mark earns its place):
- * 1) Word alone — every product + marketing surface
- * 2) Signal bridge alone — favicon / OS chrome only
- *
- * Sizes are tuned for the word carrying the whole identity (no mark beside it).
+ * Brand lockup: the four-blade symbol beside the ORVIUS wordmark.
+ * The symbol alone is the favicon and the app icon.
+ * Each size is the font-size the lockup scales from.
  */
 export const logoSizes = {
   sm: { mark: 22, word: "1.35rem", tracking: "-0.07em" },

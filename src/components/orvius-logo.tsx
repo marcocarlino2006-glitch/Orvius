@@ -10,7 +10,7 @@ type OrviusMarkProps = {
   className?: string;
 };
 
-/** The O alone — favicon / avatar chrome only. */
+/** The symbol alone — favicon and app icon. */
 export function OrviusMark({ size = 24, className = "" }: OrviusMarkProps) {
   return (
     <OrviusMarkSvg
@@ -23,9 +23,9 @@ export function OrviusMark({ size = 24, className = "" }: OrviusMarkProps) {
 type OrviusLogoProps = {
   size?: "sm" | "md" | "lg" | "xl";
   variant?: "void" | "chalk";
-  /** The wordmark alone (no separate mark beside it). Default true: the name is the brand. */
+  /** The word alone. The default lockup is the symbol beside ORVIUS. */
   wordmarkOnly?: boolean;
-  /** The O alone — prefer OrviusMark for favicons. */
+  /** The symbol alone — prefer OrviusMark for favicons. */
   markOnly?: boolean;
   /** Kept for API compat. */
   integrateO?: boolean;
@@ -33,13 +33,13 @@ type OrviusLogoProps = {
 };
 
 /**
- * Brand lockup = the wordmark artwork. It scales with the font-size of
- * .orvius-logo-word, so every surface that sized the old text logo still sizes this one.
+ * Brand lockup: the four-blade symbol beside the ORVIUS wordmark.
+ * Both scale with the font-size of .orvius-logo-word.
  */
 export function OrviusLogo({
   size = "md",
   variant = "chalk",
-  wordmarkOnly = true,
+  wordmarkOnly = false,
   markOnly = false,
   className = "",
 }: OrviusLogoProps) {
@@ -86,12 +86,10 @@ export function OrviusLogo({
         } as CSSProperties
       }
     >
-      {wordmarkOnly ? null : (
-        <OrviusMarkSvg size={tokens.mark} className="orvius-logo-mark" />
-      )}
       <span className="orvius-logo-word">
+        {wordmarkOnly ? null : <OrviusMarkSvg className="orvius-logo-mark" />}
         <svg className="orvius-logo-svg" viewBox={WORDMARK_VIEWBOX} xmlns="http://www.w3.org/2000/svg" aria-hidden>
-          <path d={WORDMARK_PATH} fill="currentColor" />
+          <path d={WORDMARK_PATH} fill="currentColor" fillRule="evenodd" />
         </svg>
       </span>
     </span>
