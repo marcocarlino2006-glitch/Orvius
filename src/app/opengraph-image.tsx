@@ -23,7 +23,19 @@ export default function OpenGraphImage() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 22 }} aria-label={brandWordmark}>
-          <OrviusMarkGraphic size={84} variant="dark" />
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 96,
+              height: 96,
+              borderRadius: 22,
+              background: "#ffffff",
+            }}
+          >
+            <OrviusMarkGraphic size={84} variant="light" />
+          </div>
           <OrviusWordmarkGraphic width={300} />
         </div>
 

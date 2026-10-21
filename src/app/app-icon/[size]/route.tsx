@@ -18,10 +18,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ size
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#000000",
+          background: "#ffffff",
         }}
       >
-        <OrviusMarkGraphic size={mark} variant="dark" />
+        <OrviusMarkGraphic size={mark} variant="light" />
       </div>
     ),
     { width: size, height: size, headers: { "Cache-Control": "public, max-age=86400" } },

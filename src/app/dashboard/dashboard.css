@@ -3888,8 +3888,14 @@
     height: 100dvh;
     transform: none;
     overflow-x: hidden;
-    overflow-y: auto;
+    overflow-y: visible;
     box-shadow: none;
+  }
+
+  .os-shell.os-shell-pro > .os-sidebar.os-sidebar-pro .os-sidebar-nav {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
   }
 
   .os-shell .os-topbar-brand {
@@ -3902,8 +3908,33 @@
 }
 
 @media (max-width: 767px) {
-  .os-shell.os-shell-pro > .os-sidebar.os-sidebar-pro {
-    display: none;
+  /* The account menu is the bottom-left control. The rail itself is hidden; only the chip stays. */
+  html body .os-shell.os-shell-night.os-shell-pro.os-shell-pro > .os-sidebar.os-sidebar-pro {
+    display: flex !important;
+    position: fixed;
+    top: auto !important;
+    left: 0.65rem !important;
+    bottom: calc(7.35rem + env(safe-area-inset-bottom, 0px));
+    z-index: 50;
+    width: auto !important;
+    height: auto !important;
+    min-height: 0;
+    transform: none !important;
+    overflow: visible !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  html body .os-shell.os-shell-pro > .os-sidebar.os-sidebar-pro .os-sidebar-brand,
+  html body .os-shell.os-shell-pro > .os-sidebar.os-sidebar-pro .os-sidebar-nav {
+    display: none !important;
+  }
+
+  html body .os-shell.os-shell-pro > .os-sidebar.os-sidebar-pro .os-sidebar-inner {
+    height: auto;
+    padding: 0;
+    gap: 0;
   }
 }
 
