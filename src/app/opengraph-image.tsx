@@ -22,8 +22,8 @@ export default function OpenGraphImage() {
           padding: "72px 80px",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 18 }} aria-label={brandWordmark}>
-          <OrviusMarkGraphic size={46} variant="dark" />
+        <div style={{ display: "flex", alignItems: "center", gap: 22 }} aria-label={brandWordmark}>
+          <OrviusMarkGraphic size={84} variant="dark" />
           <OrviusWordmarkGraphic width={300} />
         </div>
 

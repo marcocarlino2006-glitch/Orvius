@@ -420,7 +420,7 @@ h3 {
 .orvius-logo-word {
   display: inline-flex;
   align-items: center;
-  gap: 0.22em;
+  gap: 0.42em;
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: var(--logo-word-size, 1.5rem);
   font-weight: 800;
@@ -430,8 +430,8 @@ h3 {
 }
 
 .orvius-logo-word .orvius-logo-mark {
-  width: 0.86em;
-  height: 0.86em;
+  width: 1.63em;
+  height: 1.63em;
   color: inherit;
 }
 
@@ -3133,8 +3133,8 @@ label:has(> input[type="radio"]) {
 }
 
 .os-sidebar-brand .orvius-logo-mark {
-  width: 0.86em !important;
-  height: 0.86em !important;
+  width: 1.63em !important;
+  height: 1.63em !important;
   color: inherit !important;
 }
 
