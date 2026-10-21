@@ -12,7 +12,8 @@ export type OsNavItem = {
 /**
  * The places the owner runs. Home is the decision. Schedule, Inbox,
  * Customers and Jobs are where the day, the requests, the person and the
- * bill get finished. Calls, Reports, Work and Ask stay reachable in search.
+ * bill get finished. Calls, Work and Ask stay reachable in search.
+ * Money on Home opens the report.
  */
 export const osProductNav: OsNavItem[] = [
   { href: "/dashboard", label: "Home", icon: "command" },
@@ -25,7 +26,6 @@ export const osProductNav: OsNavItem[] = [
 /** Real screens that are not in the bar. Search opens them. */
 export const osMoreNav: OsNavItem[] = [
   { href: "/dashboard/calls", label: "Calls", icon: "calls" },
-  { href: "/dashboard/reports", label: "Reports", icon: "billing" },
   { href: "/dashboard/work", label: "Work", icon: "jobs" },
   { href: "/dashboard/ask", label: "Ask", icon: "ask" },
 ];

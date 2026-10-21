@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
  * Home, Schedule, Inbox, Customers and Jobs are the places the owner runs.
- * Calls, Reports, Work and Ask open from search. A specific call, job or
+ * Calls, Work and Ask open from search. Money on Home opens the report. A specific call, job or
  * person still has its own URL. Dispatch opens the schedule.
  */
 import assert from "node:assert/strict";
@@ -21,7 +21,7 @@ test("the bar is the five places the owner runs", () => {
   );
   assert.deepEqual(
     osMoreNav.map((item) => item.href),
-    ["/dashboard/calls", "/dashboard/reports", "/dashboard/work", "/dashboard/ask"],
+    ["/dashboard/calls", "/dashboard/work", "/dashboard/ask"],
   );
   assert.deepEqual(
     osWorkspaceNav.map((item) => item.href),
