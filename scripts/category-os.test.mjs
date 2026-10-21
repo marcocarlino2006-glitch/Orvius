@@ -76,6 +76,8 @@ test("Command is one sentence, the one thing happening, then the line you talk o
   const needs = command.indexOf("<WorkCard");
   const ask = command.indexOf("<AskBar");
   assert.ok(headline > 0 && headline < needs && needs < ask, "the decision, then the line you talk on");
+  assert.match(command, /<DeskBoard/, "today, the money, and what is still open sit on the desk");
+  assert.ok(command.indexOf("<DeskBoard") < ask, "the board sits above the line you talk on");
   assert.doesNotMatch(command, /<TodaySchedule|<CommandSignals|<OrviusPulse|What Orvius did/);
   assert.doesNotMatch(command, /The rest is in Work/);
   assert.match(page, /setup=\{/);

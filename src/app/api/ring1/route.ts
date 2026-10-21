@@ -331,7 +331,7 @@ export async function GET(request: Request) {
     work: {
       needsYou: work.needsYou,
       open: work.items.length,
-      items: work.items.filter((item) => item.needsYou),
+      items: work.items.slice(0, 30),
       approvals: work.approvals,
       shopIssues: work.shopIssues,
     },

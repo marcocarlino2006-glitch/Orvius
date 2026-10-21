@@ -370,7 +370,7 @@ test("Command, the nav badge and the Work screen read the same count", async () 
   const listed = await (await route.GET(new Request("http://localhost/api/work"))).json();
   assert.equal(command.work.needsYou, 2);
   assert.equal(listed.needsYou, command.work.needsYou);
-  assert.deepEqual(command.work.items.map((i) => i.key).sort(), listed.items.filter((i) => i.needsYou).map((i) => i.key).sort());
+  assert.deepEqual(command.work.items.map((i) => i.key).sort(), listed.items.map((i) => i.key).sort());
   assert.match(command.personalBrief?.headline ?? "", /2 things|2 need|One step left|line is live/);
 });
 
