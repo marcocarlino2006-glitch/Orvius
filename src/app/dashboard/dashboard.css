@@ -3913,12 +3913,13 @@
   color: inherit;
 }
 
-.os-topbar .mx-menu {
+.os-shell.os-shell-night .os-topbar .mx-menu {
   top: calc(100% + 6px);
   right: 0;
   bottom: auto;
   left: auto;
   transform-origin: top right;
+  width: min(284px, calc(100vw - 16px));
 }
 
 @media (max-width: 640px) {

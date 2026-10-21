@@ -69,3 +69,37 @@
     animation: none;
   }
 }
+
+/* Settings sits on the desk. The sheet behind it is a blur, not a cover. */
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro.sc-overlay {
+  background: rgb(0 0 0 / 0.18) !important;
+  backdrop-filter: blur(18px) saturate(1.2) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.2) !important;
+}
+
+:root[data-theme="day"] body .os-shell.os-shell-night.os-shell-pro.os-shell-pro.sc-overlay {
+  background: rgb(255 255 255 / 0.16) !important;
+}
+
+/* The account menu leaves the desk where it is and blurs it. */
+html body button.mx-blur {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: rgb(0 0 0 / 0.12);
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  cursor: default;
+}
+
+html[data-theme="day"] body button.mx-blur {
+  background: rgb(255 255 255 / 0.12);
+}
+
+html body .os-shell .os-topbar:has(.mx-menu) {
+  position: relative;
+  z-index: 80;
+}
