@@ -97,7 +97,6 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
   const looseApprovals = approvals.filter((a) => a.proposalId && !attached.has(a.proposalId));
   const approvalFor = (id: string | null) => (id ? approvals.find((a) => a.proposalId === id) ?? null : null);
   const brief = data?.personalBrief ?? null;
-  const needsYou = work?.needsYou ?? 0;
   const liveCall = (data?.recentCalls ?? []).find((call) => isLiveCall(call.status, call.createdAt)) ?? null;
   const shopIssues = (work?.shopIssues ?? []).filter((issue) => issue.kind !== "billing_action" && !issue.resolveId);
   const blocking = shopIssues.filter((issue) => {
@@ -197,11 +196,6 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
               <span>{lastDone.summary}</span>
             )}
             <time dateTime={lastDone.at}>{formatWhen(lastDone.at)}</time>
-          </p>
-        ) : null}
-        {(liveCall ? needsYou > 0 : needsYou > 1) ? (
-          <p className="cmd-rest">
-            <Link href="/dashboard/work">The rest is in Work</Link>
           </p>
         ) : null}
       </section>

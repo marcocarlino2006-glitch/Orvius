@@ -133,7 +133,7 @@ test("work cards show the problem, the customer, the work, when, who has it, and
   assert.match(card, /formatWhen/);
   assert.match(card, /item\.responsible\.label/);
   assert.match(card, /ox-btn--primary/);
-  assert.match(read("src/components/ring1-command-center.tsx"), /The rest is in Work/);
+  assert.doesNotMatch(read("src/components/ring1-command-center.tsx"), /The rest is in Work/);
 });
 
 test("the board's approvals lane shows the plan and an approval button", () => {

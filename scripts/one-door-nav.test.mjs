@@ -1,44 +1,56 @@
 #!/usr/bin/env node
 /*
- * One door, not sixteen sections. The primary nav is five destinations an
- * owner actually opens daily; Inbox, Jobs, Team and the rest keep their URLs
- * and stay one Search away, but no longer compete in the sidebar. Work is
- * the single queue — Requests and Jobs are filters of it, not sections.
+ * The owner lives on Command. The old departments are not destinations.
+ * A specific call, job or person still has a URL. Search reaches the rules.
  */
 import assert from "node:assert/strict";
 import test from "node:test";
 import { existsSync, readFileSync } from "node:fs";
 
-import { OS_NAV_ALIASES, osProductNav, osWorkspaceNav } from "../src/lib/os-nav.ts";
+import { osProductNav, osWorkspaceNav } from "../src/lib/os-nav.ts";
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 
-test("primary nav is five doors", () => {
+const DEPARTMENTS = [
+  "/dashboard/work",
+  "/dashboard/schedule",
+  "/dashboard/calls",
+  "/dashboard/customers",
+  "/dashboard/inbox",
+  "/dashboard/jobs",
+  "/dashboard/ask",
+  "/dashboard/reports",
+  "/dashboard/dispatch",
+];
+
+test("Search does not offer the old departments", () => {
+  assert.deepEqual(osProductNav, []);
+  for (const href of DEPARTMENTS) {
+    assert.ok(!osWorkspaceNav.some((item) => item.href === href), `${href} is not a place to go`);
+  }
   assert.deepEqual(
-    osProductNav.map((i) => i.href),
-    ["/dashboard", "/dashboard/work", "/dashboard/schedule", "/dashboard/calls", "/dashboard/customers"],
+    osWorkspaceNav.map((item) => item.href),
+    ["/dashboard/team", "/dashboard/settings", "/dashboard/price-book", "/dashboard/profile", "/dashboard/billing"],
   );
-  for (const gone of ["/dashboard/inbox", "/dashboard/jobs", "/dashboard/team"]) {
-    assert.ok(!osProductNav.some((i) => i.href === gone), `${gone} left the sidebar`);
-    assert.ok(osWorkspaceNav.some((i) => i.href === gone), `${gone} is still reachable from Search`);
+});
+
+test("department indexes send the owner back to Command", () => {
+  const config = read("next.config.ts");
+  for (const source of DEPARTMENTS) {
+    assert.match(config, new RegExp(`"${source}"`), `${source} redirects`);
+  }
+  assert.match(config, /destination: "\/dashboard"/);
+  for (const page of ["calls/[id]/page.tsx", "jobs/[id]/page.tsx", "customers/[id]/page.tsx", "inbox/[id]/page.tsx"]) {
+    assert.ok(existsSync(new URL(`../src/app/dashboard/${page}`, import.meta.url)), `${page} still opens`);
   }
 });
 
-test("the demoted sections still exist and light up Work in the nav", () => {
-  for (const page of ["inbox/page.tsx", "jobs/page.tsx", "team/page.tsx", "work/page.tsx"]) {
-    assert.ok(existsSync(new URL(`../src/app/dashboard/${page}`, import.meta.url)), `${page} keeps its URL`);
-  }
-  assert.deepEqual(OS_NAV_ALIASES["/dashboard/work"], ["/dashboard/inbox", "/dashboard/jobs", "/dashboard/price-book"]);
-  assert.deepEqual(OS_NAV_ALIASES["/dashboard"], ["/dashboard/ask"], "Ask stays under Command");
-});
-
-test("Work is the one queue, and the shell does not paint departments", () => {
+test("the shell does not paint departments, and Work is not a table if the file is still here", () => {
   const work = read("src/app/dashboard/work/page.tsx");
-  assert.match(work, /id: "requests", label: "Requests", match: \(i\) => i\.kind === "request"/);
-  assert.match(work, /id: "jobs", label: "Jobs", match: \(i\) => i\.kind === "job"/);
-  assert.match(work, /<WorkCard /, "Work is the same card as Command");
-  assert.doesNotMatch(work, /role="table"/, "Work is not a table");
+  assert.match(work, /<WorkCard /);
+  assert.doesNotMatch(work, /role="table"/);
   const shell = read("src/components/os-shell.tsx");
-  assert.doesNotMatch(shell, /os-sidebar-nav|OsTabBar|TAB_HREFS/, "departments are not painted on the desk or the phone");
-  assert.match(shell, /os-topbar-shop-name/, "the shop lives in the top bar");
+  assert.doesNotMatch(shell, /os-sidebar-nav|OsTabBar|TAB_HREFS/);
+  assert.match(shell, /os-topbar-shop-name/);
+  assert.doesNotMatch(read("src/components/ring1-command-center.tsx"), /The rest is in Work/);
 });

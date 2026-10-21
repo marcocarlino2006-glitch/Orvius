@@ -11,6 +11,18 @@ const nextConfig: NextConfig = {
     return [
       { source: "/demo", destination: "/product", permanent: true },
       { source: "/press", destination: "/about", permanent: true },
+      // The day's work is Command. These indexes are the old departments.
+      ...[
+        "/dashboard/work",
+        "/dashboard/schedule",
+        "/dashboard/calls",
+        "/dashboard/customers",
+        "/dashboard/inbox",
+        "/dashboard/jobs",
+        "/dashboard/ask",
+        "/dashboard/reports",
+        "/dashboard/dispatch",
+      ].map((source) => ({ source, destination: "/dashboard", permanent: false })),
       // Trades Orvius no longer advertises until each has its own tested playbook.
       { source: "/for/:trade(roofing|garage-doors|pest-control|locksmith|appliance-repair)", destination: "/trades", permanent: true },
     ];

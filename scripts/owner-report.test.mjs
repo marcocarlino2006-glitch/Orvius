@@ -195,6 +195,6 @@ test("reports are owner and manager only and errors are plain text", () => {
   assert.doesNotMatch(route, /NextResponse\.json\(\{ error: error/);
   const labels = read("src/lib/workspace-access-labels.ts");
   assert.match(labels, /reports\.view/);
-  assert.match(read("src/lib/os-nav.ts"), /\/dashboard\/reports/);
-  assert.match(read("src/components/os-sidebar-footer.tsx"), /can\(account\.role, "reports\.view"\)/);
+  assert.doesNotMatch(read("src/lib/os-nav.ts"), /\/dashboard\/reports/);
+  assert.doesNotMatch(read("src/components/os-sidebar-footer.tsx"), /\/dashboard\/reports/);
 });

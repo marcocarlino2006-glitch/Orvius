@@ -459,8 +459,8 @@ export default function MessagesPage() {
     <OsShell
       title="Messages"
       actions={
-        <Link href="/dashboard/inbox" className="btn btn-secondary text-sm">
-          Leads
+        <Link href="/dashboard" className="btn btn-secondary text-sm">
+          Command
         </Link>
       }
     >
