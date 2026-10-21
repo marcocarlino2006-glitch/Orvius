@@ -415,13 +415,13 @@ export function AskBar({ onChange, below }: { onChange: () => void; below?: Reac
       <div className="cb-ask-stack">
         <form className="cb-ask-form" onSubmit={(e) => void ask(e)}>
           <label className="sr-only" htmlFor="cb-ask-input">
-            Ask Orvius to book, move, assign, or check work
+            Ask Orvius to book, move, assign, or check work.
           </label>
           <textarea
             id="cb-ask-input"
             ref={inputRef}
             className="cb-ask-input"
-            rows={2}
+            rows={1}
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={(e) => {
@@ -430,7 +430,7 @@ export function AskBar({ onChange, below }: { onChange: () => void; below?: Reac
                 void ask();
               }
             }}
-            placeholder="Ask Orvius to book, move, assign, or check work."
+            placeholder="Ask Orvius"
             autoComplete="off"
           />
           <div className="cb-ask-bar">
@@ -470,6 +470,7 @@ export function AskBar({ onChange, below }: { onChange: () => void; below?: Reac
 export function DemoPanel({ onChange }: { onChange: () => void }) {
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
   useEffect(() => {
     fetch("/api/command/simulate")
       .then((res) => res.json())
@@ -494,16 +495,19 @@ export function DemoPanel({ onChange }: { onChange: () => void }) {
   }
   return (
     <section className="cb-demo" aria-label="Simulate a call">
-      <p className="cb-demo-title">Place a call</p>
-      <p className="cb-muted">Runs the same pipeline as a live line.</p>
-      <div className="cb-demo-grid">
-        {scenarios.map((s) => (
-          <button key={s.id} type="button" className="cb-demo-btn" disabled={Boolean(busy)} onClick={() => void run(s.id)} title={s.expect}>
-            <span className="cb-demo-label">{busy === s.id ? "Calling…" : s.label}</span>
-            <span className="cb-demo-expect">{s.expect}</span>
-          </button>
-        ))}
-      </div>
+      <button type="button" className="cb-demo-toggle" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
+        Place a call
+      </button>
+      {open ? (
+        <div className="cb-demo-grid">
+          {scenarios.map((s) => (
+            <button key={s.id} type="button" className="cb-demo-btn" disabled={Boolean(busy)} onClick={() => void run(s.id)} title={s.expect}>
+              <span className="cb-demo-label">{busy === s.id ? "Calling…" : s.label}</span>
+              <span className="cb-demo-expect">{s.expect}</span>
+            </button>
+          ))}
+        </div>
+      ) : null}
     </section>
   );
 }

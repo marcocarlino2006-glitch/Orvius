@@ -161,7 +161,7 @@ export function WorkCard({
   const notAJob = !isJob && item.open && kinds.has("not_a_job") ? (item.leadId ?? item.id) : null;
 
   return (
-    <li className={`wc${inList ? "" : " wc--page"}${settled ? " wc--settled" : ""}${top ? ` wc--${top.severity}` : item.urgent ? " wc--high" : ""}`}>
+    <li className={`wc${now ? " wc--now" : ""}${inList ? "" : " wc--page"}${settled ? " wc--settled" : ""}${top ? ` wc--${top.severity}` : item.urgent ? " wc--high" : ""}`}>
       <div className="wc-head">
         <div className="wc-main">
           {now ? null : (
@@ -186,15 +186,23 @@ export function WorkCard({
             )}
           </p>
           )}
-          {inList ? (
+          {now ? (
+            <p className="cmd-fact">
+              <Link href={item.href}>{who}</Link>
+              <span className="cmd-fact-what">{spokenText(item.title)}</span>
+              <time dateTime={item.scheduledAt ?? item.createdAt}>{formatWhen(item.scheduledAt ?? item.createdAt)}</time>
+            </p>
+          ) : inList ? (
             <Link href={item.href} className="wc-title">
               {spokenText(item.title)}
               <span className="wc-who"> · {who}</span>
             </Link>
           ) : null}
+          {now ? null : (
           <p className="wc-detail">
             {spokenText(top?.detail ?? item.nextAction) || (item.waitingOn === "customer" || item.waitingOn === "technician" ? WAITING_LABEL[item.waitingOn] : CLOSED_DETAIL[item.stage] ?? "On track. Nothing for you to do right now.")}
           </p>
+          )}
           {top && item.nextAction && !now ? <p className="wc-next">Next: {spokenText(item.nextAction)}</p> : null}
         </div>
         <div className="wc-meta" hidden={!inList || now}>

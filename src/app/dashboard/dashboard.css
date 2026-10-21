@@ -3198,6 +3198,21 @@
   flex-shrink: 0;
 }
 
+.os-shell-night .os-topbar-search--mark {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ox-day-soft, #9aa1ab);
+}
+
+.os-shell-night .os-topbar-search--mark:hover {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ox-day-ink, #f4f4f4);
+}
+
 .os-shell-night .os-topbar-search kbd {
   padding: 0.05rem 0.25rem;
   border: 1px solid var(--ox-day-line, #2a2e35);
@@ -3381,11 +3396,11 @@
 
 .os-topbar {
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
+  flex-wrap: nowrap;
+  align-items: center;
   justify-content: space-between;
-  gap: 1rem 1.5rem;
-  padding: 1.25rem 1.25rem 0;
+  gap: 0.75rem 1rem;
+  padding: 0.75rem 1rem 0;
 }
 
 @media (min-width: 1024px) {
@@ -3812,10 +3827,13 @@
 
 .os-topbar-shop-name {
   margin: 0;
+  overflow: hidden;
   font-size: 0.9375rem;
   font-weight: 600;
   letter-spacing: -0.02em;
   line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .os-topbar-shop-line {
@@ -3823,9 +3841,12 @@
   align-items: center;
   gap: 0.35rem;
   margin: 0.1rem 0 0;
+  overflow: hidden;
   font-size: 0.75rem;
   line-height: 1.3;
   color: var(--ash);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .os-topbar-page {
@@ -3837,8 +3858,40 @@
 }
 
 .os-topbar-actions {
+  display: flex;
+  flex-shrink: 0;
   align-items: center;
+  gap: 0.25rem;
   margin-left: auto;
+}
+
+.os-topbar-search--mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.os-topbar-search--mark svg {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.os-topbar .mx-chip-name {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  html body .os-topbar .mx-bar-icon {
+    display: none !important;
+  }
 }
 
 .os-topbar {
