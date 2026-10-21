@@ -125,7 +125,7 @@ test("a request's stage and next action follow its status", () => {
 const jobItem = (j) => work.jobWorkItem(j, now.getTime());
 
 test("a booked time and an open bill read as the value", () => {
-  assert.equal(formatBeat("2026-10-06T12:00:00Z", "UTC"), "Tue, 12 PM");
+  assert.equal(formatBeat("2026-10-06T12:00:00Z", "UTC"), "Tue 12 PM");
   assert.equal(formatBeat("2026-10-19T19:30:00Z", "America/Chicago"), "Mon 2:30 PM");
   assert.equal(formatBeat("2026-10-06T12:30:00Z", "UTC"), "Tue 12:30 PM");
   assert.notEqual(shownBeatLabel({ key: "booked", label: "Booked", state: "done" }, { scheduledAt: "2026-10-06T12:00:00Z", amountLabel: null }), "Booked");
