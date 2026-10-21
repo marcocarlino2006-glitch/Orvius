@@ -10,7 +10,7 @@ import { commandSentence } from "@/lib/command-sentence";
 import { isLiveCall } from "@/lib/live-call";
 import { useRing1 } from "@/lib/ring1-context";
 import { spokenName } from "@/lib/spoken-name";
-import { formatWhen } from "@/lib/when";
+import { formatBeat, formatWhen } from "@/lib/when";
 
 function callerName(name: string | null | undefined): string {
   return spokenName(name) || "A caller";
@@ -120,7 +120,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
           customer: liveItem.customer,
           nextAction: liveItem.nextAction,
           needsYou: liveItem.needsYou,
-          when: liveItem.scheduledAt ? formatWhen(liveItem.scheduledAt) : null,
+          when: liveItem.scheduledAt ? formatBeat(liveItem.scheduledAt, data?.coverage?.timezone) : null,
           tech: liveItem.technician?.name ? spokenName(liveItem.technician.name).split(/\s+/)[0] || null : null,
           spanish: liveItem.lang === "es",
         }
@@ -193,7 +193,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
           </ul>
         ) : liveItem ? (
           <ul className="wc-list cmd-queue">
-            <WorkCard key={liveItem.key} item={liveItem} approval={approvalFor(liveItem.approvalId)} technicians={data?.technicians ?? []} onChange={() => void refresh()} variant="now" />
+            <WorkCard key={liveItem.key} item={liveItem} approval={approvalFor(liveItem.approvalId)} technicians={data?.technicians ?? []} onChange={() => void refresh()} variant="now" timezone={data?.coverage?.timezone} />
           </ul>
         ) : lastDone ? (
           <p className="cmd-live-trace">

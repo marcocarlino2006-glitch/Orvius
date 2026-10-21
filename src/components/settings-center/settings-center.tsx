@@ -63,8 +63,8 @@ const NEXT_SECTION: Record<ShopSetupStepId, SettingsSectionId> = {
 const GROUP_LABELS: Record<string, string | null> = {
   business: "Business",
   connections: "Connections",
-  authority: "AI authority",
-  escalation: "Escalation",
+  authority: "The line",
+  escalation: "Alerts",
   account: "Account",
   founder: "Founder",
 };

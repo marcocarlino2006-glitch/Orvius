@@ -16,7 +16,7 @@ import type { WorkItem, WorkSeverity } from "@/lib/work";
 import { sendWrite } from "@/lib/client-write";
 import { shownBeatLabel } from "@/lib/path-label";
 import { spokenName, spokenText } from "@/lib/spoken-name";
-import { formatWhen } from "@/lib/when";
+import { formatBeat, formatWhen } from "@/lib/when";
 
 const send = (url: string, method: "POST" | "PATCH", body: unknown) => sendWrite<Record<string, unknown>>(url, method, body);
 
@@ -50,6 +50,7 @@ export function WorkCard({
   technicians,
   onChange,
   variant = "list",
+  timezone = null,
 }: {
   item: WorkItem;
   approval?: Pick<BoardItem, "proposalId"> & { preview?: string | null; title?: string } | null;
@@ -57,6 +58,8 @@ export function WorkCard({
   onChange: () => void;
   /** On the work's own page the title, owner and history are already on screen. Command's one object drops the queue chrome. */
   variant?: "list" | "page" | "now";
+  /** Shop clock, so the fact and the path match the sentence. */
+  timezone?: string | null;
 }) {
   const now = variant === "now";
   const inList = variant !== "page";
@@ -193,13 +196,13 @@ export function WorkCard({
                 <Link href={item.href}>{who}</Link>
                 <span className="cmd-fact-what">{spokenText(item.title)}</span>
                 {item.amountLabel ? <span className="cmd-fact-money">{item.amountLabel}</span> : null}
-                <time dateTime={item.scheduledAt ?? item.createdAt}>{formatWhen(item.scheduledAt ?? item.createdAt)}</time>
+                <time dateTime={item.scheduledAt ?? item.createdAt}>{formatBeat(item.scheduledAt ?? item.createdAt, timezone)}</time>
               </p>
               {item.path?.length ? (
                 <ol className="cmd-path">
                   {item.path.map((beat) => (
                     <li key={beat.key} className={`cmd-path-beat is-${beat.state}`}>
-                      {shownBeatLabel(beat, item)}
+                      {shownBeatLabel(beat, item, timezone)}
                     </li>
                   ))}
                 </ol>

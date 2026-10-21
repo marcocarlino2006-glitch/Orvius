@@ -380,7 +380,7 @@ function MessagesInner() {
                         <div className={`msg-bubble msg-bubble--${entry.author}`}>{entry.body}</div>
                       )}
                       <span className="msg-meta">
-                        {entry.author === "owner" ? "You" : entry.author === "orvius" ? "Orvius" : "Customer"} ·{" "}
+                        {entry.direction === "out" ? `${entry.author === "owner" ? "You" : "Orvius"} · ` : ""}
                         {stamp(entry.at)}
                         {entry.direction === "out" ? <DeliveryNote status={entry.deliveryStatus ?? null} /> : null}
                       </span>

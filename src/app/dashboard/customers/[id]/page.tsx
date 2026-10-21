@@ -5,6 +5,7 @@ import { RecordFetchError, recordFailureFrom } from "@/lib/dashboard-fetch";
 import { RecordLoadFailure } from "@/components/record-load-failure";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert, ShellLoading } from "@/components/shell-primitives";
+import { customerOpening } from "@/lib/customer-opening";
 import { displayPhone } from "@/lib/customer";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -111,11 +112,12 @@ export default function CustomerDetailPage() {
   ]
     .filter(Boolean)
     .join(" · ");
+  const opening = customerOpening(timeline, usd);
 
   return (
     <OsShell
       title={customer.displayName}
-      subtitle={summary}
+      subtitle={opening ?? summary}
       actions={
         customer.phone ? (
           <div className="flex flex-wrap gap-2">
@@ -147,6 +149,7 @@ export default function CustomerDetailPage() {
           <section className="rec">
             <header className="rec-head">
               <h2 className="rec-title">Profile</h2>
+              {opening ? <p className="jv-sub font-sans">{summary}</p> : null}
               {customer.returning ? <span className="ct-kind ct-kind--money">Returning</span> : null}
             </header>
             <dl className="jv-facts font-sans">
