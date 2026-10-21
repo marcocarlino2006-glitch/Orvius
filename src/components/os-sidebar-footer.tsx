@@ -5,6 +5,7 @@ import { toast } from "@/components/toaster";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { pricing } from "@/lib/company";
 import { supportMailto, supportPhone } from "@/lib/support";
 import { fetchAccount, invalidateAccount } from "@/lib/account-client";
@@ -219,6 +220,12 @@ export function OsSidebarFooter() {
 
   return (
     <div ref={rootRef} className="os-sidebar-footer mx-footer font-sans">
+      {open
+        ? createPortal(
+            <button type="button" className="mx-blur" aria-label="Close account menu" onClick={close} />,
+            document.body,
+          )
+        : null}
       {open ? (
         <div id={menuId} className="mx-menu" role="menu" aria-label="Account menu">
           {view === "locations" ? (

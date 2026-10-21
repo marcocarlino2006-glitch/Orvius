@@ -258,12 +258,13 @@ html[data-theme="day"] .os-shell .sc-dialog {
 }
 
 html[data-theme="day"] .os-shell.sc-overlay {
-  background: #0000004d;
+  background: rgb(255 255 255 / 0.42);
 }
 
 .os-shell.sc-overlay {
-  background: #0009;
-  backdrop-filter: none;
+  background: rgb(0 0 0 / 0.28);
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
 }
 
 .sc-dialog,
