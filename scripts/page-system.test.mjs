@@ -117,8 +117,9 @@ test("a phone keeps five places, and an iPad or a computer shows every place", (
     osProductNav.map((item) => item.label),
     ["Home", "Schedule", "Inbox", "Customers", "Jobs"],
   );
+  assert.match(read("src/components/os-shell.tsx"), /os-sidebar-nav/);
   assert.match(read("src/components/os-shell.tsx"), /osWideNav/);
-  assert.match(read("src/app/dashboard/dashboard.css"), /min-width: 768px/);
+  assert.match(read("src/app/dashboard/dashboard.css"), /grid-template-columns: 16rem minmax\(0, 1fr\)/);
   assert.match(read("src/app/dashboard/dispatch/page.tsx"), /redirect\("\/dashboard\/schedule"\)/);
 });
 

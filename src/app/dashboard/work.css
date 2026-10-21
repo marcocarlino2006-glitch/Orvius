@@ -305,7 +305,10 @@ html body .os-shell.os-shell-pro .cmd.cmd-one {
   html body .os-shell.os-shell-pro .cmd.cmd-one {
     max-width: none;
   }
+}
 
+/* The left sidebar is 16rem. The day sits beside the money once both fit. */
+@media (min-width: 1100px) {
   .cmd-desk {
     grid-template-columns: minmax(0, 1.6fr) minmax(17rem, 0.85fr);
     align-items: start;
@@ -334,7 +337,7 @@ html body .os-shell.os-shell-pro .cmd.cmd-one {
 }
 
 html[data-theme="day"] body .os-shell.os-shell-night .cmd-desk .cmd-today {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 0.75rem;
 }
 
@@ -344,9 +347,9 @@ html[data-theme="day"] body .os-shell.os-shell-night .cmd-desk .cmd-today-lane {
   background: var(--ox-s1) !important;
 }
 
-@media (max-width: 720px) {
+@media (min-width: 1280px) {
   html[data-theme="day"] body .os-shell.os-shell-night .cmd-desk .cmd-today {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
   }
 }
 

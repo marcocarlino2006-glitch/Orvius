@@ -2404,7 +2404,7 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
-/* One column. The shop lives in the top bar. Departments stay in Search. */
+/* Phone is one column. From an iPad up, every place is the left sidebar. */
 
 .os-shell-pro {
   background: var(--os-paper, #16181b) !important;
@@ -3872,36 +3872,38 @@
 }
 
 @media (min-width: 768px) {
-  .os-shell .os-topbar.os-topbar-pro {
-    flex-wrap: wrap;
+  .os-shell.os-shell-pro {
+    grid-template-columns: 16rem minmax(0, 1fr);
+    align-items: start;
   }
 
-  .os-product-nav {
+  .os-shell.os-shell-pro > .os-sidebar.os-sidebar-pro {
+    position: sticky;
+    top: 0;
+    z-index: 2;
     display: flex;
-    flex: 1 1 100%;
-    order: 5;
-    align-items: center;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-    gap: 0.15rem;
-    min-width: 0;
-    padding-top: 0.85rem;
+    flex-direction: column;
+    width: 16rem;
+    height: 100vh;
+    height: 100dvh;
+    transform: none;
+    overflow-x: hidden;
+    overflow-y: auto;
+    box-shadow: none;
   }
 
-  .os-product-nav a {
-    padding: 0.4rem 0.7rem;
-    border-radius: 999px;
-    color: var(--ox-text-2);
-    font-size: 0.875rem;
-    font-weight: 560;
-    line-height: 1;
-    text-decoration: none;
-    white-space: nowrap;
+  .os-shell .os-topbar-brand {
+    display: none;
   }
 
-  .os-product-nav a.is-active {
-    background: var(--ox-fill);
-    color: var(--ox-text);
+  .os-shell.os-shell-night .os-sidebar .os-nav-link {
+    min-height: 2.75rem !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .os-shell.os-shell-pro > .os-sidebar.os-sidebar-pro {
+    display: none;
   }
 }
 
