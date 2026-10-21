@@ -187,35 +187,35 @@ export function OsShell({
           </div>
         ) : null}
         <main className="os-content os-content-pro">{children}</main>
-        <nav className="os-tabbar" aria-label="Shop">
+        <div className="os-phone-dock">
           <button
             type="button"
-            className={`os-tab os-tab-search${paletteOpen ? " is-active" : ""}`}
+            className={`os-phone-search${paletteOpen ? " is-active" : ""}`}
             aria-label="Search"
             aria-expanded={paletteOpen}
             aria-haspopup="dialog"
             onClick={() => setPaletteOpen(true)}
           >
-            <span className="os-tab-icon">
-              <svg viewBox="0 0 16 16" fill="none" aria-hidden>
-                <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.4" />
-                <path d="M11 11l3.5 3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-              </svg>
-            </span>
-            Search
+            <svg viewBox="0 0 16 16" fill="none" aria-hidden>
+              <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.4" />
+              <path d="M11 11l3.5 3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            </svg>
+            <span>Search</span>
           </button>
-          {osProductNav.map((item) => {
-            const active = osNavCurrent(pathname, item.href);
-            return (
-              <Link key={item.href} href={item.href} className={`os-tab${active ? " is-active" : ""}`} aria-current={active ? "page" : undefined}>
-                <span className="os-tab-icon">
-                  <OsIcon name={item.icon} />
-                </span>
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
+          <nav className="os-tabbar" aria-label="Shop">
+            {osProductNav.map((item) => {
+              const active = osNavCurrent(pathname, item.href);
+              return (
+                <Link key={item.href} href={item.href} className={`os-tab${active ? " is-active" : ""}`} aria-current={active ? "page" : undefined}>
+                  <span className="os-tab-icon">
+                    <OsIcon name={item.icon} />
+                  </span>
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
         <KeyboardShortcuts />
         <OsCommandPalette
           open={paletteOpen}

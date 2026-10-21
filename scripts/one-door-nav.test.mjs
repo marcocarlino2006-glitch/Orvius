@@ -56,7 +56,12 @@ test("the shell paints the five places, and Work is not a table", () => {
   const shell = read("src/components/os-shell.tsx");
   assert.match(shell, /os-sidebar-nav/);
   assert.match(shell, /os-tabbar/);
-  assert.match(shell, /os-tab-search/);
+  assert.match(shell, /os-phone-search/);
+  assert.doesNotMatch(shell, /os-tab-search/);
+  assert.match(read("src/app/dashboard/orvius-texture.css"), /repeat\(5, minmax\(0, 1fr\)\)/);
+  assert.match(read("src/components/os-command-palette.tsx"), /Search the shop/);
+  assert.match(read("src/components/os-command-palette.tsx"), /group: "Places"/);
+  assert.doesNotMatch(read("src/components/os-command-palette.tsx"), /Screen/);
   assert.match(shell, /osProductNav/);
   assert.match(shell, /osWideNav/);
   assert.doesNotMatch(shell, /os-product-nav/);

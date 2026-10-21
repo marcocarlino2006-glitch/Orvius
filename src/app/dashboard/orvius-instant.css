@@ -103,3 +103,47 @@ html body .os-shell .os-topbar:has(.mx-menu) {
   position: relative;
   z-index: 80;
 }
+
+/* Phone search sits above five tabs. These beat the later field and dialog shadows. */
+@media (max-width: 767px) {
+  html .os-shell.os-shell-pro .os-content,
+  html .os-shell.os-shell-pro .os-content:has(.cmd-one) {
+    padding-bottom: calc(7.25rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  html .os-shell.os-shell-pro:is(:has(.lead-detail-sticky), :has(.job-detail-sticky)) .os-content {
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .os-palette:not(.os-shortcuts) {
+    border: 0 !important;
+    box-shadow: none !important;
+    background: var(--ox-bg) !important;
+  }
+
+  :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .os-palette:not(.os-shortcuts) .os-palette-input {
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+    padding: 0 !important;
+    color: var(--ox-text) !important;
+    font-size: 16px !important;
+  }
+
+  :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .os-palette:not(.os-shortcuts) .os-palette-input:focus,
+  :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .os-palette:not(.os-shortcuts) .os-palette-input:focus-visible {
+    border: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+  }
+
+  html body .os-shell .os-phone-search,
+  html body .os-shell .os-palette:not(.os-shortcuts) .os-palette-query {
+    border: 0 !important;
+    border-radius: 0.75rem !important;
+    box-shadow: none !important;
+  }
+}

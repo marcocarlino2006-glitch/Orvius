@@ -101,8 +101,7 @@ export function OsCommandPalette({
     const screens: PaletteItem[] = [...osProductNav, ...osMoreNav, ...osWorkspaceNav].map((nav) => ({
       id: `nav:${nav.href}`,
       label: nav.label,
-      hint: "Screen",
-      group: "Go to",
+      group: "Places",
       icon: nav.icon,
       run: () => go(nav.href),
     }));
@@ -274,24 +273,34 @@ export function OsCommandPalette({
         onKeyDown={onKeyDown}
       >
         <div className="os-palette-field">
-          <input
-            ref={inputRef}
-            className="os-palette-input font-sans"
-            placeholder="Search callers, customers, jobs — or jump to a screen"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            onKeyDown={onKeyDown}
-            autoComplete="off"
-            spellCheck={false}
-            role="combobox"
-            aria-expanded
-            aria-controls="os-palette-list"
-            aria-autocomplete="list"
-            aria-activedescendant={
-              items.length ? `os-palette-option-${active}` : undefined
-            }
-          />
+          <div className="os-palette-grab" aria-hidden />
+          <div className="os-palette-query">
+            <svg className="os-palette-mark" viewBox="0 0 16 16" fill="none" aria-hidden>
+              <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.4" />
+              <path d="M11 11l3.5 3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            </svg>
+            <input
+              ref={inputRef}
+              className="os-palette-input font-sans"
+              placeholder="Search the shop"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              onKeyDown={onKeyDown}
+              autoComplete="off"
+              spellCheck={false}
+              role="combobox"
+              aria-expanded
+              aria-controls="os-palette-list"
+              aria-autocomplete="list"
+              aria-activedescendant={
+                items.length ? `os-palette-option-${active}` : undefined
+              }
+            />
+          </div>
           <kbd className="os-palette-kbd">Esc</kbd>
+          <button type="button" className="os-palette-cancel font-sans" onClick={onClose}>
+            Cancel
+          </button>
         </div>
 
         <div
