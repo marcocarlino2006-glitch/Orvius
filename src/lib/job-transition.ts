@@ -1,4 +1,6 @@
 import { recordAudit, type AuditActor } from "@/lib/audit";
+import { settleJobBilling } from "@/lib/job-billing";
+import { logWarn } from "@/lib/logger";
 import { recordSetupMilestone } from "@/lib/workflow-events";
 import { DEFAULT_JOB_DURATION_MIN } from "@/lib/availability";
 import { JobTransitionError, ownerScheduleClash, updateJobStatus } from "@/lib/job";
@@ -125,6 +127,13 @@ export function completionAmountCents(params: {
   return params.typedCents ?? 0;
 }
 
+/** The completed job stands even when the invoice write fails. The billing row keeps the retry. */
+async function settleCompletedJob(jobId: string) {
+  await settleJobBilling(jobId).catch((error) => {
+    logWarn("job.billing_settle_failed", { jobId, error: error instanceof Error ? error.message : String(error) });
+  });
+}
+
 function auditActor(actor: TransitionActor): { actor: AuditActor; actorEmail?: string } {
   if (actor.kind === "ai" || actor.kind === "system") return { actor: "system" };
   if (actor.kind === "technician") return { actor: "technician" };
@@ -173,7 +182,15 @@ export async function transitionJob(params: {
   });
   if (!job) throw new JobTransitionError("Job not found", 404);
   const from = job.status;
-  if (from === params.to) return { changed: false, from, to: params.to };
+  /*
+    Marking a completed job done again is not a no-op. The invoice write is a
+    separate step, and the first one may have failed. Settle finishes that
+    bill without rewriting the completion.
+  */
+  if (from === params.to) {
+    if (params.to === "completed") await settleCompletedJob(job.id);
+    return { changed: false, from, to: params.to };
+  }
   const reason = params.reason?.trim().slice(0, 300) || null;
   const auditBase = {
     businessId: params.businessId,
@@ -244,6 +261,7 @@ export async function transitionJob(params: {
     });
     /* The job is already done; a milestone that can't be written never undoes that. */
     if (job.leadId) await recordSetupMilestone(params.businessId, "first_outcome", now, { jobId: job.id, via: params.via }).catch(() => undefined);
+    await settleCompletedJob(job.id);
     return { changed: true, from, to: "completed" };
   }
 

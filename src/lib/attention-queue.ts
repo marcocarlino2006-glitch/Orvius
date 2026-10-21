@@ -1,4 +1,5 @@
 import { PAST_DUE_LABEL, jobPastDue } from "@/lib/job-status";
+import { formatCentsExact } from "@/lib/money";
 import "server-only";
 
 import { failuresThatReachedNoOne } from "@/lib/alert-reach";
@@ -538,6 +539,7 @@ export async function collectAttention(businessId: string, now = new Date()): Pr
         id: true,
         amountCents: true,
         status: true,
+        sentAt: true,
         jobId: true,
         createdAt: true,
         payments: { where: { status: "claimed" }, select: { id: true } },
@@ -602,7 +604,10 @@ export async function collectAttention(businessId: string, now = new Date()): Pr
 
   for (const invoice of openMoney[0]) {
     if (invoice.status === "paid" || invoice.status === "void" || invoice.status === "refunded") continue;
+    /* An unsent bill is a notification exception on the board, not an unpaid collection. */
+    if (!invoice.sentAt) continue;
     const claimed = invoice.payments.length > 0;
+    const amount = formatCentsExact(invoice.amountCents);
     const phone =
       invoice.job?.customer?.phone ?? invoice.job?.lead?.phone ?? null;
     const who =
@@ -617,12 +622,10 @@ export async function collectAttention(businessId: string, now = new Date()): Pr
         : "Open invoice",
       detail: claimed
         ? "The customer says they paid you directly. It isn't counted as collected until you confirm the money arrived."
-        : invoice.status === "draft"
-          ? "Invoice drafted but never sent — send it while the visit is fresh."
-          : invoice.status === "overdue"
-            ? "Invoice is overdue — call to collect."
-            : "Invoice sent, not paid yet — follow up to collect.",
-      recommendedAction: claimed ? "Confirm payment" : phone ? "Call to collect" : "Review invoice",
+        : invoice.status === "overdue"
+          ? `The ${amount} bill was sent and is overdue. It has not been paid.`
+          : `The ${amount} bill was sent and has not been paid.`,
+      recommendedAction: claimed ? "Confirm payment" : phone ? "Call to collect" : "Review the bill",
       href: invoice.jobId ? `/dashboard/jobs/${invoice.jobId}` : "/dashboard#shop-economics",
       entityType: "shop",
       entityId: businessId,

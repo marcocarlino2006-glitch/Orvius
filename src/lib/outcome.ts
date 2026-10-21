@@ -385,13 +385,14 @@ export async function buildOutcome(businessId: string, target: { jobId?: string 
   if (!job || !completed) {
     stages.push(stage("invoice", { state: cancelled ? "not_needed" : "not_yet", evidence: "", nextActor: null, nextAction: null, at: null, source: "Invoice" }));
   } else if (!invoice) {
-    const noCharge = job.finalAmountCents === 0;
-    const amount = job.finalAmountCents ?? (job.estimate?.status === "accepted" ? job.estimate.amountCents : null);
+    const noCharge = job.finalAmountCents != null && job.finalAmountCents <= 0;
+    const amount = noCharge ? null : job.finalAmountCents ?? (job.estimate?.status === "accepted" ? job.estimate.amountCents : null);
+    const billingNote = job.billing?.lastError ? ` Last attempt failed: ${job.billing.lastError}` : job.billing?.status === "pending" ? " Invoice creation is in progress." : "";
     stages.push(
       stage("invoice", noCharge
-        ? { state: "not_needed", evidence: "No charge", nextActor: null, nextAction: null, at: null, source: "Job.finalAmountCents" }
-        : amount
-          ? { state: "failed", evidence: `Done with a ${formatCentsExact(amount)} total, but no bill was created`, nextActor: "you", nextAction: "Create and send the bill", at: (job.completedAt ?? job.updatedAt).toISOString(), source: "Job.finalAmountCents · no Invoice", execution: "failed" }
+        ? { state: "not_needed", evidence: job.finalAmountCents === 0 ? "No charge" : "Nothing owed", nextActor: null, nextAction: null, at: null, source: "Job.finalAmountCents" }
+        : amount && amount > 0
+          ? { state: "failed", evidence: `Done with a ${formatCentsExact(amount)} total, but no bill was created.${billingNote}`, nextActor: "you", nextAction: "Open the bill", at: (job.completedAt ?? job.updatedAt).toISOString(), source: "Job.finalAmountCents · no Invoice", execution: "failed" }
           : { state: "blocked", evidence: "Done without a final amount", nextActor: "you", nextAction: "Add the final amount", blocker: "no final amount", at: (job.completedAt ?? job.updatedAt).toISOString(), source: "Job.finalAmountCents" }),
     );
   } else {
@@ -482,4 +483,5 @@ const outcomeJobInclude = {
   customer: { select: { name: true, phone: true } },
   estimate: { select: { amountCents: true, status: true } },
   invoices: { orderBy: { createdAt: "desc" as const }, take: 1, include: { payments: { select: { amountCents: true, status: true, method: true, refundedCents: true } } } },
+  billing: true,
 } as const;

@@ -11,6 +11,7 @@ import { sweepPausedPlans } from "@/lib/plan-pause";
 import { watchAllLines } from "@/lib/line-watch";
 import { sendDueWeeklyReports } from "@/lib/weekly-report";
 import { runBillingReconcile } from "@/lib/billing-reconcile";
+import { sweepUnbilledJobs } from "@/lib/job-billing";
 import { sendFounderScoreboard } from "@/lib/company-scoreboard";
 import { logError, logInfo } from "@/lib/logger";
 import { processNotificationQueue } from "@/lib/notifications";
@@ -136,6 +137,13 @@ export async function GET(request: NextRequest) {
   const weeklyReports = await step("weekly_reports", () => sendDueWeeklyReports());
   const founderScoreboard = await step("founder_scoreboard", () => sendFounderScoreboard());
   const billingReconcile = await step("billing_reconcile", () => runBillingReconcile());
+  /*
+    Backstop for a completed job whose invoice write failed or whose process
+    died mid-create. Completion and the desk retry are the timely path. This
+    daily run is the one schedule Vercel accepts on this project; it does not
+    text the customer or change a bill that was already sent.
+  */
+  const jobBilling = await step("job_billing", () => sweepUnbilledJobs());
 
   /* Housekeeping and syncs share what is left of the deadline, longest-waiting first. */
   const housekeeping = {
@@ -203,6 +211,7 @@ export async function GET(request: NextRequest) {
     weeklyReports,
     founderScoreboard,
     billingMismatches: billingReconcile?.checked ? billingReconcile.mismatches.length : null,
+    jobBilling,
     stalledPorts,
     overage,
     strandedTextLeads,

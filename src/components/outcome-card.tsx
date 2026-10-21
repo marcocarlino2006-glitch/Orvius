@@ -90,6 +90,25 @@ export function OutcomeCard({ outcome, onChange }: { outcome: Outcome; onChange:
     }
   }
 
+  async function openBill() {
+    if (!jobId) return;
+    setBusy(true);
+    setError(null);
+    setNote(null);
+    try {
+      const data = await send(`/api/jobs/${jobId}/billing`, "POST", {});
+      if (!data || data.ok === false) {
+        setError(typeof data?.error === "string" ? data.error : "The bill wasn't opened.");
+      } else {
+        setNote("The bill is open. It has not been sent.");
+        if (!(await reload())) setNote((prev) => `${prev ?? "The bill is open."} ${STALE_VIEW}`);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "The bill wasn't opened.");
+    }
+    setBusy(false);
+  }
+
   async function sendBill() {
     if (!jobId || !outcome.money.totalCents) return;
     setBusy(true);
@@ -209,8 +228,19 @@ export function OutcomeCard({ outcome, onChange }: { outcome: Outcome; onChange:
       ) : null}
       {billable ? (
         <div className="cb-actions">
-          <button type="button" className="ox-btn ox-btn--primary ox-btn--sm" disabled={busy} onClick={() => void sendBill()}>
-            {invoice.state === "unknown" ? "I checked with them — send the bill again" : invoice.state === "failed" && outcome.money.billedCents ? "Resend the bill" : "Create and send the bill"}
+          <button
+            type="button"
+            className="ox-btn ox-btn--primary ox-btn--sm"
+            disabled={busy}
+            onClick={() => void (invoice.state === "failed" && !outcome.money.billedCents ? openBill() : sendBill())}
+          >
+            {invoice.state === "unknown"
+              ? "I checked with them — send the bill again"
+              : invoice.state === "failed" && !outcome.money.billedCents
+                ? "Open the bill"
+                : invoice.state === "failed" && outcome.money.billedCents
+                  ? "Resend the bill"
+                  : "Send the bill"}
           </button>
         </div>
       ) : null}

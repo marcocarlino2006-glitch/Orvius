@@ -242,6 +242,7 @@ model Business {
   technicians            Technician[]
   estimates              Estimate[]
   invoices               Invoice[]
+  jobBillings            JobBilling[]
   payments               Payment[]
   deposits               Deposit[]
   copilotActions         CopilotAction[]
@@ -889,6 +890,7 @@ model Job {
   estimate   Estimate?
   deposits   Deposit[]
   invoices   Invoice[]
+  billing    JobBilling?
   signature  JobSignature?
   photos     JobPhoto[]
   fieldNotes JobNote[]
@@ -901,6 +903,54 @@ model Job {
   @@index([customerConfirmSid])
   @@index([businessId, updatedAt])
   @@index([customerId])
+}
+
+/**
+ * Whether a completed job still needs its invoice. Written before the invoice
+ * insert, so a failed write or a crashed process can be retried without
+ * opening a second bill. Notification is recorded separately: an open invoice
+ * is not a sent one, and a sent one is not a paid one.
+ *
+ * required — a positive total is owed and no invoice exists yet
+ * pending — a worker holds the lease
+ * succeeded — a live invoice exists; it was not repriced by the retry
+ * failed — the last create threw, or a voided/refunded bill was left alone
+ * not_required — no-charge, zero, or a negative line total
+ */
+model JobBilling {
+  id                String    @id @default(cuid())
+  businessId        String
+  business          Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  jobId             String    @unique
+  job               Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  status            String    @default("required")
+  /**
+   * The job's billable total when the obligation was recorded. Not the taxed
+   * balance on the invoice, and never a reason to reprice a bill already sent.
+   */
+  amountCents       Int
+  invoiceId         String?
+  attempts          Int       @default(0)
+  lastError         String?
+  attemptedAt       DateTime?
+  /**
+   * Set while a worker is creating the invoice. A crash leaves it pending
+   * until the lease lapses, then another worker may take it.
+   */
+  claimedAt         DateTime?
+  claimToken        String?
+  /**
+   * not_sent | sent | failed. Null until the invoice exists. Delivery after
+   * a carrier accepts the text is the message ledger, not this field.
+   */
+  notifyStatus      String?
+  notifyError       String?
+  notifyAttemptedAt DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([businessId, status])
+  @@index([status, attemptedAt])
 }
 
 model Technician {

@@ -3,6 +3,7 @@ import type { Business, Invoice } from "@prisma/client";
 import type Stripe from "stripe";
 
 import { recordAudit } from "@/lib/audit";
+import { recordBillingNotification, settleJobBilling } from "@/lib/job-billing";
 import { normalizePhone } from "@/lib/customer";
 import { sendCustomerSms } from "@/lib/customer-sms";
 import { formatCentsExact } from "@/lib/money";
@@ -484,7 +485,11 @@ async function textOwnerPaid(params: { businessId: string; jobId: string | null;
  */
 export async function invoiceCompletedJob(
   jobId: string,
-  options: { ownerAsked?: boolean } = {},
+  options: {
+    ownerAsked?: boolean;
+    /** Test seam. Production uses the pay-link text. A throw is a notification failure, not a lost invoice. */
+    send?: typeof sendInvoiceLink;
+  } = {},
 ) {
   const job = await prisma.job.findUnique({
     where: { id: jobId },
@@ -509,17 +514,19 @@ export async function invoiceCompletedJob(
     },
   });
   if (!job) return { invoiced: false as const, reason: "no_job" as const };
-  /* An accepted estimate is the price the customer already agreed to. */
-  const totalCents =
-    job.finalAmountCents ??
-    (job.estimate?.status === "accepted" ? job.estimate.amountCents : null);
-  /* Zero and a negative line total (discounts larger than the work) are not a bill. */
-  if (totalCents == null || totalCents <= 0) return { invoiced: false as const, reason: "no_amount" as const };
-
-  const { invoice, repriceHeld } = await upsertJobInvoice({
-    businessId: job.businessId,
-    jobId: job.id,
-    totalCents,
+  /*
+    Opening the bill is recorded on its own, so a failed insert can be retried
+    without a second invoice. Sending is the step after that, and a failure
+    there leaves the invoice in place.
+  */
+  const settled = await settleJobBilling(job.id);
+  if (settled.outcome === "not_required" || settled.outcome === "skipped") return { invoiced: false as const, reason: "no_amount" as const };
+  if (settled.outcome !== "succeeded") return { invoiced: false as const, reason: settled.outcome === "pending" ? ("billing_pending" as const) : ("billing_failed" as const) };
+  const invoice = await prisma.invoice.findFirst({ where: { id: settled.invoiceId, businessId: job.businessId } });
+  if (!invoice) return { invoiced: false as const, reason: "billing_failed" as const };
+  const repriceHeld = await prisma.reconciliationException.findFirst({
+    where: { businessId: job.businessId, entityType: "invoice", entityId: invoice.id, kind: "change", system: "orvius", status: "open" },
+    select: { id: true },
   });
 
   const phone = job.lead?.phone ?? job.customer?.phone ?? null;
@@ -541,21 +548,33 @@ export async function invoiceCompletedJob(
                 : null;
 
   if (blocked || !phone) {
+    await recordBillingNotification(job.id, { status: "not_sent", error: blocked });
     return { invoiced: true as const, invoice, sms: null, reason: blocked };
   }
 
-  const sms = await sendInvoiceLink({ business: job.business, invoice, toPhone: phone, authorizedBy: options.ownerAsked ? "owner:asked" : "system:autopilot" });
-  if (sms.sent) {
-    await recordAudit({
-      businessId: job.businessId,
-      entityType: "job",
-      entityId: job.id,
-      jobId: job.id,
-      ...(options.ownerAsked
-        ? { action: "invoice.sent", actor: "owner" as const }
-        : { action: "autopilot.invoice_sent", idempotencyKey: `autopilot:invoice:${invoice.id}` }),
-      summary: `Texted the ${formatCentsExact(invoice.amountCents)} invoice link`,
-    });
+  const send = options.send ?? sendInvoiceLink;
+  try {
+    const sms = await send({ business: job.business, invoice, toPhone: phone, authorizedBy: options.ownerAsked ? "owner:asked" : "system:autopilot" });
+    if (sms.sent) {
+      await recordBillingNotification(job.id, { status: "sent" });
+      await recordAudit({
+        businessId: job.businessId,
+        entityType: "job",
+        entityId: job.id,
+        jobId: job.id,
+        ...(options.ownerAsked
+          ? { action: "invoice.sent", actor: "owner" as const }
+          : { action: "autopilot.invoice_sent", idempotencyKey: `autopilot:invoice:${invoice.id}` }),
+        summary: `Texted the ${formatCentsExact(invoice.amountCents)} invoice link`,
+      });
+    } else {
+      await recordBillingNotification(job.id, { status: "failed", error: "reason" in sms && sms.reason ? String(sms.reason) : "The bill text was not accepted." });
+    }
+    return { invoiced: true as const, invoice, sms, reason: null };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    await recordBillingNotification(job.id, { status: "failed", error: message });
+    logWarn("invoice.notify_failed", { jobId: job.id, invoiceId: invoice.id, error: message });
+    return { invoiced: true as const, invoice, sms: null, reason: "notify_failed" as const };
   }
-  return { invoiced: true as const, invoice, sms, reason: null };
 }
