@@ -112,7 +112,7 @@ test("AI authority follows the shop's settings", () => {
   assert.ok(alert.blocked.length > 0);
 });
 
-test("a phone keeps five places, and an iPad or a computer shows every place", () => {
+test("a phone keeps five places plus search at the bottom left, and an iPad or a computer shows every place", () => {
   assert.deepEqual(
     osProductNav.map((item) => item.label),
     ["Home", "Schedule", "Inbox", "Customers", "Jobs"],

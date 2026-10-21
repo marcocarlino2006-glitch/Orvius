@@ -12,8 +12,9 @@ export type OsNavItem = {
 /**
  * The places the owner runs. Home is the decision. Schedule, Inbox,
  * Customers and Jobs are where the day, the requests, the person and the
- * bill get finished. Calls, Work and Ask stay in search on a phone.
- * An iPad or a computer lists every place down the left.
+ * bill get finished. Calls, Work and Ask stay in search on a phone,
+ * and that search sits at the bottom left. An iPad or a computer lists
+ * every place down the left.
  * Money on Home opens the report.
  */
 export const osProductNav: OsNavItem[] = [
@@ -24,7 +25,7 @@ export const osProductNav: OsNavItem[] = [
   { href: "/dashboard/jobs", label: "Jobs", icon: "jobs" },
 ];
 
-/** Real screens a phone keeps in search. An iPad and a computer list them down the left. */
+/** Real screens a phone reaches from the search at the bottom left. An iPad and a computer list them down the left. */
 export const osMoreNav: OsNavItem[] = [
   { href: "/dashboard/calls", label: "Calls", icon: "calls" },
   { href: "/dashboard/work", label: "Work", icon: "jobs" },

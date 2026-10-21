@@ -188,6 +188,22 @@ export function OsShell({
         ) : null}
         <main className="os-content os-content-pro">{children}</main>
         <nav className="os-tabbar" aria-label="Shop">
+          <button
+            type="button"
+            className={`os-tab os-tab-search${paletteOpen ? " is-active" : ""}`}
+            aria-label="Search"
+            aria-expanded={paletteOpen}
+            aria-haspopup="dialog"
+            onClick={() => setPaletteOpen(true)}
+          >
+            <span className="os-tab-icon">
+              <svg viewBox="0 0 16 16" fill="none" aria-hidden>
+                <circle cx="7" cy="7" r="5" stroke="currentColor" strokeWidth="1.4" />
+                <path d="M11 11l3.5 3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+              </svg>
+            </span>
+            Search
+          </button>
           {osProductNav.map((item) => {
             const active = osNavCurrent(pathname, item.href);
             return (
