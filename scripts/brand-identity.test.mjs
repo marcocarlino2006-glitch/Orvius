@@ -22,9 +22,9 @@ test("the logo is the symbol beside the ORVIUS wordmark, in one ink", () => {
   assert.match(css, /\.orvius-logo-svg \{[^}]*height: 0\.78em;/);
   assert.match(css, /\.orvius-logo-word \.orvius-logo-mark \{[^}]*width: 1\.63em;/);
   assert.match(css, /aspect-ratio: 756\.31 \/ 100/);
-  assert.match(css, /\.os-sidebar-brand \.orvius-logo-mark \{[^}]*color: #000000 !important;/);
-  assert.match(css, /\.orvius-logo-mark \{[^}]*background: #ffffff !important;/);
-  assert.match(read("src/app/public-v2.css"), /\.ov-public \.orvius-logo-mark \{[^}]*color: #000000 !important;/);
+  assert.match(css, /\.os-sidebar-brand \.orvius-logo-mark \{[^}]*color: black !important;/);
+  assert.match(css, /\.orvius-logo-mark \{[^}]*background: white !important;/);
+  assert.match(read("src/app/public-v2.css"), /\.ov-public \.orvius-logo-mark \{[^}]*color: black !important;/);
   assert.doesNotMatch(read("src/app/public-v2.css"), /\.orvius-logo-mark \{[^}]*--ov-copper/);
 });
 
