@@ -7,7 +7,6 @@ import { useEffect, useState } from "react";
 import { displayPhone } from "@/lib/customer";
 import { useBusiness } from "@/lib/use-business";
 import { OrviusLogo } from "@/components/orvius-logo";
-import { OsIcon } from "@/components/os-icons";
 import { OsCommandPalette } from "@/components/os-command-palette";
 import { OsSidebarFooter } from "@/components/os-sidebar-footer";
 import { PayPromptModal } from "@/components/pay-prompt-modal";
@@ -129,8 +128,9 @@ export function OsShell({
             ) : null}
             <button
               type="button"
-              className="os-topbar-search font-sans"
+              className="os-topbar-search os-topbar-search--mark font-sans"
               aria-label="Search"
+              title="Search"
               onClick={() => setPaletteOpen(true)}
             >
               <svg viewBox="0 0 16 16" fill="none" aria-hidden>
@@ -142,13 +142,7 @@ export function OsShell({
                   strokeLinecap="round"
                 />
               </svg>
-              <span className="os-topbar-search-label">Search</span>
-              <kbd>⌘K</kbd>
             </button>
-            <Link href="/help" className="os-topbar-search os-topbar-help font-sans" aria-label="Help" target="_blank" rel="noopener">
-              <OsIcon name="ask" />
-              <span className="os-topbar-search-label">Help</span>
-            </Link>
             {actions}
             <OsSidebarFooter />
           </div>

@@ -60,6 +60,8 @@ type MenuItem = {
   label: string;
   icon: IconName;
   mail?: boolean;
+  /** Stays in the product. The trail arrow is for pages that leave it. */
+  stay?: boolean;
 };
 
 const accountLinks: MenuItem[] = [
@@ -70,6 +72,7 @@ const accountLinks: MenuItem[] = [
 ];
 
 const moreLinks: MenuItem[] = [
+  { href: "/help", label: "Help", icon: "help", stay: true },
   { href: "/", label: "Homepage", icon: "home" },
   { href: "help", label: "Get help", icon: "help", mail: true },
   { href: "/resources", label: "Docs", icon: "docs" },
@@ -361,7 +364,7 @@ export function OsSidebarFooter() {
                 <Link key={item.label} href={item.href} role="menuitem" className="mx-link" onClick={close}>
                   <MenuIcon name={item.icon} />
                   <span>{item.label}</span>
-                  <MenuIcon name="external" className="mx-trail" />
+                  {item.stay ? null : <MenuIcon name="external" className="mx-trail" />}
                 </Link>
               ),
             )}

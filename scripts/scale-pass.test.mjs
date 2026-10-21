@@ -189,9 +189,13 @@ test("an account with no shop yet stops polling Command instead of failing every
   assert.match(client, /"noShop" in json[\s\S]{0,80}return "no-shop"/);
 });
 
-test("the top bar Help link keeps an icon when its label is hidden", () => {
+test("Help lives in the account menu, and Search is a mark", () => {
+  const footer = read("src/components/os-sidebar-footer.tsx");
+  assert.match(footer, /href: "\/help", label: "Help", icon: "help"/);
   const shell = read("src/components/os-shell.tsx");
-  assert.match(shell, /os-topbar-help[\s\S]{0,200}aria-label="Help"[\s\S]{0,200}<OsIcon name="ask" \/>/);
+  assert.doesNotMatch(shell, /os-topbar-help/);
+  assert.match(shell, /aria-label="Search"/);
+  assert.doesNotMatch(shell, /os-topbar-search-label/);
 });
 
 test("without the rail, Command puts the numbers above the board and System last", () => {

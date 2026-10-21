@@ -138,7 +138,9 @@ test("work cards show the problem, the customer, the work, when, who has it, and
 
 test("the board's approvals lane shows the plan and an approval button", () => {
   const board = read("src/components/command-board.tsx");
-  assert.match(read("src/components/ring1-command-center.tsx"), /Orvius wants your OK/);
+  const command = read("src/components/ring1-command-center.tsx");
+  assert.match(command, /wc--approval/);
+  assert.doesNotMatch(command, /Orvius wants your OK/);
   assert.match(board, /nothing changes until you approve/);
   assert.match(board, /"Approve"/);
   assert.match(board, /mode=\$\{mode\}/);

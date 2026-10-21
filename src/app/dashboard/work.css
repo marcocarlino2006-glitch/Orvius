@@ -8,10 +8,28 @@
 
 /* One column. The sentence, the one thing happening, then the line you talk on. */
 .cmd-one {
-  max-width: 38rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: 40rem;
+  min-height: calc(100dvh - 4.5rem);
   margin-inline: auto;
-  gap: 2.25rem;
-  padding-top: clamp(1.5rem, 8vh, 4.5rem);
+  gap: 1.75rem;
+  padding-top: clamp(2.5rem, 12vh, 6.5rem);
+}
+
+.os-content:has(.cmd-one) {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  padding-bottom: 0 !important;
+}
+
+.os-main:has(.cmd-one) {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
 }
 
 .cmd-filters {
@@ -42,27 +60,110 @@
   line-height: 1.12;
 }
 
+.cmd-one,
+.cmd-one .cmd-live,
+.cmd-one .wc-list,
+.cmd-one .wc,
+.cmd-one .wc-head,
+.cmd-one .wc-main {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.cmd-fact,
 .cmd-live-call {
   display: flex;
   align-items: baseline;
   gap: 0.625rem;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   margin: 0;
+  overflow: hidden;
   font-size: 1.0625rem;
 }
 
+.cmd-fact a,
 .cmd-live-call a {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
   color: var(--ox-text);
   font-weight: 560;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-decoration: none;
 }
 
-.cmd-live-about {
+.cmd-fact a:hover {
+  text-decoration: underline;
+}
+
+.cmd-fact-what {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
   color: var(--ox-text-2);
+  font-weight: 450;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
+.cmd-fact time,
 .cmd-live-call time {
+  flex: 0 0 auto;
   margin-left: auto;
   color: var(--ox-mute);
   font-size: 0.8125rem;
+  white-space: nowrap;
+}
+
+/* The one object is a line of type. The list wrapper is what still draws the card. */
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one .wc-list {
+  gap: 0 !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one .wc-list > .wc,
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one .cb-plan {
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one .wc::before {
+  display: none !important;
+  content: none !important;
+}
+
+/* Calm draws the first queue row as a card. On Command it is a line. */
+:root body .os-shell.os-shell-pro.os-shell-pro.os-shell-night .cmd.cmd-one .cmd-queue > .wc:first-child,
+:root body .os-shell.os-shell-pro.os-shell-pro.os-shell-night .cmd.cmd-one .cmd-queue > .wc--critical:first-child,
+:root body .os-shell.os-shell-pro.os-shell-pro.os-shell-night .cmd.cmd-one .cmd-queue > .wc--high:first-child {
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.cmd-one .wc-actions {
+  margin-top: 0.75rem;
+}
+
+
+.cmd-live-about {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ox-text-2);
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -151,19 +252,84 @@
   color: var(--ox-text);
 }
 
-.cmd-ask .cb-ask {
-  display: grid;
-  gap: 0.75rem;
+.cmd-one .cmd-ask {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  margin-top: 0;
 }
 
-/* The talk line sits under the decision. The stacked sheets draw a card; this wins. */
-html body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one .cb-ask-stack,
-html body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one .cb-ask-form {
+.cmd-one .cb-ask {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  gap: 1.25rem;
+}
+
+.cmd-one .cb-turn {
+  order: 0;
+}
+
+.cmd-one .cb-ask-chips {
+  order: 1;
+}
+
+/* The line you talk on is the bottom of the desk. */
+.cmd-one .cb-ask-stack {
+  order: 2;
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  margin-top: auto;
+  padding: 0.75rem 0 1rem;
+  background: linear-gradient(180deg, transparent, var(--ox-day-sunk, #16181b) 1.1rem);
+}
+
+.cmd-one .cb-ask-input {
+  min-height: 1.5rem;
+  field-sizing: content;
+}
+
+.cmd-one .cb-demo {
+  margin-top: 0.25rem;
+}
+
+.cmd-one .cb-demo-toggle {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ox-text-2);
+  font: inherit;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.cmd-one .cb-demo-toggle:hover {
+  color: var(--ox-text);
+}
+
+.cmd-one .cb-demo-grid {
+  margin-top: 0.75rem;
+}
+
+/* The talk line is one field. The rounded composer sheet loses on Command. */
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one .cb-ask-stack,
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one .cb-ask-form {
   border: 0 !important;
-  border-bottom: 1px solid var(--ox-line) !important;
   border-radius: 0 !important;
+  border-bottom: 1px solid var(--ox-line) !important;
   background: transparent !important;
   box-shadow: none !important;
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.35rem !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one .cb-ask-input {
+  min-height: 1.6rem !important;
+}
+
+html .os-shell.os-shell-pro .os-content:has(.cmd-one) {
+  padding-bottom: 0 !important;
 }
 
 html body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one .cb-ask-stack:focus-within {

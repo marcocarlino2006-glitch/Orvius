@@ -172,10 +172,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
           </p>
         ) : liveApproval ? (
           <ul className="wc-list cmd-queue">
-            <li className="wc wc--approval">
-              <p className="wc-tags">
-                <span className="wc-tag wc-tag--you">{liveApproval.needsCheck ? "Needs a check" : "Orvius wants your OK"}</span>
-              </p>
+            <li className="wc wc--approval wc--now">
               {liveApproval.needsCheck ? (
                 <CheckCard proposalId={liveApproval.proposalId!} title={liveApproval.title} detail={liveApproval.detail} done={liveApproval.needsCheck === "done_unrecorded"} onDone={() => void refresh()} />
               ) : (
