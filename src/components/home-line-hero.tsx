@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { HomeLiveCall } from "@/components/home-live-call";
 import { DemoLineBusy } from "@/components/demo-line-busy";
-import { TalkInBrowser } from "@/components/talk-in-browser";
 import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
 import { SIGNUP_HREF } from "@/lib/signup-href";
 
@@ -38,13 +37,12 @@ function LiveLineDigits({ display }: { display: string }) {
 }
 
 /**
- * Cursor silhouette: claim + two CTAs, then full-width product canvas.
- * Brand lives in the nav — not restated above the headline.
- * Dialable live line stays as the proof Cursor can’t ship.
+ * Category line on the left, the live call as the picture on the right.
+ * Brand lives in the nav. The dialable night-shift line is the proof.
  */
 export function HomeLineHero({ signupOpen = false }: { signupOpen?: boolean }) {
   return (
-    <section className="ov-hero ov-hero--atmosphere ov-hero--center" aria-labelledby="home-hero-heading">
+    <section className="ov-hero ov-hero--atmosphere" aria-labelledby="home-hero-heading">
       <div className="ov-hero-sky" aria-hidden>
         <span className="ov-hero-sky-plane" />
         <span className="ov-hero-sky-bloom" />
@@ -53,13 +51,13 @@ export function HomeLineHero({ signupOpen = false }: { signupOpen?: boolean }) {
         <span className="ov-hero-sky-horizon" />
         <span className="ov-hero-sky-grain" />
       </div>
-      <div className="ov-hero-inner ov-hero-inner--product ov-hero-inner--poster">
+      <div className="ov-hero-inner ov-hero-inner--product">
         <div className="ov-hero-copy">
           <h1 id="home-hero-heading" className="ov-hero-title" data-i18n="hero.title">
-            Run your day in Orvius.
+            The night shift for shops that run on the phone.
           </h1>
           <p className="ov-hero-lead" data-i18n="hero.lead">
-            The receptionist answers your calls and brings in the work. Command schedules it, coordinates your crew on Pro and Fleet, follows up with customers and shows you what actually happened.
+            It answers the call, books the work, and leaves the day on your desk.
           </p>
 
           <div className="ov-hero-actions">
@@ -93,8 +91,6 @@ export function HomeLineHero({ signupOpen = false }: { signupOpen?: boolean }) {
             )}
           </div>
 
-          <TalkInBrowser personal phoneHref={demoLineHref()} phoneDisplay={DEMO_LINE_DISPLAY} />
-
           <a
             href={demoLineHref()}
             className="ov-hero-liveline"
@@ -107,6 +103,9 @@ export function HomeLineHero({ signupOpen = false }: { signupOpen?: boolean }) {
             <LiveLineDigits display={DEMO_LINE_DISPLAY} />
           </a>
           <DemoLineBusy />
+          <Link href="/try" className="ov-hero-browser" data-i18n="hero.browser">
+            Talk to it in your browser
+          </Link>
         </div>
 
         <div className="ov-hero-stage ov-hero-stage--art">

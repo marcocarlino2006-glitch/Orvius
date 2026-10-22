@@ -25,16 +25,16 @@ export const translations: Record<string, Record<Lang, string>> = {
   "nav.contact": { en: "Talk to us", es: "Hablar con nosotros", fr: "Nous contacter", de: "Kontakt" },
 
   "hero.title": {
-    en: "Run your day in Orvius.",
-    es: "Lleva tu día en Orvius.",
-    fr: "Pilotez votre journée dans Orvius.",
-    de: "Führen Sie Ihren Tag in Orvius.",
+    en: "The night shift for shops that run on the phone.",
+    es: "El turno de noche para los negocios que viven del teléfono.",
+    fr: "L’équipe de nuit des entreprises qui vivent du téléphone.",
+    de: "Die Nachtschicht für Betriebe, die vom Telefon leben.",
   },
   "hero.lead": {
-    en: "The receptionist answers your calls and brings in the work. Command schedules it, coordinates your people, follows up with customers and shows you what actually happened.",
-    es: "La recepcionista contesta tus llamadas y trae el trabajo. Command lo agenda, coordina a tu equipo, da seguimiento a los clientes y te muestra lo que de verdad pasó.",
-    fr: "La réceptionniste répond à vos appels et apporte le travail. Command le planifie, coordonne votre équipe, relance les clients et vous montre ce qui s’est vraiment passé.",
-    de: "Die Rezeption nimmt Ihre Anrufe an und bringt die Arbeit herein. Command plant sie ein, koordiniert Ihr Team, fasst bei Kunden nach und zeigt Ihnen, was wirklich passiert ist.",
+    en: "It answers the call, books the work, and leaves the day on your desk.",
+    es: "Contesta la llamada, agenda el trabajo y deja el día en tu escritorio.",
+    fr: "Elle répond à l’appel, réserve le travail et laisse la journée sur votre bureau.",
+    de: "Sie nimmt den Anruf an, bucht die Arbeit und legt den Tag auf Ihren Schreibtisch.",
   },
   "hero.watch": {
     en: "Watch it run a shop",
@@ -68,6 +68,12 @@ export const translations: Record<string, Record<Lang, string>> = {
     de: "Audit buchen",
   },
   "hero.liveline": { en: "Live line", es: "Línea en vivo", fr: "Ligne en direct", de: "Live-Leitung" },
+  "hero.browser": {
+    en: "Talk to it in your browser",
+    es: "Háblale desde el navegador",
+    fr: "Parlez-lui dans le navigateur",
+    de: "Im Browser damit sprechen",
+  },
   "hero.nightshift": {
     en: "Call the live line",
     es: "Llama a la línea en vivo",

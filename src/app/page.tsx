@@ -12,7 +12,7 @@ import "./home-sections.css";
 
 
 /**
- * Hero (live call on a painting) → what every call gets → one row per idea
+ * Hero (category line beside the live call) → what every call gets → one row per idea
  * with the real screen → industries → compare → call close.
  */
 
