@@ -55,9 +55,10 @@ const job = (over = {}) => ({
 });
 
 test("the work queue asks for a recovery decision on an expired job, whatever it was waiting on", () => {
-  assert.equal(work.jobWorkItem(job(), NOW).nextAction, PAST_DUE_LABEL);
-  assert.equal(work.jobWorkItem(job({ technician: { id: "t", name: "Luis", phone: null } }), NOW).nextAction, PAST_DUE_LABEL);
-  assert.equal(work.jobWorkItem(job({ status: "confirmed" }), NOW).nextAction, PAST_DUE_LABEL);
+  assert.equal(work.jobWorkItem(job(), NOW).nextAction, "Call Dana Ruiz, move the visit, or close it");
+  assert.equal(work.jobWorkItem(job({ technician: { id: "t", name: "Luis", phone: null } }), NOW).nextAction, "Call Dana Ruiz, move the visit, or close it");
+  assert.equal(work.jobWorkItem(job({ status: "confirmed" }), NOW).nextAction, "Call Dana Ruiz, move the visit, or close it");
+  assert.equal(work.jobWorkItem(job({ customer: { name: null, phone: null } }), NOW).nextAction, PAST_DUE_LABEL);
   assert.equal(work.jobWorkItem(job({ scheduledAt: new Date(NOW + 3_600_000) }), NOW).nextAction, "Assign a technician");
 });
 

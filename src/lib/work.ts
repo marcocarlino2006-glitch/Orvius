@@ -285,11 +285,12 @@ export function jobWorkItem(job: WorkJob, now = Date.now()): WorkItem {
   const stage = jobStage(job);
   const pastDue = jobPastDue(job, now);
   const owed = unpaidInvoices(job);
-  const who = job.customer?.name?.trim() || "the customer";
+  const who = job.customer?.name?.trim() || spokenPhone(job.customer?.phone) || "the customer";
+  const recovery = who === "the customer" ? PAST_DUE_LABEL : `Call ${who}, move the visit, or close it`;
   const assign: [string, WaitingOn] = job.techDeclinedBy ? [`Assign someone else — ${job.techDeclinedBy} can't take it`, "you"] : ["Assign a technician", "you"];
   const techAnswer: [string | null, WaitingOn] = job.techAcceptedAt || !job.technician ? [null, null] : [`Waiting on ${job.technician.name} to accept`, "technician"];
   const [nextAction, waitingOn] = ((): [string | null, WaitingOn] => {
-    if (pastDue) return [PAST_DUE_LABEL, "you"];
+    if (pastDue) return [recovery, "you"];
     switch (stage) {
       case "needs_time":
         return ["Set the time", "you"];
