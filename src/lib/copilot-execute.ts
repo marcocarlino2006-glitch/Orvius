@@ -428,11 +428,56 @@ export async function executeProposal(params: {
   }
   const twin = await openTwin(business.id, pending.action, stored!.paramsJson, params.proposalId);
   if (twin && twin.status !== "proposed") return refuseTwin(twin.status);
-  const claimed = await prisma.copilotAction.updateMany({
-    where: { id: params.proposalId, businessId: business.id, status: "proposed" },
-    data: { status: "executing", approvalKind: decision.kind, approvedByEmail: params.by.email.trim().toLowerCase(), grantId: decision.grantId },
-  });
-  if (claimed.count === 0) {
+  // One statement, so two approvals of the same plan cannot both move to executing.
+  // A copy that already finished is a blocker too: the loser otherwise arrives after
+  // the winner has left "executing" and runs the plan a second time.
+  const claimed = await prisma.$executeRaw`
+    UPDATE "CopilotAction"
+    SET "status" = 'executing',
+        "approvalKind" = ${decision.kind},
+        "approvedByEmail" = ${params.by.email.trim().toLowerCase()},
+        "grantId" = ${decision.grantId}
+    WHERE "id" = ${params.proposalId}
+      AND "businessId" = ${business.id}
+      AND "status" = 'proposed'
+      AND NOT EXISTS (
+        SELECT 1 FROM "CopilotAction" AS twin
+        WHERE twin."businessId" = ${business.id}
+          AND twin."action" = ${pending.action}
+          AND twin."paramsJson" = ${stored!.paramsJson}
+          AND twin."id" <> ${params.proposalId}
+          AND (
+            twin."status" IN ('executing', 'reconcile')
+            OR (
+              twin."status" = 'executed'
+              AND twin."executedAt" > (
+                SELECT "createdAt" FROM "CopilotAction" WHERE "id" = ${params.proposalId}
+              )
+            )
+          )
+      )
+  `;
+  if (claimed === 0) {
+    const twin = await openTwin(business.id, pending.action, stored!.paramsJson, params.proposalId);
+    if (twin && twin.status !== "proposed") return refuseTwin(twin.status);
+    const finished = await prisma.copilotAction.findFirst({
+      where: {
+        businessId: business.id,
+        action: pending.action,
+        paramsJson: stored!.paramsJson,
+        id: { not: params.proposalId },
+        status: "executed",
+        executedAt: { gt: pending.createdAt },
+      },
+      select: { id: true },
+    });
+    if (finished) {
+      await prisma.copilotAction.updateMany({
+        where: { id: params.proposalId, businessId: business.id, status: "proposed" },
+        data: { status: "superseded", resultJson: JSON.stringify({ supersededBy: finished.id }) },
+      });
+      return refuseTwin("executing");
+    }
     return { ok: false, error: "Proposal not found or already used", status: 404 };
   }
   // Two copies approved at once both pass the check above; whichever sees the other after claiming steps back.
