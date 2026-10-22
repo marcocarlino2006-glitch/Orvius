@@ -23,3 +23,12 @@ export function spokenPhone(phone: string | null | undefined): string {
   }
   return raw;
 }
+
+/** A real name, otherwise the number on the record. Never a stand-in person. */
+export function personLabel(name: string | null | undefined, phone?: string | null): string {
+  const spoken = spokenName(name);
+  if (spoken) return spoken;
+  const number = spokenPhone(phone);
+  if (number) return number;
+  return "No name on file";
+}

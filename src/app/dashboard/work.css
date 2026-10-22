@@ -10,12 +10,12 @@
 .cmd-one {
   display: flex;
   flex-direction: column;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   width: 100%;
   max-width: 72rem;
   margin-inline: auto;
-  gap: 1.5rem;
-  padding-top: 1.25rem;
+  gap: 1.75rem;
+  padding-top: 0.25rem;
 }
 
 .os-content:has(.cmd-one) {
@@ -53,10 +53,10 @@
 }
 
 .cmd-one .cmd-headline {
-  font-size: clamp(1.75rem, 1.1rem + 1.8vw, 2.375rem);
+  font-size: clamp(1.375rem, 1.15rem + 0.55vw, 1.75rem);
   font-weight: 560;
-  letter-spacing: -0.035em;
-  line-height: 1.12;
+  letter-spacing: -0.028em;
+  line-height: 1.2;
 }
 
 .cmd-one,
@@ -250,7 +250,7 @@
 .cmd-head {
   display: grid;
   gap: 0.375rem;
-  padding-top: clamp(0.5rem, 3vh, 1.75rem);
+  padding-top: 0;
 }
 
 .cmd-greeting {
@@ -367,33 +367,22 @@ html body .os-shell.os-shell-pro .cmd.cmd-one {
   }
 }
 
-/* The left sidebar is 16rem. The day sits beside the money once both fit. */
-@media (min-width: 1100px) {
-  .cmd-desk {
-    grid-template-columns: minmax(0, 1.6fr) minmax(17rem, 0.85fr);
-    align-items: start;
-  }
-
-  .cmd-desk > :first-child {
-    grid-row: 1 / span 2;
-  }
-
-  .cmd-desk .cmd-money {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .cmd-desk .cmd-money-cell:nth-child(3) {
-    border-left: 0;
-  }
-
-  .cmd-desk .cmd-money-cell:nth-child(n + 3) {
-    border-top: 1px solid var(--ox-line);
-  }
-}
-
 .cmd-desk {
   display: grid;
   gap: 1.75rem;
+}
+
+/* Today and money share the width. Open work stays full width above them. */
+.cmd-desk-split {
+  display: grid;
+  gap: 1.5rem 2.5rem;
+  align-items: start;
+}
+
+@media (min-width: 1100px) {
+  .cmd-desk-split {
+    grid-template-columns: minmax(0, 1.15fr) minmax(18rem, 0.85fr);
+  }
 }
 
 html[data-theme="day"] body .os-shell.os-shell-night .cmd-desk .cmd-today {
@@ -402,9 +391,9 @@ html[data-theme="day"] body .os-shell.os-shell-night .cmd-desk .cmd-today {
 }
 
 html[data-theme="day"] body .os-shell.os-shell-night .cmd-desk .cmd-today-lane {
-  border: 1px solid var(--ox-line) !important;
-  border-radius: var(--ox-radius) !important;
-  background: var(--ox-s1) !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
 }
 
 @media (min-width: 1280px) {
@@ -464,6 +453,71 @@ html[data-theme="day"] body .os-shell.os-shell-night .cmd-desk .cmd-today-lane {
   font-size: 0.875rem;
 }
 
+.cmd-open-summary {
+  margin: 0;
+  max-width: 42rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--ox-text-2);
+}
+
+.cmd-open-next {
+  color: var(--ox-text);
+  font-weight: 600;
+}
+
+.cmd-conflicts {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.cmd-conflicts ul,
+.cmd-activity ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cmd-conflicts li {
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--ox-text);
+}
+
+.cmd-activity-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.35rem 1rem;
+  align-items: baseline;
+  padding: 0.65rem 0;
+  border-top: 1px solid var(--ox-line);
+  color: inherit;
+  text-decoration: none;
+}
+
+.cmd-activity-main {
+  display: grid;
+  min-width: 0;
+  gap: 0.1rem;
+}
+
+.cmd-activity-by,
+.cmd-activity-row time {
+  color: var(--ox-text-2);
+  font-size: 0.8125rem;
+}
+
+.cmd-activity-row time {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .cmd-activity-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .cmd-open-side {
   justify-items: end;
   font-variant-numeric: tabular-nums;
@@ -477,14 +531,14 @@ html[data-theme="day"] body .os-shell.os-shell-night .cmd-desk .cmd-today-lane {
 .cmd-one .cmd-ask {
   display: flex;
   flex-direction: column;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   margin-top: 0;
 }
 
 .cmd-one .cb-ask {
   display: flex;
   flex-direction: column;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   gap: 1.25rem;
 }
 
@@ -502,7 +556,7 @@ html[data-theme="day"] body .os-shell.os-shell-night .cmd-desk .cmd-today-lane {
   position: sticky;
   bottom: 0;
   z-index: 4;
-  margin-top: auto;
+  margin-top: 0.5rem;
   padding: 0.75rem 0 1rem;
   background: linear-gradient(180deg, transparent, var(--ox-day-sunk, #16181b) 1.1rem);
 }
@@ -621,15 +675,10 @@ html body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one .cb-as
 }
 
 .cmd-count {
-  min-width: 1.5rem;
-  padding: 0.0625rem 0.4375rem;
-  border-radius: 999px;
-  background: var(--ox-fill);
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
-  text-align: center;
-  color: var(--ox-text-2);
+  color: var(--ox-mute);
 }
 
 .cmd-section-link,
@@ -645,11 +694,16 @@ html body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one .cb-as
 
 .cmd-empty {
   margin: 0;
-  padding: 1rem 1.125rem;
-  border: 1px dashed var(--ox-line-strong);
-  border-radius: var(--ox-radius);
-  font-size: 0.875rem;
-  color: var(--ox-mute);
+  max-width: 36rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--ox-text-2);
+}
+
+.cmd-empty a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .cmd-clear {
@@ -698,21 +752,18 @@ html body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one .cb-as
 }
 
 .cmd-today-lane {
-  overflow: hidden;
-  border: 1px solid var(--ox-line);
-  border-radius: var(--ox-radius);
-  background: var(--ox-s1);
+  min-width: 0;
 }
 
-.cmd-today-lane--open {
-  border-color: rgb(242 169 59 / 0.35);
+.cmd-today-lane--open .cmd-today-tech {
+  color: var(--ox-text);
 }
 
 .cmd-today-tech {
   display: flex;
   justify-content: space-between;
   margin: 0;
-  padding: 0.625rem 0.875rem;
+  padding: 0 0 0.35rem;
   border-bottom: 1px solid var(--ox-line);
   font-size: 0.8125rem;
   font-weight: 600;
@@ -738,11 +789,29 @@ html body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one .cb-as
   grid-template-columns: 4.75rem minmax(0, 1fr) auto;
   align-items: center;
   gap: 0.625rem;
-  padding: 0.625rem 0.875rem;
+  padding: 0.55rem 0;
   font-size: 0.8125rem;
   color: var(--ox-text);
   text-decoration: none;
-  transition: background var(--ox-dur-fast) var(--ox-ease);
+}
+
+@media (max-width: 720px) {
+  .cmd-today-job {
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+  }
+
+  .cmd-today-status {
+    grid-column: 2;
+  }
+
+  .cmd-open-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cmd-open-side {
+    justify-items: start;
+    text-align: left;
+  }
 }
 
 .cmd-today-lane li + li .cmd-today-job {

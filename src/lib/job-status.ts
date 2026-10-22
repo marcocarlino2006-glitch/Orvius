@@ -46,7 +46,7 @@ export function jobPastDue(
   return new Date(job.scheduledAt).getTime() + PAST_DUE_GRACE_MS < now;
 }
 
-export const PAST_DUE_LABEL = "Contact, reschedule or close";
+export const PAST_DUE_LABEL = "Call them, move the visit, or close it";
 
 export function pastDueDetail(scheduledAt: Date | string, now = Date.now()): string {
   const hours = Math.max(1, Math.round((now - new Date(scheduledAt).getTime()) / 3_600_000));

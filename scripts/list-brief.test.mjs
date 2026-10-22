@@ -28,7 +28,13 @@ test("a phone reaches Calls, Work and Ask from search, and owed money opens the 
   const palette = read("src/components/os-command-palette.tsx");
   assert.ok(palette.indexOf("osMoreNav") < palette.indexOf("osProductNav"), "Calls, Work and Ask lead the places");
   assert.match(palette, /What callers said/);
-  assert.match(read("src/components/desk-board.tsx"), /Open the report/);
+  const desk = read("src/components/desk-board.tsx");
+  assert.match(desk, /Open the report/);
+  assert.match(desk, /Open work/);
+  assert.match(desk, /personLabel/);
+  assert.doesNotMatch(desk, /A caller|Nothing booked today|Still open/);
+  assert.match(read("src/app/dashboard/work.css"), /cmd-desk-split/);
+  assert.doesNotMatch(read("src/app/dashboard/work.css"), /grid-row: 1 \/ span 2/);
   assert.match(read("src/app/dashboard/jobs/page.tsx"), /jobsBrief/);
   assert.match(read("src/app/dashboard/inbox/page.tsx"), /inboxBrief/);
 });

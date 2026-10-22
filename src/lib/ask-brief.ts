@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { personLabel } from "@/lib/spoken-name";
 import type { MemoryHit } from "@/lib/shop-memory";
 import { recommendTechnician } from "@/lib/technician-match";
 import { classifyRequest } from "@/lib/trade-playbooks";
@@ -116,7 +117,7 @@ export async function buildAskBrief(params: {
   }
   for (const lead of leads.slice(0, 2)) {
     matters.push(
-      `${lead.name ?? lead.phone ?? "A caller"} asked about ${lead.serviceType ?? "service"} ${ago(lead.createdAt, now)} ago and has not been contacted.`,
+      `${personLabel(lead.name, lead.phone)} asked about ${lead.serviceType ?? "service"} ${ago(lead.createdAt, now)} ago and has not been contacted.`,
     );
   }
   for (const job of jobs.filter((j) => j.technicianId).slice(0, 2)) {

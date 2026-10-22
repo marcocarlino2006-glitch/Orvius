@@ -28,7 +28,7 @@ test("past due means the visit time plus an hour passed and the job never starte
   }
   assert.equal(jobPastDue({ status: "scheduled", scheduledAt: null }, NOW), false);
   assert.match(pastDueDetail(hoursAgo(72), NOW), /due 3 days ago and never started\. Call the customer, move it to a new time, or close it\./);
-  assert.equal(PAST_DUE_LABEL, "Contact, reschedule or close");
+  assert.equal(PAST_DUE_LABEL, "Call them, move the visit, or close it");
   assert.equal(nextJobStatus("scheduled").label, "Mark confirmed", "an on-time job still confirms");
 });
 

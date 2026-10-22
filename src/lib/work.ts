@@ -6,7 +6,7 @@ import type { AttentionItem, AttentionKind } from "@/lib/attention-types";
 import { buildCommandBoard, type BoardItem, type ExceptionKind } from "@/lib/command-board";
 import { prisma } from "@/lib/prisma";
 import { callerSpokeSpanish } from "@/lib/caller-language";
-import { spokenName } from "@/lib/spoken-name";
+import { spokenName, spokenPhone } from "@/lib/spoken-name";
 
 /*
   Work is one list of everything a shop has to do for a customer, from the
@@ -239,16 +239,16 @@ function jobPath(job: WorkJob, stage: WorkStage): WorkPathBeat[] {
 
 export function requestWorkItem(lead: WorkRequest): WorkItem {
   const stage = requestStage(lead.status);
-  const who = lead.name?.trim() || "the caller";
+  const named = lead.name?.trim() || spokenPhone(lead.phone) || "them";
   const nextAction =
     stage === "needs_callback"
       ? lead.urgency === "emergency"
-        ? `Call ${who} back now — emergency`
-        : `Call ${who} back`
+        ? `Call ${named} back now — emergency`
+        : `Call ${named} back`
       : stage === "needs_time"
         ? lead.status === "booked"
           ? "Put the booked time on the schedule"
-          : `Pick a time with ${who}`
+          : `Pick a time with ${named}`
         : null;
   const open = OPEN_STAGES.has(stage);
   return finish({

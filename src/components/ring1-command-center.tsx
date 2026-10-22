@@ -11,11 +11,26 @@ import { commandSentence } from "@/lib/command-sentence";
 import { deskFacts } from "@/lib/desk-status";
 import { isLiveCall } from "@/lib/live-call";
 import { useRing1 } from "@/lib/ring1-context";
-import { spokenName } from "@/lib/spoken-name";
+import { personLabel, spokenName } from "@/lib/spoken-name";
 import { formatBeat, formatWhen } from "@/lib/when";
 
-function callerName(name: string | null | undefined): string {
-  return spokenName(name) || "A caller";
+function callerName(name: string | null | undefined, phone: string | null | undefined): string {
+  return personLabel(name, phone);
+}
+
+function scheduleConflicts(board: { lanes?: Array<{ blocks: Array<{ conflict: string | null }> }> } | null | undefined): string[] {
+  if (!board?.lanes) return [];
+  const seen = new Set<string>();
+  const lines: string[] = [];
+  for (const lane of board.lanes) {
+    for (const block of lane.blocks) {
+      const text = block.conflict?.trim();
+      if (!text || seen.has(text)) continue;
+      seen.add(text);
+      lines.push(text);
+    }
+  }
+  return lines;
 }
 
 function minutesOnTheLine(createdAt: string): string {
@@ -116,7 +131,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
         handled: data.handled,
       })
     : null;
-  const onTheLine = liveCall ? callerName(liveCall.leadName) : null;
+  const onTheLine = liveCall ? callerName(liveCall.leadName, liveCall.callerPhone) : null;
   const sentence = commandSentence({
     loaded: Boolean(data),
     brief: brief?.headline ?? null,
@@ -242,6 +257,10 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
           items={items}
           asideKey={liveItem?.key ?? null}
           timezone={data.coverage?.timezone}
+          tomorrow={data.tomorrow ? { jobCount: data.tomorrow.jobCount, unassigned: data.tomorrow.unassigned } : null}
+          conflicts={scheduleConflicts(data.crewBoard)}
+          activity={data.handled?.events ?? []}
+          activitySkipId={!liveCall && !liveApproval && !liveItem ? (lastDone?.id ?? null) : null}
         />
       ) : null}
 
