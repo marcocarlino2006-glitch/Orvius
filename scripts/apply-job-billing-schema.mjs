@@ -38,7 +38,7 @@ export async function applyJobBillingRelease({
   writeFile,
   now = Date.now,
   sleep = (ms) => new Promise((resolveSleep) => setTimeout(resolveSleep, ms)),
-  deadlineMs = 8 * 60 * 1000,
+  deadlineMs = 18 * 60 * 1000,
   pollMs = 15_000,
 } = {}) {
   const plan = releaseTargetPlan(env, targets);

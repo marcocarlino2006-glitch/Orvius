@@ -27,6 +27,7 @@ test("the statements are the JobBilling section of the reviewed migration", () =
   assert.equal(backupRefOk(""), false);
   assert.equal(backupRefOk("backup; drop"), false);
   assert.match(workflow, /workflow_dispatch/);
+  assert.match(workflow, /contains\(github\.event\.head_commit\.message, 'apply-job-billing'\)/);
   assert.doesNotMatch(workflow, /schedule:|curl .*api\/cron|pull_request/);
   assert.match(workflow, /DRAIN_TARGET_URL: https:\/\/orvius\.im/);
   assert.match(workflow, /DRAIN_EXPECTED_RELEASE: \$\{\{ github\.sha \}\}/);
