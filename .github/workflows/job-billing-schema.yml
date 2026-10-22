@@ -1,0 +1,38 @@
+name: JobBilling schema
+
+# By hand, after this commit is the production deployment. Backs up through
+# the app (the encrypted bytes are the artifact), restore-drills them there,
+# then creates the JobBilling table. The database URL stays on the host.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+      DRAIN_TARGET_URL: https://orvius.im
+      DRAIN_TARGET_ENV: production
+      DRAIN_EXPECTED_RELEASE: ${{ github.sha }}
+      MIGRATION_APPROVAL: "Fix it: JobBilling table on production"
+      MIGRATION_BACKUP_REF: actions-run/${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Back up, then create JobBilling
+        run: node --experimental-strip-types scripts/apply-job-billing-schema.mjs
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: orvius-backup-encrypted
+          path: encrypted/*.json.enc
+          if-no-files-found: error
+          retention-days: 30

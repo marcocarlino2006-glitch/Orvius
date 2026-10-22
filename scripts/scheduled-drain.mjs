@@ -25,9 +25,12 @@ export function readDrainTargets(path = resolve(root, DRAIN_TARGETS_FILE)) {
   return existsSync(path) ? JSON.parse(readFileSync(path, "utf8")) : {};
 }
 
-/** Decide from the environment alone, before any request. */
-export function drainPlan(sweep, env, targets) {
-  if (!SWEEPS.has(sweep)) return { ok: false, reason: `unknown sweep ${sweep}` };
+/**
+ * The deployment a release step may talk to. Decided from the environment
+ * alone, before any request: one listed host, one environment, one full
+ * commit, and the cron credential. No default target.
+ */
+export function releaseTargetPlan(env, targets) {
   const secret = env.CRON_SECRET?.trim();
   if (!secret) return { ok: false, reason: "CRON_SECRET is not set" };
   const target = env.DRAIN_TARGET_ENV?.trim();
@@ -49,6 +52,12 @@ export function drainPlan(sweep, env, targets) {
   const release = env.DRAIN_EXPECTED_RELEASE?.trim().toLowerCase();
   if (!release || !/^[0-9a-f]{40}$/.test(release)) return { ok: false, reason: "DRAIN_EXPECTED_RELEASE must be the full approved release commit" };
   return { ok: true, base: url.origin, target, release, secret };
+}
+
+/** Decide from the environment alone, before any request. */
+export function drainPlan(sweep, env, targets) {
+  if (!SWEEPS.has(sweep)) return { ok: false, reason: `unknown sweep ${sweep}` };
+  return releaseTargetPlan(env, targets);
 }
 
 export async function runScheduledDrain(sweep, { env = process.env, targets = readDrainTargets(), fetchImpl = fetch, timeoutMs = 60_000 } = {}) {
