@@ -428,7 +428,7 @@ body {
   color: var(--ov-headline) !important;
   font-family: var(--ov-font) !important;
   font-size: 1.125rem !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   letter-spacing: -0.02em !important;
 }
 
@@ -1257,20 +1257,20 @@ body {
   text-transform: none !important;
 }
 
-/* Headlines carry Archivo's weight; the old 400 read thin and generic. */
+/* Geist at 500. The size does the work; 600 made every headline shout. */
 
 .ov-public .mkt-proof-title,
 .ov-public .tier1-section-title,
 .ov-public .tier1-page-title {
   font-family: var(--ov-font) !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   letter-spacing: -0.028em !important;
 }
 
 .ov-public .mkt-law-title,
 .ov-public .pro-panel-title {
   font-family: var(--ov-font) !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
 }
 
 /* Numbers, timestamps, and phone lines read as data, not prose. */
@@ -1711,7 +1711,7 @@ body {
   color: var(--ov-headline);
   font-family: var(--ov-mono);
   font-size: var(--fs-display-sm);
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.05;
   letter-spacing: 0;
   font-variant-numeric: tabular-nums;
@@ -3327,8 +3327,8 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
   min-height: 44px;
   padding: 0 1.25rem;
   border-radius: 999px !important;
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 0.875rem;
+  font-weight: 500;
   letter-spacing: 0;
   text-decoration: none;
 }
@@ -3439,8 +3439,8 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
   min-height: 44px !important;
   padding: 0 1.25rem !important;
   border-radius: 999px !important;
-  font-size: 1rem !important;
-  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
   letter-spacing: 0 !important;
 }
 
@@ -3462,7 +3462,7 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
   font-size: var(--fs-display-lg) !important;
   line-height: 1.05 !important;
   letter-spacing: -0.04em !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   max-width: 18ch;
 }
 

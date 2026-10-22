@@ -175,7 +175,17 @@ export default function CallDetailPage() {
       <div className="os-detail-grid cl-grid">
         <div className="os-detail-primary">
           <ShellPanel title="AI summary" dense action={<span className="cl-source font-sans">Written by Orvius · can be wrong</span>}>
-            {summary ? <p className="jv-lede font-sans">{summary}</p> : <p className="jv-sub font-sans">No summary for this call.</p>}
+            {summary ? (
+              <p className="jv-lede font-sans">{summary}</p>
+            ) : (
+              <p className="jv-sub font-sans">
+                {call.recordingUrl
+                  ? "Nothing was written down. Play the recording below."
+                  : call.lead
+                    ? "Nothing was written down. Open the request to see what was captured."
+                    : "Nothing was written down for this call."}
+              </p>
+            )}
           </ShellPanel>
 
           <ShellPanel title="Details Orvius took down" dense action={<span className="cl-source font-sans">Extracted from the call · check before relying on it</span>}>
@@ -226,7 +236,11 @@ export default function CallDetailPage() {
               </p>
             ) : (
               <p className="jv-sub font-sans">
-                {call.recordingUrl ? "No transcript was kept for this call." : "No recording or transcript was kept for this call."}
+                {call.recordingUrl
+                  ? "The words were not kept. The recording above is the call."
+                  : call.lead
+                    ? "Nothing was kept from this call. Open the request if one was written down."
+                    : "Nothing was kept from this call."}
               </p>
             )}
           </ShellPanel>

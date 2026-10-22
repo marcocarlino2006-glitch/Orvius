@@ -210,7 +210,7 @@ html body .os-shell .os-topbar-shop-phone {
     order: 1;
     margin: 0;
     font-size: 1.375rem;
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: -0.03em;
     line-height: 1.15;
     color: var(--ox-text);
@@ -228,7 +228,7 @@ html body .os-shell .os-topbar-shop-phone {
     order: 3;
     margin-top: 0.2rem;
     font-size: 0.8125rem;
-    font-weight: 600;
+    font-weight: 500;
   }
 
   html body .os-shell.os-shell-night.os-shell-pro .os-topbar-shop-line {
@@ -286,5 +286,114 @@ html body .os-shell .os-topbar-shop-phone {
 
   html body .os-shell .os-tabbar {
     padding-left: 3.25rem;
+  }
+}
+
+/* One type for the desk. Four sizes, and 500 is the heaviest weight.
+   12 meta · 14 the work · 14 the action · 22 the sentence.
+   Loaded last, so these beat the older semibold rules. */
+
+:root body .os-shell.os-shell-pro.os-shell-pro.os-shell-night .cmd .cmd-headline,
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .ask-intro-title,
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .os-content h1 {
+  font-size: 1.375rem !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.022em !important;
+  line-height: 1.25 !important;
+}
+
+@media (max-width: 640px) {
+  :root body .os-shell.os-shell-pro.os-shell-pro.os-shell-night .cmd .cmd-headline {
+    font-size: 1.375rem !important;
+    font-weight: 500 !important;
+  }
+}
+
+:root body .os-shell.os-shell-pro.os-shell-pro.os-shell-night .cmd .cmd-queue > .wc:first-child .wc-title {
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(
+  .os-ring-status-title,
+  .os-topbar-title,
+  .cmd-section-title,
+  .cmd-issues-title,
+  .op-title,
+  .pro-panel-title,
+  .cp-name,
+  .sc-title,
+  .sc-plan-name,
+  .wc-title,
+  .dt-title,
+  .dt-primary
+) {
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.011em !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .os-nav-link {
+  font-weight: 400 !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.os-nav-link-active, .os-nav-link[aria-current="page"]) {
+  font-weight: 500 !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(
+  .cmd-greeting,
+  .cmd-sub,
+  .pg-purpose,
+  .dt-sub,
+  .wc-detail,
+  .wc-next,
+  .cmd-issue-detail,
+  .op-row-detail
+) {
+  font-size: 0.875rem !important;
+  font-weight: 400 !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(
+  .cs-label,
+  .ms-cell dt,
+  .cp-label,
+  .dt-when,
+  .dt-mono,
+  .dt-foot,
+  .wc-when,
+  .wc-owner,
+  .wc-stage,
+  .cmd-feed-at,
+  .os-nav-badge,
+  .pro-filter-count
+) {
+  font-size: 0.75rem !important;
+  font-weight: 400 !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.cs-value, .account-billing-pay-price) {
+  font-size: 1.5rem !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.022em !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(
+  .ox-btn,
+  .btn,
+  .lead-quick-btn,
+  .sc-btn,
+  .assign-tech-btn,
+  .job-status-advance-btn
+) {
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+}
+
+@media (min-width: 641px) {
+  :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.os-topbar-search, .os-line-alert) {
+    font-size: 0.875rem !important;
+    font-weight: 400 !important;
   }
 }
