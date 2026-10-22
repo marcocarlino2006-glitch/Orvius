@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import type { CommandFlow, CommandMoney } from "@/lib/command-depth";
+import { moneyBrief } from "@/lib/desk-status";
 import type { CrewBlock, CrewBoard as CrewBoardData } from "@/lib/ring1-context";
-import { formatCents } from "@/lib/money";
 
 function clock(min: number) {
   const h = Math.floor(min / 60);
@@ -70,32 +70,20 @@ export function FlowStrip({ flow, needsYou = 0 }: { flow: CommandFlow | undefine
 /** Billed, collected and still owed, read from invoices and payments. */
 export function MoneyLine({ money }: { money: CommandMoney | undefined }) {
   if (!money) return null;
-  const nothing = !money.invoices && !money.payments && !money.outstandingInvoices && !money.doneNotBilled;
+  const brief = moneyBrief(money);
   return (
     <section className="cmd-money" aria-label="Money">
-      <div className="cmd-money-cell">
-        <span className="cmd-money-label">Collected · {money.windowDays} days</span>
-        <span className="cmd-money-value">{formatCents(money.collectedCents)}</span>
-        <span className="cmd-money-note">{money.payments ? `${money.payments} ${money.payments === 1 ? "payment" : "payments"}` : "No payments yet"}</span>
-      </div>
-      <div className="cmd-money-cell">
-        <span className="cmd-money-label">Billed · {money.windowDays} days</span>
-        <span className="cmd-money-value">{formatCents(money.invoicedCents)}</span>
-        <span className="cmd-money-note">{money.invoices ? `${money.invoices} ${money.invoices === 1 ? "invoice" : "invoices"}` : "No invoices yet"}</span>
-      </div>
-      <Link href="/dashboard/work" className={`cmd-money-cell${money.outstandingCents ? " is-owed" : ""}`}>
-        <span className="cmd-money-label">Still owed</span>
-        <span className="cmd-money-value">{formatCents(money.outstandingCents)}</span>
-        <span className="cmd-money-note">
-          {money.outstandingInvoices ? `${money.outstandingInvoices} unpaid ${money.outstandingInvoices === 1 ? "invoice" : "invoices"}` : "Nothing unpaid"}
-        </span>
-      </Link>
-      <Link href="/dashboard/jobs" className={`cmd-money-cell${money.doneNotBilled ? " is-owed" : ""}`}>
-        <span className="cmd-money-label">Done, not billed</span>
-        <span className="cmd-money-value">{money.doneNotBilled}</span>
-        <span className="cmd-money-note">{money.doneNotBilled ? "Write the bill" : "Every finished job is billed"}</span>
-      </Link>
-      {nothing ? <p className="cmd-money-empty">Bills and payments show here as soon as a job is invoiced.</p> : null}
+      <p className="cmd-money-brief">{brief.summary}</p>
+      {brief.owed ? (
+        <p className="cmd-money-attention">
+          <Link href="/dashboard/reports">{brief.owed}</Link>
+        </p>
+      ) : null}
+      {brief.unbilled ? (
+        <p className="cmd-money-attention">
+          <Link href="/dashboard/jobs">{brief.unbilled}</Link>
+        </p>
+      ) : null}
     </section>
   );
 }

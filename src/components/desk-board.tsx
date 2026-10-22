@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { lanesForToday, openGroups, type CommandMoney, type DeskItem, type DeskJob } from "@/lib/command-depth";
-import { formatCents } from "@/lib/money";
+import { moneyBrief } from "@/lib/desk-status";
 import { spokenName, spokenText } from "@/lib/spoken-name";
 
 const SHOWN = 4;
@@ -49,48 +49,23 @@ function who(name: string | null | undefined): string {
 }
 
 function Money({ money }: { money: CommandMoney }) {
-  const cells = [
-    {
-      label: `Collected · ${money.windowDays} days`,
-      value: formatCents(money.collectedCents),
-      note: money.payments ? `${money.payments} ${money.payments === 1 ? "payment" : "payments"}` : "No payments yet",
-      owed: false,
-    },
-    {
-      label: `Billed · ${money.windowDays} days`,
-      value: formatCents(money.invoicedCents),
-      note: money.invoices ? `${money.invoices} ${money.invoices === 1 ? "invoice" : "invoices"}` : "No invoices yet",
-      owed: false,
-    },
-    {
-      label: "Still owed",
-      value: formatCents(money.outstandingCents),
-      note: money.outstandingInvoices
-        ? `${money.outstandingInvoices} unpaid ${money.outstandingInvoices === 1 ? "invoice" : "invoices"}`
-        : "Nothing unpaid",
-      owed: money.outstandingCents > 0,
-    },
-    {
-      label: "Done, not billed",
-      value: String(money.doneNotBilled),
-      note: money.doneNotBilled ? "Write the bill" : "Every finished job is billed",
-      owed: money.doneNotBilled > 0,
-    },
-  ];
+  const brief = moneyBrief(money);
   return (
     <section className="cmd-section" aria-labelledby="desk-money">
       <h3 id="desk-money" className="cmd-section-title">
         <Link href="/dashboard/reports">Money</Link>
       </h3>
-      <div className="cmd-money">
-        {cells.map((cell) => (
-          <div key={cell.label} className={`cmd-money-cell${cell.owed ? " is-owed" : ""}`}>
-            <span className="cmd-money-label">{cell.label}</span>
-            <span className="cmd-money-value">{cell.value}</span>
-            <span className="cmd-money-note">{cell.note}</span>
-          </div>
-        ))}
-      </div>
+      <p className="cmd-money-brief">{brief.summary}</p>
+      {brief.owed ? (
+        <p className="cmd-money-attention">
+          <Link href="/dashboard/reports">{brief.owed}</Link>
+        </p>
+      ) : null}
+      {brief.unbilled ? (
+        <p className="cmd-money-attention">
+          <Link href="/dashboard/jobs">{brief.unbilled}</Link>
+        </p>
+      ) : null}
     </section>
   );
 }

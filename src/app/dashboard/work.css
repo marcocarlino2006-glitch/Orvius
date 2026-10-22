@@ -270,6 +270,66 @@
   color: var(--ox-text);
 }
 
+.cmd-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin: 0.625rem 0 0;
+  max-width: 46rem;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+  color: var(--ox-text-2);
+}
+
+.cmd-facts a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.cmd-facts a:hover {
+  color: var(--ox-text);
+}
+
+.cmd-orvius-did {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.75rem;
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--ox-text-2);
+}
+
+.cmd-orvius-did a {
+  color: var(--ox-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.cmd-money-brief {
+  margin: 0;
+  max-width: 40rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--ox-text);
+}
+
+.cmd-money-attention {
+  margin: 0.35rem 0 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--ox-text);
+}
+
+.cmd-money-attention a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .cmd-sub {
   margin: 0;
   max-width: 62rem;

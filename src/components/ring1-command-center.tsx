@@ -8,6 +8,7 @@ import { SupportContact } from "@/components/support-contact";
 import { TestAlertButton } from "@/components/test-alert-button";
 import { WorkCard } from "@/components/work-card";
 import { commandSentence } from "@/lib/command-sentence";
+import { deskFacts } from "@/lib/desk-status";
 import { isLiveCall } from "@/lib/live-call";
 import { useRing1 } from "@/lib/ring1-context";
 import { spokenName } from "@/lib/spoken-name";
@@ -107,6 +108,14 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
   const liveApproval = looseApprovals[0] ?? null;
   const liveItem = items.find((item) => item.needsYou) ?? null;
   const lastDone = data?.handled?.events[0] ?? null;
+  const orviusDid = data?.handled?.events.find((event) => event.by === "Orvius") ?? null;
+  const facts = data
+    ? deskFacts({
+        needsYou: work?.needsYou ?? 0,
+        approvals: looseApprovals.length,
+        handled: data.handled,
+      })
+    : null;
   const onTheLine = liveCall ? callerName(liveCall.leadName) : null;
   const sentence = commandSentence({
     loaded: Boolean(data),
@@ -170,6 +179,13 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
         <h2 className="cmd-headline os-own-color" aria-live="polite">
           {sentence}
         </h2>
+        {facts ? (
+          <p className="cmd-facts">
+            {facts.you ? <Link href="/dashboard/work">{facts.you}</Link> : null}
+            {facts.ok ? <span>{facts.ok}</span> : null}
+            {facts.orvius ? <span>{facts.orvius}</span> : null}
+          </p>
+        ) : null}
       </header>
 
       <section className="cmd-live" aria-label="Now">
@@ -206,6 +222,18 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
           </p>
         ) : null}
       </section>
+
+      {(liveCall || liveApproval || liveItem) && orviusDid ? (
+        <p className="cmd-orvius-did">
+          <span>Orvius · {orviusDid.result}</span>
+          {orviusDid.jobId || orviusDid.leadId ? (
+            <Link href={orviusDid.jobId ? `/dashboard/jobs/${orviusDid.jobId}` : `/dashboard/inbox/${orviusDid.leadId}`}>{orviusDid.summary}</Link>
+          ) : (
+            <span>{orviusDid.summary}</span>
+          )}
+          <time dateTime={orviusDid.at}>{formatWhen(orviusDid.at)}</time>
+        </p>
+      ) : null}
 
       {data ? (
         <DeskBoard
