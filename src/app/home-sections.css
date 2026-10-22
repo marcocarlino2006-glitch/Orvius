@@ -306,45 +306,101 @@
   line-height: 1.5;
 }
 
-/* ---------- Hero: one line, one action, the live call on a painting ---------- */
+/* ---------- Hero: category line beside the live call ---------- */
 
-.ov-public .ov-hero--center .ov-hero-copy {
-  max-width: 48rem;
-  margin-inline: auto;
-  text-align: center;
+.ov-public .ov-hero.ov-hero--atmosphere {
+  min-height: 0;
+  padding-bottom: clamp(2.5rem, 5vh, 4.5rem);
+}
+
+.ov-public .ov-hero--atmosphere .ov-hero-inner--product {
+  width: min(100%, 76rem);
+  align-items: center;
+  gap: clamp(1.75rem, 3.5vw, 3.5rem);
+}
+
+@media (min-width: 981px) {
+  .ov-public .ov-hero--atmosphere .ov-hero-inner--product {
+    grid-template-columns: minmax(0, 30rem) minmax(0, 1fr);
+  }
+}
+
+.ov-public .ov-hero--atmosphere .ov-hero-inner--product .ov-hero-cta-primary {
+  background: #edecec !important;
+  color: #18181a !important;
+  border: 1px solid #edecec !important;
+}
+
+.ov-public .ov-hero--atmosphere .ov-hero-inner--product .ov-hero-cta-primary:hover {
+  background: #fff !important;
+  border-color: #fff !important;
+}
+
+.ov-public .ov-hero--atmosphere .ov-hero-inner--product .ov-hero-cta-secondary {
+  background: transparent !important;
+  color: #edecec !important;
+  border: 1px solid color-mix(in srgb, #edecec 35%, transparent) !important;
+}
+
+.ov-public .ov-hero--atmosphere .ov-hero-inner--product .ov-hero-cta-secondary:hover {
+  background: rgb(255 255 255 / 0.06) !important;
+  border-color: #edecec !important;
+}
+
+.ov-public .ov-hero--atmosphere .ov-hero-browser {
+  display: inline-flex;
+  margin-top: 0.85rem;
+  color: #edecec;
+  font-size: 0.9375rem;
+  text-underline-offset: 0.2em;
+}
+
+.ov-public .ov-hero--atmosphere .ov-hero-inner--product .ov-hero-copy {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
+  max-width: 36rem;
+  text-align: left;
 }
 
-.ov-public .ov-hero--center .ov-hero-title {
-  max-width: 18ch;
-  margin-inline: auto;
-  font-size: clamp(2.5rem, 6vw, 4.75rem);
-  line-height: 1.02;
-  letter-spacing: -0.035em;
+.ov-public .ov-hero--atmosphere .ov-hero-inner--product .ov-hero-title {
+  max-width: 14em;
+  margin-inline: 0;
+  font-size: clamp(2.15rem, 1.25rem + 1.8vw, 3rem);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.032em;
 }
 
-.ov-public .ov-hero--center .ov-hero-lead {
-  max-width: 34rem;
-  margin-inline: auto;
+.ov-public .ov-hero--atmosphere .ov-hero-inner--product .ov-hero-lead {
+  max-width: 32rem;
+  margin-inline: 0;
 }
 
-.ov-public .ov-hero--center .ov-hero-actions {
-  justify-content: center;
+.ov-public .ov-hero--atmosphere .ov-hero-inner--product .ov-hero-actions,
+.ov-public .ov-hero--atmosphere .ov-hero-inner--product .ov-hero-liveline {
+  justify-content: flex-start;
 }
 
-.ov-public .ov-hero--center .ov-hero-liveline {
-  justify-content: center;
+@media (min-width: 1024px) {
+  .ov-public .ov-hero--atmosphere .ov-hero-inner--product .ov-hero-title {
+    max-width: 14em !important;
+    font-size: clamp(2.15rem, 1.25rem + 1.8vw, 3rem) !important;
+  }
+
+  .ov-public .ov-hero--atmosphere .ov-hero-inner--product .ov-hero-copy {
+    max-width: 36rem !important;
+    padding-top: 0;
+  }
 }
 
-/* Hero: the live call sits on a painting, like the rows below it. */
+/* The call console is the picture. The town is only the night behind it. */
 .ov-public .ov-hero-stage.ov-hero-stage--art {
   position: relative;
   isolation: isolate;
-  margin-top: clamp(1rem, 1.7vw, 1.5rem);
-  padding: clamp(1.25rem, 4vw, 3.5rem);
-  border-radius: 0.75rem;
+  margin-top: 0;
+  padding: 0.75rem;
+  border-radius: 1rem;
   overflow: hidden;
   box-shadow: 0 0 0 1px var(--ov-hairline);
 }
@@ -352,22 +408,19 @@
 .ov-public .ov-hero-stage--art .ov-hero-art {
   z-index: -1;
   object-fit: cover;
-  object-position: 50% 100%;
+  object-position: 50% 72%;
+  opacity: 0.55;
 }
 
-/*
-  The call window floats in the sky and stops short of the rooftops, so the
-  lit street (and the van parked on it) is the first thing under it.
-*/
 @media (min-width: 901px) {
   .ov-public .ov-hero-stage.ov-hero-stage--art {
-    padding: clamp(2.5rem, 4.5vw, 4rem) clamp(3rem, 9vw, 9rem) clamp(9rem, 17vw, 15rem);
+    padding: 0.85rem;
   }
 }
 
 @media (min-width: 561px) and (max-width: 900px) {
   .ov-public .ov-hero-stage.ov-hero-stage--art {
-    padding: clamp(2rem, 5vw, 3rem) clamp(1.5rem, 6vw, 4rem) clamp(8rem, 22vw, 12rem);
+    padding: 0.75rem;
   }
 }
 
@@ -413,7 +466,7 @@
   }
 
   .ov-public .ov-hero-stage.ov-hero-stage--art {
-    padding-bottom: 6.5rem;
+    padding: 0.5rem;
   }
 
   .ov-public .ov-hero-stage--art .ov-hero-art {
@@ -569,14 +622,13 @@ html.hx-motion [data-reveal-stagger].is-in > * {
   with the fallback face and wrap once Inter loads, which jumped the hero.
 */
 @media (max-width: 440px) {
-  .ov-public .ov-hero--center .ov-hero-inner--poster .ov-hero-actions {
+  .ov-public .ov-hero--atmosphere .ov-hero-inner--product .ov-hero-actions {
     flex-direction: column;
     align-items: stretch;
     max-width: 22rem;
-    margin-inline: auto;
   }
 
-  .ov-public .ov-hero--center .ov-hero-inner--poster .ov-hero-actions > * {
+  .ov-public .ov-hero--atmosphere .ov-hero-inner--product .ov-hero-actions > * {
     justify-content: center;
   }
 }

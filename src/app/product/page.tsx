@@ -42,9 +42,9 @@ export default function ProductPage() {
         <div className="editorial-wrap ov-product-hero-grid">
           <ShellPageIntro
             label="Product"
-            title="Run your day in Orvius."
-            subline="The receptionist brings in the work. Command runs it from there."
-            description="Calls are answered and booked on your real schedule. Command assigns the job to someone free with the right skill, texts them the address, confirms with the customer, follows up when nobody called back, and shows you each step."
+            title="The night shift for shops that run on the phone."
+            subline="It answers the call, books the work, and leaves the day on your desk."
+            description="Calls are answered in your shop's name and booked on your real schedule. The job, the confirmation, and what happened are on your desk when you open it."
             actions={
               <StartActions signupOpen={signupOpen} />
             }

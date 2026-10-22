@@ -60,10 +60,10 @@ export default async function SignInPage({
           </div>
 
           <h2 className="ov-signin-pitch">
-            Run your day in Orvius.
+            The night shift for shops that run on the phone.
           </h2>
           <p className="ov-signin-pitch-sub">
-            Answers your calls, books the work, and shows you what happened.
+            It answers the call, books the work, and leaves the day on your desk.
           </p>
 
           <SignInBoard />
