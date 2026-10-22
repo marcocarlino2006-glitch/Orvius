@@ -18,7 +18,7 @@
   color: var(--ov-headline);
   font-family: var(--ov-font);
   font-size: var(--fs-display-md);
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.08;
   letter-spacing: -0.028em;
   text-wrap: balance;
@@ -64,7 +64,7 @@
   color: var(--ov-headline);
   font-family: var(--ov-font);
   font-size: clamp(1.5rem, 2.4vw, 2rem);
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.15;
   letter-spacing: -0.022em;
   text-wrap: balance;
@@ -175,7 +175,7 @@
 
 .ov-public .hf-scene time {
   color: var(--ov-headline);
-  font-weight: 600;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 
@@ -222,7 +222,7 @@
   color: var(--ov-headline);
   font-family: var(--ov-font);
   font-size: 1.125rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .ov-public .hf-grid-detail {
@@ -292,7 +292,7 @@
   color: var(--ov-headline);
   font-family: var(--ov-font);
   font-size: 1.125rem;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.3;
 }
 
@@ -345,7 +345,7 @@
   max-width: 14em;
   margin-inline: 0;
   font-size: clamp(2.15rem, 1.25rem + 1.8vw, 3rem);
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.08;
   letter-spacing: -0.032em;
 }
@@ -495,7 +495,7 @@
 
 .ov-public .hx-table thead .is-us {
   color: var(--ov-headline);
-  font-weight: 600;
+  font-weight: 500;
   border-top-left-radius: 0.5rem;
   border-top-right-radius: 0.5rem;
   box-shadow: inset 0 2px 0 var(--ov-copper);
