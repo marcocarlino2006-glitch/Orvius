@@ -317,7 +317,7 @@ test("done with a total but no bill stays a visible item until a bill exists", a
   const work = (await call(() => workRoute.GET(req("GET", "/api/work?view=open")))).body;
   const item = work.items.find((i) => i.id === job.id);
   assert.ok(item, "the job is still in Work after a reload");
-  assert.equal(item.nextAction, "Create and send the bill");
+  assert.equal(item.nextAction, "Open the bill");
 });
 
 test("a reporting failure after completion never turns the completed job into an error", async () => {

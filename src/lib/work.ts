@@ -380,6 +380,8 @@ const EXCEPTION_PROBLEM: Partial<Record<ExceptionKind, { label: string; severity
   duplicate: { label: "Possible duplicate", severity: "med" },
   takeover: { label: "You have the conversation", severity: "med" },
   billing_gap: { label: "Done, not billed", severity: "high" },
+  invoice_unsent: { label: "Bill not sent", severity: "high" },
+  billing_inconsistent: { label: "Billing doesn't match", severity: "high" },
   invoice_undelivered: { label: "Bill delivery problem", severity: "high" },
 };
 
@@ -523,7 +525,9 @@ function attach(item: WorkItem, problems: WorkProblem[], approvalId: string | nu
 
 /** The worst problem's own fix, when it is not the step the stage would suggest. */
 function problemAction(kind: WorkProblem["kind"], item: WorkItem): [string, WaitingOn] | null {
-  if (kind === "billing_gap") return ["Create and send the bill", "you"];
+  if (kind === "billing_gap") return ["Open the bill", "you"];
+  if (kind === "invoice_unsent") return ["Send it from the job when you're ready", "you"];
+  if (kind === "billing_inconsistent") return ["Review the bill", "you"];
   if (kind === "invoice_undelivered") return [`Call ${item.customer ?? "the customer"} or resend the bill`, "you"];
   if (kind === "tech_unanswered" && item.technician) {
     return item.technician.phone ? [`Call ${item.technician.name}`, "you"] : [`Add ${item.technician.name}'s mobile number in Team`, "you"];

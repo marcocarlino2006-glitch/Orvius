@@ -148,6 +148,13 @@ export function WorkCard({
       onChange();
     });
 
+  const openBill = () =>
+    run(async () => {
+      await send(`/api/jobs/${item.id}/billing`, "POST", {});
+      setSettled("The bill is open. It has not been sent.");
+      onChange();
+    });
+
   const top = item.problems[0] ?? null;
   const kinds = new Set(item.problems.map((p) => p.kind));
   const isJob = item.kind === "job";
@@ -258,6 +265,10 @@ export function WorkCard({
             </label>
           ) : notAJob ? (
             <MarkNotAJobButton leadId={notAJob} onDone={onChange} primary />
+          ) : kinds.has("billing_gap") && isJob ? (
+            <button type="button" className="ox-btn ox-btn--primary ox-btn--sm" disabled={busy} onClick={() => void openBill()}>
+              Open the bill
+            </button>
           ) : primaryCall && item.phone ? (
             <a href={tel(item.phone)} className="ox-btn ox-btn--primary ox-btn--sm">
               Call {firstName}
@@ -286,6 +297,11 @@ export function WorkCard({
         </div>
       ) : (
         <div className={`wc-actions${busy ? " is-instant-pending" : ""}`}>
+          {kinds.has("billing_gap") && isJob ? (
+            <button type="button" className="ox-btn ox-btn--primary ox-btn--sm" disabled={busy} onClick={() => void openBill()}>
+              Open the bill
+            </button>
+          ) : null}
           {primaryCall && item.phone ? (
             <a href={tel(item.phone)} className="ox-btn ox-btn--primary ox-btn--sm">
               Call {firstName}

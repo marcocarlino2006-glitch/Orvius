@@ -1,4 +1,6 @@
 import { formatShopTime } from "@/lib/availability";
+import { isMoneySchemaDrift } from "@/lib/command-degraded";
+import { billingExceptionDetail, listBillingExceptions, type BillingException } from "@/lib/job-billing";
 import { formatCentsExact } from "@/lib/money";
 import { needsCheck, STALE_EXECUTING_MS } from "@/lib/copilot-execute";
 import { prisma } from "@/lib/prisma";
@@ -23,6 +25,8 @@ export type ExceptionKind =
   | "tech_unanswered"
   | "record_mismatch"
   | "billing_gap"
+  | "invoice_unsent"
+  | "billing_inconsistent"
   | "invoice_undelivered";
 
 export type BoardItem = {
@@ -471,12 +475,14 @@ export async function buildCommandBoard(businessId: string, now = new Date()): P
     record_mismatch: 3,
     failed_message: 4,
     invoice_undelivered: 5,
-    billing_gap: 6,
-    tech_unanswered: 7,
-    unconfirmed_soon: 8,
-    stale: 9,
-    duplicate: 10,
-    takeover: 11,
+    invoice_unsent: 6,
+    billing_gap: 7,
+    billing_inconsistent: 8,
+    tech_unanswered: 9,
+    unconfirmed_soon: 10,
+    stale: 11,
+    duplicate: 12,
+    takeover: 13,
   };
   exceptions.sort((a, b) => order[a.exception!] - order[b.exception!] || b.at.localeCompare(a.at));
   requests.sort((a, b) => Number(Boolean(b.urgent)) - Number(Boolean(a.urgent)) || b.at.localeCompare(a.at));
@@ -626,14 +632,28 @@ const BILL_TEXT_FAILED = ["undelivered", "rejected", "retry_exhausted", "unknown
  * may not have gone out. Both are read from the job, the invoice and the text
  * ledger, so they stay on the board through a reload until the record changes.
  */
+function boardException(row: BillingException): BoardItem {
+  const copy = billingExceptionDetail(row);
+  const exception = row.kind === "creation" ? "billing_gap" : row.kind === "notification" ? "invoice_unsent" : "billing_inconsistent";
+  return {
+    id: `${exception}:${row.invoiceId ?? row.jobId}`,
+    lane: "exceptions",
+    exception,
+    title: copy.title,
+    detail: copy.detail,
+    at: row.attemptedAt ?? row.completedAt ?? new Date().toISOString(),
+    jobId: row.jobId,
+    leadId: row.leadId,
+    phone: row.phone,
+  };
+}
+
 async function billingItems(businessId: string, now: Date): Promise<{ items: BoardItem[]; sids: Set<string>; attempts: { to: string; from: Date }[] }> {
   const month = new Date(now.getTime() - 30 * DAY);
-  const [unbilled, intents] = await Promise.all([
-    prisma.job.findMany({
-      where: { businessId, status: "completed", completedAt: { gte: month }, finalAmountCents: { gt: 0 }, invoices: { none: {} } },
-      orderBy: { completedAt: "desc" },
-      take: 20,
-      select: { id: true, leadId: true, title: true, finalAmountCents: true, completedAt: true, customer: { select: { name: true, phone: true } }, lead: { select: { name: true, phone: true } } },
+  const [listed, intents] = await Promise.all([
+    listBillingExceptions(businessId, { since: month, limit: 20 }).catch((error: unknown) => {
+      if (isMoneySchemaDrift(error) || (error instanceof Error && /no such table/i.test(error.message))) return null;
+      throw error;
     }),
     prisma.smsIntent.findMany({
       where: { businessId, eventType: "invoice.pay_link", updatedAt: { gte: month } },
@@ -655,18 +675,31 @@ async function billingItems(businessId: string, now: Date): Promise<{ items: Boa
   const sids = new Set(bills.map((b) => latest.get(b.id)!.providerSid).filter((sid): sid is string => Boolean(sid)));
   /* A send refused before the carrier took it leaves no message row, only its failure written right after the attempt. */
   const attempts = bills.map((b) => latest.get(b.id)!).filter((t) => !t.providerSid).map((t) => ({ to: t.recipientNormalized, from: t.createdAt }));
+  const failedSet = new Set(failedIds);
+  const money = listed
+    ? listed
+        .filter((row) => row.kind !== "collection" && !(row.kind === "notification" && row.invoiceId && failedSet.has(row.invoiceId)))
+        .map(boardException)
+    : (
+        await prisma.job.findMany({
+          where: { businessId, status: "completed", completedAt: { gte: month }, finalAmountCents: { gt: 0 }, invoices: { none: { status: { notIn: ["void", "refunded"] } } } },
+          orderBy: { completedAt: "desc" },
+          take: 20,
+          select: { id: true, leadId: true, finalAmountCents: true, completedAt: true, customer: { select: { name: true, phone: true } }, lead: { select: { name: true, phone: true } } },
+        })
+      ).map((job) => ({
+        id: `billing-gap:${job.id}`,
+        lane: "exceptions" as const,
+        exception: "billing_gap" as const,
+        title: `${who(job.customer?.name ?? job.lead?.name, job.customer?.phone ?? job.lead?.phone)} · done, not billed`,
+        detail: `Job ${job.id}. Done ${(job.completedAt ?? now).toISOString().slice(0, 16).replace("T", " ")}. Billable ${formatCentsExact(job.finalAmountCents!)}. Invoice not created.`,
+        at: (job.completedAt ?? now).toISOString(),
+        jobId: job.id,
+        leadId: job.leadId,
+        phone: job.customer?.phone ?? job.lead?.phone ?? null,
+      }));
   const items = [
-    ...unbilled.map((job) => ({
-      id: `billing-gap:${job.id}`,
-      lane: "exceptions" as const,
-      exception: "billing_gap" as const,
-      title: `${who(job.customer?.name ?? job.lead?.name, job.customer?.phone ?? job.lead?.phone)} · done, not billed`,
-      detail: `Marked done with a ${formatCentsExact(job.finalAmountCents!)} total, but no bill was created. Create and send it from the job.`,
-      at: (job.completedAt ?? now).toISOString(),
-      jobId: job.id,
-      leadId: job.leadId,
-      phone: job.customer?.phone ?? job.lead?.phone ?? null,
-    })),
+    ...money,
     ...bills.map((bill) => {
       const intent = latest.get(bill.id)!;
       const unknown = intent.status === "unknown_submission";

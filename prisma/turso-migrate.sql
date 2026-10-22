@@ -1361,3 +1361,28 @@ ALTER TABLE "Deposit" ADD COLUMN "refundedCents" INTEGER NOT NULL DEFAULT 0;
 
 -- Outbound sender: the number each text left from, so a reply to a pool member is attributed to the shop that used it.
 ALTER TABLE "OutboundSms" ADD COLUMN "fromNormalized" TEXT;
+
+-- One billing obligation per job. A failed invoice write stays retryable, and a retry links the invoice it already created instead of opening another.
+CREATE TABLE IF NOT EXISTS "JobBilling" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "jobId" TEXT NOT NULL,
+    "status" TEXT NOT NULL DEFAULT 'required',
+    "amountCents" INTEGER NOT NULL,
+    "invoiceId" TEXT,
+    "attempts" INTEGER NOT NULL DEFAULT 0,
+    "lastError" TEXT,
+    "attemptedAt" DATETIME,
+    "claimedAt" DATETIME,
+    "claimToken" TEXT,
+    "notifyStatus" TEXT,
+    "notifyError" TEXT,
+    "notifyAttemptedAt" DATETIME,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "JobBilling_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "JobBilling_jobId_fkey" FOREIGN KEY ("jobId") REFERENCES "Job" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "JobBilling_jobId_key" ON "JobBilling"("jobId");
+CREATE INDEX IF NOT EXISTS "JobBilling_businessId_status_idx" ON "JobBilling"("businessId", "status");
+CREATE INDEX IF NOT EXISTS "JobBilling_status_attemptedAt_idx" ON "JobBilling"("status", "attemptedAt");
