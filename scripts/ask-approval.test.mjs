@@ -325,7 +325,7 @@ test("a call is said the way a dispatcher would, without the drill label", () =>
   );
   assert.equal(
     speakCall({ name: null, phone: "+15125550777", service: null, ago: "9h ago", waiting: true }),
-    "A caller called 9h ago. Nobody has called them back.",
+    "+1 512 555 0777 called 9h ago. Nobody has called them back.",
   );
   assert.equal(
     speakCall({ name: "Maria Lopez", phone: "+13125556070", service: "no water", ago: "9h ago", waiting: true, spanish: true }),

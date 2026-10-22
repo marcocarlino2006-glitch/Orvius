@@ -16,6 +16,7 @@ import {
   type DashboardLoadFailure,
 } from "@/lib/dashboard-fetch";
 import { INBOX_VIEWS, INBOX_VIEW_LABEL, type InboxFacts, type InboxView } from "@/lib/inbox-state";
+import { inboxBrief } from "@/lib/list-brief";
 import { isEmergency, notableUrgency } from "@/lib/urgency";
 import { useBusiness } from "@/lib/use-business";
 import Link from "next/link";
@@ -210,8 +211,13 @@ export default function InboxPage() {
       }
     >
       <p className="pg-purpose font-sans">
-        Requests that haven&apos;t become a job yet. Once one is booked it moves to{" "}
-        <Link href="/dashboard/jobs">Jobs</Link> and shows here only under Resolved.
+        {inboxBrief(counts)}
+        {counts && counts.new + counts.waiting + counts.person === 0 ? (
+          <>
+            {" "}
+            <Link href="/dashboard/jobs">Open Jobs</Link>
+          </>
+        ) : null}
       </p>
 
       <ProFilterBar

@@ -15,7 +15,7 @@ import { jobPastDue } from "@/lib/job-status";
 import type { WorkItem, WorkSeverity } from "@/lib/work";
 import { sendWrite } from "@/lib/client-write";
 import { shownBeatLabel } from "@/lib/path-label";
-import { spokenName, spokenText } from "@/lib/spoken-name";
+import { personLabel, spokenName, spokenText } from "@/lib/spoken-name";
 import { formatBeat, formatWhen } from "@/lib/when";
 
 const send = (url: string, method: "POST" | "PATCH", body: unknown) => sendWrite<Record<string, unknown>>(url, method, body);
@@ -164,7 +164,7 @@ export function WorkCard({
   const canMove = item.stage === "needs_callback" || item.stage === "needs_time" || (isJob && (item.stage === "scheduled" || item.stage === "confirmed"));
   const primaryCall = Boolean(item.phone) && (pastDue || item.stage === "needs_callback" || kinds.has("emergency") || kinds.has("unconfirmed_soon") || kinds.has("failed_message") || kinds.has("invoice_undelivered") || kinds.has("customer_no_show") || kinds.has("open_invoice") || kinds.has("estimate_failed") || kinds.has("wants_human"));
   const person = spokenName(item.customer);
-  const who = person || "A caller";
+  const who = personLabel(item.customer, item.phone);
   const firstName = person.split(" ")[0] || "them";
   const askTech = isJob && kinds.has("tech_unanswered") && Boolean(item.technician?.phone);
   const unconfirmed = isJob && !pastDue && (item.stage === "scheduled" || kinds.has("unconfirmed_soon")) && Boolean(item.technician) && !kinds.has("failed_message") && !askTech;

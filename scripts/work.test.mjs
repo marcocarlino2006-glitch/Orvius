@@ -89,7 +89,8 @@ test("a request's stage and next action follow its status", () => {
   assert.equal(work.requestWorkItem(lead({ urgency: "emergency" })).urgent, true);
   assert.equal(work.requestWorkItem(lead({ status: "contacted" })).nextAction, "Pick a time with Dana");
   assert.equal(work.requestWorkItem(lead({ status: "booked" })).nextAction, "Put the booked time on the schedule");
-  assert.equal(work.requestWorkItem(lead({ name: null })).nextAction, "Call the caller back");
+  assert.equal(work.requestWorkItem(lead({ name: null })).nextAction, "Call +1 720 555 0100 back");
+  assert.equal(work.requestWorkItem(lead({ name: null, phone: null })).nextAction, "Call them back");
   assert.equal(work.requestWorkItem(lead()).lang, null);
   assert.equal(
     work.requestWorkItem(lead({ call: { transcript: "Caller: Hola, necesito ayuda\nCaller: mi casa no tiene agua\nAI: I can help" } })).lang,

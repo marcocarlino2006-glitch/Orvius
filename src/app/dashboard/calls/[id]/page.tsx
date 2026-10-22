@@ -19,7 +19,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { callerSpokeSpanish } from "@/lib/caller-language";
 import { displayPhone } from "@/lib/customer";
-import { spokenName } from "@/lib/spoken-name";
+import { personLabel } from "@/lib/spoken-name";
 import { jobStatusTitle } from "@/lib/job-status";
 import { formatDay, formatWhen, statusWord } from "@/lib/when";
 
@@ -135,11 +135,11 @@ export default function CallDetailPage() {
     );
   }
 
-  const who = spokenName(call.lead?.name ?? call.customer?.name) || "A caller";
   const spanish = callerSpokeSpanish(call.transcript);
 
   /* The request's number is the checked callback (what the caller said, or caller ID); the button dials what the page shows. */
   const phone = call.lead ? call.lead.phone : call.callerPhone;
+  const who = personLabel(call.lead?.name ?? call.customer?.name, phone);
   const address = call.lead?.address ?? call.customer?.address ?? null;
   const service = call.lead?.serviceType ?? null;
   const summary = call.summary?.trim() || null;

@@ -206,7 +206,13 @@ export async function getCommandMoney(businessId: string, now = new Date(), wind
       take: ROW_CAP,
     }),
     prisma.job.count({
-      where: { businessId, status: "completed", completedAt: window, invoices: { none: { status: { not: "void" } } } },
+      where: {
+        businessId,
+        status: "completed",
+        completedAt: window,
+        finalAmountCents: { gt: 0 },
+        invoices: { none: { status: { not: "void" } } },
+      },
     }),
   ]);
   const balances = open.map((i) => i.amountCents - i.payments.reduce((s, p) => s + p.amountCents, 0)).filter((b) => b > 0);

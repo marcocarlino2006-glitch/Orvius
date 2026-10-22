@@ -4,7 +4,7 @@ import { formatCents } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
 import type { MemoryHit } from "@/lib/shop-memory";
 import { callerSpokeSpanish } from "@/lib/caller-language";
-import { spokenName } from "@/lib/spoken-name";
+import { personLabel } from "@/lib/spoken-name";
 
 const OPEN = new Set(["scheduled", "confirmed", "en_route", "on_site"]);
 
@@ -52,7 +52,7 @@ export function speakCall(call: {
   waiting: boolean;
   spanish?: boolean;
 }): string {
-  const who = spokenName(call.name) || "A caller";
+  const who = personLabel(call.name, call.phone);
   const about = call.service?.trim();
   const waiting = call.waiting ? " Nobody has called them back." : "";
   const language = call.spanish ? " in Spanish" : "";
@@ -124,7 +124,7 @@ export async function answerFromRecords(params: {
       },
     });
     if (!customer) return null;
-    const name = spokenName(customer.name) || "A caller";
+    const name = personLabel(customer.name, customer.phone);
     const paid = await paidCents(params.businessId, { customerId: customer.id });
     const upcoming = customer.jobs
       .filter((j) => OPEN.has(j.status) && j.scheduledAt)
@@ -152,7 +152,7 @@ export async function answerFromRecords(params: {
       include: { job: { select: { title: true, scheduledAt: true } } },
     });
     if (!lead) return null;
-    const name = spokenName(lead.name) || "A caller";
+    const name = personLabel(lead.name, lead.phone);
     const asked = `${name} asked about ${lead.serviceType?.toLowerCase() ?? "service"} ${sinceText(lead.createdAt, now)}`;
     if (lead.job) {
       return `${asked} and is booked: ${lead.job.title}${lead.job.scheduledAt ? `, ${when(lead.job.scheduledAt, tz)}` : ""}.${more}`;

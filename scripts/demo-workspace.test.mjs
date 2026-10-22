@@ -104,12 +104,11 @@ test("plan → approval → execution runs on the seeded plan", async () => {
 
 test("the live action queue asks to recover the expired visit and puts the plan near the top", async () => {
   const { listWork } = await import("../src/lib/work.ts");
-  const { PAST_DUE_LABEL } = await import("../src/lib/job-status.ts");
   const { business } = await ensureDemoWorkspace(`queue-${stamp()}@orvius.test`, { seed: true });
   cleanup.push(business.id);
   const work = await listWork(business.id, "open");
   const expired = work.items.find((i) => i.kind === "job" && i.title === "Annual tune-up before winter");
-  assert.equal(expired?.nextAction, PAST_DUE_LABEL, "the list path, not just the unit, sees the job as past due");
+  assert.match(expired?.nextAction ?? "", /^Call .+ move the visit, or close it$/, "the list path, not just the unit, sees the job as past due");
   const lateButAskingToConfirm = work.items.filter(
     (i) => i.kind === "job" && i.scheduledAt && Date.parse(i.scheduledAt) < Date.now() - H && /confirm/i.test(i.nextAction ?? ""),
   );

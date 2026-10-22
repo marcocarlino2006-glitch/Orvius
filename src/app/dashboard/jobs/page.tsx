@@ -7,6 +7,7 @@ import { OsShell } from "@/components/os-shell";
 import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
 import { ShellAlert } from "@/components/shell-primitives";
 import { DashboardSkeleton } from "@/components/shell-skeleton";
+import { jobsBrief } from "@/lib/list-brief";
 import { jobRowFacts, type JobRowInput } from "@/lib/job-row";
 import { formatCents } from "@/lib/money";
 import Link from "next/link";
@@ -173,8 +174,15 @@ export default function JobsPage() {
           ) : null}
 
           <p className="pg-purpose font-sans">
-            What you&apos;re committed to doing. Requests that haven&apos;t been booked yet stay in{" "}
-            <Link href="/dashboard/inbox">Inbox{newLeadCount ? ` (${newLeadCount} new)` : ""}</Link>.
+            {jobsBrief(depth)}
+            {newLeadCount ? (
+              <>
+                {" "}
+                <Link href="/dashboard/inbox">
+                  {newLeadCount === 1 ? "1 new request is still in Inbox." : `${newLeadCount} new requests are still in Inbox.`}
+                </Link>
+              </>
+            ) : null}
           </p>
 
           {!loading && jobs.length ? (

@@ -59,11 +59,12 @@ test("money reads billed, collected and owed from invoices and payments in the w
   });
   const job = (status, extra = {}) =>
     prisma.job.create({ data: { businessId: shop.id, title: "AC repair", status, completedAt: status === "completed" ? new Date() : null, ...extra } });
-  const paidJob = await job("completed");
-  const owedJob = await job("completed");
-  await job("completed");
-  await job("completed", { completedAt: new Date(Date.now() - 30 * 24 * HOUR) });
-  await job("scheduled");
+  const paidJob = await job("completed", { finalAmountCents: 40_000 });
+  const owedJob = await job("completed", { finalAmountCents: 25_000 });
+  await job("completed", { finalAmountCents: 18_000 });
+  await job("completed", { finalAmountCents: 0 });
+  await job("completed", { completedAt: new Date(Date.now() - 30 * 24 * HOUR), finalAmountCents: 9_000 });
+  await job("scheduled", { finalAmountCents: 12_000 });
 
   const paid = await prisma.invoice.create({
     data: { businessId: shop.id, jobId: paidJob.id, amountCents: 40_000, status: "paid", sentAt: new Date(), paidAt: new Date() },
@@ -82,11 +83,11 @@ test("money reads billed, collected and owed from invoices and payments in the w
   assert.equal(money.payments, 2);
   assert.equal(money.outstandingCents, 20_000, "owed is the open balance, not the bill");
   assert.equal(money.outstandingInvoices, 1);
-  assert.equal(money.doneNotBilled, 1, "an old job and a scheduled one are not this week's missing bills");
+  assert.equal(money.doneNotBilled, 1, "a no-charge job, an old job, and a scheduled one are not this week's missing bills");
 
   const flow = await getCommandFlow(shop.id);
-  assert.equal(stage(flow, "booked").count, 5);
-  assert.equal(stage(flow, "done").count, 4);
+  assert.equal(stage(flow, "booked").count, 6);
+  assert.equal(stage(flow, "done").count, 5);
   assert.equal(stage(flow, "paid").count, 1);
 });
 

@@ -28,7 +28,7 @@ test("past due means the visit time plus an hour passed and the job never starte
   }
   assert.equal(jobPastDue({ status: "scheduled", scheduledAt: null }, NOW), false);
   assert.match(pastDueDetail(hoursAgo(72), NOW), /due 3 days ago and never started\. Call the customer, move it to a new time, or close it\./);
-  assert.equal(PAST_DUE_LABEL, "Contact, reschedule or close");
+  assert.equal(PAST_DUE_LABEL, "Call them, move the visit, or close it");
   assert.equal(nextJobStatus("scheduled").label, "Mark confirmed", "an on-time job still confirms");
 });
 
@@ -55,9 +55,10 @@ const job = (over = {}) => ({
 });
 
 test("the work queue asks for a recovery decision on an expired job, whatever it was waiting on", () => {
-  assert.equal(work.jobWorkItem(job(), NOW).nextAction, PAST_DUE_LABEL);
-  assert.equal(work.jobWorkItem(job({ technician: { id: "t", name: "Luis", phone: null } }), NOW).nextAction, PAST_DUE_LABEL);
-  assert.equal(work.jobWorkItem(job({ status: "confirmed" }), NOW).nextAction, PAST_DUE_LABEL);
+  assert.equal(work.jobWorkItem(job(), NOW).nextAction, "Call Dana Ruiz, move the visit, or close it");
+  assert.equal(work.jobWorkItem(job({ technician: { id: "t", name: "Luis", phone: null } }), NOW).nextAction, "Call Dana Ruiz, move the visit, or close it");
+  assert.equal(work.jobWorkItem(job({ status: "confirmed" }), NOW).nextAction, "Call Dana Ruiz, move the visit, or close it");
+  assert.equal(work.jobWorkItem(job({ customer: { name: null, phone: null } }), NOW).nextAction, PAST_DUE_LABEL);
   assert.equal(work.jobWorkItem(job({ scheduledAt: new Date(NOW + 3_600_000) }), NOW).nextAction, "Assign a technician");
 });
 

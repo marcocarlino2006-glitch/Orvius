@@ -8,13 +8,29 @@ import { SupportContact } from "@/components/support-contact";
 import { TestAlertButton } from "@/components/test-alert-button";
 import { WorkCard } from "@/components/work-card";
 import { commandSentence } from "@/lib/command-sentence";
+import { deskFacts } from "@/lib/desk-status";
 import { isLiveCall } from "@/lib/live-call";
 import { useRing1 } from "@/lib/ring1-context";
-import { spokenName } from "@/lib/spoken-name";
+import { personLabel, spokenName } from "@/lib/spoken-name";
 import { formatBeat, formatWhen } from "@/lib/when";
 
-function callerName(name: string | null | undefined): string {
-  return spokenName(name) || "A caller";
+function callerName(name: string | null | undefined, phone: string | null | undefined): string {
+  return personLabel(name, phone);
+}
+
+function scheduleConflicts(board: { lanes?: Array<{ blocks: Array<{ conflict: string | null }> }> } | null | undefined): string[] {
+  if (!board?.lanes) return [];
+  const seen = new Set<string>();
+  const lines: string[] = [];
+  for (const lane of board.lanes) {
+    for (const block of lane.blocks) {
+      const text = block.conflict?.trim();
+      if (!text || seen.has(text)) continue;
+      seen.add(text);
+      lines.push(text);
+    }
+  }
+  return lines;
 }
 
 function minutesOnTheLine(createdAt: string): string {
@@ -107,7 +123,15 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
   const liveApproval = looseApprovals[0] ?? null;
   const liveItem = items.find((item) => item.needsYou) ?? null;
   const lastDone = data?.handled?.events[0] ?? null;
-  const onTheLine = liveCall ? callerName(liveCall.leadName) : null;
+  const orviusDid = data?.handled?.events.find((event) => event.by === "Orvius") ?? null;
+  const facts = data
+    ? deskFacts({
+        needsYou: work?.needsYou ?? 0,
+        approvals: looseApprovals.length,
+        handled: data.handled,
+      })
+    : null;
+  const onTheLine = liveCall ? callerName(liveCall.leadName, liveCall.callerPhone) : null;
   const sentence = commandSentence({
     loaded: Boolean(data),
     brief: brief?.headline ?? null,
@@ -170,6 +194,13 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
         <h2 className="cmd-headline os-own-color" aria-live="polite">
           {sentence}
         </h2>
+        {facts ? (
+          <p className="cmd-facts">
+            {facts.you ? <Link href="/dashboard/work">{facts.you}</Link> : null}
+            {facts.ok ? <span>{facts.ok}</span> : null}
+            {facts.orvius ? <span>{facts.orvius}</span> : null}
+          </p>
+        ) : null}
       </header>
 
       <section className="cmd-live" aria-label="Now">
@@ -207,6 +238,18 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
         ) : null}
       </section>
 
+      {(liveCall || liveApproval || liveItem) && orviusDid ? (
+        <p className="cmd-orvius-did">
+          <span>Orvius · {orviusDid.result}</span>
+          {orviusDid.jobId || orviusDid.leadId ? (
+            <Link href={orviusDid.jobId ? `/dashboard/jobs/${orviusDid.jobId}` : `/dashboard/inbox/${orviusDid.leadId}`}>{orviusDid.summary}</Link>
+          ) : (
+            <span>{orviusDid.summary}</span>
+          )}
+          <time dateTime={orviusDid.at}>{formatWhen(orviusDid.at)}</time>
+        </p>
+      ) : null}
+
       {data ? (
         <DeskBoard
           jobs={data.dispatchToday?.jobs ?? []}
@@ -214,6 +257,10 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
           items={items}
           asideKey={liveItem?.key ?? null}
           timezone={data.coverage?.timezone}
+          tomorrow={data.tomorrow ? { jobCount: data.tomorrow.jobCount, unassigned: data.tomorrow.unassigned } : null}
+          conflicts={scheduleConflicts(data.crewBoard)}
+          activity={data.handled?.events ?? []}
+          activitySkipId={!liveCall && !liveApproval && !liveItem ? (lastDone?.id ?? null) : null}
         />
       ) : null}
 
