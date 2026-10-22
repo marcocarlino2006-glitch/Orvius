@@ -76,12 +76,12 @@ export function MoneyLine({ money }: { money: CommandMoney | undefined }) {
       <p className="cmd-money-brief">{brief.summary}</p>
       {brief.owed ? (
         <p className="cmd-money-attention">
-          <Link href="/dashboard/reports">{brief.owed}</Link>
+          {brief.owed} <Link href="/dashboard/reports">Open the report</Link>
         </p>
       ) : null}
       {brief.unbilled ? (
         <p className="cmd-money-attention">
-          <Link href="/dashboard/jobs">{brief.unbilled}</Link>
+          {brief.unbilled} <Link href="/dashboard/jobs">Open the jobs</Link>
         </p>
       ) : null}
     </section>

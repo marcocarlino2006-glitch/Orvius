@@ -98,13 +98,25 @@ export function OsCommandPalette({
   const items = useMemo<PaletteItem[]>(() => {
     const q = query.trim().toLowerCase();
 
-    const screens: PaletteItem[] = [...osProductNav, ...osMoreNav, ...osWorkspaceNav].map((nav) => ({
+    const moreHint: Record<string, string> = {
+      "/dashboard/calls": "What callers said",
+      "/dashboard/work": "What still needs a person",
+      "/dashboard/ask": "Tell Orvius what to do",
+    };
+    const place = (nav: (typeof osProductNav)[number], hint?: string): PaletteItem => ({
       id: `nav:${nav.href}`,
       label: nav.label,
+      hint,
       group: "Places",
       icon: nav.icon,
       run: () => go(nav.href),
-    }));
+    });
+    /* Calls, Work and Ask are not on the phone bar. They lead the search so a thumb can reach them. */
+    const screens: PaletteItem[] = [
+      ...osMoreNav.map((nav) => place(nav, moreHint[nav.href])),
+      ...osProductNav.map((nav) => place(nav)),
+      ...osWorkspaceNav.map((nav) => place(nav)),
+    ];
 
     const records: PaletteItem[] = hits.map((hit) => ({
       id: `${hit.kind}:${hit.id}`,
