@@ -125,7 +125,7 @@
 .mkt-nav-panel-label {
   color: var(--ov-headline, #f6f6f6);
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .mkt-nav-panel-detail {

@@ -17,7 +17,7 @@
 /* Header: the page name, and a status only when something is off. */
 .os-shell.os-shell-night .os-topbar-title {
   font-size: 1.25rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.012em;
 }
 
@@ -82,7 +82,7 @@
 .ms-cell dd {
   margin: 0.25rem 0 0;
   font-size: 1.25rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.01em;
   color: var(--ox-text);
 }
@@ -165,7 +165,7 @@
 .dt--work .work-urgent {
   color: var(--ox-amber);
   font-size: var(--cr-label);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 /* Beside the sidebar on a tablet the fixed columns leave the title ~140px; let it wrap. */
@@ -298,7 +298,7 @@ a.dt-row:focus-visible,
 .dt-flag {
   flex: none;
   font-size: var(--cr-label);
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-red);
 }
 
@@ -443,7 +443,7 @@ a.dt-row:focus-visible,
 
 .os-shell.os-shell-night .cs-value {
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.015em;
 }
 
@@ -585,7 +585,7 @@ a.dt-row:focus-visible,
 
 .os-shell.os-shell-night .pf-hot {
   color: var(--ox-red) !important;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .os-shell.os-shell-night .pf-hot-note {
@@ -784,7 +784,7 @@ a.dt-row:focus-visible,
 .os-shell.os-shell-night .billing-settings:not(.sc-embed *) .pro-panel-title {
   color: var(--ox-text-2) !important;
   font-size: 0.875rem !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
 }
 
 .os-shell.os-shell-night .billing-settings:not(.sc-embed *) .pro-panel-body {
@@ -803,7 +803,7 @@ a.dt-row:focus-visible,
 .os-shell.os-shell-night .transcript-cinema-kicker {
   color: var(--ox-text);
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
 }
@@ -952,7 +952,7 @@ a.dt-row:focus-visible,
 .cb-demo-title {
   margin: 0;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text);
 }
 
@@ -987,7 +987,7 @@ a.dt-row:focus-visible,
 
 .cb-demo-label {
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .cb-demo-expect {
@@ -1023,7 +1023,7 @@ a.dt-row:focus-visible,
 .cb-plan-kicker {
   margin: 0;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
   color: var(--ox-amber);
@@ -1095,7 +1095,7 @@ a.dt-row:focus-visible,
   background: none;
   color: var(--ox-text);
   font: inherit;
-  font-weight: 600;
+  font-weight: 500;
   text-decoration: underline;
   text-underline-offset: 3px;
   cursor: pointer;
@@ -1145,7 +1145,7 @@ a.dt-row:focus-visible,
 .os-shell .cc-rail .cs-value {
   margin: 0;
   font-size: 1.375rem !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   line-height: 1.1;
 }
 
@@ -1381,7 +1381,7 @@ a.dt-row:focus-visible,
 .os-shell-night.os-error-page .plan-upgrade-gate-title {
   margin: 0 0 0.75rem !important;
   font-size: 1.25rem !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   letter-spacing: -0.015em !important;
   color: #e6e6e6 !important;
 }
@@ -1398,7 +1398,7 @@ a.dt-row:focus-visible,
 }
 
 .os-shell-night.os-error-page .os-error-lead b {
-  font-weight: 600 !important;
+  font-weight: 500 !important;
 }
 
 .os-shell-night.os-error-page .plan-upgrade-gate-actions {
@@ -1489,7 +1489,7 @@ a.dt-row:focus-visible,
 
 .os-shell.os-shell-night .font-serif {
   font-family: inherit !important;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.015em !important;
 }
 
@@ -1499,4 +1499,258 @@ a.dt-row:focus-visible,
   font-weight: 500 !important;
   letter-spacing: 0 !important;
   text-transform: none !important;
+}
+
+/* Kept from the retired scale layer: avatars, list shape, desktop sticky bar. */
+/*
+  Product scale — loaded last. Geist at a 14px base, one type ramp, lists as
+  rounded hairline containers, and the page's number leading its own label.
+*/
+
+.os-shell {
+  --font-sans: var(--font-ui), system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--font-sans);
+  font-feature-settings: "cv11", "ss01";
+  -webkit-font-smoothing: antialiased;
+}
+
+.os-shell.os-shell-night .font-sans,
+.os-shell.os-shell-night :is(h1,  h2,  h3,  p,  span,  a,  button,  li,  dt,  dd,  label,  input,  textarea,  select) {
+  font-family: var(--font-ui), system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* ── Page header ─────────────────────────────────────────────────────── */
+
+.os-shell.os-shell-night .os-topbar-title {
+  font-size: 1.5rem !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.022em !important;
+  line-height: 1.2 !important;
+}
+
+.os-shell.os-shell-night .os-topbar-sub {
+  margin-top: 0.2rem;
+  font-size: 0.875rem !important;
+  letter-spacing: 0;
+}
+
+/* ── Lists ───────────────────────────────────────────────────────────── */
+
+.os-shell.os-shell-night .os-lead-rail {
+  overflow: hidden;
+  border: 1px solid var(--ox-line) !important;
+  border-radius: 0.75rem !important;
+  background: var(--ox-s1) !important;
+}
+
+.os-shell.os-shell-night .lead-rail-row {
+  background: transparent !important;
+  border-bottom: 1px solid var(--ox-line) !important;
+  padding: 0.9rem 1.1rem !important;
+  transition: background var(--ox-dur-fast) ease;
+}
+
+.os-shell.os-shell-night .os-lead-rail > li:last-child .lead-rail-row {
+  border-bottom: 0 !important;
+}
+
+.os-shell.os-shell-night .lead-rail-row:hover {
+  background: rgb(255 255 255 / 0.025) !important;
+}
+
+.os-shell.os-shell-night .lead-rail-row:has(> .record-avatar) {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  column-gap: 0.9rem;
+}
+
+.os-shell.os-shell-night .lead-rail-name {
+  font-size: 0.9375rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0;
+  color: var(--ox-text) !important;
+}
+
+.os-shell.os-shell-night .lead-rail-sub {
+  margin-top: 0.2rem !important;
+  font-size: 0.8125rem !important;
+  line-height: 1.45 !important;
+  color: var(--ox-mute) !important;
+}
+
+.os-shell.os-shell-night .lead-rail-time {
+  font-size: 0.75rem !important;
+  letter-spacing: 0 !important;
+  color: var(--ox-mute) !important;
+}
+
+.record-avatar {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  background: hsl(var(--avatar-hue, 220) 32% 22%);
+  box-shadow: inset 0 0 0 1px hsl(var(--avatar-hue, 220) 40% 34% / 0.6);
+  color: hsl(var(--avatar-hue, 220) 70% 84%);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  user-select: none;
+}
+
+.record-avatar.is-flare {
+  background: var(--ox-red-soft);
+  box-shadow: inset 0 0 0 1px rgb(242 107 107 / 0.45);
+  color: var(--ox-red);
+}
+
+/* ── Tabs and filters ────────────────────────────────────────────────── */
+
+.os-shell.os-shell-night .pro-filter-bar {
+  gap: 0.25rem;
+  padding: 0.2rem;
+  border: 1px solid var(--ox-line);
+  border-radius: 0.5rem;
+  background: var(--ox-s1);
+  width: fit-content;
+}
+
+.os-shell.os-shell-night .pro-filter-tab {
+  border: 0 !important;
+  border-radius: 0.5rem !important;
+  padding: 0.35rem 0.75rem !important;
+  font-size: 0.8125rem !important;
+  color: var(--ox-mute) !important;
+  background: transparent !important;
+}
+
+.os-shell.os-shell-night .pro-filter-tab-active {
+  background: var(--ox-s3) !important;
+  color: var(--ox-text) !important;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────────────────── */
+
+.os-shell.os-shell-night .os-nav-link {
+  min-height: 2.25rem;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0;
+  border-radius: 0.5rem !important;
+}
+
+.os-shell.os-shell-night .os-nav-link-active {
+  font-weight: 500 !important;
+}
+
+/* ── Panels and cards ────────────────────────────────────────────────── */
+
+.os-shell.os-shell-night .pro-panel {
+  border-radius: 0.75rem !important;
+  border-color: var(--ox-line) !important;
+  background: var(--ox-s1) !important;
+}
+
+.os-shell.os-shell-night .pro-panel-title {
+  font-size: 0.9375rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+}
+
+/* A critical recommendation is marked by its edge and label, not a red slab. */
+
+@media (max-width: 640px) {
+  .os-shell.os-shell-night .lead-rail-row:has(> .record-avatar) {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.os-shell.os-shell-night .pro-filter-tab {
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .os-shell.os-shell-night .pro-filter-bar {
+    max-width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+  }
+}
+
+/* ── Detail pages ────────────────────────────────────────────────────── */
+
+.os-shell.os-shell-night .os-topbar-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.os-shell.os-shell-night .os-topbar-actions > div {
+  flex-wrap: nowrap !important;
+}
+
+.os-shell.os-shell-night .owner-alert {
+  border-radius: 0.75rem !important;
+  border-color: var(--ox-line) !important;
+  background: var(--ox-s1) !important;
+}
+
+.os-shell.os-shell-night .lead-status-actions-label {
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  color: var(--ox-mute) !important;
+}
+
+.os-shell.os-shell-night .lead-status-actions-row {
+  gap: 0.4rem;
+}
+
+/* The fixed action bar is a thumb target; on a desktop the header already has it. */
+@media (min-width: 1024px) {
+  .os-shell.os-shell-night .lead-detail-sticky,
+  .os-shell.os-shell-night .job-detail-sticky {
+    display: none !important;
+  }
+}
+
+.os-shell.os-shell-night .lead-detail-sticky-btn {
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+}
+
+/* ── Command signal cards ────────────────────────────────────────────── */
+
+.os-shell.os-shell-night .cs-card {
+  border-radius: 0.75rem !important;
+  background: var(--ox-s1) !important;
+  border-color: var(--ox-line) !important;
+}
+
+.os-shell.os-shell-night .cs-label {
+  font-size: 0.8125rem !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  color: var(--ox-mute) !important;
+  white-space: nowrap;
+}
+
+.os-shell.os-shell-night .cs-value {
+  font-size: 2rem !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.035em !important;
+  color: var(--ox-text) !important;
+}
+
+.os-shell.os-shell-night .cs-detail {
+  font-size: 0.75rem !important;
+  color: var(--ox-mute) !important;
 }

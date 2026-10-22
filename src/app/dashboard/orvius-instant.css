@@ -289,6 +289,11 @@ html body .os-shell .os-topbar-shop-phone {
   }
 }
 
+/* The wordmark stays heavy. Everything else in the desk tops out at 500. */
+:root body .os-shell.os-shell-pro.os-shell-pro.os-shell-night :is(strong, b, .font-semibold, .font-bold):not(.orvius-logo-word) {
+  font-weight: 500 !important;
+}
+
 /* One type for the desk. Four sizes, and 500 is the heaviest weight.
    12 meta · 14 the work · 14 the action · 22 the sentence.
    Loaded last, so these beat the older semibold rules. */
@@ -396,4 +401,337 @@ html body .os-shell .os-topbar-shop-phone {
     font-size: 0.875rem !important;
     font-weight: 400 !important;
   }
+}
+
+/* Phone dock and search sheet. Hidden on a computer, fixed on a phone. */
+/* ── Phone tab bar ───────────────────────────────────────────────────── */
+
+.os-tabbar {
+  display: none;
+}
+
+.os-phone-search {
+  display: none;
+}
+
+.os-phone-dock {
+  display: contents;
+}
+
+@media (max-width: 767px) {
+  .os-shell .os-phone-dock {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 40;
+    display: flex;
+    flex-direction: column;
+    padding: 0.45rem 0.75rem calc(0.2rem + env(safe-area-inset-bottom, 0px));
+    background: var(--ox-bg);
+    border-top: 1px solid var(--ox-line);
+  }
+
+  .os-shell .os-phone-search {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    min-height: 2.75rem;
+    margin: 0 0 0.4rem;
+    padding: 0 0.85rem;
+    border: 0 !important;
+    border-radius: 0.75rem !important;
+    background: color-mix(in srgb, var(--ox-text) 8%, transparent);
+    color: var(--ox-mute);
+    font: inherit;
+    font-size: 1rem;
+    font-weight: 400;
+    letter-spacing: -0.011em;
+    line-height: 1;
+    text-align: left;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .os-shell .os-phone-search:active {
+    background: color-mix(in srgb, var(--ox-text) 12%, transparent);
+  }
+
+  .os-shell .os-phone-search svg {
+    width: 1.125rem;
+    height: 1.125rem;
+    flex-shrink: 0;
+  }
+
+  html body .os-shell:has(.os-palette:not(.os-shortcuts)) .os-phone-search {
+    display: none !important;
+  }
+
+  html body .os-shell:has(.os-palette:not(.os-shortcuts)) .os-phone-dock {
+    padding-top: 0;
+  }
+
+  /* The top-bar mark stays for an iPad and a computer. */
+  html body .os-shell .os-topbar-search:not(#tap-floor) {
+    display: none !important;
+  }
+
+  .os-shell .os-tabbar {
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    padding: 0;
+    background: transparent;
+    border: 0;
+  }
+
+  .os-shell .os-palette-backdrop:has(> .os-palette:not(.os-shortcuts)) {
+    align-items: flex-end;
+    justify-content: stretch;
+    padding: 0;
+    padding-bottom: calc(2.95rem + env(safe-area-inset-bottom, 0px));
+    background: color-mix(in srgb, var(--ox-text) 28%, transparent);
+    backdrop-filter: none;
+  }
+
+  html body .os-shell .os-palette:not(.os-shortcuts) {
+    width: 100%;
+    max-height: min(78vh, 36rem);
+    border: 0;
+    border-top: 1px solid var(--ox-line);
+    border-radius: 1.25rem 1.25rem 0 0;
+    background: var(--ox-bg) !important;
+    color: var(--ox-text);
+    box-shadow: none !important;
+    animation: os-phone-sheet 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  html body .os-shell .os-palette:not(.os-shortcuts) .os-palette-kbd {
+    display: none;
+  }
+
+  html body .os-shell .os-palette:not(.os-shortcuts) .os-palette-field {
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    padding: 0.35rem 1rem 0.85rem;
+    border-bottom: 0;
+  }
+
+  html body .os-shell .os-palette:not(.os-shortcuts) .os-palette-grab {
+    display: block;
+    flex: 0 0 100%;
+    width: 2.25rem;
+    height: 0.25rem;
+    margin: 0.2rem auto 0.15rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--ox-text) 22%, transparent);
+  }
+
+  html body .os-shell .os-palette:not(.os-shortcuts) .os-palette-query {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 0;
+    min-height: 2.75rem;
+    padding: 0 0.85rem;
+    border-radius: 0.75rem;
+    background: color-mix(in srgb, var(--ox-text) 7%, transparent);
+  }
+
+  html body .os-shell .os-palette:not(.os-shortcuts) .os-palette-mark {
+    display: block;
+    width: 1.125rem;
+    height: 1.125rem;
+    flex-shrink: 0;
+    color: var(--ox-mute);
+  }
+
+  html body .os-shell .os-palette:not(.os-shortcuts) .os-palette-cancel {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.75rem;
+    padding: 0 0.1rem 0 0.15rem;
+    border: 0;
+    background: transparent;
+    color: var(--ox-text);
+    font-size: 1rem;
+    font-weight: 500;
+    letter-spacing: -0.011em;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html body .os-shell .os-palette-input {
+    align-self: stretch;
+    min-height: 2.75rem !important;
+    color: var(--ox-text) !important;
+    font-size: 16px !important;
+    font-weight: 400;
+    letter-spacing: -0.011em;
+  }
+
+  html body .os-shell .os-palette-input::placeholder {
+    color: var(--ox-mute);
+    opacity: 1;
+  }
+
+  html body .os-shell .os-palette:not(.os-shortcuts) .os-palette-list {
+    padding: 0 0 0.5rem;
+  }
+
+  html body .os-shell .os-palette-group-label {
+    color: var(--ox-mute);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    padding: 0.35rem 1rem 0.2rem;
+  }
+
+  html body .os-shell .os-palette-row {
+    min-height: 3rem;
+    padding: 0.55rem 1rem;
+    gap: 0.75rem;
+    border-radius: 0 !important;
+    color: var(--ox-text);
+    font-size: 1.0625rem;
+    font-weight: 400;
+    letter-spacing: -0.014em;
+  }
+
+  html body .os-shell .os-palette-row-active {
+    background: color-mix(in srgb, var(--ox-text) 7%, transparent) !important;
+    color: var(--ox-text) !important;
+  }
+
+  html body .os-shell .os-palette-row .os-nav-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    opacity: 1;
+    color: var(--ox-text);
+  }
+
+  html body .os-shell .os-palette-row-hint {
+    color: var(--ox-mute);
+    max-width: 42%;
+    font-size: 0.875rem;
+  }
+
+  html body .os-shell .os-palette-empty,
+  html body .os-shell .os-palette-note {
+    color: var(--ox-mute) !important;
+    font-size: 0.9375rem;
+    padding: 0.85rem 1rem;
+  }
+
+  html body .os-shell .os-palette-note {
+    border-top: 1px solid var(--ox-line);
+  }
+
+  html .os-shell .os-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    min-height: 2.75rem;
+    padding: 0.2rem 0.1rem 0.15rem;
+    border: 0;
+    border-radius: 0.5rem;
+    background: transparent;
+    color: var(--ox-mute) !important;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    line-height: 1;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html .os-shell .os-tab.is-active {
+    color: var(--ox-text) !important;
+    font-weight: 500;
+  }
+
+  .os-shell .os-tab-icon {
+    position: relative;
+    display: inline-flex;
+  }
+
+  .os-shell .os-tab-icon svg {
+    width: 1.375rem;
+    height: 1.375rem;
+  }
+
+  .os-shell .os-tab-badge {
+    position: absolute;
+    top: -0.3rem;
+    left: 0.9rem;
+    min-width: 1.125rem;
+    height: 1.125rem;
+    padding: 0 0.25rem;
+    border-radius: 999px;
+    background: var(--ox-text);
+    color: var(--ox-bg);
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.125rem;
+    text-align: center;
+  }
+
+  html .os-shell.os-shell-pro .os-content {
+    padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .os-shell:has(.lead-detail-sticky) .os-tabbar,
+  .os-shell:has(.job-detail-sticky) .os-tabbar {
+    display: none;
+  }
+
+  html .os-shell.os-shell-pro:is(:has(.lead-detail-sticky), :has(.job-detail-sticky)) .os-content {
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .os-shell:is(:has(.lead-detail-sticky), :has(.job-detail-sticky)) .os-palette-backdrop:has(> .os-palette:not(.os-shortcuts)) {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  html body .os-shell:is(:has(.lead-detail-sticky), :has(.job-detail-sticky)):has(.os-palette:not(.os-shortcuts)) .os-phone-dock {
+    display: none;
+  }
+}
+
+@keyframes os-phone-sheet {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body .os-shell .os-palette:not(.os-shortcuts) {
+    animation: none;
+  }
+}
+
+.new-job-form .new-job-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  .new-job-form .new-job-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.new-job-form {
+  max-width: 40rem;
+}
+
+html .os-shell .dsp-track.is-drop {
+  outline: 1px dashed var(--ox-text-2) !important;
+  outline-offset: -1px;
+  background: color-mix(in srgb, var(--ox-text) 6%, transparent) !important;
+}
+
+html .os-shell .dsp-block[draggable="true"] {
+  cursor: grab;
 }

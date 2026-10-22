@@ -35,7 +35,7 @@
 .ta-kicker {
   margin: 0;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
   color: var(--ta-mute);
@@ -44,7 +44,7 @@
   margin: 0;
   font-size: 1.625rem;
   line-height: 1.2;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.015em;
   color: var(--ox-white);
 }
@@ -77,7 +77,7 @@
 .ta-ok {
   margin: 0;
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ta-green);
 }
 .ta-error {
@@ -95,7 +95,7 @@
   margin-inline: 0;
   padding: 0.5rem 0;
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ta-text-2);
   text-decoration: none;
 }
@@ -111,13 +111,13 @@
   align-items: baseline;
   margin: 0.5rem 0 0.5rem;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
   color: var(--ta-text-2);
 }
 .ta-h2 span {
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
   color: var(--ta-mute);
@@ -128,13 +128,13 @@
 .ta-h3 {
   margin: 0;
   font-size: 1.0625rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-white);
 }
 .ta-label {
   margin: 0;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ta-text-2);
 }
 .ta-label em {
@@ -149,7 +149,7 @@
   border-radius: 999px;
   border: 1px solid var(--ta-line-strong);
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ta-text-2);
   white-space: nowrap;
 }
@@ -207,7 +207,7 @@
 }
 .ta-job-time {
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
   color: var(--ta-text-2);
 }
@@ -219,7 +219,7 @@
 /* Wrapped, not cut: the job and where it is are what the technician came to read. */
 .ta-job-title {
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.3;
   color: var(--ox-white);
   overflow-wrap: anywhere;
@@ -232,7 +232,7 @@
 }
 .ta-job-ask {
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ov-booking-link);
 }
 
@@ -298,7 +298,7 @@
 }
 .ta-action-label {
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-white);
 }
 .ta-action-detail {
@@ -321,7 +321,7 @@
   color: var(--ox-white);
   font: inherit;
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 500;
   text-align: center;
   text-decoration: none;
   cursor: pointer;
@@ -358,7 +358,7 @@
   color: var(--ta-text-2);
   font: inherit;
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
 }
 .ta-link--danger {
@@ -411,7 +411,7 @@ textarea.ta-input {
   color: var(--ta-text);
   font: inherit;
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
 }
 .ta-chip.is-on {
@@ -422,7 +422,7 @@ textarea.ta-input {
 
 .ta-total {
   font-size: 1.0625rem;
-  font-weight: 600;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
   color: var(--ox-white);
 }
@@ -456,12 +456,12 @@ textarea.ta-input {
 .ta-line-name {
   display: block;
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-white);
 }
 .ta-line-total {
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 .ta-line-qty {
@@ -478,7 +478,7 @@ textarea.ta-input {
   color: var(--ox-white);
   font: inherit;
   font-size: 1.125rem;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
 }
 .ta-book {
@@ -561,7 +561,7 @@ textarea.ta-input {
 .ta-note-who {
   margin: 0;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ta-mute);
 }
 .ta-note-body {

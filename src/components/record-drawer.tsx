@@ -362,7 +362,7 @@ function RecordBody({
             ))}
           </ol>
         ) : (
-          <p className="rd-meta">No recorded events yet.</p>
+          <p className="rd-meta">Nothing has been logged yet. The next call, text, or booking on this record shows up here.</p>
         )}
       </section>
     </>

@@ -254,7 +254,7 @@ html[data-theme="day"] .os-shell-night {
 
 .os-shell.os-shell-night .os-topbar-title {
   font-size: 1.375rem !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   letter-spacing: -0.02em !important;
   color: var(--ox-text) !important;
 }
@@ -413,7 +413,7 @@ body:has(.os-shell.os-shell-night) {
 .os-shell.os-shell-night .label,
 .os-shell.os-shell-night .onboarding-label {
   font-size: 0.8125rem !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   letter-spacing: 0 !important;
   text-transform: none !important;
   color: var(--ox-text-2) !important;
@@ -461,7 +461,7 @@ body:has(.os-shell.os-shell-night) {
 
 .os-shell.os-shell-night .pro-panel-title {
   font-size: 1rem !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   letter-spacing: 0 !important;
   text-transform: none !important;
   color: var(--ox-text) !important;
@@ -522,7 +522,7 @@ body:has(.os-shell.os-shell-night) {
 
 .os-shell.os-shell-night .shop-operate-banner-title {
   font-size: 1rem !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   color: var(--ox-text) !important;
 }
 
@@ -550,7 +550,7 @@ body:has(.os-shell.os-shell-night) {
 .ox-state-title {
   margin: 0;
   font-size: 1.0625rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text);
 }
 
@@ -662,14 +662,14 @@ a.cs-card:hover {
 .cs-label {
   margin: 0;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text-2);
 }
 
 .cs-value {
   margin: 0.15rem 0 0;
   font-size: 2rem;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.05;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
@@ -730,7 +730,7 @@ a.cs-card:hover {
 .op-title {
   margin: 0;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text);
 }
 
@@ -745,7 +745,7 @@ a.cs-card:hover {
   border-radius: 999px;
   background: var(--ox-yellow-soft);
   color: var(--ox-yellow);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .op-row {
@@ -788,14 +788,14 @@ a.cs-card:hover {
 .op-row-label {
   margin: 0;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-mute);
 }
 
 .op-row-value {
   margin: 0.1rem 0 0;
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text);
   overflow-wrap: anywhere;
 }
@@ -942,14 +942,14 @@ a.cs-card:hover {
 .rd-kicker {
   margin: 0 0 0.3rem;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-amber);
 }
 
 .rd-title {
   margin: 0;
   font-size: 1.375rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.02em;
   line-height: 1.2;
   overflow-wrap: anywhere;
@@ -1022,7 +1022,7 @@ a.cs-card:hover {
 .rd-next-title {
   margin: 0.2rem 0 0;
   font-size: 1.0625rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .rd-next-detail {
@@ -1039,14 +1039,14 @@ a.cs-card:hover {
 .rd-section-label {
   margin: 0;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-mute);
 }
 
 .rd-line {
   margin: 0;
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .rd-meta {
@@ -1072,7 +1072,7 @@ a.cs-card:hover {
   background: none;
   color: var(--ox-amber);
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
 }
 
@@ -1125,13 +1125,13 @@ button.rd-path-btn:hover {
 
 .rd-path-label {
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-mute);
 }
 
 .rd-path-value {
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text);
   overflow-wrap: anywhere;
 }
@@ -1170,7 +1170,7 @@ button.rd-path-btn:hover {
 
 .rd-fields dt {
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-mute);
 }
 
@@ -1354,7 +1354,7 @@ button.rd-path-btn:hover {
   background: #1a8ad4;
   color: #fff;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1;
 }
 
@@ -1421,7 +1421,7 @@ button.rd-path-btn:hover {
   overflow: hidden;
   color: #e6e6e6;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.01em;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1637,7 +1637,7 @@ button.rd-path-btn:hover {
 
 .os-shell.os-shell-night .upg-title {
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.01em;
   line-height: 1.25;
 }
@@ -1748,7 +1748,7 @@ button.rd-path-btn:hover {
 
 .os-shell.os-shell-night .upg-save {
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
   opacity: 0.72;
 }
 
@@ -1788,7 +1788,7 @@ button.rd-path-btn:hover {
 
 .os-shell.os-shell-night .upg-plan-name {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .os-shell.os-shell-night .upg-badge {
@@ -1797,7 +1797,7 @@ button.rd-path-btn:hover {
   background: var(--upg-text);
   color: var(--upg-bg);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.4;
 }
 
@@ -1827,7 +1827,7 @@ button.rd-path-btn:hover {
   display: block;
   margin-top: 8px;
   font-size: 22px;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
@@ -1923,7 +1923,7 @@ button.rd-path-btn:hover {
   color: var(--upg-btn-ink);
   font: inherit;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 500;
   text-decoration: none;
   cursor: pointer;
 }
@@ -2115,7 +2115,7 @@ html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-signout:hover {
   color: #fff;
   border: 0;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 /* Command home, on Manus's geometry: serif greeting, one large composer, starter chips, then the work. */
@@ -2270,7 +2270,7 @@ html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-signout:hover {
 .os-shell.os-shell-night .cb-ask-stack .shop-operate-banner-title {
   margin: 0;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text);
 }
 
@@ -2327,7 +2327,7 @@ html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-signout:hover {
   margin: 0;
   max-width: 34ch;
   font-size: var(--fs-display-sm);
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.025em;
   line-height: 1.2;
   color: var(--ox-text);
@@ -2450,7 +2450,7 @@ html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-signout:hover {
 
 .ask-followup-label {
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-mute);
 }
 
@@ -2466,7 +2466,7 @@ html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-signout:hover {
 .ask-source2 {
   margin: 0;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-amber);
 }
 
@@ -2490,7 +2490,7 @@ html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-signout:hover {
 .ask-no-evidence {
   margin: 0;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-mute);
 }
 
@@ -2517,13 +2517,13 @@ html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-signout:hover {
   border-radius: 999px;
   background: var(--ox-s4);
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text-2);
 }
 
 .ask-ev-title {
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text);
 }
 
@@ -2607,7 +2607,7 @@ html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-signout:hover {
 .os-shell.os-shell-night .copilot-actions-kicker {
   margin: 0;
   font-size: 0.875rem !important;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0 !important;
   text-transform: none !important;
   color: var(--ox-text) !important;
@@ -2623,7 +2623,7 @@ html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-signout:hover {
 .copilot-proposal-label {
   margin: 0;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-amber);
 }
 
@@ -2678,7 +2678,7 @@ html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-signout:hover {
 .os-shell.os-shell-night .copilot-recommend-label {
   margin: 0;
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text);
 }
 
@@ -2707,7 +2707,7 @@ html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-signout:hover {
 .ask-brief-label {
   margin: 0;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-mute);
 }
 
@@ -2758,14 +2758,14 @@ html[data-theme="day"] .os-shell.os-shell-night .mx-menu .mx-signout:hover {
   align-items: baseline;
   gap: 0.5rem;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text);
   white-space: nowrap;
 }
 
 .dsp-day-today {
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-amber);
 }
 
@@ -2797,7 +2797,7 @@ html[data-theme="day"] .os-shell .dsp-date {
 .os-shell.os-shell-night .dsp-h {
   margin: 0;
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text);
 }
 
@@ -2846,7 +2846,7 @@ html[data-theme="day"] .os-shell .dsp-date {
 
 .os-shell.os-shell-night .dsp-decision-title {
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text);
   text-decoration: none;
 }
@@ -2861,7 +2861,7 @@ html[data-theme="day"] .os-shell .dsp-date {
 
 .dsp-decision-why strong {
   color: var(--ox-text-2);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .dsp-decision-why.is-blocked {
@@ -2898,7 +2898,7 @@ html[data-theme="day"] .os-shell .dsp-date {
 
 .os-shell.os-shell-night .dsp-lane-tech {
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text);
 }
 
@@ -2992,7 +2992,7 @@ html[data-theme="day"] .os-shell .dsp-date {
 }
 
 .dsp-block-title {
-  font-weight: 600;
+  font-weight: 500;
 }
 
 /* Blocks are as wide as the job is long, so the title gets two lines before it cuts off. */
@@ -3121,7 +3121,7 @@ html[data-theme="day"] .os-shell .dsp-date {
 
 .os-shell.os-shell-night .dsp-crew-name {
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text);
 }
 
@@ -3195,7 +3195,7 @@ html[data-theme="day"] .os-shell .dsp-date {
 
 .cp-label {
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text);
 }
 
@@ -3279,7 +3279,7 @@ html[data-theme="day"] .os-shell .dsp-date {
 .os-shell.os-shell-night .cp-name {
   margin: 0;
   font-size: 1.0625rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text);
 }
 
@@ -3298,7 +3298,7 @@ html[data-theme="day"] .os-shell .dsp-date {
 .cp-label {
   margin: 0;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text-2);
 }
 
@@ -3320,7 +3320,7 @@ html[data-theme="day"] .os-shell .dsp-date {
 .os-shell.os-shell-night .cp-prop-addr {
   margin: 0;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text);
 }
 
@@ -3373,7 +3373,7 @@ html[data-theme="day"] .os-shell .dsp-date {
 
 .os-shell.os-shell-night .cp-ev-title {
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text);
 }
 
@@ -3408,7 +3408,7 @@ html[data-theme="day"] .os-shell .dsp-date {
 
 .os-shell.os-shell-night .om-value {
   font-size: 1.375rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text);
   font-variant-numeric: tabular-nums;
 }
@@ -3427,7 +3427,7 @@ html[data-theme="day"] .os-shell .dsp-date {
 
 .os-shell.os-shell-night .om-label {
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text-2);
 }
 
@@ -3572,7 +3572,7 @@ html[data-theme="day"] .os-shell .dsp-date {
   padding: 0 0.625rem;
   border-radius: var(--ox-radius-sm);
   color: var(--ox-text);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .os-toast-action {
@@ -3730,7 +3730,7 @@ html[data-theme="day"] .os-shell.os-shell-night :is(.lead-quick-btn,  .lead-quic
   background: #313131;
   color: #e6e6e6;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .os-shell.os-shell-night .mx-ws-check {

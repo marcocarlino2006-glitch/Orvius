@@ -46,13 +46,33 @@ const VIEW_TONE: Record<InboxView, StatusTone> = {
   resolved: "muted",
 };
 
-const EMPTY: Record<Filter, { title: string; body: string }> = {
-  "": { title: "Nothing open", body: "Every request has been booked, closed, or is waiting on the customer." },
-  new: { title: "No new requests", body: "New calls, texts and web requests that haven't become a job land here first." },
-  waiting: { title: "Nobody to wait on", body: "Requests where you've reached out and the customer hasn't answered show up here." },
-  person: { title: "Nothing needs a person", body: "Urgent calls, held calls and customer replies show up here." },
-  resolved: { title: "Nothing resolved yet", body: "Booked and closed requests show up here, each with where it went." },
+const EMPTY: Record<Filter, { title: string }> = {
+  "": { title: "Nothing open" },
+  new: { title: "No new requests" },
+  waiting: { title: "Nobody to wait on" },
+  person: { title: "Nothing needs a person" },
+  resolved: { title: "Nothing resolved yet" },
 };
+
+function emptyInbox(filter: Filter, counts: Record<InboxView, number> | null): { body: string; go: "" | "resolved" | "jobs" } {
+  const open = counts ? counts.new + counts.waiting + counts.person : 0;
+  const resolved = counts?.resolved ?? 0;
+  if (filter === "") {
+    return { body: "Every open request is handled. Booked and closed ones are under Resolved.", go: "resolved" };
+  }
+  if (filter === "resolved") {
+    return open > 0
+      ? { body: "Nothing booked or closed yet. The open requests are under All open.", go: "" }
+      : { body: "Nothing booked or closed yet. A new call lands under All open.", go: "" };
+  }
+  if (open > 0) {
+    return { body: "Nothing in this pile. Everything still open is under All open.", go: "" };
+  }
+  if (resolved > 0) {
+    return { body: "Nothing in this pile. What already closed is under Resolved.", go: "resolved" };
+  }
+  return { body: "A new call or text lands here. The work it becomes is in Jobs.", go: "jobs" };
+}
 
 function ago(iso: string) {
   const minutes = Math.round((Date.now() - new Date(iso).getTime()) / 60_000);
@@ -252,7 +272,7 @@ export default function InboxPage() {
           action={<ProShopLineCta showNumber={false} />}
         />
       ) : !leads.length ? (
-        <ProEmptyState title={EMPTY[filter].title} body={EMPTY[filter].body} />
+        <InboxEmpty filter={filter} counts={counts} onFilter={setFilter} />
       ) : (
         <>
           <div className="dt dt--leads dt--inbox font-sans" role="table" aria-label="Requests">
@@ -273,4 +293,31 @@ export default function InboxPage() {
       )}
     </OsShell>
   );
+}
+
+function InboxEmpty({
+  filter,
+  counts,
+  onFilter,
+}: {
+  filter: Filter;
+  counts: Record<InboxView, number> | null;
+  onFilter: (next: Filter) => void;
+}) {
+  const empty = emptyInbox(filter, counts);
+  const action =
+    empty.go === "jobs" ? (
+      <Link href="/dashboard/jobs" className="btn btn-secondary text-sm">
+        Open Jobs
+      </Link>
+    ) : empty.go === "resolved" ? (
+      <button type="button" className="btn btn-secondary text-sm" onClick={() => onFilter("resolved")}>
+        Resolved
+      </button>
+    ) : (
+      <button type="button" className="btn btn-secondary text-sm" onClick={() => onFilter("")}>
+        All open
+      </button>
+    );
+  return <ProEmptyState title={EMPTY[filter].title} body={empty.body} action={action} />;
 }

@@ -101,7 +101,7 @@
 
 :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .os-ring-status-title {
   font-size: 0.875rem !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   letter-spacing: -0.005em !important;
   color: var(--m-text) !important;
 }
@@ -164,7 +164,7 @@
 
 :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .os-topbar-title {
   font-size: 1rem !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   letter-spacing: -0.01em !important;
   color: var(--m-text) !important;
   text-shadow: none !important;
@@ -201,7 +201,7 @@
 
 :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.cmd-headline) {
   font-size: 1.5rem !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   letter-spacing: -0.02em !important;
   line-height: 1.25 !important;
   color: var(--m-text) !important;
@@ -216,7 +216,7 @@
 
 :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.cmd-section-title,  .cmd-issues-title,  .op-title,  .pro-panel-title,  .cp-name) {
   font-size: 0.875rem !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   letter-spacing: -0.005em !important;
   text-transform: none !important;
   color: var(--m-text) !important;
@@ -234,7 +234,7 @@
 }
 
 :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.ms-cell dd,  .cs-value) {
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   letter-spacing: -0.02em !important;
   text-shadow: none !important;
   color: var(--m-text) !important;
@@ -337,7 +337,7 @@
 
 :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .wc-title {
   font-size: 0.875rem !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   letter-spacing: -0.005em !important;
 }
 
@@ -622,7 +622,7 @@
   box-shadow: none !important;
   background: var(--m-active) !important;
   color: var(--m-text-2) !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
 }
 
 :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.sd-dot,  .op-dot,  .cmd-feed-dot) {
@@ -722,7 +722,7 @@
 
 :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.sc-title,  .sc-plan-name) {
   font-size: 1rem !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   letter-spacing: -0.01em !important;
 }
 
@@ -733,7 +733,7 @@
 
 :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro :is(.account-billing-pay-price,  .ask-intro-title) {
   font-size: 1.875rem !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   letter-spacing: -0.025em !important;
 }
 
@@ -827,7 +827,7 @@
 }
 
 .os-test-banner strong {
-  font-weight: 600;
+  font-weight: 500;
   color: var(--m-text);
 }
 
@@ -841,7 +841,7 @@
   background: var(--m-solid);
   color: var(--m-on-solid) !important;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
   text-decoration: none;
 }
 
@@ -891,7 +891,7 @@
   margin: 0;
   color: var(--ox-text);
   font-size: 1.25rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.015em;
 }
 
@@ -936,7 +936,7 @@
   grid-row: span 2;
   color: var(--ox-green);
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.6;
 }
 
@@ -944,7 +944,7 @@
   margin: 0;
   color: var(--ox-text);
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .os-shell .getpaid-step-body {
@@ -965,7 +965,7 @@
   margin: 0;
   color: var(--ox-text-2);
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .os-shell .getpaid-phone {
@@ -982,7 +982,7 @@
   border-bottom: 1px solid var(--ox-line);
   color: var(--ox-text-2);
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
   text-align: center;
 }
 
@@ -1004,7 +1004,7 @@
   background: var(--ox-text);
   color: var(--ox-bg);
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
   text-align: center;
 }
 
@@ -1065,7 +1065,7 @@
 
 .os-shell .getpaid-math .getpaid-net :is(dt,  dd) {
   color: var(--ox-text);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .os-shell .getpaid-needs {
@@ -1172,7 +1172,7 @@
 .os-shell .plan-exit-title {
   margin: 0;
   font-size: 1.0625rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.01em;
   color: var(--ox-text);
 }
@@ -1217,7 +1217,7 @@
 .os-shell .plan-exit-stats dd {
   margin: 0.2rem 0 0;
   font-size: 1.375rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
   color: var(--ox-text);
@@ -1243,7 +1243,7 @@
 .os-shell .plan-exit-option-title {
   margin: 0;
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text);
 }
 
@@ -1323,7 +1323,7 @@
 .os-shell .plan-paused-title {
   margin: 0;
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text);
 }
 

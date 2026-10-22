@@ -216,7 +216,7 @@
 .cb-oc-headline {
   margin: 0;
   font-size: var(--cr-body);
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text);
 }
 
@@ -503,7 +503,7 @@
   gap: 0.5rem;
   margin: 0 0 0.75rem;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text);
 }
 
@@ -629,7 +629,7 @@
 .sc-authority-title {
   margin: 0 0 0.25rem;
   font-size: var(--cr-label);
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--ox-text);
@@ -650,7 +650,7 @@
 .tm-tech-name {
   margin: 0;
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text);
 }
 
@@ -730,7 +730,7 @@
   gap: 0.5rem;
   margin: 0 0 0.5rem;
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text);
 }
 
@@ -964,7 +964,7 @@
 .rp-v {
   margin: 0.25rem 0;
   font-size: 1.625rem;
-  font-weight: 600;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 .rp-note {
@@ -1019,7 +1019,7 @@
 }
 
 .rp-open-label {
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text);
   text-decoration: none;
   overflow: hidden;
@@ -1032,7 +1032,7 @@ a.rp-open-label:hover {
 }
 
 .rp-open-money {
-  font-weight: 650;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
   color: var(--ox-amber);
 }
@@ -1042,3 +1042,603 @@ a.rp-open-label:hover {
   font-size: 0.75rem;
   color: var(--ox-text-3, var(--ash, #6b6b6b));
 }
+
+/* Job money, technician hours, and the dispatch week. */
+/* Good / Better / Best on the job's Money panel */
+html body .os-shell.os-shell-night .job-money-mode {
+  display: inline-grid;
+  grid-auto-flow: column;
+  gap: 2px;
+  margin-top: 1rem;
+  padding: 3px;
+  border-radius: 0.5rem;
+  background: var(--dp-canvas);
+  box-shadow: var(--dp-press);
+}
+html body .os-shell.os-shell-night .job-money-mode button {
+  padding: 0.4rem 0.8rem;
+  border: 0;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: color-mix(in srgb, var(--os-ink) 62%, transparent);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+html body .os-shell.os-shell-night .job-money-mode button.is-on {
+  background: var(--dp-card);
+  color: var(--os-ink);
+  box-shadow: var(--dp-lift);
+}
+html body .os-shell.os-shell-night .job-money-tiers {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+html body .os-shell.os-shell-night .job-money-tier {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--os-line);
+  border-radius: 0.5rem;
+  background: rgb(255 255 255 / 0.02);
+}
+html body .os-shell.os-shell-night .job-money-tier-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 7.5rem;
+  gap: 0.5rem;
+}
+html body .os-shell.os-shell-night .job-money-options {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+html body .os-shell.os-shell-night .job-money-options > li {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--os-line);
+  border-radius: 0.5rem;
+  background: rgb(255 255 255 / 0.02);
+}
+html body .os-shell.os-shell-night .job-money-options > li.is-chosen {
+  border-color: color-mix(in srgb, var(--ox-amber) 70%, transparent);
+  background: color-mix(in srgb, var(--ox-amber) 9%, transparent);
+}
+html body .os-shell.os-shell-night .job-money-options .btn {
+  justify-self: start;
+}
+.job-money-option-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.job-money-option-name {
+  font-weight: 500;
+  font-size: 0.9375rem;
+}
+.job-money-option-price {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.job-money-option-chosen {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: color-mix(in srgb, var(--ox-amber) 85%, #fff);
+}
+
+/* Technician hours and time off on Dispatch */
+html body .os-shell.os-shell-night .dsp-crew-member {
+  border-bottom: 1px solid var(--os-line);
+  padding-bottom: 0.75rem;
+}
+html body .os-shell.os-shell-night .dsp-crew-member > .dsp-crew-row {
+  border-bottom: 0;
+}
+.tse {
+  margin-top: 0.25rem;
+}
+.tse-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  width: fit-content;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: color-mix(in srgb, var(--os-ink) 82%, transparent);
+}
+.tse-summary-meta {
+  font-weight: 500;
+  color: color-mix(in srgb, var(--os-ink) 52%, transparent);
+}
+.tse-body {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr));
+  gap: 1rem 1.5rem;
+  margin-top: 0.75rem;
+}
+.tse-block {
+  display: grid;
+  align-content: start;
+  gap: 0.6rem;
+}
+.tse-block > .ox-btn {
+  justify-self: start;
+}
+html body .os-shell.os-shell-night .tse-mode {
+  display: inline-grid;
+  grid-auto-flow: column;
+  justify-self: start;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 0.5rem;
+  background: var(--dp-canvas);
+  box-shadow: var(--dp-press);
+}
+html body .os-shell.os-shell-night .tse-mode button {
+  padding: 0.35rem 0.75rem;
+  border: 0;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: color-mix(in srgb, var(--os-ink) 62%, transparent);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+html body .os-shell.os-shell-night .tse-mode button.is-on {
+  background: var(--dp-card);
+  color: var(--os-ink);
+  box-shadow: var(--dp-lift);
+}
+.tse-days {
+  display: grid;
+  gap: 0.3rem;
+}
+.tse-day {
+  display: grid;
+  grid-template-columns: 7.5rem 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.25rem;
+}
+.tse-day-name {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+.tse-day-times {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: color-mix(in srgb, var(--os-ink) 50%, transparent);
+}
+.tse-day-times .input {
+  width: 8.5rem;
+  padding-block: 0.3rem;
+}
+.tse-day-off,
+.tse-note {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: color-mix(in srgb, var(--os-ink) 50%, transparent);
+}
+.tse-day.is-off .tse-day-name {
+  color: color-mix(in srgb, var(--os-ink) 55%, transparent);
+}
+.tse-label,
+.tse-field {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: color-mix(in srgb, var(--os-ink) 60%, transparent);
+}
+.tse-off-list {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tse-off-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--os-line);
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+}
+.tse-add {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  align-items: end;
+}
+.tse-add label {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+.tse-add label .input {
+  width: 100%;
+  min-width: 0;
+}
+@media (max-width: 480px) {
+  .tse-day {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+  .tse-day-times .input {
+    width: auto;
+    flex: 1 1 0;
+    min-width: 0;
+  }
+}
+.tse-add .tse-reason {
+  grid-column: 1 / -1;
+}
+.tse-add > .ox-btn {
+  justify-self: start;
+}
+.tse-affected {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--ox-amber) 55%, transparent);
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--ox-amber) 9%, transparent);
+  font-size: 0.8125rem;
+}
+.tse-affected p {
+  margin: 0 0 0.35rem;
+}
+.tse-affected ul {
+  margin: 0;
+  padding-left: 1rem;
+}
+.tse-affected a {
+  color: inherit;
+  text-decoration: underline;
+}
+html body .os-shell.os-shell-night .dsp-lane-off {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--ox-amber);
+}
+html body .os-shell.os-shell-night .dsp-lane.is-off .dsp-track {
+  background: repeating-linear-gradient(135deg, rgb(255 255 255 / 0.025) 0 8px, transparent 8px 16px) !important;
+}
+
+/* A shop whose access ended: one quiet line above its own Command, not a wall. */
+html body .os-shell.os-shell-night .cmd-lockbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding: 0.7rem 0.75rem 0.7rem 1rem;
+  border: 1px solid var(--os-line);
+  border-radius: 0.75rem;
+  background: var(--dp-card);
+}
+html body .os-shell.os-shell-night .cmd-lockbar-text {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--os-ink);
+  opacity: 0.8;
+}
+html body .os-shell.os-shell-night .cmd-lockbar-text strong {
+  font-weight: 500;
+  opacity: 1;
+}
+
+/* Dispatch week view */
+html body .os-shell.os-shell-night .dwk-mode {
+  display: inline-grid;
+  grid-auto-flow: column;
+  gap: 2px;
+  padding: 3px;
+  margin-right: 0.5rem;
+  border-radius: 0.5rem;
+  background: var(--dp-canvas);
+  box-shadow: var(--dp-press);
+}
+html body .os-shell.os-shell-night .dwk-mode button {
+  padding: 0.35rem 0.85rem;
+  border: 0;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: color-mix(in srgb, var(--os-ink) 62%, transparent);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+html body .os-shell.os-shell-night .dwk-mode button.is-on {
+  background: var(--dp-card);
+  color: var(--os-ink);
+  box-shadow: var(--dp-lift);
+}
+.dwk-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.85rem;
+}
+.dwk-range {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+.dwk-range-meta,
+.dwk-loading,
+.dwk-help {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: color-mix(in srgb, var(--os-ink) 52%, transparent);
+}
+.dwk-help {
+  margin: 0.75rem 0 0;
+}
+html body .os-shell.os-shell-night .dwk-grid {
+  display: grid;
+  gap: 0;
+  overflow-x: auto;
+  border: 1px solid var(--os-line);
+  border-radius: 0.5rem;
+  background: var(--dp-card);
+  box-shadow: var(--dp-lift);
+}
+.dwk-row {
+  display: grid;
+  grid-template-columns: 9rem repeat(7, minmax(7.5rem, 1fr));
+  min-width: 62rem;
+}
+.dwk-row + .dwk-row {
+  border-top: 1px solid var(--os-line);
+}
+.dwk-name {
+  display: flex;
+  align-items: flex-start;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+html body .os-shell.os-shell-night .dwk-day {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.6rem 0.65rem;
+  border: 0;
+  border-left: 1px solid var(--os-line);
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+html body .os-shell.os-shell-night .dwk-day:hover {
+  background: rgb(255 255 255 / 0.03);
+}
+.dwk-day-name {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: color-mix(in srgb, var(--os-ink) 55%, transparent);
+}
+.dwk-day-date {
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+.dwk-day-count {
+  font-size: 0.75rem;
+  color: color-mix(in srgb, var(--os-ink) 50%, transparent);
+}
+html body .os-shell.os-shell-night .dwk-day.is-today .dwk-day-name {
+  color: var(--ox-amber);
+}
+.dwk-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-height: 4.25rem;
+  padding: 0.45rem;
+  border-left: 1px solid var(--os-line);
+}
+.dwk-cell.is-today {
+  background: rgb(217 146 90 / 0.035);
+}
+.dwk-cell.is-off {
+  background: repeating-linear-gradient(135deg, rgb(255 255 255 / 0.025) 0 8px, transparent 8px 16px);
+}
+.dwk-cell.is-drop {
+  outline: 2px dashed color-mix(in srgb, var(--ox-amber) 75%, transparent);
+  outline-offset: -3px;
+}
+.dwk-cell.is-refuse {
+  outline: 2px dashed rgb(240 112 102 / 0.7);
+  outline-offset: -3px;
+}
+.dwk-off {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--ox-amber);
+}
+html body .os-shell.os-shell-night .dwk-chip {
+  display: grid;
+  gap: 0.05rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--os-line);
+  border-left: 3px solid var(--ox-amber);
+  border-radius: 0.25rem;
+  background: rgb(255 255 255 / 0.04);
+  color: var(--os-ink);
+  text-decoration: none;
+  cursor: grab;
+}
+html body .os-shell.os-shell-night .dwk-chip:hover {
+  background: rgb(255 255 255 / 0.07);
+}
+html body .os-shell.os-shell-night .dwk-chip.is-unassigned {
+  border-left-color: color-mix(in srgb, var(--os-ink) 35%, transparent);
+  border-style: dashed solid dashed solid;
+}
+html body .os-shell.os-shell-night .dwk-chip.is-conflict {
+  border-color: rgb(240 112 102 / 0.65);
+  border-left-color: var(--ox-red);
+  background: rgb(240 112 102 / 0.08);
+}
+html body .os-shell.os-shell-night .dwk-chip.is-urgent {
+  border-left-color: var(--ox-red);
+}
+.dwk-chip-time {
+  font-size: 0.75rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, var(--os-ink) 60%, transparent);
+}
+.dwk-chip-title {
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.3;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+
+/* Sentence case, record pages, transcript, billing summary. */
+html .os-shell.os-shell-night :is(
+  .pro-panel-title,
+  .wp-owner-label,
+  .jf-label,
+  .transcript-cinema-speaker,
+  .transcript-cinema-kicker,
+  .transcript-cinema-foot,
+  .transcript-cinema-live,
+  .lead-status-actions-label,
+  .job-money-share-label,
+  .book-request-note,
+  .cb-plan-kicker,
+  .copilot-actions-kicker,
+  .today-priority-kicker,
+  .account-billing-pay-kicker,
+  .pay-prompt-kicker,
+  .plan-upgrade-gate-kicker,
+  .shop-operate-banner-kicker,
+  .os-palette-group-label,
+  .assign-tech-empty) {
+  text-transform: none;
+  letter-spacing: 0;
+}
+/* The two-column record pages: room between cards. */
+html .os-shell.os-shell-night :is(.os-detail-primary,  .os-detail-side) {
+  gap: 1rem;
+}
+
+html .os-shell.os-shell-night .os-detail-grid {
+  gap: 1rem;
+}
+
+@media (min-width: 1024px) {
+  html .os-shell.os-shell-night .os-detail-grid {
+    gap: 1.25rem;
+  }
+}
+
+/* A record's own label row: quiet, sentence case, aligned with the facts. */
+html .os-shell.os-shell-night .wp-owner-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--ox-mute);
+}
+
+html .os-shell.os-shell-night .jf-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--ox-text-2);
+}
+
+/* Transcript: a panel like the rest; who spoke is a small label, what they said is readable. */
+html .os-shell.os-shell-night .transcript-cinema-head {
+  padding: 1rem 1.25rem 0 !important;
+  border-bottom: 0 !important;
+  background: none !important;
+}
+
+html .os-shell.os-shell-night .transcript-cinema-kicker {
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  color: var(--ox-text) !important;
+}
+
+html .os-shell.os-shell-night .transcript-cinema-body {
+  padding: 0.75rem 1.25rem 1.25rem !important;
+  max-height: 28rem !important;
+}
+
+html .os-shell.os-shell-night .transcript-cinema-speaker {
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+  color: var(--ox-mute) !important;
+}
+
+html .os-shell.os-shell-night .transcript-cinema-line {
+  margin-top: 0.75rem !important;
+  font-size: 0.875rem !important;
+  line-height: 1.6 !important;
+  color: var(--ox-text) !important;
+}
+
+html .os-shell.os-shell-night .transcript-cinema-line-ai {
+  color: var(--ox-text-2) !important;
+}
+
+html .os-shell.os-shell-night .transcript-cinema-foot {
+  padding: 0.75rem 1.25rem !important;
+  border-top: 1px solid var(--ox-line) !important;
+  background: none !important;
+}
+
+/* Page title: one size, tight, with the subtitle close under it. */
+html .os-shell.os-shell-night .os-topbar-title {
+  font-size: 1.375rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+html .os-shell.os-shell-night .os-topbar-sub {
+  margin-top: 0.125rem;
+  font-size: 0.875rem;
+  color: var(--ox-mute);
+}
+
+/* Tables and lists: hairline rows, no zebra. */
+html .os-shell.os-shell-night :is(.wh-event,  .jf-lines td) {
+  border-color: var(--ox-line);
+}
+
+html .os-shell.os-shell-night .sc-plan-name{color:var(--ox-text)!important}
+html .os-shell.os-shell-night .billing-settings > .billing-summary.billing-summary{display:grid!important;gap:1rem!important;padding:1.25rem!important;border:1px solid var(--ox-line)!important;border-radius:var(--ox-radius)!important;background:var(--ox-s2)!important}
+html .os-shell.os-shell-night .billing-summary .sc-plan{margin:0!important;padding:0!important;border:0!important;background:none!important}
+html .os-shell.os-shell-night .billing-summary .sc-plan-kicker{font-size:0.75rem!important;color:var(--ox-mute)!important}
+html .os-shell.os-shell-night .billing-summary .sc-plan-name{font-size:1.125rem!important;font-weight: 500!important}
+html .os-shell.os-shell-night .billing-summary .billing-usage{margin:0!important;padding-top:1rem!important;border-top:1px solid var(--ox-line)!important}
+html .os-shell.os-shell-night .billing-summary .billing-usage-line{color:var(--ox-text)!important;font-size:0.875rem!important}
+html .os-shell.os-shell-night .billing-summary .billing-usage-meter{width:100%!important;max-width:none!important}
+html .os-shell.os-shell-night .billing-summary .billing-value-line{margin:0!important;color:var(--ox-text-2)!important;font-size:0.875rem!important}
+html .os-shell.os-shell-night .job-money:empty{display:none!important}
+html .os-shell.os-shell-night .job-money:empty + .job-bill{margin-top:0!important;padding-top:0!important;border-top:0!important}

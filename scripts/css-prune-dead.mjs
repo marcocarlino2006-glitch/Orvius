@@ -20,7 +20,6 @@ const FILES = [
   "src/app/globals.css",
   "src/app/dashboard/dashboard.css",
   "src/app/dashboard/orvius-system.css",
-  "src/app/dashboard/orvius-scale.css",
 ];
 
 const report = execFileSync("node", ["scripts/css-usage.mjs"], {
