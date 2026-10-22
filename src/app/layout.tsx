@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Inter } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import { AuthSessionProvider } from "@/components/auth-session-provider";
 import { CookieConsent } from "@/components/cookie-consent";
 import { company } from "@/lib/company";
@@ -13,20 +13,21 @@ import "./public-surfaces.css";
 import "./ask-dialog.css";
 
 /**
- * One face everywhere: Inter for the site, the product and every number in it
- * (tabular figures keep columns aligned). Plex Mono is kept for code and keys only.
+ * One face everywhere: Geist for the site, the product and every number in it
+ * (tabular figures keep columns aligned). Geist Mono is for code and keys only.
  */
-const sans = Inter({
+const sans = Geist({
   variable: "--font-sans",
   subsets: ["latin"],
+  weight: "variable",
   display: "swap",
 });
 
 /* Code and keyboard keys only. */
-const mono = IBM_Plex_Mono({
+const mono = Geist_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: "variable",
   display: "swap",
 });
 

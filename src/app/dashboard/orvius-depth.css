@@ -641,12 +641,12 @@ html body .os-shell.os-shell-night .dwk-chip.is-urgent {
 }
 
 /*
-  Institution: cream paper, no cards, hairlines, ink actions.
-  Chase/Amex/Mercury — content sits on the canvas, not in a warehouse of boxes.
+  The public paper, no cards, hairlines, ink actions.
+  Content sits on the canvas, not in a warehouse of boxes.
 */
 html[data-theme="day"] body .os-shell.os-shell-night {
-  --dp-canvas: #f4f1e8;
-  --dp-side: #f4f1e8;
+  --dp-canvas: #f7f7f4;
+  --dp-side: #f7f7f4;
   --dp-card: transparent;
   --dp-card-top: transparent;
   --dp-well: transparent;
@@ -655,24 +655,24 @@ html[data-theme="day"] body .os-shell.os-shell-night {
   --dp-lift: none;
   --dp-press: none;
   --dp-copper: #9a4a12;
-  --ox-bg: #f4f1e8;
-  --ox-s1: #f4f1e8;
-  --ox-s2: #f4f1e8;
+  --ox-bg: #f7f7f4;
+  --ox-s1: #f7f7f4;
+  --ox-s2: #f7f7f4;
   --ox-s3: #ebe6db;
   --ox-s4: #e4dfd4;
   --ox-line: #e4dfd4;
   --ox-line-strong: #d4cec2;
-  --ox-text: #161513;
+  --ox-text: #26251e;
   --ox-text-2: #3f3c36;
   --ox-mute: #6b675f;
-  --ox-panel: #f4f1e8;
-  --ox-rail: #f4f1e8;
+  --ox-panel: #f7f7f4;
+  --ox-rail: #f7f7f4;
   --ox-fill: rgb(22 21 19 / 0.05);
   --ox-fill-hover: rgb(22 21 19 / 0.08);
   --ox-fill-light: rgb(22 21 19 / 0.03);
-  --ox-btn-fill: #161513;
+  --ox-btn-fill: #26251e;
   --ox-btn-fill-hi: #000;
-  --ox-btn-on-fill: #f4f1e8;
+  --ox-btn-on-fill: #f7f7f4;
   --ox-btn-hover: rgb(22 21 19 / 0.05);
   --ox-radius: 0.25rem;
   --ox-radius-sm: 0.1875rem;

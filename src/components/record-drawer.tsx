@@ -14,6 +14,7 @@ import {
   type DragEventHandler,
   type ReactNode,
 } from "react";
+import { askForMissing } from "@/lib/inbox-state";
 import type { RecordType, RecordView } from "@/lib/record-types";
 import { CHECKING, runCheckedWrite } from "@/lib/checked-write";
 import { sendWrite } from "@/lib/client-write";
@@ -219,6 +220,14 @@ function RecordBody({
 }) {
   const captured = record.captured.filter((f) => f.value);
   const missing = record.captured.filter((f) => !f.value && f.label !== "Scheduled" && f.label !== "Email");
+  const ask = askForMissing(
+    missing.map((field) => {
+      const word = field.label.toLowerCase();
+      if (word === "phone" || word === "callback") return "callback number";
+      if (word === "service" || word === "problem" || word.includes("need")) return "what they need";
+      return word;
+    }),
+  );
 
   return (
     <>
@@ -298,12 +307,10 @@ function RecordBody({
               </div>
             ))}
           </dl>
-        ) : (
-          <p className="rd-meta">Nothing structured was captured.</p>
+        ) : ask ? null : (
+          <p className="rd-meta">Nothing was written down yet.</p>
         )}
-        {missing.length ? (
-          <p className="rd-missing">Missing: {missing.map((f) => f.label.toLowerCase()).join(", ")}</p>
-        ) : null}
+        {ask ? <p className="rd-missing">{ask}</p> : null}
       </section>
 
       {record.type === "lead" ? <LeadMoreActions record={record} /> : null}

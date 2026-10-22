@@ -16,7 +16,7 @@
   min-height: 100dvh;
   background: var(--ton-bg);
   color: var(--ton-ink);
-  font-family: var(--font-sans, Inter, system-ui, sans-serif);
+  font-family: var(--font-sans, Geist, system-ui, sans-serif);
   -webkit-font-smoothing: antialiased;
   display: flex;
   flex-direction: column;

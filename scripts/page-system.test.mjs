@@ -9,7 +9,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import { jobLifecycle } from "../src/lib/job-lifecycle.ts";
-import { inboxFacts } from "../src/lib/inbox-state.ts";
+import { askForMissing, inboxFacts } from "../src/lib/inbox-state.ts";
 import { callOutcome } from "../src/lib/call-outcome.ts";
 import { previewMove } from "../src/lib/schedule-move.ts";
 import { aiAuthority } from "../src/lib/ai-authority.ts";
@@ -62,6 +62,10 @@ test("each request sits in exactly one inbox view, with what's missing named", (
   assert.equal(inboxFacts(lead({ job: { id: "j1", status: "scheduled" } })).view, "resolved");
   assert.equal(inboxFacts(lead({ status: "lost" })).view, "resolved");
   assert.ok(inboxFacts(lead({ address: null })).missing.length > 0);
+  assert.equal(inboxFacts(lead()).reason, "Ready to book");
+  assert.equal(inboxFacts(lead({ name: null, address: null })).reason, "Ask for a name and an address.");
+  assert.equal(askForMissing(["name", "address", "what they need"]), "Ask for a name, an address, and what they need.");
+  assert.equal(askForMissing(["callback number"]), null);
 });
 
 test("call outcomes: safety wins, transfers come from the end reason, short calls are incomplete", () => {
