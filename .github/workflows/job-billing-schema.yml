@@ -1,18 +1,25 @@
 name: JobBilling schema
 
-# By hand, after this commit is the production deployment. Backs up through
-# the app (the encrypted bytes are the artifact), restore-drills them there,
-# then creates the JobBilling table. The database URL stays on the host.
+# By hand, or when a merge from cursor/apply-job-billing-10f0 reaches main.
+# Backs up through the app (the encrypted bytes are the artifact), restore-drills
+# them there, then creates the JobBilling table. The database URL stays on the host.
+# A later edit of this file does not run the step unless the merge message names
+# that branch, or someone starts it by hand.
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/job-billing-schema.yml
 
 permissions:
   contents: read
 
 jobs:
   apply:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, 'apply-job-billing')
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     env:
       CRON_SECRET: ${{ secrets.CRON_SECRET }}
       DRAIN_TARGET_URL: https://orvius.im
