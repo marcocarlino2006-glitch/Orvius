@@ -142,7 +142,7 @@ html body .os-shell.os-shell-night .wc-tag {
 /* ── Headline numbers carry weight ─────────────────────────────────────── */
 
 html body .os-shell.os-shell-night :is(.ms-cell dd) {
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   letter-spacing: -0.02em !important;
   font-variant-numeric: tabular-nums;
 }
@@ -183,7 +183,7 @@ html body .os-shell.os-shell-night .job-money-mode button {
   background: transparent;
   color: color-mix(in srgb, var(--os-ink) 62%, transparent);
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
 }
 html body .os-shell.os-shell-night .job-money-mode button.is-on {
@@ -239,17 +239,17 @@ html body .os-shell.os-shell-night .job-money-options .btn {
   gap: 0.75rem;
 }
 .job-money-option-name {
-  font-weight: 600;
+  font-weight: 500;
   font-size: 0.9375rem;
 }
 .job-money-option-price {
-  font-weight: 600;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 .job-money-option-chosen {
   margin: 0;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
   color: color-mix(in srgb, #c4783a 85%, #fff);
@@ -273,7 +273,7 @@ html body .os-shell.os-shell-night .dsp-crew-member > .dsp-crew-row {
   width: fit-content;
   cursor: pointer;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
   color: color-mix(in srgb, var(--os-ink) 82%, transparent);
 }
 .tse-summary-meta {
@@ -311,7 +311,7 @@ html body .os-shell.os-shell-night .tse-mode button {
   background: transparent;
   color: color-mix(in srgb, var(--os-ink) 62%, transparent);
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
 }
 html body .os-shell.os-shell-night .tse-mode button.is-on {
@@ -361,7 +361,7 @@ html body .os-shell.os-shell-night .tse-mode button.is-on {
 .tse-field {
   margin: 0;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   color: color-mix(in srgb, var(--os-ink) 60%, transparent);
 }
 .tse-off-list {
@@ -434,7 +434,7 @@ html body .os-shell.os-shell-night .tse-mode button.is-on {
 html body .os-shell.os-shell-night .dsp-lane-off {
   display: block;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   color: #e0a24a;
 }
 html body .os-shell.os-shell-night .dsp-lane.is-off .dsp-track {
@@ -460,7 +460,7 @@ html body .os-shell.os-shell-night .cmd-lockbar-text {
   opacity: 0.8;
 }
 html body .os-shell.os-shell-night .cmd-lockbar-text strong {
-  font-weight: 600;
+  font-weight: 500;
   opacity: 1;
 }
 
@@ -482,7 +482,7 @@ html body .os-shell.os-shell-night .dwk-mode button {
   background: transparent;
   color: color-mix(in srgb, var(--os-ink) 62%, transparent);
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
 }
 html body .os-shell.os-shell-night .dwk-mode button.is-on {
@@ -502,7 +502,7 @@ html body .os-shell.os-shell-night .dwk-mode button.is-on {
   align-items: baseline;
   gap: 0.6rem;
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 .dwk-range-meta,
 .dwk-loading,
@@ -536,7 +536,7 @@ html body .os-shell.os-shell-night .dwk-grid {
   align-items: flex-start;
   padding: 0.65rem 0.75rem;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 html body .os-shell.os-shell-night .dwk-day {
   display: grid;
@@ -554,14 +554,14 @@ html body .os-shell.os-shell-night .dwk-day:hover {
 }
 .dwk-day-name {
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
   color: color-mix(in srgb, var(--os-ink) 55%, transparent);
 }
 .dwk-day-date {
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 .dwk-day-count {
   font-size: 0.75rem;
@@ -594,7 +594,7 @@ html body .os-shell.os-shell-night .dwk-day.is-today .dwk-day-name {
 }
 .dwk-off {
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   color: #e0a24a;
 }
 html body .os-shell.os-shell-night .dwk-chip {
@@ -626,13 +626,13 @@ html body .os-shell.os-shell-night .dwk-chip.is-urgent {
 }
 .dwk-chip-time {
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
   color: color-mix(in srgb, var(--os-ink) 60%, transparent);
 }
 .dwk-chip-title {
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.3;
   overflow: hidden;
   display: -webkit-box;
@@ -699,7 +699,7 @@ html[data-theme="day"] body .os-shell.os-shell-night .os-nav-link[aria-current="
 html[data-theme="day"] body .os-shell.os-shell-night .os-nav-link-active {
   background: transparent !important;
   box-shadow: none !important;
-  font-weight: 650 !important;
+  font-weight: 500 !important;
   color: var(--ox-text) !important;
 }
 html[data-theme="day"] body .os-shell.os-shell-night .os-nav-link:hover {
@@ -743,14 +743,14 @@ html[data-theme="day"] body .os-shell.os-shell-night .pro-panel--dense .pro-pane
 html[data-theme="day"] body .os-shell.os-shell-night .pro-panel-title,
 html[data-theme="day"] body .os-shell.os-shell-night .rec-title {
   font-size: 0.8125rem !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   letter-spacing: 0.02em !important;
   color: var(--ox-mute) !important;
 }
 
 html[data-theme="day"] body .os-shell.os-shell-night .cmd-headline {
   font-size: 2rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.035em;
 }
 html[data-theme="day"] body .os-shell.os-shell-night .cmd-head {
@@ -759,7 +759,7 @@ html[data-theme="day"] body .os-shell.os-shell-night .cmd-head {
 }
 html[data-theme="day"] body .os-shell.os-shell-night .os-topbar-title {
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.03em;
 }
 html[data-theme="day"] body .os-shell.os-shell-night .wc-list {
@@ -783,7 +783,7 @@ html[data-theme="day"] body .os-shell.os-shell-night .wc-list .wc-head {
 }
 html[data-theme="day"] body .os-shell.os-shell-night .wc-list .wc-title {
   font-size: 1.0625rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 html[data-theme="day"] body .os-shell.os-shell-night .wc-list .wc-when {
   font-size: 0.875rem;
@@ -860,7 +860,7 @@ html[data-theme="day"] body .os-shell.os-shell-night .cc-rail .cs-card {
 }
 html[data-theme="day"] body .os-shell.os-shell-night .cc-rail .cs-value {
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
 }

@@ -223,7 +223,7 @@ button,
   /* SpaceX mission label */
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: var(--tracking-mission);
   text-transform: none;
   color: var(--ash);
@@ -274,12 +274,12 @@ h2,
 h3 {
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
   letter-spacing: var(--tracking-snug);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .eyebrow {
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
   color: var(--ash);
@@ -374,7 +374,7 @@ h3 {
   display: block;
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
   color: var(--ash);
@@ -551,7 +551,7 @@ h3 {
 .legal-prose h2 {
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 1.125rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.01em;
   color: var(--void);
   margin-bottom: 0.75rem;
@@ -587,7 +587,7 @@ h3 {
 
 .legal-prose strong {
   color: var(--void);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .legal-prose .status-list {
@@ -663,7 +663,7 @@ h3 {
 .home-os-kicker {
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
   color: var(--ash);
@@ -677,7 +677,7 @@ h3 {
   padding-block: 0.3125rem;
   margin-block: -0.3125rem;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--void);
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -747,7 +747,7 @@ h3 {
 }
 .call-demo-copy {
   font-size: var(--text-caption);
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: var(--tracking-wide);
   text-transform: none;
   color: var(--ash-soft);
@@ -768,12 +768,12 @@ h3 {
 
 /* Platform rings */
 .home-platform-kicker {
-  font-size: 0.75rem; font-weight: 600;
+  font-size: 0.75rem; font-weight: 500;
   letter-spacing: 0; text-transform: none;
   color: var(--signal-dim);
 }
 .home-platform-link {
-  font-size: 0.875rem; font-weight: 600;
+  font-size: 0.875rem; font-weight: 500;
   color: var(--void); text-decoration: underline;
   text-underline-offset: 3px;
   text-decoration-color: color-mix(in srgb, var(--void) 28%, transparent);
@@ -865,7 +865,7 @@ h3 {
 .pro-list-end-text {
   flex: none;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
   color: var(--ash);
@@ -880,7 +880,7 @@ h3 {
 
 .pro-empty-state-title {
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   color: var(--void);
 }
@@ -956,14 +956,14 @@ h3 {
 
 .pro-list-item-title {
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--void);
 }
 
 .pro-list-item-meta {
   flex-shrink: 0;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
   color: var(--ash);
@@ -980,7 +980,7 @@ h3 {
 
 .pro-section-kicker {
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
   color: var(--signal-dim);
@@ -1016,7 +1016,7 @@ h3 {
 .pro-economics-grid dd {
   margin: 0.15rem 0 0;
   font-size: 1.125rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--void);
   letter-spacing: -0.02em;
 }
@@ -1050,7 +1050,7 @@ h3 {
   align-items: center;
   gap: 0.45rem;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
   color: var(--signal-dim);
@@ -1212,7 +1212,7 @@ h3 {
 
 .shop-preview-card-title {
   font-size: 1.125rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .shop-preview-card-lines {
@@ -1391,7 +1391,7 @@ h3 {
 .pricing-needs-option-label {
   display: block;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--void);
 }
 
@@ -1414,7 +1414,7 @@ h3 {
 .pricing-needs-result-kicker {
   margin: 0;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
   color: var(--ash);
@@ -1423,7 +1423,7 @@ h3 {
 .pricing-needs-result-plan {
   margin: 0.25rem 0 0;
   font-size: 1.125rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--void);
 }
 
@@ -1467,7 +1467,7 @@ h3 {
   border-radius: 999px;
   background: transparent;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ash);
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
@@ -1485,7 +1485,7 @@ h3 {
 
 .pricing-billing-save {
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
   color: var(--signal);
@@ -1538,7 +1538,7 @@ h3 {
 
 .pricing-wizard-step-active {
   color: var(--void);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .pricing-wizard-step-done {
@@ -1554,7 +1554,7 @@ h3 {
 .pricing-wizard-legend {
   margin-bottom: 0.625rem;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--void);
 }
 
@@ -1627,12 +1627,12 @@ h3 {
 .pricing-matrix-feature-col {
   width: 40%;
   text-align: left !important;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--void);
 }
 
 .pricing-matrix-plan-col {
-  font-weight: 600;
+  font-weight: 500;
   color: var(--void);
   white-space: nowrap;
 }
@@ -1640,7 +1640,7 @@ h3 {
 .pricing-matrix-category-row th {
   text-align: left !important;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
   color: var(--ash);
@@ -1659,7 +1659,7 @@ h3 {
 
 .pricing-matrix-yes {
   color: var(--signal);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .pricing-matrix-no {
@@ -1668,7 +1668,7 @@ h3 {
 
 .pricing-matrix-text {
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--void);
 }
 
@@ -1714,7 +1714,7 @@ h3 {
   background: none;
   text-align: left;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--void);
   cursor: pointer;
   transition: background 0.15s;
@@ -1773,7 +1773,7 @@ h3 {
   font-size: var(--fs-display-lg);
   line-height: 1;
   letter-spacing: -0.04em;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--void);
 }
 
@@ -1873,7 +1873,7 @@ h3 {
   padding: 0.2rem 0.5rem;
   border-radius: 0.25rem;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
   white-space: nowrap;
@@ -2043,7 +2043,7 @@ h3 {
   font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
   /* Nav labels — Archivo, tracked quiet */
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
 }
@@ -2140,7 +2140,7 @@ h3 {
 .mkt-nav-login {
   font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
   color: color-mix(in srgb, var(--void) 62%, transparent);
@@ -2160,7 +2160,7 @@ h3 {
   min-height: 2.5rem !important;
   padding: 0.65rem 1.35rem !important;
   font-size: 0.75rem !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   letter-spacing: 0 !important;
   text-transform: none !important;
   border-radius: 2rem !important;
@@ -2270,7 +2270,7 @@ h3 {
 .mkt-kicker {
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
   color: var(--ash);
@@ -2320,7 +2320,7 @@ h3 {
 .mkt-section-title {
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: var(--fs-display-md);
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.1;
   letter-spacing: -0.035em;
   text-transform: none;
@@ -2359,7 +2359,7 @@ h3 {
 .mkt-proof-title {
   margin: 0.65rem 0 0;
   font-size: 1.125rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.02em;
   line-height: 1.3;
   color: var(--void);
@@ -2417,7 +2417,7 @@ h3 {
   border-radius: 0.25rem;
   padding: 0.4rem 0.85rem;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   background: #fff;
   color: var(--void);
 }
@@ -2429,7 +2429,7 @@ h3 {
 .mkt-manifesto-kicker {
   margin: 0 0 1rem;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
   color: color-mix(in srgb, var(--signal) 85%, #fff);
@@ -2459,7 +2459,7 @@ h3 {
   margin: 0;
   font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
   font-size: var(--fs-display-sm);
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.15;
   letter-spacing: -0.015em;
   color: var(--ox-day-ink, #f6f6f6);
@@ -2531,7 +2531,7 @@ h3 {
 .public-money-shop {
   margin: 0 0 0.5rem;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
   color: color-mix(in srgb, #c4783a 90%, #fff);
@@ -2541,14 +2541,14 @@ h3 {
   margin: 0;
   font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
   font-size: var(--fs-display-md);
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.1;
 }
 
 .public-money-amount {
   margin: 1.25rem 0 0;
   font-size: 2rem;
-  font-weight: 600;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 
@@ -2576,7 +2576,7 @@ h3 {
 
 .public-money-ok {
   color: #6ee7b7;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .public-money-fine {
@@ -2620,12 +2620,12 @@ h3 {
 
 .public-option-name {
   font-size: 1.125rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .public-option-price {
   font-size: 1.25rem;
-  font-weight: 600;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 
@@ -2644,7 +2644,7 @@ h3 {
 .public-money-shop {
   margin: 0 0 0.5rem;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
   color: color-mix(in srgb, #c4783a 90%, #fff);
@@ -2654,14 +2654,14 @@ h3 {
   margin: 0;
   font-family: var(--font-brand), var(--font-sans), system-ui, sans-serif;
   font-size: var(--fs-display-md);
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.1;
 }
 
 .public-money-amount {
   margin: 1.25rem 0 0;
   font-size: 2rem;
-  font-weight: 600;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 
@@ -2687,7 +2687,7 @@ h3 {
 
 .public-money-ok {
   color: #6ee7b7;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .public-money-fine {
@@ -2715,7 +2715,7 @@ h3 {
 
 .mkt-kicker {
   font-size: 0.75rem !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   letter-spacing: var(--tracking-mission) !important;
   text-transform: none !important;
 }
@@ -2745,7 +2745,7 @@ button.btn {
   font-family: var(--font-sans), system-ui, sans-serif !important;
   text-transform: none !important;
   letter-spacing: 0 !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
 }
 
 .mkt-nav-cta {
@@ -2862,7 +2862,7 @@ button.btn {
 .mkt-nav--institution .mkt-nav-links a {
   font-size: 0.75rem;
   letter-spacing: 0;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .mkt-nav--institution.mkt-nav--elevated {
@@ -2942,7 +2942,7 @@ button.btn {
 .mkt-footer-heading {
   margin: 0 0 0.35rem;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
   color: #f1f1f1;
@@ -3073,7 +3073,7 @@ label:has(> input[type="radio"]) {
 .mkt-proof-title,
 .type-headline {
   font-family: var(--font-sans), system-ui, sans-serif !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   letter-spacing: -0.028em !important;
   text-transform: none !important;
 }
@@ -3105,7 +3105,7 @@ label:has(> input[type="radio"]) {
 .mkt-manifesto-kicker {
   letter-spacing: 0 !important;
   text-transform: none !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
 }
 
 /* Template / surface boxes — identical material language */
@@ -3118,7 +3118,7 @@ label:has(> input[type="radio"]) {
   background: #fff !important;
   box-shadow: none !important;
   font-family: var(--font-sans), system-ui, sans-serif !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   min-height: 3rem;
 }
 
@@ -3174,7 +3174,7 @@ label:has(> input[type="radio"]) {
 .os-shell .inst-btn {
   border-radius: var(--radius-cta, var(--radius-md)) !important;
   font-family: var(--font-sans), system-ui, sans-serif !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   letter-spacing: 0 !important;
 }
 
@@ -3242,7 +3242,7 @@ label:has(> input[type="radio"]) {
   font-size: 0.75rem !important;
   letter-spacing: 0;
   text-transform: none;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .os-shell-pro .status-pill,
@@ -3400,7 +3400,7 @@ label:has(> input[type="radio"]) {
   text-decoration: none;
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
 }
@@ -3539,7 +3539,7 @@ label:has(> input[type="radio"]) {
 /* Buttons on night marketing — same language as .ov-btn */
 .mkt-page .inst-btn {
   border-radius: 0.25rem !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   letter-spacing: 0 !important;
 }
 
@@ -3689,7 +3689,7 @@ label:has(> input[type="radio"]) {
   background: #c4783a;
   border-color: #c4783a;
   color: #120c05;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .public-shell .public-money-actions .btn-secondary {
@@ -3925,7 +3925,7 @@ label:has(> input[type="radio"]) {
   font-size: 0.75rem !important;
   letter-spacing: 0 !important;
   text-transform: none !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   box-shadow: none !important;
 }
 
@@ -3984,7 +3984,7 @@ label:has(> input[type="radio"]) {
   font-size: 0.75rem !important;
   letter-spacing: 0 !important;
   text-transform: none !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
 }
 
 .os-shell-night .status-pill-live {
@@ -4318,7 +4318,7 @@ label:has(> input[type="radio"]) {
   background: transparent !important;
   color: var(--ox-day-soft, #9aa1ab) !important;
   font-size: 0.75rem !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   letter-spacing: 0 !important;
   text-transform: none !important;
   box-shadow: none !important;
@@ -4394,7 +4394,7 @@ label:has(> input[type="radio"]) {
   font-size: 0.75rem !important;
   letter-spacing: 0;
   text-transform: none;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .os-shell-night .pro-stat {
@@ -5176,7 +5176,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 .os-shell-night .pro-filter-tab.is-active {
   color: #ffffff !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
 }
 
 /*
@@ -5209,7 +5209,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night .pro-economics-title {
   margin: 0.1rem 0 0 !important;
   font-size: 1.125rem !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   letter-spacing: -0.012em !important;
   color: #f7f9f9 !important;
 }
@@ -5226,7 +5226,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night .pro-economics-grid dt {
   margin: 0 0 0.2rem;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
   color: var(--ox-day-soft, #adadac);
@@ -5235,7 +5235,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .os-shell-night .pro-economics-grid dd {
   margin: 0;
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.02em;
   color: var(--ox-text, #f7f9f9);
   font-variant-numeric: tabular-nums;
@@ -5388,7 +5388,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   gap: 0.5rem;
   margin: 0 0 0.15rem !important;
   font-size: 1rem !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   letter-spacing: 0 !important;
   text-transform: none !important;
   color: var(--ox-day-ink, #f4f4f4) !important;
@@ -5445,7 +5445,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   order: 1;
   margin: 0;
   font-size: 1.125rem;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1;
   color: var(--ox-day-ink, #f4f4f4);
   font-variant-numeric: tabular-nums;
@@ -5464,7 +5464,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 }
 
 .os-shell-night .pro-economics-notes strong {
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text, #e7e7e7);
   font-variant-numeric: tabular-nums;
 }
@@ -5505,7 +5505,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 
 /* Headings and bold tags use the same semibold as every other title, not the browser's 700. */
 :where(h1,  h2,  h3,  h4,  h5,  h6,  strong,  b,  th) {
-  font-weight: 600;
+  font-weight: 500;
 }
 
 /*
@@ -5599,7 +5599,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
 .trade-block-title {
   margin: 0;
   font-size: 1.25rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.01em;
   line-height: 1.25;
   color: var(--void);
@@ -5652,7 +5652,7 @@ html[data-theme="night"] .mkt-page .mkt-resources-link {
   margin-top: 0.25rem;
   padding-top: 0.5rem;
   border-top: 1px solid color-mix(in srgb, #ececec 14%, transparent);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 /*

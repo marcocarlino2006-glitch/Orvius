@@ -68,7 +68,7 @@
 .pc-plan-name {
   color: var(--ox-text);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
 }
 .pc-plan-meta {
   flex: 1;

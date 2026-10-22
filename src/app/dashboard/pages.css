@@ -216,7 +216,7 @@
 .cb-oc-headline {
   margin: 0;
   font-size: var(--cr-body);
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text);
 }
 
@@ -503,7 +503,7 @@
   gap: 0.5rem;
   margin: 0 0 0.75rem;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text);
 }
 
@@ -629,7 +629,7 @@
 .sc-authority-title {
   margin: 0 0 0.25rem;
   font-size: var(--cr-label);
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--ox-text);
@@ -650,7 +650,7 @@
 .tm-tech-name {
   margin: 0;
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text);
 }
 
@@ -730,7 +730,7 @@
   gap: 0.5rem;
   margin: 0 0 0.5rem;
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text);
 }
 
@@ -964,7 +964,7 @@
 .rp-v {
   margin: 0.25rem 0;
   font-size: 1.625rem;
-  font-weight: 600;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 .rp-note {
@@ -1019,7 +1019,7 @@
 }
 
 .rp-open-label {
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text);
   text-decoration: none;
   overflow: hidden;
@@ -1032,7 +1032,7 @@ a.rp-open-label:hover {
 }
 
 .rp-open-money {
-  font-weight: 650;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
   color: var(--ox-amber);
 }

@@ -28,7 +28,7 @@
   background: var(--ov-booking-accent);
   border-color: var(--ov-booking-accent);
   color: var(--ov-booking-on-accent);
-  font-weight: 600;
+  font-weight: 500;
 }
 .bk-chip:focus-visible,
 .bk-time:focus-visible {
@@ -45,7 +45,7 @@
 .bk-day-label {
   margin: 0;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ov-booking-faint);
 }
 .bk-times {

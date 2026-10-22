@@ -17,7 +17,7 @@
 /* Header: the page name, and a status only when something is off. */
 .os-shell.os-shell-night .os-topbar-title {
   font-size: 1.25rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.012em;
 }
 
@@ -82,7 +82,7 @@
 .ms-cell dd {
   margin: 0.25rem 0 0;
   font-size: 1.25rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.01em;
   color: var(--ox-text);
 }
@@ -165,7 +165,7 @@
 .dt--work .work-urgent {
   color: var(--ox-amber);
   font-size: var(--cr-label);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 /* Beside the sidebar on a tablet the fixed columns leave the title ~140px; let it wrap. */
@@ -298,7 +298,7 @@ a.dt-row:focus-visible,
 .dt-flag {
   flex: none;
   font-size: var(--cr-label);
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-red);
 }
 
@@ -443,7 +443,7 @@ a.dt-row:focus-visible,
 
 .os-shell.os-shell-night .cs-value {
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.015em;
 }
 
@@ -585,7 +585,7 @@ a.dt-row:focus-visible,
 
 .os-shell.os-shell-night .pf-hot {
   color: var(--ox-red) !important;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .os-shell.os-shell-night .pf-hot-note {
@@ -784,7 +784,7 @@ a.dt-row:focus-visible,
 .os-shell.os-shell-night .billing-settings:not(.sc-embed *) .pro-panel-title {
   color: var(--ox-text-2) !important;
   font-size: 0.875rem !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
 }
 
 .os-shell.os-shell-night .billing-settings:not(.sc-embed *) .pro-panel-body {
@@ -803,7 +803,7 @@ a.dt-row:focus-visible,
 .os-shell.os-shell-night .transcript-cinema-kicker {
   color: var(--ox-text);
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
 }
@@ -952,7 +952,7 @@ a.dt-row:focus-visible,
 .cb-demo-title {
   margin: 0;
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-text);
 }
 
@@ -987,7 +987,7 @@ a.dt-row:focus-visible,
 
 .cb-demo-label {
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .cb-demo-expect {
@@ -1023,7 +1023,7 @@ a.dt-row:focus-visible,
 .cb-plan-kicker {
   margin: 0;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
   color: var(--ox-amber);
@@ -1095,7 +1095,7 @@ a.dt-row:focus-visible,
   background: none;
   color: var(--ox-text);
   font: inherit;
-  font-weight: 600;
+  font-weight: 500;
   text-decoration: underline;
   text-underline-offset: 3px;
   cursor: pointer;
@@ -1145,7 +1145,7 @@ a.dt-row:focus-visible,
 .os-shell .cc-rail .cs-value {
   margin: 0;
   font-size: 1.375rem !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   line-height: 1.1;
 }
 
@@ -1381,7 +1381,7 @@ a.dt-row:focus-visible,
 .os-shell-night.os-error-page .plan-upgrade-gate-title {
   margin: 0 0 0.75rem !important;
   font-size: 1.25rem !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   letter-spacing: -0.015em !important;
   color: #e6e6e6 !important;
 }
@@ -1398,7 +1398,7 @@ a.dt-row:focus-visible,
 }
 
 .os-shell-night.os-error-page .os-error-lead b {
-  font-weight: 600 !important;
+  font-weight: 500 !important;
 }
 
 .os-shell-night.os-error-page .plan-upgrade-gate-actions {
@@ -1489,7 +1489,7 @@ a.dt-row:focus-visible,
 
 .os-shell.os-shell-night .font-serif {
   font-family: inherit !important;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.015em !important;
 }
 

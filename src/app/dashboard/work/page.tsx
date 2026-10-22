@@ -131,11 +131,24 @@ export default function WorkPage() {
           <DashboardSkeleton />
         ) : rows.length === 0 ? (
           <ProEmptyState
-            title={view === "closed" ? "Nothing closed in the last 30 days" : filter === "you" ? "Nothing needs you" : "Nothing here"}
+            title={view === "closed" ? "Nothing closed in the last 30 days" : filter === "you" ? "Nothing needs you" : "No open work"}
             body={
-              view === "open"
-                ? "Calls, texts and bookings land here as work, each with who's on it and what happens next."
-                : "Finished, cancelled and spam work shows here for a month."
+              view === "closed"
+                ? "Finished work shows here for a month. What is still open is on the other tab."
+                : filter === "you"
+                  ? "You're clear. The rest of the day is under All open."
+                  : "Work shows up here after a request is booked. Anything still waiting is in the Inbox."
+            }
+            action={
+              view === "closed" ? null : filter === "you" ? (
+                <button type="button" className="btn btn-secondary text-sm" onClick={() => setFilter("all")}>
+                  All open
+                </button>
+              ) : (
+                <Link href="/dashboard/inbox" className="btn btn-secondary text-sm">
+                  Open Inbox
+                </Link>
+              )
             }
           />
         ) : (

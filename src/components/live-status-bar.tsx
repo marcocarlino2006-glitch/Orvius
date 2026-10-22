@@ -66,7 +66,7 @@ export function LiveStatusBar() {
               Line{" "}
               <a
                 href={`tel:${health.twilioPhone}`}
-                className="font-semibold tabular-nums text-void hover:text-ash"
+                className="font-medium tabular-nums text-void hover:text-ash"
               >
                 {health.twilioPhone}
               </a>
@@ -82,7 +82,7 @@ export function LiveStatusBar() {
         </div>
         <div className="flex flex-wrap items-center gap-4 font-sans text-xs text-ash">
           {pulse && pulse.newLeadCount > 0 ? (
-            <Link href="/dashboard/inbox" className="font-semibold text-flare-dim hover:text-flare">
+            <Link href="/dashboard/inbox" className="font-medium text-flare-dim hover:text-flare">
               {pulse.newLeadCount} new lead{pulse.newLeadCount === 1 ? "" : "s"}
             </Link>
           ) : null}

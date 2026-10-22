@@ -29,7 +29,7 @@
 .pf-kicker {
   margin: 0;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
   color: var(--ov-booking-faint);
@@ -38,7 +38,7 @@
   margin: 0;
   font-size: 1.625rem;
   line-height: 1.2;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.01em;
   color: var(--ox-white);
 }
@@ -58,7 +58,7 @@
   padding: 0.25rem 0.625rem;
   border-radius: 999px;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   background: rgba(242, 169, 59, 0.12);
   color: var(--ov-booking-link);
   border: 1px solid rgba(242, 169, 59, 0.3);
@@ -97,7 +97,7 @@
 }
 .pf-action-label {
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-white);
 }
 .pf-action-detail {
@@ -140,7 +140,7 @@
 .pf-label {
   margin: 0;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ov-booking-muted);
 }
 .pf-inline {
@@ -185,7 +185,7 @@
   color: var(--ox-white);
   font: inherit;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   text-decoration: none;
   display: inline-flex;
@@ -219,7 +219,7 @@
 }
 .pf-money {
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--ox-white);
 }
 .pf-done {
@@ -303,7 +303,7 @@
 }
 .pf-step-label {
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 .pf-step.is-done .pf-step-label,
 .pf-step.is-now .pf-step-label {

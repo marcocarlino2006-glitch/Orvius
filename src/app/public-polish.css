@@ -200,7 +200,7 @@ html .ov-signin .ov-signin-row-tag--intake::before {
   grid-row: span 2;
   color: var(--ov-emerald-text);
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.6;
 }
 
@@ -216,7 +216,7 @@ html .ov-signin .ov-signin-row-tag--intake::before {
   margin: 0;
   color: var(--ov-headline);
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .ov-public .pricing-getpaid-math {
@@ -250,7 +250,7 @@ html .ov-signin .ov-signin-row-tag--intake::before {
   padding-top: 0.55rem;
   border-top: 1px solid var(--ov-hairline);
   color: var(--ov-headline);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .ov-public .pricing-getpaid-math > p:last-child {

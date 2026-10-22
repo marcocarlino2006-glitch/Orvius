@@ -38,16 +38,16 @@ export function PricingPlanCard({
     isPilot || isMulti ? null : getPlanPrice(plan, interval);
 
   const priceBlock = isPilot ? (
-    <p className="font-sans text-2xl font-semibold tracking-[-0.03em] text-void">
+    <p className="font-sans text-2xl font-medium tracking-[-0.03em] text-void">
       {plan.period}
     </p>
   ) : isMulti ? (
-    <p className="font-sans text-2xl font-semibold tracking-[-0.03em] text-void">
+    <p className="font-sans text-2xl font-medium tracking-[-0.03em] text-void">
       {plan.price ? `$${plan.price}` : "Custom"}
       {plan.price ? <span className="text-base font-medium text-ash"> / location / mo</span> : null}
     </p>
   ) : (
-    <p className="font-sans text-2xl font-semibold tracking-[-0.03em] text-void">
+    <p className="font-sans text-2xl font-medium tracking-[-0.03em] text-void">
       ${displayPrice}
       <span className="text-base font-medium text-ash"> / mo</span>
     </p>

@@ -19,7 +19,7 @@
 
 .os-shell.os-shell-night .os-topbar-title {
   font-size: 1.5rem !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   letter-spacing: -0.022em !important;
   line-height: 1.2 !important;
 }
@@ -61,7 +61,7 @@
 
 .os-shell.os-shell-night .lead-rail-name {
   font-size: 0.9375rem !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   letter-spacing: 0;
   color: var(--ox-text) !important;
 }
@@ -90,7 +90,7 @@
   box-shadow: inset 0 0 0 1px hsl(var(--avatar-hue, 220) 40% 34% / 0.6);
   color: hsl(var(--avatar-hue, 220) 70% 84%);
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0;
   user-select: none;
 }
@@ -137,7 +137,7 @@
 }
 
 .os-shell.os-shell-night .os-nav-link-active {
-  font-weight: 600 !important;
+  font-weight: 500 !important;
 }
 
 /* ── Panels and cards ────────────────────────────────────────────────── */
@@ -150,7 +150,7 @@
 
 .os-shell.os-shell-night .pro-panel-title {
   font-size: 0.9375rem !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   letter-spacing: 0 !important;
 }
 
@@ -241,7 +241,7 @@
 
 .os-shell.os-shell-night .cs-value {
   font-size: 2rem !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   letter-spacing: -0.035em !important;
   color: var(--ox-text) !important;
 }

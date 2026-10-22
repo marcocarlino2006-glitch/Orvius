@@ -289,6 +289,11 @@ html body .os-shell .os-topbar-shop-phone {
   }
 }
 
+/* The wordmark stays heavy. Everything else in the desk tops out at 500. */
+:root body .os-shell.os-shell-pro.os-shell-pro.os-shell-night :is(strong, b, .font-semibold, .font-bold):not(.orvius-logo-word) {
+  font-weight: 500 !important;
+}
+
 /* One type for the desk. Four sizes, and 500 is the heaviest weight.
    12 meta · 14 the work · 14 the action · 22 the sentence.
    Loaded last, so these beat the older semibold rules. */

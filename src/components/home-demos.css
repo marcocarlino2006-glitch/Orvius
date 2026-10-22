@@ -148,7 +148,7 @@
   padding: 0.9em 1.4em;
   border-bottom: 1px solid rgb(255 255 255 / 0.07);
   font-size: 1.2em;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .hd-live {
@@ -298,7 +298,7 @@
 .hd-headline {
   margin: -0.6em 0 0;
   font-size: 1.6em;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.02em;
 }
 
@@ -320,7 +320,7 @@
   display: block;
   color: #fff;
   font-size: 1.6em;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .hd-queue,
@@ -361,7 +361,7 @@
 }
 
 .hd-who b {
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .hd-who small {
@@ -379,7 +379,7 @@
 .hd-value {
   justify-self: end;
   font-variant-numeric: tabular-nums;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .hd-tag {
@@ -387,7 +387,7 @@
   padding: 0.2em 0.6em;
   border-radius: 999px;
   font-size: 0.8em;
-  font-weight: 600;
+  font-weight: 500;
   white-space: nowrap;
 }
 
@@ -496,7 +496,7 @@
   border-bottom: 1px solid rgb(255 255 255 / 0.08);
   color: rgb(255 255 255 / 0.6);
   font-size: 0.85em;
-  font-weight: 600;
+  font-weight: 500;
   text-align: center;
 }
 
@@ -563,7 +563,7 @@
 .hd-job-when {
   margin: 0;
   font-size: 1.35em;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.02em;
 }
 
@@ -602,7 +602,7 @@
   grid-row: 2;
   grid-column: 2;
   color: #f7c46c;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .hd-done b.is-paid {
@@ -621,7 +621,7 @@
   border-radius: 0.6em;
   background: rgb(255 255 255 / 0.06);
   text-align: center;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .hd-job-actions span:first-child {

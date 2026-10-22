@@ -121,7 +121,7 @@
   background: var(--ov-booking-accent);
   color: var(--ov-booking-on-accent);
   font: inherit;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
 }
 .wc-send:disabled {

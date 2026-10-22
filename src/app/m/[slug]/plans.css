@@ -25,11 +25,11 @@
 }
 .mp-name {
   font-size: 0.9375rem;
-  font-weight: 600;
+  font-weight: 500;
 }
 .mp-price {
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 .mp-price small {
