@@ -38,11 +38,10 @@ test("the account menu blurs the desk behind it", () => {
 });
 
 test("opening settings blurs the desk behind it", () => {
-  const texture = readFileSync(new URL("../src/app/dashboard/orvius-texture.css", import.meta.url), "utf8");
   const instant = readFileSync(new URL("../src/app/dashboard/orvius-instant.css", import.meta.url), "utf8");
   assert.match(instant, /\.sc-overlay \{\s*background: rgb\(0 0 0 \/ 0\.18\) !important;\s*backdrop-filter: blur\(18px\) saturate\(1\.2\) !important;/);
   assert.match(instant, /data-theme="day"[\s\S]*sc-overlay \{\s*background: rgb\(255 255 255 \/ 0\.16\) !important;/);
-  assert.doesNotMatch(texture, /\.os-shell\.sc-overlay \{[^}]*backdrop-filter: none/);
+  assert.doesNotMatch(instant, /\.os-shell\.sc-overlay \{[^}]*backdrop-filter: none/);
 });
 
 test("owners find settings in their own words", () => {

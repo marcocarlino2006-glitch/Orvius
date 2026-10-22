@@ -24,7 +24,7 @@ test("page content never grows wider than the screen", () => {
       assert.match(value, /^min\([^,]+,\s*100%\)/, `${file}: ${value}`);
     }
   }
-  const depth = read("src/app/dashboard/orvius-depth.css");
+  const depth = read("src/app/dashboard/pages.css");
   assert.match(depth, /\.tse-body \{[^}]*minmax\(min\(100%, 17rem\), 1fr\)/);
   assert.match(depth, /\.tse-add \{[^}]*repeat\(2, minmax\(0, 1fr\)\)/);
 });
