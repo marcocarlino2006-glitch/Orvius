@@ -85,7 +85,7 @@ export function OsShell({
   ) : business?.line ? (
     <>
       <span className="os-ring-status-dot" aria-hidden />
-      {displayPhone(business.line)}
+      <span className="os-topbar-shop-phone">{displayPhone(business.line)}</span>
     </>
   ) : business?.testMode ? (
     <>

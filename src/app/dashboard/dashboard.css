@@ -3908,15 +3908,15 @@
 }
 
 @media (max-width: 767px) {
-  /* The account menu is the bottom-left control. The rail itself is hidden; only the chip stays. */
+  /* Avatar only, parked in the dock's tab row. A named chip above the dock covers the list. */
   html body .os-shell.os-shell-night.os-shell-pro.os-shell-pro > .os-sidebar.os-sidebar-pro {
     display: flex !important;
     position: fixed;
     top: auto !important;
-    left: 0.65rem !important;
-    bottom: calc(7.35rem + env(safe-area-inset-bottom, 0px));
-    z-index: 50;
-    width: auto !important;
+    left: 0.75rem !important;
+    bottom: calc(0.28rem + env(safe-area-inset-bottom, 0px));
+    z-index: 45;
+    width: max-content !important;
     height: auto !important;
     min-height: 0;
     transform: none !important;

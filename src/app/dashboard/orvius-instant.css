@@ -147,3 +147,144 @@ html body .os-shell .os-sidebar:has(.mx-menu) {
     box-shadow: none !important;
   }
 }
+
+/* The shop number ellipsizes instead of painting through the next control. */
+html body .os-shell .os-topbar-shop-line {
+  min-width: 0;
+  max-width: 100%;
+}
+
+html body .os-shell .os-topbar-shop-phone {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+  Phone shell. The header was one squeezed row, the filter tabs shrank until
+  their labels sat on top of each other, and the account chip floated over the
+  list. Logo and the page action stay on the first row. The page name, the
+  shop, and the number get the full width under that. Filters scroll. The
+  account control is an avatar in the dock, clear of every card button.
+*/
+@media (max-width: 767px) {
+  html body .os-shell.os-shell-night.os-shell-pro .os-topbar {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      "brand actions"
+      "shop shop";
+    align-items: center;
+    justify-content: stretch;
+    column-gap: 0.75rem;
+    row-gap: 0.55rem;
+  }
+
+  html body .os-shell.os-shell-night.os-shell-pro .os-topbar-identity {
+    display: contents;
+  }
+
+  html body .os-shell.os-shell-night.os-shell-pro .os-topbar-brand {
+    grid-area: brand;
+    display: flex !important;
+  }
+
+  html body .os-shell.os-shell-night.os-shell-pro .os-topbar-actions {
+    grid-area: actions;
+    margin-left: 0;
+    justify-self: end;
+    min-width: 0;
+  }
+
+  html body .os-shell.os-shell-night.os-shell-pro .os-topbar-shop {
+    grid-area: shop;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.12rem;
+    min-width: 0;
+  }
+
+  html body .os-shell.os-shell-night.os-shell-pro .os-topbar-page {
+    order: 1;
+    margin: 0;
+    font-size: 1.375rem;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    color: var(--ox-text);
+  }
+
+  html body .os-shell.os-shell-night.os-shell-pro .os-topbar-sub {
+    order: 2;
+    margin: 0;
+    max-width: none;
+    font-size: 0.8125rem;
+    line-height: 1.35;
+  }
+
+  html body .os-shell.os-shell-night.os-shell-pro .os-topbar-shop-name {
+    order: 3;
+    margin-top: 0.2rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+
+  html body .os-shell.os-shell-night.os-shell-pro .os-topbar-shop-line {
+    order: 4;
+    margin: 0;
+  }
+
+  html body .os-shell.os-shell-night.os-shell-pro .pro-filter-bar {
+    width: 100% !important;
+    max-width: 100%;
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    padding-right: 0 !important;
+    -webkit-mask-image: none !important;
+    mask-image: none !important;
+    scrollbar-width: none;
+  }
+
+  html body .os-shell.os-shell-night.os-shell-pro .pro-filter-tab {
+    flex: 0 0 auto !important;
+    min-width: max-content;
+    white-space: nowrap;
+  }
+
+  html body .os-shell.os-shell-pro > .os-sidebar.os-sidebar-pro .os-sidebar-inner {
+    padding: 0 !important;
+    gap: 0 !important;
+  }
+
+  html body .os-shell.os-shell-pro > .os-sidebar .mx-footer {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  html body .os-shell.os-shell-pro > .os-sidebar .mx-bar {
+    height: auto;
+    gap: 0;
+  }
+
+  html body .os-shell.os-shell-pro > .os-sidebar .mx-chip-name {
+    display: none !important;
+  }
+
+  html body .os-shell.os-shell-pro > .os-sidebar .mx-bar-icon:not(#tap-floor) {
+    display: none !important;
+  }
+
+  html body .os-shell.os-shell-pro > .os-sidebar .mx-chip {
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    border-radius: 999px !important;
+  }
+
+  html body .os-shell .os-tabbar {
+    padding-left: 3.25rem;
+  }
+}
