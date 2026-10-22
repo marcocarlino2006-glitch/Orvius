@@ -104,10 +104,10 @@ function inspect({ isPhone, touch }) {
   const wrongFont = textEls.filter((el) => {
     const ff = getComputedStyle(el).fontFamily.toLowerCase();
     if (el.closest("code,pre,kbd,samp,svg")) return false;
-    return !/inter|plex|mono|ui-monospace|menlo/.test(ff);
+    return !/geist|inter|plex|mono|ui-monospace|menlo/.test(ff);
   });
   if (wrongFont.length) {
-    faults.push({ kind: "fallback-font", blocking: true, detail: `${wrongFont.length} text elements not in Inter`, samples: wrongFont.slice(0, 4).map((el) => `${describe(el)} → ${getComputedStyle(el).fontFamily.slice(0, 60)}`) });
+    faults.push({ kind: "fallback-font", blocking: true, detail: `${wrongFont.length} text elements not in Geist`, samples: wrongFont.slice(0, 4).map((el) => `${describe(el)} → ${getComputedStyle(el).fontFamily.slice(0, 60)}`) });
   }
 
   const clipped = textEls.filter((el) => {

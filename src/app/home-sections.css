@@ -597,7 +597,7 @@ html.hx-motion [data-reveal-stagger].is-in > * {
 
 /*
   On phones the two hero buttons stack at full width. Side by side they fit
-  with the fallback face and wrap once Inter loads, which jumped the hero.
+  with the fallback face and wrap once the face loads, which jumped the hero.
 */
 @media (max-width: 440px) {
   .ov-public .ov-hero--atmosphere .ov-hero-inner--product .ov-hero-actions {

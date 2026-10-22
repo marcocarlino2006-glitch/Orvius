@@ -1,4 +1,4 @@
-/** Brand typography — Inter everywhere; Plex Mono only for code and keys. */
+/** Brand typography — Geist everywhere; Geist Mono only for code and keys. */
 
 export const brandWordmark = "orvius";
 

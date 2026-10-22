@@ -56,21 +56,21 @@
 }
 
 /*
-  Light colorway: the same graphite ladder inverted, not the marketing paper.
+  Light colorway: the same paper and ink as the public site.
   Amber darkens because it is also used as text — #f2a93b on white is 2:1 —
   and on the darker amber, button labels flip to white to keep 4.5:1.
 */
 html[data-theme="day"] .os-shell.os-shell-night,
 html[data-theme="day"] .os-shell-night {
   color-scheme: light;
-  --ox-bg: #f4f1e8;
-  --ox-s1: #f4f1e8;
-  --ox-s2: #f4f1e8;
+  --ox-bg: #f7f7f4;
+  --ox-s1: #f7f7f4;
+  --ox-s2: #f7f7f4;
   --ox-s3: #ebe6db;
   --ox-s4: #e4dfd4;
   --ox-line: #e4dfd4;
   --ox-line-strong: #d4cec2;
-  --ox-text: #161513;
+  --ox-text: #26251e;
   --ox-text-2: #2e2c26;
   --ox-mute: #504e48;
   --ox-amber: #9a5b00;
@@ -85,19 +85,19 @@ html[data-theme="day"] .os-shell-night {
   --ox-red-soft: rgb(192 40 45 / 0.09);
   --ox-focus: 0 0 0 2px var(--ox-bg), 0 0 0 4px rgb(0 0 0 / 0.28);
   --ox-tint: 17 19 22;
-  --ox-legacy-text: #161513;
+  --ox-legacy-text: #26251e;
   --ox-legacy-text-2: #2e2c26;
   --ox-legacy-mute: #504e48;
   /* Day-only: legacy night rules read these with their original hex as fallback. */
-  --ox-day-surface: #f4f1e8;
-  --ox-day-sunk: #f4f1e8;
+  --ox-day-surface: #f7f7f4;
+  --ox-day-sunk: #f7f7f4;
   --ox-day-line: #e4dfd4;
-  --ox-day-ink: #161513;
+  --ox-day-ink: #26251e;
   --ox-day-soft: #504e48;
-  --ox-panel: #f4f1e8;
-  --ox-rail: #f4f1e8;
-  --ox-primary: #161513;
-  --ox-on-primary: #f4f1e8;
+  --ox-panel: #f7f7f4;
+  --ox-rail: #f7f7f4;
+  --ox-primary: #26251e;
+  --ox-on-primary: #f7f7f4;
   --ox-fill: rgb(0 0 0 / 0.05);
   --ox-fill-hover: rgb(0 0 0 / 0.08);
   --ox-fill-light: rgb(0 0 0 / 0.03);

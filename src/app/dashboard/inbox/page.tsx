@@ -15,7 +15,7 @@ import {
   readDashboardError,
   type DashboardLoadFailure,
 } from "@/lib/dashboard-fetch";
-import { INBOX_VIEWS, INBOX_VIEW_LABEL, type InboxFacts, type InboxView } from "@/lib/inbox-state";
+import { askForMissing, INBOX_VIEWS, INBOX_VIEW_LABEL, type InboxFacts, type InboxView } from "@/lib/inbox-state";
 import { inboxBrief } from "@/lib/list-brief";
 import { isEmergency, notableUrgency } from "@/lib/urgency";
 import { useBusiness } from "@/lib/use-business";
@@ -77,6 +77,7 @@ function InboxRow({ lead, shop, onChanged }: { lead: LeadRow; shop: string; onCh
   const phone = lead.phone ? normalizePhone(lead.phone) ?? lead.phone : null;
   const notable = notableUrgency(lead.urgency);
   const needsDetails = inbox.missing.filter((m) => m !== "callback number");
+  const ask = askForMissing(inbox.missing);
   const open = inbox.view !== "resolved";
 
   async function close() {
@@ -113,7 +114,7 @@ function InboxRow({ lead, shop, onChanged }: { lead: LeadRow; shop: string; onCh
             .filter(Boolean)
             .join(", ")}
         </span>
-        {open && inbox.missing.length ? <span className="dt-attention">Missing: {inbox.missing.join(", ")}</span> : null}
+        {open && ask && inbox.reason !== ask ? <span className="dt-attention">{ask}</span> : null}
       </span>
       <span role="cell">
         <StatusDot tone={VIEW_TONE[inbox.view]}>{INBOX_VIEW_LABEL[inbox.view]}</StatusDot>

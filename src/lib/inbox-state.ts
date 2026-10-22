@@ -49,6 +49,24 @@ const RESOLVED_REASON: Record<string, string> = {
   spam: "Marked spam",
 };
 
+/** The next move for a gap. A label like "Missing: name" is not an answer. */
+export function askForMissing(missing: string[]): string | null {
+  const ask = missing.filter((item) => item && item !== "callback number");
+  if (!ask.length) return null;
+  const phrase = (item: string) => {
+    if (item === "name") return "a name";
+    if (item === "address") return "an address";
+    if (item === "what they need") return "what they need";
+    return item;
+  };
+  const only = ask[0];
+  if (ask.length === 1 && only) return `Ask for ${phrase(only)}.`;
+  const lastItem = ask[ask.length - 1];
+  if (!only || !lastItem) return null;
+  if (ask.length === 2) return `Ask for ${phrase(only)} and ${phrase(lastItem)}.`;
+  return `Ask for ${ask.slice(0, -1).map(phrase).join(", ")}, and ${phrase(lastItem)}.`;
+}
+
 export function missingDetails(lead: Pick<InboxLeadInput, "name" | "phone" | "address" | "serviceType">): string[] {
   const out: string[] = [];
   if (!lead.name?.trim()) out.push("name");
@@ -96,5 +114,5 @@ export function inboxFacts(lead: InboxLeadInput): InboxFacts {
   if (lead.status === "contacted" || lead.followUpSentAt) {
     return make("waiting", lead.followUpSentAt ? "Follow-up sent, no reply yet" : "Reached out, no reply yet");
   }
-  return make("new", missing.length ? `Needs ${missing.join(", ")}` : "Ready to book");
+  return make("new", askForMissing(missing) ?? "Ready to book");
 }
