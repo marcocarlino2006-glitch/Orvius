@@ -3073,8 +3073,10 @@ label:has(> input[type="radio"]) {
 .mkt-proof-title,
 .type-headline {
   font-family: var(--font-sans), system-ui, sans-serif !important;
-  font-weight: 500 !important;
-  letter-spacing: -0.028em !important;
+  font-size: var(--type-section) !important;
+  font-weight: 400 !important;
+  line-height: var(--type-section-leading) !important;
+  letter-spacing: var(--type-section-tracking) !important;
   text-transform: none !important;
 }
 

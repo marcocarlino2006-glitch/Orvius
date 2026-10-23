@@ -342,12 +342,12 @@
 }
 
 .ov-public .ov-hero--atmosphere .ov-hero-inner--product .ov-hero-title {
-  max-width: 14em;
+  max-width: 22em;
   margin-inline: 0;
-  font-size: clamp(2.15rem, 1.25rem + 1.8vw, 3rem);
-  font-weight: 500;
-  line-height: 1.08;
-  letter-spacing: -0.032em;
+  font-size: var(--type-sentence);
+  font-weight: 400;
+  line-height: var(--type-sentence-leading);
+  letter-spacing: var(--type-sentence-tracking);
 }
 
 .ov-public .ov-hero--atmosphere .ov-hero-inner--product .ov-hero-lead {
@@ -362,8 +362,11 @@
 
 @media (min-width: 1024px) {
   .ov-public .ov-hero--atmosphere .ov-hero-inner--product .ov-hero-title {
-    max-width: 14em !important;
-    font-size: clamp(2.15rem, 1.25rem + 1.8vw, 3rem) !important;
+    max-width: 22em !important;
+    font-size: var(--type-sentence) !important;
+    font-weight: 400 !important;
+    line-height: var(--type-sentence-leading) !important;
+    letter-spacing: var(--type-sentence-tracking) !important;
   }
 
   .ov-public .ov-hero--atmosphere .ov-hero-inner--product .ov-hero-copy {

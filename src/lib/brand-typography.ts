@@ -1,15 +1,19 @@
-/** Brand typography — Geist everywhere; Geist Mono only for code and keys. */
+/**
+ * Brand typography. Geist is the face. The sizes are Cursor's words,
+ * measured from cursor.com on 23 Oct 2026. Reading weight is 400.
+ * The sentence is 26px. A paragraph is 16px. A label is 12px.
+ */
 
 export const brandWordmark = "orvius";
 
 export const typeScale = {
-  caption: "0.75rem",
-  small: "0.8125rem",
-  body: "0.9375rem",
-  lead: "1.0625rem",
-  title: "1.125rem",
-  headline: "clamp(1.75rem, 3.2vw, 2.5rem)",
-  display: "clamp(2.5rem, 5vw, 4.5rem)",
+  meta: "0.75rem",
+  body: "0.875rem",
+  lead: "1rem",
+  name: "1.375rem",
+  sentence: "1.625rem",
+  section: "2.25rem",
+  display: "3.25rem",
 } as const;
 
 /**
