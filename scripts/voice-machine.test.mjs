@@ -9,6 +9,13 @@ const machine = await import("../src/lib/voice-machine.ts");
 const { buildBusinessAssistantConfig } = await import("../src/lib/sync-business-assistant.ts");
 const { prisma } = await import("../src/lib/prisma.ts");
 
+test("the production column statements are the reviewed ones", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { VOICE_MACHINE_SQL, VOICE_MACHINE_PLAN_SHA256, voiceMachinePlanSha256 } = await import("./apply-voice-machine-column.mjs");
+  assert.equal(voiceMachinePlanSha256(), VOICE_MACHINE_PLAN_SHA256);
+  assert.ok(readFileSync(new URL("../prisma/turso-migrate.sql", import.meta.url), "utf8").includes(VOICE_MACHINE_SQL));
+});
+
 test("a shop's seal opens only that shop's machine", () => {
   const a = machine.machineSeal("machine-a");
   const b = machine.machineSeal("machine-b");
@@ -71,6 +78,11 @@ test("a live shop's receptionist is pointed at its own machine, and the demo sta
 
 test("each live shop gets one voice machine, and another shop's seal cannot open it", async () => {
   const stamp = Date.now().toString(36);
+  const columns = await prisma.$queryRawUnsafe('PRAGMA table_info("Business")');
+  if (!columns.some((column) => column.name === "voiceMachineId")) {
+    await prisma.$executeRawUnsafe('ALTER TABLE "Business" ADD COLUMN "voiceMachineId" TEXT');
+  }
+  await prisma.$executeRawUnsafe('CREATE UNIQUE INDEX IF NOT EXISTS "Business_voiceMachineId_key" ON "Business"("voiceMachineId")');
   const a = await prisma.business.create({
     data: { name: `Machine A ${stamp}`, slug: `machine-a-${stamp}`, environment: "production", ownerEmail: `machine-a-${stamp}@example.test` },
   });

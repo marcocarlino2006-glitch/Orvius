@@ -4,7 +4,7 @@ import { isOwnerDemoWorkspace } from "@/lib/demo-fence";
 import { logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { buildBusinessAssistantConfig } from "@/lib/sync-business-assistant";
-import { ensureVoiceMachine, machineKey, shopGetsOwnVoiceMachine } from "@/lib/voice-machine";
+import { ensureVoiceMachine, machineKey, shopGetsOwnVoiceMachine, VoiceMachineColumnMissing } from "@/lib/voice-machine";
 import { vapiRequest } from "@/lib/vapi";
 
 /*
@@ -89,9 +89,15 @@ export async function receptionistApplyStatus(business: Business): Promise<Recep
 export async function applyReceptionistSettings(business: Business, by: { actor: "owner" | "teammate" | "system"; email?: string | null } = { actor: "system" }): Promise<ReceptionistApply> {
   const none = notApplicable(business);
   if (none) return none;
-  const voiceMachineId =
-    shopGetsOwnVoiceMachine(business) && machineKey() ? (business.voiceMachineId ?? (await ensureVoiceMachine(business.id))) : business.voiceMachineId;
-  const current = voiceMachineId === business.voiceMachineId ? business : { ...business, voiceMachineId: voiceMachineId ?? null };
+  let voiceMachineId: string | null = "voiceMachineId" in business ? ((business as { voiceMachineId?: string | null }).voiceMachineId ?? null) : null;
+  if (shopGetsOwnVoiceMachine(business) && machineKey() && !voiceMachineId) {
+    try {
+      voiceMachineId = await ensureVoiceMachine(business.id);
+    } catch (error) {
+      if (!(error instanceof VoiceMachineColumnMissing)) throw error;
+    }
+  }
+  const current = voiceMachineId ? { ...business, voiceMachineId } : business;
   const config = buildBusinessAssistantConfig(current);
   const fingerprint = config.metadata?.orviusConfig ?? null;
   let echoed: string | null = null;

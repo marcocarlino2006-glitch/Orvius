@@ -16,13 +16,19 @@ import {
 } from "@/lib/vapi";
 import { resolveVoiceId } from "@/lib/voices";
 import { isOwnerDemoWorkspace } from "@/lib/demo-fence";
-import { ensureVoiceMachine, machineKey, shopGetsOwnVoiceMachine, voiceRoute } from "@/lib/voice-machine";
+import { ensureVoiceMachine, machineKey, shopGetsOwnVoiceMachine, VoiceMachineColumnMissing, voiceRoute } from "@/lib/voice-machine";
 import type { Business } from "@prisma/client";
 
-async function sealedShop(business: Business): Promise<Business> {
+async function sealedShop(business: Business): Promise<Business & { voiceMachineId?: string | null }> {
   if (!shopGetsOwnVoiceMachine(business) || !machineKey()) return business;
-  const voiceMachineId = business.voiceMachineId ?? (await ensureVoiceMachine(business.id));
-  return voiceMachineId === business.voiceMachineId ? business : { ...business, voiceMachineId };
+  const existing = "voiceMachineId" in business ? (business as { voiceMachineId?: string | null }).voiceMachineId : null;
+  try {
+    const voiceMachineId = existing ?? (await ensureVoiceMachine(business.id));
+    return voiceMachineId === existing ? business : { ...business, voiceMachineId };
+  } catch (error) {
+    if (error instanceof VoiceMachineColumnMissing) return business;
+    throw error;
+  }
 }
 
 export type AssistantSyncResult = {

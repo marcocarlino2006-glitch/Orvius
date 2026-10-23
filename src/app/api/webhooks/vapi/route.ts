@@ -29,7 +29,7 @@ import { isVapiBillingRefusal, pagePlatform } from "@/lib/platform-pager";
 import { alertSpendCut, callSpendCut, endCallWith } from "@/lib/call-spend-guard";
 import { releaseDemoSlot } from "@/lib/demo-load";
 import { releaseShopLine } from "@/lib/shop-machine";
-import { callBelongsToShop, ForeignVoiceShop } from "@/lib/voice-machine";
+import { businessIdForVoiceMachine, callBelongsToShop, ForeignVoiceShop } from "@/lib/voice-machine";
 import { isDemoPlatformLine } from "@/lib/demo-business";
 import { endWebDemo, isLineWebCall, WEB_DEMO_CHANNEL } from "@/lib/web-demo";
 import { isLineEntitled } from "@/lib/billing-entitlement";
@@ -154,9 +154,11 @@ export async function handleVapiWebhook(
   if (bound) {
     const shop = await prisma.business.findUnique({ where: { id: bound.businessId } });
     existingCall = await findCallWithBusiness(vapiCallId);
+    const sealedTo = await businessIdForVoiceMachine(bound.machineId);
     const belongs =
       Boolean(shop?.isActive) &&
-      shop?.voiceMachineId === bound.machineId &&
+      sealedTo === shop?.id &&
+      sealedTo === bound.businessId &&
       callBelongsToShop(shop!, {
         assistantId,
         inboundNumber,
@@ -259,57 +261,52 @@ export async function handleVapiWebhook(
     */
     const startedAt = Date.now();
     const callerPhone = message.call?.customer?.number ?? null;
-    let call: { id: string; vapiCallId: string | null; callerPhone: string | null };
-    let shop: Parameters<typeof handleInCallToolCalls>[0]["shop"];
     try {
-      if (existingCall?.business) {
-        call = existingCall;
-        shop = existingCall.business;
-      } else {
-        [call, shop] = await Promise.all([
-          createCallRow({ businessId: business.id, vapiCallId, callerPhone }),
-          prisma.business.findUniqueOrThrow({
-            where: { id: business.id },
-            select: {
-              id: true,
-              name: true,
-              hoursJson: true,
-              timezone: true,
-              trade: true,
-              servicesJson: true,
-              jobLengthsJson: true,
-              ownerPhone: true,
-              ownerEmail: true,
-              transferPhone: true,
-              networkOn: true,
-              networkZip3: true,
-              address: true,
-              bookingMode: true,
-            },
-          }),
-        ]);
-      }
+      const [call, shop] = existingCall?.business
+        ? [existingCall, existingCall.business]
+        : await Promise.all([
+            createCallRow({ businessId: business.id, vapiCallId, callerPhone }),
+            prisma.business.findUniqueOrThrow({
+              where: { id: business.id },
+              select: {
+                id: true,
+                name: true,
+                hoursJson: true,
+                timezone: true,
+                trade: true,
+                servicesJson: true,
+                jobLengthsJson: true,
+                ownerPhone: true,
+                ownerEmail: true,
+                transferPhone: true,
+                networkOn: true,
+                networkZip3: true,
+                address: true,
+                bookingMode: true,
+              },
+            }),
+          ]);
+      const toolCalls = readToolCalls(message);
+      const results = await handleInCallToolCalls({
+        shop,
+        callId: call.id,
+        call: { id: call.id, vapiCallId: call.vapiCallId, callerPhone: call.callerPhone ?? callerPhone },
+        toolCalls,
+        callerWords: callerWordsSoFar(message),
+      });
+      logInfo("in_call.tool_ms", {
+        businessId: business.id,
+        vapiCallId,
+        tools: toolCalls.map((t) => t.name).join(","),
+        ms: Date.now() - startedAt,
+      });
+      return NextResponse.json({ results });
     } catch (error) {
       if (error instanceof ForeignVoiceShop) {
         return NextResponse.json({ ok: false, error: error.message }, { status: 403 });
       }
       throw error;
     }
-    const toolCalls = readToolCalls(message);
-    const results = await handleInCallToolCalls({
-      shop,
-      callId: call.id,
-      call: { id: call.id, vapiCallId: call.vapiCallId, callerPhone: call.callerPhone ?? callerPhone },
-      toolCalls,
-      callerWords: callerWordsSoFar(message),
-    });
-    logInfo("in_call.tool_ms", {
-      businessId: business.id,
-      vapiCallId,
-      tools: toolCalls.map((t) => t.name).join(","),
-      ms: Date.now() - startedAt,
-    });
-    return NextResponse.json({ results });
   }
 
   const webCall = message.call?.type === "webCall";

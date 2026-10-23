@@ -33,8 +33,8 @@ export function shopGetsOwnVoiceMachine(business: { environment?: string | null;
   return workspaceEnvironment(business.environment) === "production" && !isDemoBusiness(business);
 }
 
-export function voiceRoute(business: { voiceMachineId?: string | null }): { webhookUrl: string; webhookSecret?: string } {
-  const id = business.voiceMachineId;
+export function voiceRoute(business: object): { webhookUrl: string; webhookSecret?: string } {
+  const id = "voiceMachineId" in business && typeof business.voiceMachineId === "string" ? business.voiceMachineId : null;
   const secret = id ? machineSeal(id) : null;
   if (id && secret) {
     return { webhookUrl: getWebhookUrl(`/api/webhooks/vapi/machines/${id}`), webhookSecret: secret };
@@ -66,27 +66,72 @@ export function callBelongsToShop(
   return false;
 }
 
+export class VoiceMachineColumnMissing extends Error {
+  constructor() {
+    super("voiceMachineId is not on this database yet");
+  }
+}
+
+function missingColumn(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  return /no such column/i.test(message);
+}
+
+async function machineColumn<T>(read: () => Promise<T>): Promise<T> {
+  try {
+    return await read();
+  } catch (error) {
+    if (missingColumn(error)) throw new VoiceMachineColumnMissing();
+    throw error;
+  }
+}
+
 /** Create this shop's voice process once. A second call returns the same id. */
 export async function ensureVoiceMachine(businessId: string): Promise<string> {
-  const current = await prisma.business.findUnique({ where: { id: businessId }, select: { voiceMachineId: true } });
-  if (!current) throw new Error("Shop not found");
-  if (current.voiceMachineId) return current.voiceMachineId;
+  const shop = await prisma.business.findUnique({ where: { id: businessId }, select: { id: true } });
+  if (!shop) throw new Error("Shop not found");
+  const current = await machineColumn(async () => {
+    const rows = await prisma.$queryRaw<Array<{ voiceMachineId: string | null }>>`
+      SELECT "voiceMachineId" AS voiceMachineId FROM "Business" WHERE "id" = ${businessId} LIMIT 1
+    `;
+    return rows[0]?.voiceMachineId ?? null;
+  });
+  if (current) return current;
   const id = randomBytes(16).toString("hex");
-  const won = await prisma.business.updateMany({ where: { id: businessId, voiceMachineId: null }, data: { voiceMachineId: id } });
-  if (won.count === 1) return id;
-  const again = await prisma.business.findUniqueOrThrow({ where: { id: businessId }, select: { voiceMachineId: true } });
-  if (!again.voiceMachineId) throw new Error("The voice machine was not saved.");
-  return again.voiceMachineId;
+  const won = await machineColumn(() => prisma.$executeRaw`
+    UPDATE "Business" SET "voiceMachineId" = ${id} WHERE "id" = ${businessId} AND "voiceMachineId" IS NULL
+  `);
+  if (Number(won) === 1) return id;
+  const again = await machineColumn(async () => {
+    const rows = await prisma.$queryRaw<Array<{ voiceMachineId: string | null }>>`
+      SELECT "voiceMachineId" AS voiceMachineId FROM "Business" WHERE "id" = ${businessId} LIMIT 1
+    `;
+    return rows[0]?.voiceMachineId ?? null;
+  });
+  if (!again) throw new Error("The voice machine was not saved.");
+  return again;
+}
+
+/** The business id this machine route is sealed to. Null when the seal is wrong or the column is not there yet. */
+export async function businessIdForVoiceMachine(machineId: string): Promise<string | null> {
+  try {
+    const rows = await prisma.$queryRaw<Array<{ id: string; isActive: number | boolean }>>`
+      SELECT "id" AS id, "isActive" AS isActive FROM "Business" WHERE "voiceMachineId" = ${machineId} LIMIT 1
+    `;
+    const shop = rows[0];
+    if (!shop || Number(shop.isActive) === 0) return null;
+    return shop.id;
+  } catch (error) {
+    if (missingColumn(error)) return null;
+    throw error;
+  }
 }
 
 /** Open the process. The presented seal has to be this machine's, and the shop has to be active. */
 export async function openVoiceMachine(machineId: string, presented: string | null) {
   const secret = machineSeal(machineId);
   if (!secret || !secretsMatch(presented, secret)) return null;
-  const shop = await prisma.business.findUnique({
-    where: { voiceMachineId: machineId },
-    select: { id: true, isActive: true, voiceMachineId: true },
-  });
-  if (!shop?.isActive || shop.voiceMachineId !== machineId) return null;
-  return { machineId: shop.voiceMachineId, businessId: shop.id };
+  const businessId = await businessIdForVoiceMachine(machineId);
+  if (!businessId) return null;
+  return { machineId, businessId };
 }

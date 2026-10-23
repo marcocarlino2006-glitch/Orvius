@@ -17,7 +17,7 @@ function routes(dir = join(root, "src/app/api")) {
 const SESSION = /requirePermission|requireEntitledSession|requireBusinessSession|withOffice\(|requireAdmin\(|await auth\(\)/;
 const ADMIN = /isPrivilegedRequest|verifyAdminRequest/;
 const TECH = /withTech\(/;
-const SIGNED = /x-twilio-signature|verifyVapiWebhookSecret|verifyJobberWebhook|voiceSimSecretMatches|constructEvent|CRON_SECRET/;
+const SIGNED = /x-twilio-signature|verifyVapiWebhookSecret|openVoiceMachine|verifyJobberWebhook|voiceSimSecretMatches|constructEvent|CRON_SECRET/;
 /* Reachable without a session on purpose: sign-in itself, customer links carrying their own token, and the public site. */
 const PUBLIC = [
   "src/app/api/auth/",
@@ -74,6 +74,7 @@ test("stored credentials are sealed and every provider webhook is signed", () =>
     assert.match(read(p), /x-twilio-signature/, p);
   }
   assert.match(read("src/app/api/webhooks/vapi/route.ts"), /verifyVapiWebhookSecret/);
+  assert.match(read("src/app/api/webhooks/vapi/machines/[machineId]/route.ts"), /openVoiceMachine/);
   assert.match(read("src/app/api/webhooks/jobber/route.ts"), /verifyJobberWebhook/);
   assert.match(read("src/app/api/billing/webhook/route.ts"), /constructEvent/);
 });
