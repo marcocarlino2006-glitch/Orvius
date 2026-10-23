@@ -1,0 +1,69 @@
+name: Voice machine column
+
+# By hand, on the commit that was reviewed. Takes a backup first, then adds
+# Business.voiceMachineId. The database URL stays in repo secrets. A later
+# edit of the statements fails the reviewed checksum inside the script.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+      TURSO_AUTH_TOKEN: ${{ secrets.BACKUP_TURSO_AUTH_TOKEN }}
+      BACKUP_ENCRYPTION_KEY: ${{ secrets.BACKUP_ENCRYPTION_KEY }}
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+      APP_URL: https://api.orvius.im
+      MIGRATION_APPROVAL: "PR 492 voiceMachineId"
+      MIGRATION_RELEASE_COMMIT: ${{ github.sha }}
+      MIGRATION_TARGET: production
+      MIGRATION_BACKUP_REF: actions-run/${{ github.run_id }}
+      MIGRATION_PLAN_SHA256: c3fee754a61167982fb5c6263ac819dccdb24cab2803088cb2cafdc8329f00d7
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Back up before the column
+        run: |
+          set -euo pipefail
+          mkdir -p encrypted
+          if [ -n "${DATABASE_URL}" ] && [ -n "${BACKUP_ENCRYPTION_KEY}" ]; then
+            node scripts/db-backup.mjs drill --encrypt --out "encrypted/pre-voice-machine.json.enc"
+          elif [ -n "${CRON_SECRET}" ]; then
+            out="encrypted/pre-voice-machine.json.enc"
+            code=$(curl -sS --max-time 90 -D /tmp/headers -o "$out" -w "%{http_code}" \
+              -H "Authorization: Bearer $CRON_SECRET" "$APP_URL/api/cron/backup")
+            if [ "$code" != "200" ]; then
+              echo "::error::Backup endpoint returned $code"
+              exit 1
+            fi
+            grep -i '^x-orvius-backup:' /tmp/headers | grep -q 'restored=ok' || { echo "::error::Backup was not restore-drilled"; exit 1; }
+          else
+            echo "::error::No backup taken. Set BACKUP_DATABASE_URL and BACKUP_ENCRYPTION_KEY, or CRON_SECRET."
+            exit 1
+          fi
+      - name: Add voiceMachineId
+        run: |
+          set -euo pipefail
+          if [ -z "${DATABASE_URL}" ]; then
+            echo "::error::BACKUP_DATABASE_URL is not set, so the column cannot be added from here."
+            exit 1
+          fi
+          node scripts/apply-voice-machine-column.mjs
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: orvius-backup-encrypted
+          path: encrypted/*.json.enc
+          if-no-files-found: error
+          retention-days: 30

@@ -29,6 +29,7 @@ import { isVapiBillingRefusal, pagePlatform } from "@/lib/platform-pager";
 import { alertSpendCut, callSpendCut, endCallWith } from "@/lib/call-spend-guard";
 import { releaseDemoSlot } from "@/lib/demo-load";
 import { releaseShopLine } from "@/lib/shop-machine";
+import { businessIdForVoiceMachine, callBelongsToShop, ForeignVoiceShop } from "@/lib/voice-machine";
 import { isDemoPlatformLine } from "@/lib/demo-business";
 import { endWebDemo, isLineWebCall, WEB_DEMO_CHANNEL } from "@/lib/web-demo";
 import { isLineEntitled } from "@/lib/billing-entitlement";
@@ -52,7 +53,9 @@ async function createCallRow(data: { businessId: string; vapiCallId: string; cal
     return await prisma.call.create({ data: { ...data, status: "in-progress" }, select });
   } catch (error) {
     if ((error as { code?: string })?.code !== "P2002") throw error;
-    return prisma.call.findUniqueOrThrow({ where: { vapiCallId: data.vapiCallId }, select });
+    const row = await prisma.call.findUniqueOrThrow({ where: { vapiCallId: data.vapiCallId }, select: { ...select, businessId: true } });
+    if (row.businessId !== data.businessId) throw new ForeignVoiceShop();
+    return row;
   }
 }
 
@@ -120,7 +123,14 @@ async function answerAssistantRequest(params: {
 }
 
 export async function POST(request: NextRequest) {
-  if (!verifyVapiWebhookSecret(request.headers.get("x-vapi-secret"))) {
+  return handleVapiWebhook(request, null);
+}
+
+export async function handleVapiWebhook(
+  request: NextRequest,
+  bound: { businessId: string; machineId: string } | null,
+) {
+  if (!bound && !verifyVapiWebhookSecret(request.headers.get("x-vapi-secret"))) {
     const limited = webhookAuthFailureLimited(request, "vapi");
     if (!limited.ok) return tooManyRequests(limited.retryAfterSec);
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -138,34 +148,62 @@ export async function POST(request: NextRequest) {
   const inboundNumber = message.call?.phoneNumber?.number;
   const assistantId = message.call?.assistantId;
 
-  if (type === "assistant-request") {
-    return NextResponse.json(
-      await answerAssistantRequest({
-        vapiCallId,
-        callerPhone: message.call?.customer?.number,
+  let business: NonNullable<Awaited<ReturnType<typeof findBusinessForCall>>> | null = null;
+  let existingCall: CallWithBusiness = null;
+
+  if (bound) {
+    const shop = await prisma.business.findUnique({ where: { id: bound.businessId } });
+    existingCall = await findCallWithBusiness(vapiCallId);
+    const sealedTo = await businessIdForVoiceMachine(bound.machineId);
+    const belongs =
+      Boolean(shop?.isActive) &&
+      sealedTo === shop?.id &&
+      sealedTo === bound.businessId &&
+      callBelongsToShop(shop!, {
+        assistantId,
         inboundNumber,
-      }),
-    );
-  }
-
-  // Preview calls belong to no shop: they must never reach findBusinessForCall's number fallback.
-  const [preview, existingCall] = await Promise.all([
-    findPreviewByVapiCallId(vapiCallId),
-    findCallWithBusiness(vapiCallId),
-  ]);
-  if (preview) {
-    if (type === "end-of-call-report") {
-      await recordPreviewOutcome(preview, message);
-      if (message.call?.type === "webCall") after(() => endWebDemo({ vapiCallId }));
+        existingBusinessId: existingCall?.businessId,
+      });
+    if (!shop || !belongs) {
+      logWarn("voice_machine.foreign_call", { machineId: bound.machineId, vapiCallId, assistantId, type });
+      return NextResponse.json({ ok: false, error: new ForeignVoiceShop().message }, { status: 403 });
     }
-    return NextResponse.json({ ok: true, preview: true });
-  }
+    if (type === "assistant-request") {
+      if (!shop.vapiAssistantId) {
+        return NextResponse.json({
+          error: `Thanks for calling ${shop.name}. This line isn't taking calls right now. Please reach the business directly.`,
+        });
+      }
+      return NextResponse.json({ assistantId: shop.vapiAssistantId });
+    }
+    business = shop;
+  } else {
+    if (type === "assistant-request") {
+      return NextResponse.json(
+        await answerAssistantRequest({
+          vapiCallId,
+          callerPhone: message.call?.customer?.number,
+          inboundNumber,
+        }),
+      );
+    }
 
-  const business = await findBusinessForCall(
-    existingCall,
-    inboundNumber,
-    assistantId,
-  );
+    // Preview calls belong to no shop: they must never reach findBusinessForCall's number fallback.
+    const [preview, foundCall] = await Promise.all([
+      findPreviewByVapiCallId(vapiCallId),
+      findCallWithBusiness(vapiCallId),
+    ]);
+    existingCall = foundCall;
+    if (preview) {
+      if (type === "end-of-call-report") {
+        await recordPreviewOutcome(preview, message);
+        if (message.call?.type === "webCall") after(() => endWebDemo({ vapiCallId }));
+      }
+      return NextResponse.json({ ok: true, preview: true });
+    }
+
+    business = await findBusinessForCall(existingCall, inboundNumber, assistantId);
+  }
 
   if (!business) {
     await recordWebhookEvent({
@@ -203,6 +241,10 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  if (existingCall && existingCall.businessId !== business.id) {
+    return NextResponse.json({ ok: false, error: new ForeignVoiceShop().message }, { status: 403 });
+  }
+
   // Orvius's own connection test dials the shop's number from this line; when forwarding works it comes straight back here.
   if (inboundNumber && phonesEqual(message.call?.customer?.number ?? null, inboundNumber)) {
     if (await recordForwardTestArrival(business.id)) {
@@ -219,45 +261,52 @@ export async function POST(request: NextRequest) {
     */
     const startedAt = Date.now();
     const callerPhone = message.call?.customer?.number ?? null;
-    const [call, shop] = existingCall?.business
-      ? [existingCall, existingCall.business]
-      : await Promise.all([
-          createCallRow({ businessId: business.id, vapiCallId, callerPhone }),
-          prisma.business.findUniqueOrThrow({
-            where: { id: business.id },
-            select: {
-              id: true,
-              name: true,
-              hoursJson: true,
-              timezone: true,
-              trade: true,
-              servicesJson: true,
-              jobLengthsJson: true,
-              ownerPhone: true,
-              ownerEmail: true,
-              transferPhone: true,
-              networkOn: true,
-              networkZip3: true,
-              address: true,
-              bookingMode: true,
-            },
-          }),
-        ]);
-    const toolCalls = readToolCalls(message);
-    const results = await handleInCallToolCalls({
-      shop,
-      callId: call.id,
-      call: { id: call.id, vapiCallId: call.vapiCallId, callerPhone: call.callerPhone ?? callerPhone },
-      toolCalls,
-      callerWords: callerWordsSoFar(message),
-    });
-    logInfo("in_call.tool_ms", {
-      businessId: business.id,
-      vapiCallId,
-      tools: toolCalls.map((t) => t.name).join(","),
-      ms: Date.now() - startedAt,
-    });
-    return NextResponse.json({ results });
+    try {
+      const [call, shop] = existingCall?.business
+        ? [existingCall, existingCall.business]
+        : await Promise.all([
+            createCallRow({ businessId: business.id, vapiCallId, callerPhone }),
+            prisma.business.findUniqueOrThrow({
+              where: { id: business.id },
+              select: {
+                id: true,
+                name: true,
+                hoursJson: true,
+                timezone: true,
+                trade: true,
+                servicesJson: true,
+                jobLengthsJson: true,
+                ownerPhone: true,
+                ownerEmail: true,
+                transferPhone: true,
+                networkOn: true,
+                networkZip3: true,
+                address: true,
+                bookingMode: true,
+              },
+            }),
+          ]);
+      const toolCalls = readToolCalls(message);
+      const results = await handleInCallToolCalls({
+        shop,
+        callId: call.id,
+        call: { id: call.id, vapiCallId: call.vapiCallId, callerPhone: call.callerPhone ?? callerPhone },
+        toolCalls,
+        callerWords: callerWordsSoFar(message),
+      });
+      logInfo("in_call.tool_ms", {
+        businessId: business.id,
+        vapiCallId,
+        tools: toolCalls.map((t) => t.name).join(","),
+        ms: Date.now() - startedAt,
+      });
+      return NextResponse.json({ results });
+    } catch (error) {
+      if (error instanceof ForeignVoiceShop) {
+        return NextResponse.json({ ok: false, error: error.message }, { status: 403 });
+      }
+      throw error;
+    }
   }
 
   const webCall = message.call?.type === "webCall";
