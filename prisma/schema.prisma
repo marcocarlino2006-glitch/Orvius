@@ -74,6 +74,11 @@ model Business {
   voiceId                       String?
   transferPhone                 String?
   vapiAssistantId               String?
+  /**
+   * This shop's own voice process. Calls for the shop are accepted only on
+   * /api/webhooks/vapi/machines/[voiceMachineId], sealed to this id.
+   */
+  voiceMachineId                String?   @unique
   vapiPhoneNumber               String?
   twilioPhone                   String?
   isActive                      Boolean   @default(true)

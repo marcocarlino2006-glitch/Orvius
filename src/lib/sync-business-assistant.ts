@@ -16,7 +16,14 @@ import {
 } from "@/lib/vapi";
 import { resolveVoiceId } from "@/lib/voices";
 import { isOwnerDemoWorkspace } from "@/lib/demo-fence";
+import { ensureVoiceMachine, machineKey, shopGetsOwnVoiceMachine, voiceRoute } from "@/lib/voice-machine";
 import type { Business } from "@prisma/client";
+
+async function sealedShop(business: Business): Promise<Business> {
+  if (!shopGetsOwnVoiceMachine(business) || !machineKey()) return business;
+  const voiceMachineId = business.voiceMachineId ?? (await ensureVoiceMachine(business.id));
+  return voiceMachineId === business.voiceMachineId ? business : { ...business, voiceMachineId };
+}
 
 export type AssistantSyncResult = {
   assistantUpdated: boolean;
@@ -44,12 +51,13 @@ export function buildBusinessAssistantConfig(business: Business) {
     closedDatesJson: business.closedDatesJson,
     timezone: business.timezone,
   });
+  const route = voiceRoute(business);
   return buildVapiAssistantConfig({
     businessName: business.name,
     greeting,
     systemPrompt,
-    webhookUrl: getWebhookUrl("/api/webhooks/vapi"),
-    webhookSecret: process.env.VAPI_WEBHOOK_SECRET,
+    webhookUrl: route.webhookUrl,
+    webhookSecret: route.webhookSecret,
     transferPhone,
     voiceId: resolveVoiceId(business.voiceId),
     inCallBooking: true,
@@ -71,7 +79,8 @@ export async function syncBusinessAssistant(
     };
   }
 
-  await updateAssistant(business.vapiAssistantId, buildBusinessAssistantConfig(business));
+  const sealed = await sealedShop(business);
+  await updateAssistant(sealed.vapiAssistantId!, buildBusinessAssistantConfig(sealed));
 
   const line = business.vapiPhoneNumber ?? business.twilioPhone ?? null;
   let lineAttached = false;
@@ -144,18 +153,20 @@ const confirmed = new Map<string, string>();
 export async function ensureAssistantCurrent(
   business: Business,
 ): Promise<"current" | "updated" | "skipped"> {
-  const assistantId = business.vapiAssistantId;
+  const sealed = await sealedShop(business);
+  const assistantId = sealed.vapiAssistantId;
   if (!assistantId || !process.env.VAPI_API_KEY) return "skipped";
 
-  const expected = buildBusinessAssistantConfig(business).metadata?.orviusConfig;
+  const expected = buildBusinessAssistantConfig(sealed).metadata?.orviusConfig;
   if (!expected || confirmed.get(assistantId) === expected) return "current";
 
   try {
     const live = await vapiRequest<{ metadata?: { orviusConfig?: string } }>(`/assistant/${assistantId}`);
     if (live.metadata?.orviusConfig !== expected) {
-      await syncBusinessAssistant(business);
+      await syncBusinessAssistant(sealed);
+      await (await import("@/lib/assistant-apply")).recordLiveMatch(sealed, expected);
       logInfo("vapi.assistant.resynced", {
-        businessId: business.id,
+        businessId: sealed.id,
         assistantId,
         from: live.metadata?.orviusConfig ?? null,
         to: expected,
@@ -164,7 +175,7 @@ export async function ensureAssistantCurrent(
       return "updated";
     }
     confirmed.set(assistantId, expected);
-    await (await import("@/lib/assistant-apply")).recordLiveMatch(business, expected);
+    await (await import("@/lib/assistant-apply")).recordLiveMatch(sealed, expected);
     return "current";
   } catch (error) {
     logWarn("vapi.assistant.resync_failed", {

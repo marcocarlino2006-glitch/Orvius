@@ -1386,3 +1386,7 @@ CREATE TABLE IF NOT EXISTS "JobBilling" (
 CREATE UNIQUE INDEX IF NOT EXISTS "JobBilling_jobId_key" ON "JobBilling"("jobId");
 CREATE INDEX IF NOT EXISTS "JobBilling_businessId_status_idx" ON "JobBilling"("businessId", "status");
 CREATE INDEX IF NOT EXISTS "JobBilling_status_attemptedAt_idx" ON "JobBilling"("status", "attemptedAt");
+
+-- One voice process per shop. The id is the only route that accepts that shop's calls.
+ALTER TABLE "Business" ADD COLUMN "voiceMachineId" TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS "Business_voiceMachineId_key" ON "Business"("voiceMachineId");
