@@ -251,9 +251,11 @@ type Shop = {
   name: string;
   timezone: string;
   ownerPhone: string | null;
+  ownerEmail?: string | null;
   trade?: string | null;
   address?: string | null;
   networkOn?: boolean;
+  slug?: string | null;
 };
 
 /** The lead the owner's latest alert was about, if it is recent enough to be what they mean. */
@@ -542,7 +544,16 @@ export async function handleOwnerText(params: {
 
       case "pass":
         return await passLeadToNetwork(
-          { id: shop.id, name: shop.name, trade: shop.trade ?? null, address: shop.address ?? null, networkOn: Boolean(shop.networkOn) },
+          {
+            id: shop.id,
+            name: shop.name,
+            trade: shop.trade ?? null,
+            address: shop.address ?? null,
+            networkOn: Boolean(shop.networkOn),
+            slug: shop.slug,
+            ownerPhone: shop.ownerPhone,
+            ownerEmail: shop.ownerEmail,
+          },
           lead,
         );
 

@@ -100,10 +100,16 @@ export type ClaimedShop = {
   source?: "website" | "google";
 };
 
+/** The area on a network invite, applied only when the owner picks that trade. Never a made-up five-digit ZIP. */
+function networkFromInvite(trade: Trade, invite?: { trade: string; zip3: string } | null) {
+  if (!invite || invite.trade !== trade || !/^\d{3}$/.test(invite.zip3)) return null;
+  return { networkOn: true, networkZip3: invite.zip3 };
+}
+
 /** Step 1: the test-mode shop, created the moment the owner names their business type. */
 export async function startSetup(
   email: string,
-  input: { name: string; trade: Trade; timezone?: string | null; found?: ClaimedShop },
+  input: { name: string; trade: Trade; timezone?: string | null; found?: ClaimedShop; invite?: { trade: string; zip3: string } | null },
 ): Promise<Business> {
   const owner = email.trim().toLowerCase();
   if (await ownsLiveShop(owner)) throw new SetupError("Your business is already live. Open Command to run it.");
@@ -127,6 +133,7 @@ export async function startSetup(
   };
   const existing = await findSetupSandbox(owner);
 
+  const joined = networkFromInvite(input.trade, input.invite);
   if (existing) {
     const tradeChanged = existing.trade !== input.trade;
     const updated = await updateSetup(existing.id, (current) => mergeSetup(current, { step: "test", ...(imported ? { imported } : {}) }, "business"), {
@@ -134,6 +141,7 @@ export async function startSetup(
       trade: input.trade,
       greeting,
       ...claimed,
+      ...(joined ? joined : input.invite && tradeChanged ? { networkOn: false, networkZip3: null } : {}),
       ...(tradeChanged ? { servicesJson: servicesForTrade(input.trade) } : {}),
       ...(input.timezone ? { timezone: input.timezone } : {}),
     });
@@ -152,6 +160,7 @@ export async function startSetup(
       hoursJson: DEFAULT_HOURS_JSON,
       ...claimed,
       servicesJson: servicesForTrade(input.trade),
+      ...(joined ? joined : {}),
       ...(input.timezone ? { timezone: input.timezone } : {}),
       billingStatus: "pilot",
       pilotEndsAt: new Date(Date.now() + TEST_WINDOW_DAYS * 24 * 60 * 60_000),

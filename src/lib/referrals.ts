@@ -22,6 +22,15 @@ export function referralLink(slug: string) {
   return `https://${getPrimaryDomain()}/r/${slug}`;
 }
 
+/** Link a booked-solid shop sends when no partner in that trade and ZIP3 can take the job. */
+export function nextShopInvite(params: { slug: string; trade: string; zip3: string }) {
+  const url = `${referralLink(params.slug)}?via=network&trade=${encodeURIComponent(params.trade)}&zip=${encodeURIComponent(params.zip3)}`;
+  return {
+    url,
+    line: `No other Orvius ${params.trade} shop near ${params.zip3}xx yet. Send the next shop this link: ${url}`,
+  };
+}
+
 /** Stripe metadata values are capped at 500 characters. */
 export function acquisitionMetadata(acq: Acquisition | null): Record<string, string> {
   if (!acq) return {};

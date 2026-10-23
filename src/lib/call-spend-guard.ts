@@ -86,7 +86,7 @@ export async function callSpendCut(params: {
   if (params.ownsLine && params.vapiCallId) {
     if (!(await reserveShopLine(params.shop.id, params.vapiCallId, now))) {
       logWarn("call.spend_cut", { businessId: params.shop.id, reason: "shop_line" });
-      return { reason: "shop_line", say: shopLineBusySay(params.shop.name), count: 1 };
+      return { reason: "shop_line", say: shopLineBusySay(params.shop.name, Boolean(caller)), count: 1 };
     }
   }
 
@@ -109,6 +109,10 @@ export async function callSpendCut(params: {
   platform page already covers it — but a shop cut pages the owner once per
   hour (repeat caller) or once per day (runaway line), so the second, third,
   and fiftieth cut stay silent while the first is actionable.
+
+  A second caller on the shop's one line is not this kind of cut. holdLineBusyCaller
+  keeps the number and tells the owner to call back. This stays quiet for that
+  reason so the robodialer copy is never what they receive.
 */
 export async function alertSpendCut(params: {
   shop: { id: string; name: string; ownerPhone: string | null; ownerEmail: string | null };
@@ -132,6 +136,71 @@ export async function alertSpendCut(params: {
     ownerPhone: params.shop.ownerPhone,
     ownerEmail: params.shop.ownerEmail,
   });
+}
+
+const BUSY_LINE_HOLD_MS = 2 * 60 * 60_000;
+
+/**
+ * The line was already in a call. Keep the number as a lead and tell the owner
+ * to call back. Runs after the caller has been hung up, so it adds no voice latency.
+ * A second call from the same number inside two hours reuses that lead.
+ */
+export async function holdLineBusyCaller(params: {
+  shop: { id: string; name: string; ownerPhone: string | null; ownerEmail: string | null };
+  callerPhone: string | null;
+  callId?: string | null;
+  now?: Date;
+}): Promise<{ leadId: string } | null> {
+  const phone = normalizePhone(params.callerPhone);
+  if (!phone) return null;
+  const now = params.now ?? new Date();
+  const phones = params.callerPhone && params.callerPhone !== phone ? [phone, params.callerPhone] : [phone];
+  let lead = await prisma.lead.findFirst({
+    where: {
+      businessId: params.shop.id,
+      source: "busy_line",
+      phone: { in: phones },
+      createdAt: { gte: new Date(now.getTime() - BUSY_LINE_HOLD_MS) },
+    },
+    orderBy: { createdAt: "desc" },
+    select: { id: true },
+  });
+  if (!lead) {
+    const data = {
+      businessId: params.shop.id,
+      phone,
+      source: "busy_line",
+      serviceType: "Called while the line was busy",
+      notes: "The line was on another call. The number was kept so the shop can call back.",
+      status: "new",
+    };
+    try {
+      lead = await prisma.lead.create({
+        data: { ...data, ...(params.callId ? { callId: params.callId } : {}) },
+        select: { id: true },
+      });
+    } catch (error) {
+      if (params.callId && (error as { code?: string }).code === "P2002") {
+        lead = await prisma.lead.create({ data, select: { id: true } });
+      } else {
+        logWarn("call.busy_line_lead_failed", {
+          businessId: params.shop.id,
+          error: error instanceof Error ? error.message : "unknown",
+        });
+        lead = null;
+      }
+    }
+  }
+  await enqueueOwnerAlert({
+    businessId: params.shop.id,
+    ...(lead ? { leadId: lead.id } : {}),
+    dedupeKey: `busy-line:${params.shop.id}:${phone}:${now.toISOString().slice(0, 13)}`,
+    businessName: params.shop.name,
+    message: `A caller reached ${params.shop.name} while the line was on another call. ${phone} is saved. Call them back.`,
+    ownerPhone: params.shop.ownerPhone,
+    ownerEmail: params.shop.ownerEmail,
+  });
+  return lead ? { leadId: lead.id } : null;
 }
 
 /** Speak one sentence and hang up, through Vapi's live call control. One retry: a burst of cuts should not drown the line in retries. */

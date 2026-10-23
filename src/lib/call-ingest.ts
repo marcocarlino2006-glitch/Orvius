@@ -421,7 +421,16 @@ export async function finishCallReport(input: Omit<Captured, "duplicate">): Prom
     const network =
       call.networkConsentAt && hasNetworkConsentEvidence(call.networkConsentJson) && !safety && !autoBook.jobId && !nonService
         ? await passConsentedCallLead(
-            { id: business.id, name: business.name, trade: business.trade, address: business.address, networkOn: business.networkOn },
+            {
+              id: business.id,
+              name: business.name,
+              trade: business.trade,
+              address: business.address,
+              networkOn: business.networkOn,
+              slug: business.slug,
+              ownerPhone: business.ownerPhone,
+              ownerEmail: business.ownerEmail,
+            },
             { ...freshLead, job: null },
           ).catch((error) => {
             logWarn("network.call_pass_failed", { leadId: lead.id, error: error instanceof Error ? error.message : String(error) });

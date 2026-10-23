@@ -1,5 +1,7 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { ACQUISITION_COOKIE, inviteArea, parseAcquisition } from "@/lib/acquisition";
 import { auth } from "@/auth";
 import { busyCalendarHost } from "@/lib/busy-calendar";
 import { prisma } from "@/lib/prisma";
@@ -218,6 +220,11 @@ async function view(business: Business | null) {
   };
 }
 
+async function readInvite() {
+  const raw = (await cookies()).get(ACQUISITION_COOKIE)?.value;
+  return inviteArea(parseAcquisition(raw));
+}
+
 async function signedInEmail(): Promise<string | null> {
   const session = await auth();
   return session?.user?.email?.toLowerCase() ?? null;
@@ -238,6 +245,7 @@ export async function GET() {
   return NextResponse.json({
     live: Boolean(live),
     line: await shopLineAvailability(),
+    invited: await readInvite(),
     ...(await view(await findSetupSandbox(email))),
   });
 }
@@ -256,9 +264,17 @@ export async function POST(request: Request) {
   try {
     let business: Business;
     switch (body.action) {
-      case "start":
-        business = await startSetup(email, { name: body.name, trade: body.trade as Trade, timezone: body.timezone, found: body.found });
+      case "start": {
+        const invited = await readInvite();
+        business = await startSetup(email, {
+          name: body.name,
+          trade: body.trade as Trade,
+          timezone: body.timezone,
+          found: body.found,
+          invite: invited && invited.trade === body.trade ? invited : null,
+        });
         break;
+      }
       case "goal":
         business = await saveSetupGoal(email, body.goal as (typeof SETUP_GOALS)[number]["id"]);
         break;
