@@ -44,6 +44,8 @@ type JobMoneyPanelProps = {
   depositReadiness: DepositReadiness | null;
   /** A finished visit never asks for a deposit to hold the slot. */
   jobClosed?: boolean;
+  /** Card charges pay out to the shop's bank. Off until Stripe payouts are on. */
+  payoutsToBank?: boolean;
   onRefresh: () => void;
 };
 
@@ -56,6 +58,7 @@ export function JobMoneyPanel({
   deposit,
   depositReadiness,
   jobClosed = false,
+  payoutsToBank = false,
   onRefresh,
 }: JobMoneyPanelProps) {
   const settled = estimate?.invoice?.status === "paid";
@@ -369,8 +372,9 @@ export function JobMoneyPanel({
             otherwise is the fastest way to lose them.
           */}
           <p className="job-money-lead">
-            Send the customer an estimate to accept. Card payments go straight
-            to your bank — Orvius never holds your money.
+            {payoutsToBank
+              ? "Send the customer an estimate to accept. A card payment pays out to your bank, usually within two business days."
+              : "Send the customer an estimate to accept. A card payment pays out once your bank is connected."}
           </p>
           <div className="job-money-mode" role="radiogroup" aria-label="Estimate type">
             <button type="button" role="radio" aria-checked={!tiered} className={!tiered ? "is-on" : undefined} onClick={() => setTiered(false)}>

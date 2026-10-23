@@ -135,5 +135,9 @@ test("shops on a retired ElevenLabs voice keep a matching voice", async () => {
   assert.equal(resolveVoiceId("unknown"), DEFAULT_VOICE_ID);
   const config = buildVapiAssistantConfig({ businessName: "A", systemPrompt: "x", greeting: "hi", webhookUrl: "" });
   assert.equal(config.voice.provider, "cartesia");
-  assert.equal(config.startSpeakingPlan.waitSeconds, 0.3);
+  assert.equal(config.startSpeakingPlan.waitSeconds, 0.15);
+  assert.equal(config.startSpeakingPlan.smartEndpointingPlan.provider, "livekit");
+  assert.equal(config.startSpeakingPlan.transcriptionEndpointingPlan.onNoPunctuationSeconds, 0.8);
+  assert.equal(config.startSpeakingPlan.transcriptionEndpointingPlan.onNumberSeconds, 1);
+  assert.equal(config.voice.chunkPlan.minCharacters, 8);
 });

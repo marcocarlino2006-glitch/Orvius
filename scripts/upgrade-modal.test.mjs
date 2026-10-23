@@ -53,7 +53,7 @@ test("the picker follows checkout's refusals instead of arguing with them", () =
 });
 
 test("the account popover and the picker follow the day theme like the settings dialog", () => {
-  const css = read("src/app/dashboard/orvius-system.css");
+  const css = read("src/app/dashboard/orvius.css");
   assert.match(css, /html\[data-theme="day"\] \.os-shell\.os-shell-night \.mx-menu \{/);
   assert.match(css, /html\[data-theme="day"\] \.os-shell\.os-shell-night \.mx-menu \.mx-upgrade \{/);
   assert.match(css, /\.os-shell\.os-shell-night \.upg-backdrop \{/);

@@ -108,13 +108,13 @@ test("Ask is one composer with grounded evidence and explained approvals", () =>
 });
 
 test("design system: one amber accent, semantic status colors, touch-size controls", () => {
-  const css = read("src/app/dashboard/orvius-system.css");
+  const css = read("src/app/dashboard/orvius.css");
   assert.match(css, /--ox-amber:/);
   assert.match(css, /--ox-green:/);
   assert.match(css, /--ox-yellow:/);
   assert.match(css, /--ox-red:/);
   assert.match(css, /pointer: coarse/);
-  assert.match(read("src/app/dashboard/layout.tsx"), /orvius-system\.css/);
+  assert.match(read("src/app/dashboard/layout.tsx"), /orvius\.css/);
 });
 
 test("list pages open records in the shared drawer", () => {

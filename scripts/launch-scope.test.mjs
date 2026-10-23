@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { jobRowFacts } from "../src/lib/job-row.ts";
-import { claimedCents, collectedCents, collectedHow, isCollected } from "../src/lib/payment-math.ts";
+import { claimedCents, collectedCents, collectedHow, isCollected, paidBankLine } from "../src/lib/payment-math.ts";
 import { isSetupTrade, setupTradeGroups } from "../src/lib/setup-flow.ts";
 import { isLaunchTrade, LAUNCH_TRADES, NOT_YET_TRADE } from "../src/lib/trades.ts";
 import { TRADE_PAGES } from "../src/lib/trade-pages.ts";
@@ -51,6 +51,10 @@ test("only money in hand counts as collected", () => {
   for (const s of ["claimed", "rejected", "refunded", "failed", "superseded"]) assert.equal(isCollected(s), false, s);
   assert.equal(collectedHow(payments), "cash and card (confirmed by the processor)");
   assert.equal(collectedHow([{ amountCents: 1, status: "claimed", method: "customer_said" }]), null);
+  assert.match(paidBankLine("card (confirmed by the processor)", true), /pays out to your bank/);
+  assert.match(paidBankLine("card (confirmed by the processor)", false), /payouts are on/);
+  assert.match(paidBankLine("cash", true), /did not go to your bank/);
+  assert.match(paidBankLine("cash and card (confirmed by the processor)", true), /rest stayed in the shop/);
 });
 
 const base = {

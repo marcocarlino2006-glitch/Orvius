@@ -14,7 +14,7 @@ import { join } from "node:path";
 import { repoRoot } from "./lib/module-graph.mjs";
 
 const WRITE = process.argv.includes("--write");
-const FILES = ["src/app/globals.css", "src/app/dashboard/dashboard.css"];
+const FILES = ["src/app/globals.css", "src/app/dashboard/orvius.css"];
 
 const { stdout } = await import("node:process");
 const map = JSON.parse(

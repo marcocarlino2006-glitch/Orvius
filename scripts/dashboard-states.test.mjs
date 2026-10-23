@@ -78,7 +78,7 @@ test("Settings and loading states use the same owner-system language", () => {
   assert.match(skeleton, /className="os-lead-rail dashboard-list-skeleton"/);
   assert.doesNotMatch(skeleton, /lead-inbox-card pro-card/);
 
-  const css = read("src/app/dashboard/settings-center.css");
+  const css = read("src/app/dashboard/orvius.css");
   assert.match(css, /\.sc-dialog/);
   assert.match(css, /\.sc-embed/);
 });

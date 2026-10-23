@@ -98,10 +98,10 @@ test("the page holds a conversation: history out, opening in, answer revealed pr
 test("Command shows it is alive: breathing line dot, live clock, feed that arrives", () => {
   const pulse = read("src/components/orvius-pulse.tsx");
   assert.match(pulse, /Live ·/, "freshness is stated as live, with the shop's clock");
-  const system = read("src/app/dashboard/orvius-system.css");
+  const system = read("src/app/dashboard/orvius.css");
   assert.match(system, /@keyframes op-breathe/, "a healthy line breathes");
   assert.match(system, /ask-caret-blink/, "Ask types with a caret");
-  const work = read("src/app/dashboard/work.css");
+  const work = read("src/app/dashboard/orvius.css");
   assert.match(work, /@keyframes cmd-feed-in/, "the feed arrives like work happening");
   assert.match(work + system, /prefers-reduced-motion/, "motion respects reduced-motion");
 });

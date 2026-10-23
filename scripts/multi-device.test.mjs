@@ -16,7 +16,7 @@ test("touch screens never zoom on a field and get thumb-sized controls", () => {
 });
 
 test("page content never grows wider than the screen", () => {
-  for (const file of ["src/app/dashboard/dashboard.css", "src/app/dashboard/orvius-system.css"]) {
+  for (const file of ["src/app/dashboard/orvius.css"]) {
     const css = read(file);
     const widths = [...css.matchAll(/\.os-content-pro > \*\s*\{[^}]*max-width:\s*([^;]+);/g)];
     assert.ok(widths.length > 0, `${file} caps page content`);
@@ -24,7 +24,7 @@ test("page content never grows wider than the screen", () => {
       assert.match(value, /^min\([^,]+,\s*100%\)/, `${file}: ${value}`);
     }
   }
-  const depth = read("src/app/dashboard/pages.css");
+  const depth = read("src/app/dashboard/orvius.css");
   assert.match(depth, /\.tse-body \{[^}]*minmax\(min\(100%, 17rem\), 1fr\)/);
   assert.match(depth, /\.tse-add \{[^}]*repeat\(2, minmax\(0, 1fr\)\)/);
 });
@@ -58,7 +58,7 @@ test("CI audits every page on phone, iPad and desktop", async () => {
 });
 
 test("the account menu hangs from the avatar and stays on the phone", () => {
-  const css = read("src/app/dashboard/dashboard.css");
+  const css = read("src/app/dashboard/orvius.css");
   assert.match(css, /\.os-shell\.os-shell-night \.os-topbar \.mx-menu \{\s*top: calc\(100% \+ 6px\);\s*right: 0;\s*bottom: auto;\s*left: auto;/);
 });
 
@@ -82,7 +82,7 @@ test("settings pop-up: one-line rail names, keyword search, readable on both the
   assert.match(center, /className="sc-nav-empty"/);
   assert.match(center, /\{current\.label\}/, "the page title keeps the full name");
 
-  const css = read("src/app/dashboard/settings-center.css");
+  const css = read("src/app/dashboard/orvius.css");
   assert.match(css, /grid-template-columns: 232px minmax\(0, 1fr\);/);
   assert.match(css, /html body \.os-shell \.sc-dialog \{\s*grid-template-columns: minmax\(0, 1fr\);/, "phones get one column");
   assert.match(css, /\.sc-inline-field > select\.sc-input \{\s*flex: 1 1 0 !important;/);

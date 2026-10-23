@@ -43,12 +43,12 @@ test("app transitions use the motion scale", () => {
     }
   }
   assert.deepEqual(raw, []);
-  const system = readFileSync("src/app/dashboard/orvius-system.css", "utf8");
+  const system = readFileSync("src/app/dashboard/orvius.css", "utf8");
   for (const token of ["--ox-dur-fast", "--ox-dur:", "--ox-dur-slow"]) assert.ok(system.includes(token), token);
 });
 
 test("the app honors reduced motion", () => {
-  const system = readFileSync("src/app/dashboard/orvius-system.css", "utf8");
+  const system = readFileSync("src/app/dashboard/orvius.css", "utf8");
   assert.match(system, /@media \(prefers-reduced-motion: reduce\)\s*\{\s*\.os-shell \*,/);
   assert.match(system, /transition-duration: 0\.01ms !important/);
 });
@@ -84,17 +84,9 @@ test("hardcoded colors never grow (migrate to tokens, don't add hex)", () => {
   const ceiling = {
     "src/app/ask-dialog.css": 0,
     "src/app/b/[slug]/book.css": 0,
-    "src/app/dashboard/dashboard.css": 121,
     "src/app/dashboard/inbox/messages/messages.css": 0,
     "src/app/dashboard/onboarding/turn-on.css": 1,
-    "src/app/dashboard/orvius-calm.css": 0,
-    "src/app/dashboard/orvius-craft.css": 11,
-    "src/app/dashboard/orvius-instant.css": 0,
-    "src/app/dashboard/orvius-modern.css": 2,
-    "src/app/dashboard/orvius-system.css": 56,
-    "src/app/dashboard/pages.css": 0,
-    "src/app/dashboard/settings-center.css": 14,
-    "src/app/dashboard/work.css": 0,
+    "src/app/dashboard/orvius.css": 173,
     "src/app/globals.css": 132,
     "src/app/home-sections.css": 0,
     "src/app/m/[slug]/plans.css": 0,

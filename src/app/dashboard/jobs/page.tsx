@@ -47,6 +47,38 @@ const TABS: Tab[] = [
 const matchesTab = (tab: Tab["id"], state: JobState) =>
   tab === "open" ? state !== "closed" : state === tab;
 
+function emptyJobs(
+  tabId: Tab["id"],
+  counts: Record<string, number>,
+  query: string,
+  jobWord: string,
+  newLeads: number,
+): { title: string; body: string; go: "new" | "open" | "inbox" } {
+  if (query) {
+    return { title: `No ${jobWord} match "${query}"`, body: "Try a name, a street, or a phone number.", go: "new" };
+  }
+  const open = counts.open ?? 0;
+  const closed = counts.closed ?? 0;
+  if (tabId === "open" && open === 0 && closed > 0) {
+    return { title: "No open work right now", body: "Finished jobs are under Closed.", go: "new" };
+  }
+  if (tabId !== "open" && open > 0) {
+    return {
+      title: TABS.find((t) => t.id === tabId)?.empty ?? "Nothing here right now",
+      body: "Open work is under All open.",
+      go: "open",
+    };
+  }
+  if (newLeads > 0) {
+    return { title: `No ${jobWord} booked yet`, body: "A call is waiting in the Inbox. Book it, or put one on the schedule yourself.", go: "inbox" };
+  }
+  return {
+    title: `No ${jobWord} booked yet`,
+    body: "A call that books lands here. Took one yourself? Put it on the schedule.",
+    go: "new",
+  };
+}
+
 export default function JobsPage() {
   const terms = industryTerms(useBusiness().business?.trade);
   const [jobs, setJobs] = useState<JobRow[]>([]);
@@ -134,6 +166,7 @@ export default function JobsPage() {
     const rest = filtered.filter(({ job }) => !jobRowFacts(job, Date.now()).attention);
     return yours.length && rest.length ? [{ key: "yours", label: `Needs you · ${yours.length}`, rows: yours }, { key: "rest", label: "Everything else", rows: rest }] : [{ key: "all", label: "", rows: filtered }];
   }, [filtered]);
+  const empty = emptyJobs(tabId, tabCounts, query, terms.jobs, newLeadCount);
 
   return (
     <OsShell
@@ -141,13 +174,13 @@ export default function JobsPage() {
       actions={
         <>
           {unassigned > 0 ? (
-            <Link href="/dashboard/schedule" className="btn btn-void text-sm">
+            <Link href="/dashboard/schedule" className="ox-btn ox-btn--primary ox-btn--sm">
               Assign {unassigned}
             </Link>
           ) : null}
           <Link
             href="/dashboard/jobs/new"
-            className={`btn text-sm ${unassigned > 0 ? "btn-secondary" : "btn-void"}`}
+            className={`ox-btn ox-btn--sm ${unassigned > 0 ? "ox-btn--quiet" : "ox-btn--primary"}`}
           >
             New {terms.job}
           </Link>
@@ -237,24 +270,24 @@ export default function JobsPage() {
             />
           ) : null}
 
-          {error && !jobs.length ? null : !jobs.length ? (
+          {error && !jobs.length ? null : !filtered.length ? (
             <ProEmptyState
-              title={`No ${terms.jobs} booked yet`}
-              body={`Calls Orvius books land here on their own. Took one yourself? Put it on the schedule.`}
+              title={empty.title}
+              body={empty.body}
               action={
-                <Link href="/dashboard/jobs/new" className="btn btn-void text-sm">
-                  New {terms.job}
-                </Link>
-              }
-            />
-          ) : !filtered.length ? (
-            <ProEmptyState
-              title={query ? `No ${terms.jobs} match "${query}"` : (TABS.find((t) => t.id === tabId)?.empty ?? "Nothing here right now")}
-              body={query ? "Try a name, a street, or a phone number." : "Pick another status, or book one yourself."}
-              action={
-                <Link href="/dashboard/jobs/new" className="btn btn-void text-sm">
-                  New {terms.job}
-                </Link>
+                empty.go === "open" ? (
+                  <button type="button" className="ox-btn ox-btn--primary ox-btn--sm" onClick={() => setTabId("open")}>
+                    All open
+                  </button>
+                ) : empty.go === "inbox" ? (
+                  <Link href="/dashboard/inbox" className="ox-btn ox-btn--primary ox-btn--sm">
+                    Inbox
+                  </Link>
+                ) : (
+                  <Link href="/dashboard/jobs/new" className="ox-btn ox-btn--primary ox-btn--sm">
+                    New {terms.job}
+                  </Link>
+                )
               }
             />
           ) : (

@@ -123,7 +123,7 @@ test("a phone keeps five places plus search at the bottom left, and an iPad or a
   );
   assert.match(read("src/components/os-shell.tsx"), /os-sidebar-nav/);
   assert.match(read("src/components/os-shell.tsx"), /osWideNav/);
-  assert.match(read("src/app/dashboard/dashboard.css"), /grid-template-columns: 16rem minmax\(0, 1fr\)/);
+  assert.match(read("src/app/dashboard/orvius.css"), /grid-template-columns: 16rem minmax\(0, 1fr\)/);
   assert.match(read("src/app/dashboard/dispatch/page.tsx"), /redirect\("\/dashboard\/schedule"\)/);
 });
 
