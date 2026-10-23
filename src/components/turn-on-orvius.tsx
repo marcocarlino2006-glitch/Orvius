@@ -72,8 +72,11 @@ type Plan = { id: "line" | "pro" | "fleet"; name: string; price: number; tagline
 /** What the owner walks. Hours, the first job and permissions start as a normal shop week and change on the desk. */
 const OWNER_STEPS = ["business", "test", "live"] as const;
 
-const STEP_TITLES: Record<(typeof OWNER_STEPS)[number], string> = {
+const STEP_TITLES: Record<SetupStep, string> = {
   business: "Your shop",
+  goal: "The first job",
+  day: "Your day",
+  permissions: "What Orvius may do",
   test: "Hear it",
   live: "Pay",
 };
