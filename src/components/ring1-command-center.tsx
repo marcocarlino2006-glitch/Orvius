@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { AskBar, CheckCard, DemoPanel, PlanCard, TryDemo } from "@/components/command-board";
+import { DayOnePanel } from "@/components/day-one-panel";
 import { DeskBoard } from "@/components/desk-board";
 import { SupportContact } from "@/components/support-contact";
 import { TestAlertButton } from "@/components/test-alert-button";
@@ -243,6 +244,8 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
         </section>
       ) : null}
 
+      {data?.dayOne?.open ? <DayOnePanel day={data.dayOne} onSaved={() => refresh()} /> : null}
+
       <div className={pictured ? "cmd-now cmd-stage" : "cmd-now"}>
       <header className="cmd-head">
         <h2 className="cmd-headline os-own-color" aria-live="polite">
@@ -313,6 +316,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
         <DeskBoard
           jobs={data.dispatchToday?.jobs ?? []}
           money={data.money}
+          week={data.outcomes ? { jobsBooked: data.outcomes.jobsBooked, avgTicketCents: data.outcomes.avgTicketCents } : undefined}
           items={items}
           asideKey={liveItem?.key ?? null}
           timezone={data.coverage?.timezone}

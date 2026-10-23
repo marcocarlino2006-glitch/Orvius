@@ -18,6 +18,7 @@ import type { CommandFlow, CommandMoney } from "@/lib/command-depth";
 import type { PersonalBrief } from "@/lib/personal-brief";
 import type { ShopHealth } from "@/lib/shop-health";
 import type { ReceptionistWeek } from "@/lib/receptionist-week";
+import type { DayOne } from "@/lib/day-one";
 import type { ShopOutcomes } from "@/lib/shop-outcomes";
 import type { ShiftEvent } from "@/lib/shift-timeline";
 import type { WedgeReadiness } from "@/lib/wedge-readiness";
@@ -106,6 +107,8 @@ export type Ring1Data = {
   };
   flow?: CommandFlow;
   money?: CommandMoney;
+  /** Still open after pay: the shop's number, a card account, and one average ticket. */
+  dayOne?: DayOne;
   tomorrow?: import("@/lib/command-tomorrow").CommandTomorrow | null;
   crewBoard?: CrewBoard;
   technicians?: Array<{ id: string; name: string }>;

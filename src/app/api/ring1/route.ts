@@ -6,6 +6,7 @@ import { isPriorityUrgency } from "@/lib/auto-job";
 import { listHandled, runAutopilot } from "@/lib/autopilot";
 import { shopDayBounds } from "@/lib/availability";
 import { isAfterHours } from "@/lib/business";
+import { dayOne } from "@/lib/day-one";
 import { getShopLineForBusiness, isDemoBusiness } from "@/lib/demo-business";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { commandCallSummary } from "@/lib/command-call";
@@ -29,6 +30,7 @@ import { billingLock } from "@/lib/plan-gate";
 import { getWedgeReadiness } from "@/lib/wedge-readiness";
 import { listWork } from "@/lib/work";
 import { isStripeCheckoutConfigured } from "@/lib/stripe";
+import { getConnectStatus } from "@/lib/stripe-connect";
 
 /** Polling every 30s would otherwise write the shop row every 30s. */
 const LAST_SEEN_WRITE_MS = 60_000;
@@ -265,6 +267,16 @@ export async function GET(request: Request) {
     }));
 
   const line = getShopLineForBusiness(business);
+  const connect = getConnectStatus(business);
+  const dayOneOut = dayOne({
+    live: isBillingEntitled(business) && business.environment === "production" && !isDemoBusiness(business),
+    numberProved: business.overflowProvedAt != null,
+    chargesEnabled: connect.chargesEnabled,
+    avgTicketCents: outcomesOut.avgTicketCents,
+    jobsBooked: outcomesOut.jobsBooked,
+    collectedCents: money?.collectedCents ?? outcomesOut.collectedCents,
+    moneyPaused: money === undefined || Boolean(outcomesOut.moneyPaused),
+  });
 
   let certDone = 0;
   try {
@@ -403,6 +415,7 @@ export async function GET(request: Request) {
     },
     flow,
     money,
+    dayOne: dayOneOut,
     tomorrow,
     crewBoard: crewBoard(dispatchBoard, boardJobs),
     technicians: crew.map((tech) => ({ id: tech.id, name: tech.name })),

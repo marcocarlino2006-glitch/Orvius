@@ -80,8 +80,14 @@ function openSummary(count: number, waitingOnYou: number): string {
   return `${open} ${you} Those come first.`;
 }
 
-function Money({ money }: { money: CommandMoney }) {
-  const brief = moneyBrief(money);
+function Money({
+  money,
+  week,
+}: {
+  money: CommandMoney;
+  week?: { jobsBooked: number; avgTicketCents: number | null };
+}) {
+  const brief = moneyBrief(money, week);
   return (
     <section className="cmd-section" aria-labelledby="desk-money">
       <h3 id="desk-money" className="cmd-section-title">
@@ -219,6 +225,7 @@ function Activity({ events, skipId, timezone }: { events: ActivityEvent[]; skipI
 export function DeskBoard({
   jobs,
   money,
+  week,
   items,
   asideKey,
   timezone,
@@ -229,6 +236,7 @@ export function DeskBoard({
 }: {
   jobs: TodayJob[];
   money?: CommandMoney;
+  week?: { jobsBooked: number; avgTicketCents: number | null };
   items: OpenItem[];
   asideKey: string | null;
   timezone?: string | null;
@@ -315,7 +323,7 @@ export function DeskBoard({
           ) : null}
         </section>
 
-        {money ? <Money money={money} /> : null}
+        {money ? <Money money={money} week={week} /> : null}
       </div>
 
       {activity?.length ? <Activity events={activity} skipId={activitySkipId ?? null} timezone={timezone} /> : null}

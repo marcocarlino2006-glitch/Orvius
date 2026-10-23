@@ -1,19 +1,29 @@
 import { prisma } from "@/lib/prisma";
 
 /**
- * Changes whenever a call, lead, job or alert for the shop does. Each part is
- * an indexed max per shop, so it stays cheap enough to check every few seconds.
+ * Changes whenever a call, lead, job, alert, or the shop row itself does.
+ * Each part is an indexed read, so it stays cheap enough to check every few seconds.
  */
 export async function shopVersion(businessId: string) {
   const where = { businessId };
-  const [call, lead, job, alert, invoice] = await Promise.all([
+  const [call, lead, job, alert, invoice, shop] = await Promise.all([
     prisma.call.aggregate({ where, _max: { updatedAt: true } }),
     prisma.lead.aggregate({ where, _max: { updatedAt: true } }),
     prisma.job.aggregate({ where, _max: { updatedAt: true } }),
     prisma.ownerNotification.aggregate({ where, _max: { processedAt: true, createdAt: true } }),
     prisma.invoice.aggregate({ where, _max: { updatedAt: true } }),
+    // Ticket, a proved forward, and card charges live on the shop row.
+    prisma.business.findUnique({ where: { id: businessId }, select: { updatedAt: true } }),
   ]);
-  return [call._max.updatedAt, lead._max.updatedAt, job._max.updatedAt, alert._max.processedAt, alert._max.createdAt, invoice._max.updatedAt]
+  return [
+    call._max.updatedAt,
+    lead._max.updatedAt,
+    job._max.updatedAt,
+    alert._max.processedAt,
+    alert._max.createdAt,
+    invoice._max.updatedAt,
+    shop?.updatedAt,
+  ]
     .map((at) => at?.getTime() ?? 0)
     .join(".");
 }
