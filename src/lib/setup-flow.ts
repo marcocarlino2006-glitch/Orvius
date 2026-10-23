@@ -2,10 +2,11 @@ import { TRADE_PLAYBOOKS, classifyRequest } from "@/lib/trade-playbooks";
 import { INDUSTRY_KIND, OFFERED_TRADES, isTrade, type Trade } from "@/lib/trades";
 
 /*
-  Turning Orvius on. A new owner gets a test-mode workspace the moment they
-  pick a business type: their real settings, no phone line, no charge, and
-  every text it would send written as simulated. Going live is the last step
-  and the only one that buys a number, takes payment or reaches a real person.
+  Turning Orvius on. The owner names the shop, hears it answer, and pays.
+  Hours and booking start as a normal shop week and change on the desk.
+  A new owner gets a test-mode workspace the moment they name the shop:
+  no phone line, no charge, and every text it would send written as simulated.
+  Paying is the step that buys a number and reaches a real person.
 */
 
 export const SETUP_STEPS = ["business", "goal", "day", "permissions", "test", "live"] as const;
@@ -78,8 +79,8 @@ export const SETUP_PREREQS: Record<SetupStep, readonly SetupStep[]> = {
   goal: ["business"],
   day: ["business"],
   permissions: ["business", "day"],
-  test: ["business", "day", "permissions"],
-  live: ["business", "day", "permissions"],
+  test: ["business"],
+  live: ["business"],
 };
 
 const MAX_FAILURES = 10;

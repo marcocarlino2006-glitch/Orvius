@@ -36,6 +36,7 @@ import { checkActivationClaim, draftActivationBusiness, recordActivationAck } fr
 import { resolveShopAccess } from "@/lib/workspace-access";
 import { withLease } from "@/lib/provision-attempt";
 import { isSetupSandbox, missingForStep, parseSetup } from "@/lib/setup-flow";
+import { canReserveShopLine, LINE_NOT_RESERVED, shopLineAvailability } from "@/lib/shop-machine";
 import { ACQUISITION_COOKIE, parseAcquisition } from "@/lib/acquisition";
 import { acquisitionMetadata, findReferrer } from "@/lib/referrals";
 
@@ -194,12 +195,20 @@ export async function POST(request: NextRequest) {
       const missing = missingForStep("live", parseSetup(business.setupJson));
       if (missing.length) {
         return NextResponse.json(
-          { error: "Finish your hours and what Orvius may do before going live. Your setup is saved.", code: "setup_incomplete", missing, setupUrl: `/dashboard/onboarding?step=${missing[0]}` },
+          { error: "Name your shop first. Your setup is saved.", code: "setup_incomplete", missing, setupUrl: `/dashboard/onboarding?step=${missing[0]}` },
           { status: 409 },
         );
       }
       const refusal = checkActivationClaim(business, body.activation);
       if (refusal) return NextResponse.json(refusal, { status: 409 });
+    }
+    if (!business || turningOn) {
+      const lines = await shopLineAvailability();
+      if (lines.purchased != null && !canReserveShopLine(lines)) {
+        return NextResponse.json({ error: LINE_NOT_RESERVED, code: "line_not_reserved" }, { status: 409 });
+      }
+    }
+    if (turningOn && business) {
       const ack = await recordActivationAck({
         business,
         actorEmail: sessionEmail,

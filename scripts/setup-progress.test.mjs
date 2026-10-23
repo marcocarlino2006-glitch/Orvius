@@ -99,16 +99,17 @@ test("steps are recorded on the server and a later step can't be saved or opened
   const started = await act({ action: "start", name: "Ridge Heating", trade: "HVAC", timezone: "America/Denver" });
   assert.equal(started.status, 200);
   assert.ok(started.json.sandbox.progress.done.business, "business step stamped");
-  assert.deepEqual(started.json.sandbox.progress.allowed, ["business", "goal", "day"]);
+  assert.deepEqual(started.json.sandbox.progress.allowed, ["business", "goal", "day", "test", "live"]);
 
   const early = await act({ action: "permissions", level: "offer", followUps: false });
   assert.equal(early.status, 409);
   assert.match(early.json.error, /Finish your hours and work first/);
-  const jump = await act({ action: "step", step: "test" });
+  const jump = await act({ action: "step", step: "permissions" });
   assert.equal(jump.status, 409);
+  assert.equal((await act({ action: "step", step: "test" })).status, 200);
 
   const shop = await prisma.business.findFirstOrThrow({ where: { ownerEmail: email } });
-  assert.equal(shop.bookingMode, "alert", "refused permissions changed nothing");
+  assert.equal(shop.bookingMode, "book", "refused permissions left the starting booking in place");
   assert.equal(parseSetup(shop.setupJson).permissions, undefined);
 
   assert.equal((await act({ action: "day", hours: "weekdays" })).status, 200);
@@ -128,8 +129,9 @@ test("a shop from before steps were tracked keeps the progress its saved fields 
   assert.ok(done.business && done.goal && done.day && done.permissions);
   assert.equal(done.test, undefined);
   assert.deepEqual(missingForStep("live", legacy), []);
-  assert.deepEqual(missingForStep("live", { sandbox: true, goal: "after_hours" }), ["day", "permissions"]);
-  assert.deepEqual(allowedSteps({ sandbox: true }), ["business", "goal", "day"]);
+  assert.deepEqual(missingForStep("live", { sandbox: true, goal: "after_hours" }), []);
+  assert.deepEqual(missingForStep("permissions", { sandbox: true, goal: "after_hours" }), ["day"]);
+  assert.deepEqual(allowedSteps({ sandbox: true }), ["business", "goal", "day", "test", "live"]);
   assert.deepEqual(allowedSteps({}), ["business"]);
 });
 
@@ -139,11 +141,12 @@ test("the facts say which ones the owner confirmed and which are starting values
   const before = await current();
   const hours = before.facts.find((f) => f.label === "Open hours");
   assert.equal(hours.source, "starting_default");
-  assert.equal(before.facts.find((f) => f.label === "What Orvius may do").source, "unknown");
+  assert.equal(before.facts.find((f) => f.label === "What Orvius may do").source, "starting_default");
+  assert.equal(before.facts.find((f) => f.label === "What Orvius may do").value, "offer");
   await act({ action: "day", hours: "weekdays" });
   const after = await current();
   assert.equal(after.facts.find((f) => f.label === "Open hours").source, "confirmed");
-  assert.equal(after.facts.find((f) => f.label === "What Orvius may do").value, null, "never chosen on the owner's behalf");
+  assert.equal(after.facts.find((f) => f.label === "What Orvius may do").source, "starting_default", "hours do not count as choosing what it may do");
 });
 
 test("a failed test call is recorded with an attempt count and an actionable message", async () => {
@@ -206,7 +209,7 @@ test("the sign-up form is kept per signed-in email and refuses the signed-out", 
   assert.equal(await prisma.business.count({ where: { ownerEmail: email } }), 0, "a draft never creates a shop");
 });
 
-test("turning on an unfinished setup is refused before any Stripe session or approval record", async () => {
+test("naming the shop is enough to open checkout", async () => {
   const email = owner();
   await act({ action: "start", name: "Rush Heating", trade: "HVAC" });
   const shop = await prisma.business.findFirstOrThrow({ where: { ownerEmail: email } });
@@ -222,11 +225,9 @@ test("turning on an unfinished setup is refused before any Stripe session or app
       }),
     }),
   );
-  assert.equal(res.status, 409);
+  assert.equal(res.status, 200);
   const json = await res.json();
-  assert.equal(json.code, "setup_incomplete");
-  assert.deepEqual(json.missing, ["day", "permissions"]);
-  assert.equal(json.setupUrl, "/dashboard/onboarding?step=day");
-  assert.equal(sessions.length, before, "no Stripe session was opened");
-  assert.equal(await prisma.activationAcknowledgement.count({ where: { businessId: shop.id } }), 0);
+  assert.equal(json.url, "https://checkout.stripe.test/s");
+  assert.equal(sessions.length, before + 1, "naming the shop is enough to open checkout");
+  assert.equal(await prisma.activationAcknowledgement.count({ where: { businessId: shop.id } }), 1);
 });
