@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { depositPayUrl, getDepositReadiness } from "@/lib/booking-deposit";
 import { invoiceCompletedJob, invoicePayUrl } from "@/lib/invoice-pay";
+import { cardBankForMethods } from "@/lib/card-bank";
 import { claimedCents, collectedCents, collectedHow } from "@/lib/payment-record";
 import { moneyTotals } from "@/lib/payment-math";
 import { getConnectStatus } from "@/lib/stripe-connect";
@@ -75,6 +76,16 @@ export async function GET(_request: Request, { params }: Params) {
     ? textDelivery({ sid: job.customerConfirmSid, deliveryStatus: confirmText?.deliveryStatus, sentAt: job.customerConfirmSentAt })
     : null;
 
+  const connect = getConnectStatus(business);
+  const cardMethods = invoice?.payments.map((payment) => payment.method) ?? [];
+  const cardBank =
+    invoice?.status === "paid" && connect.payoutsEnabled && connect.accountId
+      ? await Promise.race([
+          cardBankForMethods({ methods: cardMethods, stripeAccount: connect.accountId }).catch(() => null),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 4000)),
+        ])
+      : null;
+
   const serialized = serializeJob(job);
   if (serialized.customer) {
     const counts = await prisma.customer.findUnique({
@@ -121,8 +132,9 @@ export async function GET(_request: Request, { params }: Params) {
         }
       : null,
     finalAmountCents: job.finalAmountCents,
-    cardPayReady: getConnectStatus(business).canAcceptPayments,
-    payoutsEnabled: getConnectStatus(business).payoutsEnabled,
+    cardPayReady: connect.canAcceptPayments,
+    payoutsEnabled: connect.payoutsEnabled,
+    cardBank,
     salesTaxBps: business.salesTaxBps ?? 0,
   });
 }

@@ -7,7 +7,7 @@ import { CHECKING, runCheckedWrite, type ReadBackAnswer } from "@/lib/checked-wr
 import { sendWrite } from "@/lib/client-write";
 import { isBillReply } from "@/lib/plan-reply";
 import { formatCentsExact } from "@/lib/money";
-import { paidBankLine } from "@/lib/payment-math";
+import { paidBankLine, type BankArrival } from "@/lib/payment-math";
 import { formatTaxRate, withSalesTax } from "@/lib/sales-tax";
 import { formatDay, formatWhen } from "@/lib/when";
 
@@ -29,6 +29,8 @@ export type JobBill = {
   cardPayReady: boolean;
   /** Stripe will pay card charges out to the shop's bank. */
   payoutsEnabled?: boolean;
+  /** What Stripe has said about this bill's card charge. Null until a read lands. */
+  cardBank?: BankArrival | null;
   salesTaxBps?: number;
 };
 
@@ -152,17 +154,15 @@ export function JobBillSection({
           {formatCentsExact(invoice.amountCents)} paid
           {invoice.paidAt ? ` on ${formatDay(invoice.paidAt)}` : ""}
           {invoice.collectedHow ? ` · ${invoice.collectedHow}` : ""}.{" "}
-          {paidBankLine(invoice.collectedHow, Boolean(bill.payoutsEnabled))}
-          {!bill.payoutsEnabled && /card|bank transfer/i.test(invoice.collectedHow ?? "") ? (
-            <>
-              {" "}
-              <Link href="/dashboard/billing#payouts" className="underline underline-offset-2">
-                Finish payouts
-              </Link>
-              .
-            </>
-          ) : null}
+          {paidBankLine(invoice.collectedHow, Boolean(bill.payoutsEnabled), bill.cardBank)}
         </p>
+        {!bill.payoutsEnabled && /card|bank transfer/i.test(invoice.collectedHow ?? "") ? (
+          <p className="job-money-lead">
+            <Link href="/dashboard/billing#payouts" className="ox-btn ox-btn--primary ox-btn--sm">
+              Turn payouts on
+            </Link>
+          </p>
+        ) : null}
         {(invoice.refundedCents ?? 0) > 0 ? (
           <p className="job-money-lead">
             {formatCentsExact(invoice.refundedCents!)} refunded in Stripe, {formatCentsExact(invoice.keptCents ?? 0)} kept.

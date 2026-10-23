@@ -140,4 +140,8 @@ test("shops on a retired ElevenLabs voice keep a matching voice", async () => {
   assert.equal(config.startSpeakingPlan.transcriptionEndpointingPlan.onNoPunctuationSeconds, 0.8);
   assert.equal(config.startSpeakingPlan.transcriptionEndpointingPlan.onNumberSeconds, 1);
   assert.equal(config.voice.chunkPlan.minCharacters, 8);
+  const { replyPhrase } = await import("../src/lib/call-latency.ts");
+  assert.equal(replyPhrase(640), "Replied in 640 ms");
+  assert.equal(replyPhrase(1200), "Replied in 1.2s");
+  assert.equal(replyPhrase(0), "");
 });

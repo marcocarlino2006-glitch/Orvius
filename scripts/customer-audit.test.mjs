@@ -149,8 +149,10 @@ test("the week line is a pure read of the same numbers, and Command leads with t
   assert.equal(weekResultLine({ windowDays: 7, leads: 0, leadsBooked: 0, collectedCents: 5000 }), null, "nothing to report on an empty week");
   assert.equal(weekResultLine(undefined), null);
   const command = read("src/components/ring1-command-center.tsx");
-  assert.match(command, /brief\?\.headline/);
+  assert.match(command, /commandNow\(data\)/, "Command shows the shared sentence");
   assert.doesNotMatch(command, /weekResultLine/);
+  const now = read("src/lib/command-now.ts");
+  assert.match(now, /personalBrief\?\.headline/, "that sentence starts from the day's brief");
 });
 
 test("no page sends a ready buyer to the waitlist while signup is open", () => {

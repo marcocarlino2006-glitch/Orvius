@@ -55,6 +55,12 @@ test("only money in hand counts as collected", () => {
   assert.match(paidBankLine("card (confirmed by the processor)", false), /payouts are on/);
   assert.match(paidBankLine("cash", true), /did not go to your bank/);
   assert.match(paidBankLine("cash and card (confirmed by the processor)", true), /rest stayed in the shop/);
+  assert.equal(paidBankLine("card (confirmed by the processor)", true, { inBankOn: "Oct 20" }), "In your bank as of Oct 20.");
+  assert.match(paidBankLine("cash and card (confirmed by the processor)", true, { inBankOn: "Oct 20" }), /in your bank as of Oct 20/);
+  assert.match(paidBankLine("cash and card (confirmed by the processor)", true, { inBankOn: "Oct 20" }), /rest stayed in the shop/);
+  assert.equal(paidBankLine("card (confirmed by the processor)", true, { paysOutOn: "Oct 24" }), "Pays out to your bank on Oct 24.");
+  assert.equal(paidBankLine("card (confirmed by the processor)", true, { waitingOnPayout: true }), "Waiting on the next payout to your bank.");
+  assert.match(paidBankLine("card (confirmed by the processor)", false, { inBankOn: "Oct 20" }), /payouts are on/);
 });
 
 const base = {
@@ -172,6 +178,29 @@ test("every sitemap page names itself as canonical, and nothing inherits the hom
   const config = read("next.config.ts");
   assert.match(config, /source: "\/press", destination: "\/about", permanent: true/);
   assert.match(config, /appliance-repair\)", destination: "\/trades"/);
+});
+
+test("a card says it is in the bank only when a paid payout contains the charge", async () => {
+  const { cardBankFacts, chargeFromSession, bankDay, stripeSessionId } = await import("../src/lib/card-bank.ts");
+  assert.equal(stripeSessionId("stripe:cs_test_a1b2"), "cs_test_a1b2");
+  assert.equal(stripeSessionId("cash"), null);
+  const charge = chargeFromSession({
+    payment_intent: { latest_charge: { id: "ch_1", balance_transaction: { available_on: 1_761_177_600, status: "available" } } },
+  });
+  assert.equal(charge?.chargeId, "ch_1");
+  assert.deepEqual(cardBankFacts(charge, [{ arrivalDate: 1_761_264_000, chargeIds: ["ch_1"] }]), {
+    inBankOn: 1_761_264_000,
+    paysOutOn: null,
+    waitingOnPayout: false,
+  });
+  assert.deepEqual(cardBankFacts({ chargeId: "ch_1", availableOn: 1_761_177_600, status: "pending" }, []), {
+    inBankOn: null,
+    paysOutOn: 1_761_177_600,
+    waitingOnPayout: false,
+  });
+  assert.equal(cardBankFacts({ chargeId: "ch_1", availableOn: 1_761_177_600, status: "available" }, []).waitingOnPayout, true);
+  assert.equal(bankDay(Date.parse("2026-10-23T00:00:00Z") / 1000, new Date("2026-10-22T12:00:00Z")), "Oct 23");
+  assert.equal(chargeFromSession({ payment_intent: "pi_1" }), null);
 });
 
 test("pricing and the Terms say Orvius is for U.S. businesses only", () => {

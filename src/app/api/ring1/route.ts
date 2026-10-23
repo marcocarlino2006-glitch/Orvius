@@ -362,6 +362,7 @@ export async function GET(request: Request) {
       createdAt: call.createdAt.toISOString(),
       leadName: call.lead?.name ?? null,
       serviceType: call.lead?.serviceType ?? null,
+      replyP50Ms: call.replyP50Ms,
     })),
     dispatchToday: {
       jobCount: dispatchBoard.jobCount,

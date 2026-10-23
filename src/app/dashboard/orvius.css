@@ -19653,3 +19653,55 @@ html .os-shell .dsp-block[draggable="true"] {
   background: var(--m-solid) !important;
   color: var(--m-on-solid) !important;
 }
+
+/* A call fills the first view. The day is the next step, not a second picture. */
+.cmd-now {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+  min-width: 0;
+}
+
+.cmd-stage {
+  min-height: calc(100dvh - 7rem);
+}
+
+.cmd-stage .cmd-live {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.cmd-stage .cmd-call {
+  flex: 1 1 auto;
+  justify-content: center;
+  margin-bottom: 0;
+}
+
+.cmd-day-step {
+  margin-top: auto;
+  align-self: flex-start;
+}
+
+.cmd-day-board {
+  scroll-margin-top: 1rem;
+}
+
+.cmd-call-reply {
+  margin: 0;
+  color: var(--ox-text-2);
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+
+:root body .os-shell.os-shell-pro.os-shell-pro.os-shell-night .cmd .cmd-stage .cmd-call .cmd-live-call {
+  font-size: clamp(1.75rem, 1.1rem + 2vw, 2.75rem) !important;
+  line-height: 1.15 !important;
+}
+
+@media (max-width: 767px) {
+  .cmd-stage {
+    min-height: calc(100dvh - 16.25rem);
+  }
+}

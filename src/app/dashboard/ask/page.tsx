@@ -5,7 +5,9 @@ import { OsShell } from "@/components/os-shell";
 import { PlanUpgradeGate } from "@/components/plan-upgrade-gate";
 import { RecordLink } from "@/components/record-drawer";
 import { ASK_SUGGESTIONS } from "@/lib/ask-suggestions";
+import { commandNow } from "@/lib/command-now";
 import { isRecordType } from "@/lib/record-types";
+import { useRing1 } from "@/lib/ring1-context";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
@@ -121,7 +123,11 @@ const HIT_LABEL: Record<string, string> = {
   technician: "Technician",
 };
 
+const HOME_QUESTION = "What should I do now?";
+
 export default function AskPage() {
+  const { data } = useRing1();
+  const sentence = commandNow(data);
   const [question, setQuestion] = useState("");
   const [turns, setTurns] = useState<Turn[]>([]);
   const [opening, setOpening] = useState<Opening | null>(null);
@@ -235,13 +241,17 @@ export default function AskPage() {
           <div className="ask-thread" aria-live="polite">
             {!turns.length ? (
               <div className="ask-intro">
-                <h2 className="ask-intro-title">{opening?.headline ?? "Ask what happened, what matters, and what to do next."}</h2>
+                <h2 className="ask-intro-title">{data ? sentence : (opening?.headline ?? "Reading the shop…")}</h2>
                 <p className="ask-intro-copy">
-                  {opening?.detail ??
-                    "Every answer cites the records it used. When Orvius proposes an action, it tells you exactly what will happen and waits for your approval."}
+                  {data
+                    ? "This is the line on Home. Ask a follow-up and the answer cites the shop's records."
+                    : (opening?.detail ??
+                      "Every answer cites the records it used. When Orvius proposes an action, it tells you exactly what will happen and waits for your approval.")}
                 </p>
                 <ul className="ask-suggest-grid">
-                  {(opening?.suggestions.length ? opening.suggestions : [...ASK_SUGGESTIONS].slice(0, 4)).map((item) => (
+                  {(opening?.suggestions.length ? opening.suggestions : [...ASK_SUGGESTIONS].slice(0, 4))
+                    .filter((item) => item !== HOME_QUESTION)
+                    .map((item) => (
                     <li key={item}>
                       <button type="button" className="ask-suggest" onClick={() => ask(item)}>
                         {item}
