@@ -121,6 +121,8 @@ export type Ring1Data = {
     createdAt: string;
     leadName: string | null;
     serviceType: string | null;
+    /** Median first-audio wait for this call, once Vapi reports it. */
+    replyP50Ms?: number | null;
   }>;
   sinceUsed?: string | null;
   version?: string;

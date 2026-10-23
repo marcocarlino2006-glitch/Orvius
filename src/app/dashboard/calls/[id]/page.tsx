@@ -17,6 +17,7 @@ import { CALL_OUTCOME_LABEL, type CallOutcome } from "@/lib/call-outcome";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { replyPhrase } from "@/lib/call-latency";
 import { callerSpokeSpanish } from "@/lib/caller-language";
 import { displayPhone } from "@/lib/customer";
 import { personLabel } from "@/lib/spoken-name";
@@ -30,6 +31,7 @@ type CallDetail = {
   summary: string | null;
   transcript: string | null;
   durationSec: number | null;
+  replyP50Ms: number | null;
   recordingUrl: string | null;
   contentPurgedAt: string | null;
   booked: boolean;
@@ -216,6 +218,16 @@ export default function CallDetailPage() {
                   <dd>{length}</dd>
                 </div>
               ) : null}
+              <div>
+                <dt>Reply</dt>
+                <dd>
+                  {typeof call.replyP50Ms === "number"
+                    ? replyPhrase(call.replyP50Ms)
+                    : ["in-progress", "ringing", "queued"].includes(call.status)
+                      ? "Lands when the call ends."
+                      : "Not on this call's report."}
+                </dd>
+              </div>
             </dl>
           </ShellPanel>
 

@@ -7,12 +7,13 @@ import { DeskBoard } from "@/components/desk-board";
 import { SupportContact } from "@/components/support-contact";
 import { TestAlertButton } from "@/components/test-alert-button";
 import { WorkCard } from "@/components/work-card";
-import { commandSentence } from "@/lib/command-sentence";
+import { replyClock, replyPhrase } from "@/lib/call-latency";
+import { commandNow } from "@/lib/command-now";
 import { deskFacts } from "@/lib/desk-status";
 import { isLiveCall } from "@/lib/live-call";
 import { useRing1 } from "@/lib/ring1-context";
-import { personLabel, spokenName } from "@/lib/spoken-name";
-import { formatBeat, formatWhen } from "@/lib/when";
+import { personLabel } from "@/lib/spoken-name";
+import { formatWhen } from "@/lib/when";
 
 function callerName(name: string | null | undefined, phone: string | null | undefined): string {
   return personLabel(name, phone);
@@ -111,7 +112,6 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
   const attached = new Set(items.map((i) => i.approvalId).filter(Boolean));
   const looseApprovals = approvals.filter((a) => a.proposalId && !attached.has(a.proposalId));
   const approvalFor = (id: string | null) => (id ? approvals.find((a) => a.proposalId === id) ?? null : null);
-  const brief = data?.personalBrief ?? null;
   const liveCall = (data?.recentCalls ?? []).find((call) => isLiveCall(call.status, call.createdAt)) ?? null;
   const shopIssues = (work?.shopIssues ?? []).filter((issue) => issue.kind !== "billing_action" && !issue.resolveId);
   const blocking = shopIssues.filter((issue) => {
@@ -134,27 +134,18 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
   const onTheLine = liveCall ? callerName(liveCall.leadName, liveCall.callerPhone) : null;
   const latestCall = (data?.recentCalls ?? []).find((call) => call.id !== liveCall?.id) ?? null;
   const latestWho = latestCall ? callerName(latestCall.leadName, latestCall.callerPhone) : null;
-  const sentence = commandSentence({
-    loaded: Boolean(data),
-    brief: brief?.headline ?? null,
-    live: onTheLine ? { who: onTheLine } : null,
-    approval: liveApproval ? { title: liveApproval.preview ?? liveApproval.title, needsCheck: Boolean(liveApproval.needsCheck) } : null,
-    item: liveItem
-      ? {
-          title: liveItem.title,
-          customer: liveItem.customer,
-          nextAction: liveItem.nextAction,
-          needsYou: liveItem.needsYou,
-          when: liveItem.scheduledAt ? formatBeat(liveItem.scheduledAt, data?.coverage?.timezone) : null,
-          tech: liveItem.technician?.name ? spokenName(liveItem.technician.name).split(/\s+/)[0] || null : null,
-          spanish: liveItem.lang === "es",
-        }
-      : null,
-    lastSummary: !liveApproval && !liveItem ? (lastDone?.summary ?? null) : null,
-    lineOff: Boolean(
-      data && !data.business?.line && !data.business?.referenceImplementation && !data.business?.demoWorkspace && !data.business?.testMode,
-    ),
-  });
+  const sentence = commandNow(data);
+  const pictured = Boolean(liveCall || (latestCall && latestWho));
+  const picturedReply = !liveCall && latestCall?.replyP50Ms ? latestCall.replyP50Ms : null;
+  const earlierReply =
+    (data?.recentCalls ?? []).find((call) => call.replyP50Ms && call.id !== liveCall?.id && call.id !== latestCall?.id)?.replyP50Ms ?? null;
+  const replyLine = liveCall
+    ? "Reply time lands when the call ends."
+    : picturedReply
+      ? replyPhrase(picturedReply)
+      : earlierReply
+        ? `Last measured reply, ${replyClock(earlierReply)}`
+        : null;
   const stale = Boolean(loadError && data);
 
   return (
@@ -192,6 +183,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
         </section>
       ) : null}
 
+      <div className={pictured ? "cmd-now cmd-stage" : "cmd-now"}>
       <header className="cmd-head">
         <h2 className="cmd-headline os-own-color" aria-live="polite">
           {sentence}
@@ -218,6 +210,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
             <Link href={`/dashboard/calls/${liveCall.id}`} className="ox-btn ox-btn--primary ox-btn--sm">
               Open the call
             </Link>
+            {replyLine ? <p className="cmd-call-reply">{replyLine}</p> : null}
           </div>
         ) : latestCall && latestWho ? (
           <div className="cmd-call">
@@ -230,9 +223,10 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
             <Link href={`/dashboard/calls/${latestCall.id}`} className="ox-btn ox-btn--primary ox-btn--sm">
               Open the call
             </Link>
+            {replyLine ? <p className="cmd-call-reply">{replyLine}</p> : null}
           </div>
         ) : null}
-        {liveCall ? null : liveApproval ? (
+        {!pictured && liveApproval ? (
           <ul className="wc-list cmd-queue">
             <li className="wc wc--approval wc--now">
               {liveApproval.needsCheck ? (
@@ -242,11 +236,11 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
               )}
             </li>
           </ul>
-        ) : liveItem ? (
+        ) : !pictured && liveItem ? (
           <ul className="wc-list cmd-queue">
             <WorkCard key={liveItem.key} item={liveItem} approval={approvalFor(liveItem.approvalId)} technicians={data?.technicians ?? []} onChange={() => void refresh()} variant="now" timezone={data?.coverage?.timezone} />
           </ul>
-        ) : latestCall ? null : lastDone ? (
+        ) : !pictured && lastDone ? (
           <p className="cmd-live-trace">
             <span className="cmd-feed-dot" aria-hidden />
             {lastDone.jobId || lastDone.leadId ? (
@@ -257,9 +251,15 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
             <time dateTime={lastDone.at}>{formatWhen(lastDone.at)}</time>
           </p>
         ) : null}
+        {pictured ? (
+          <a className="cmd-day-step ox-btn ox-btn--quiet ox-btn--sm" href="#the-day">
+            The day
+          </a>
+        ) : null}
       </section>
+      </div>
 
-      {(liveCall || liveApproval || liveItem) && orviusDid ? (
+      {!pictured && (liveCall || liveApproval || liveItem) && orviusDid ? (
         <p className="cmd-orvius-did">
           <span>Orvius · {orviusDid.result}</span>
           {orviusDid.jobId || orviusDid.leadId ? (
@@ -272,6 +272,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
       ) : null}
 
       {data ? (
+        <div id="the-day" className="cmd-day-board">
         <DeskBoard
           jobs={data.dispatchToday?.jobs ?? []}
           money={data.money}
@@ -283,6 +284,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
           activity={data.handled?.events ?? []}
           activitySkipId={!liveCall && !liveApproval && !liveItem ? (lastDone?.id ?? null) : null}
         />
+        </div>
       ) : null}
 
       <div className="cmd-ask">

@@ -204,7 +204,6 @@ export async function askOpening(businessId: string): Promise<AskOpening> {
     getShopOutcomes(businessId, 7).catch(() => null),
   ]);
   const suggestions: string[] = [];
-  if (attention.length) suggestions.push("What should I do now?");
   if (outcomes && outcomes.afterHoursLeads > 0) suggestions.push("What happened overnight?");
   if (attention.some((i) => /unassigned|technician/i.test(`${i.title} ${i.recommendedAction}`))) {
     suggestions.push("What's unassigned on dispatch?");

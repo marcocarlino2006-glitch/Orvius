@@ -58,6 +58,21 @@ export function latencyFromReport(message: { artifact?: { performanceMetrics?: {
 /** Callers forgive about this much silence before they talk over the agent. */
 export const REPLY_BUDGET_MS = 800;
 
+/** "640 ms" or "1.2s". Empty when the number is not a real reply time. */
+export function replyClock(ms: number): string {
+  if (!Number.isFinite(ms) || ms <= 0 || ms >= 30_000) return "";
+  if (ms < 1000) return `${Math.round(ms)} ms`;
+  const seconds = ms / 1000;
+  const shown = seconds < 10 ? seconds.toFixed(1).replace(/\.0$/, "") : String(Math.round(seconds));
+  return `${shown}s`;
+}
+
+/** The measured first-audio wait, in the owner's words. */
+export function replyPhrase(ms: number): string {
+  const clock = replyClock(ms);
+  return clock ? `Replied in ${clock}` : "";
+}
+
 export function latencyColumns(latency: CallLatency | null) {
   return latency
     ? { replyP50Ms: latency.p50, replyP90Ms: latency.p90, latencyJson: JSON.stringify({ turns: latency.turns, stages: latency.stages }) }

@@ -155,6 +155,7 @@ export default function JobDetailPage() {
           finalAmountCents: jobData.finalAmountCents ?? null,
           cardPayReady: Boolean(jobData.cardPayReady),
           payoutsEnabled: Boolean(jobData.payoutsEnabled),
+          cardBank: jobData.cardBank ?? null,
           salesTaxBps: Number(jobData.salesTaxBps) || 0,
         });
         setCrew(techData.technicians ?? []);

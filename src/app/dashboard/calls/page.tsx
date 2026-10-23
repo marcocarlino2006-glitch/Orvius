@@ -138,7 +138,28 @@ export default function CallsPage() {
           {!shown.length ? (
             <ProEmptyState
               title={searched && !calls.length ? `No calls match "${searched}"` : "Nothing in this filter"}
-              body={searched && !calls.length ? "Try a name, part of a phone number, or a word the caller used." : "Pick another outcome."}
+              body={searched && !calls.length ? "Try a name, part of a phone number, or a word the caller used." : "This outcome has no calls."}
+              action={
+                <span className="flex flex-wrap justify-center gap-2">
+                  {filter ? (
+                    <button type="button" className="ox-btn ox-btn--primary ox-btn--sm" onClick={() => setFilter("")}>
+                      All calls
+                    </button>
+                  ) : null}
+                  {searched ? (
+                    <button
+                      type="button"
+                      className="ox-btn ox-btn--primary ox-btn--sm"
+                      onClick={() => {
+                        setQuery("");
+                        load("");
+                      }}
+                    >
+                      Clear search
+                    </button>
+                  ) : null}
+                </span>
+              }
             />
           ) : (
             <div className="dt dt--calls font-sans" role="table" aria-label="Calls">

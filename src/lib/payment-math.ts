@@ -70,15 +70,47 @@ export function claimedCents(payments: PaymentRow[] | undefined | null): number 
 }
 
 /**
- * Where a paid bill sits. A card charge pays out to the shop's bank only
- * when Stripe payouts are on. Cash, a check, or the customer's word stayed
- * in the shop. Never call either of those "landed."
+ * What Stripe has already said about a card charge. Days are formatted by the
+ * caller. Absent means we have not read a payout yet, so the bill stays on
+ * the usual two-business-day line instead of inventing an arrival.
  */
-export function paidBankLine(how: string | null | undefined, payoutsEnabled: boolean): string {
+export type BankArrival = {
+  /** A paid payout included this charge. */
+  inBankOn?: string | null;
+  /** The charge is still pending. Funds become available on this day. */
+  paysOutOn?: string | null;
+  /** Funds are available, and the recent paid payouts do not include this charge. */
+  waitingOnPayout?: boolean;
+};
+
+/**
+ * Where a paid bill sits. A card charge pays out to the shop's bank only
+ * when Stripe payouts are on, and only a payout Stripe has paid can say the
+ * money is in the bank. Cash, a check, or the customer's word stayed in the
+ * shop. Never call either of those "landed."
+ */
+export function paidBankLine(how: string | null | undefined, payoutsEnabled: boolean, arrival?: BankArrival | null): string {
   const text = how ?? "";
   const card = /card|bank transfer/i.test(text);
   const alsoInShop = /cash|recorded|customer|check/i.test(text);
   if (card && payoutsEnabled) {
+    const inBank = arrival?.inBankOn?.trim();
+    if (inBank) {
+      return alsoInShop
+        ? `The card amount is in your bank as of ${inBank}. The rest stayed in the shop.`
+        : `In your bank as of ${inBank}.`;
+    }
+    const paysOut = arrival?.paysOutOn?.trim();
+    if (paysOut) {
+      return alsoInShop
+        ? `The card amount pays out to your bank on ${paysOut}. The rest stayed in the shop.`
+        : `Pays out to your bank on ${paysOut}.`;
+    }
+    if (arrival?.waitingOnPayout) {
+      return alsoInShop
+        ? "The card amount is waiting on the next payout to your bank. The rest stayed in the shop."
+        : "Waiting on the next payout to your bank.";
+    }
     return alsoInShop
       ? "The card amount pays out to your bank, usually within two business days. The rest stayed in the shop."
       : "The card payment pays out to your bank, usually within two business days.";

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { commandSentence } from "../src/lib/command-sentence.ts";
+import { commandNow } from "../src/lib/command-now.ts";
 import { connectedLine } from "../src/lib/connected-line.ts";
 import { customerOpening } from "../src/lib/customer-opening.ts";
 
@@ -142,4 +143,15 @@ test("a shop with no line hears that one next step when the day is empty", () =>
     commandSentence({ ...clear, lineOff: true, item: { title: "AC not cooling", customer: "Maria", nextAction: "Call Maria back", needsYou: true } }),
     "Call Maria back.",
   );
+});
+
+test("Ask and Home open on the same sentence", () => {
+  assert.equal(commandNow(null), "Reading the shop…");
+  const shop = {
+    business: { line: "+15551212" },
+    recentCalls: [{ id: "c1", status: "in-progress", createdAt: new Date().toISOString(), leadName: "Dana Cole", callerPhone: null }],
+    work: { items: [{ approvalId: null, needsYou: true, title: "AC", customer: "Dana", nextAction: "Call Dana back", scheduledAt: null }], approvals: [] },
+  };
+  assert.equal(commandNow(shop), "Dana Cole is on the line.");
+  assert.equal(commandNow({ ...shop, recentCalls: [] }), "Call Dana back.");
 });
