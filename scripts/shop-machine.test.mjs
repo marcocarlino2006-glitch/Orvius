@@ -42,6 +42,9 @@ test("go-live refuses an unreserved line, and a second caller cannot take the sh
   const setup = read("src/components/turn-on-orvius.tsx");
   assert.match(setup, /Hear your shop answer/);
   assert.match(setup, /TalkInBrowser/);
+  assert.doesNotMatch(setup, /lineBlocked/);
+  assert.doesNotMatch(machine.LINE_NOT_RESERVED, /support@orvius\.im/);
+  assert.match(machine.LINE_NOT_RESERVED, /Checkout opens once that line is reserved/);
 });
 
 test("one shop, one line: the second call waits", async () => {

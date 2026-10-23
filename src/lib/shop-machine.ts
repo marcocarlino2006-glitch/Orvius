@@ -10,13 +10,14 @@ import { webDemoCap } from "@/lib/web-demo";
   it, and a second caller on that shop waits rather than taking another shop's
   line. The purchased total is ORVIUS_VAPI_CALL_LINES — the number of
   simultaneous calls the voice account can actually carry. Until that number
-  is recorded, no new shop is turned on.
+  is recorded, checkout still opens. Once it is recorded, a new shop goes
+  live only when a line is free. The owner stays on the same signup.
 */
 
 export const LINES_PER_SHOP = 1;
 
 export const LINE_NOT_RESERVED =
-  "A call line has to be held for your shop before it can go live. Your setup is saved. Email support@orvius.im and we'll turn it on when a line is reserved for you.";
+  "We're holding a call line for your shop. Your setup is saved. Checkout opens once that line is reserved.";
 
 export function shopLineBusySay(shopName: string) {
   return `Thanks for calling ${shopName}. This line is with another caller. Please try again in a few minutes. Goodbye.`;

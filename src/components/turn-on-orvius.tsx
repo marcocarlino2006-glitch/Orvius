@@ -65,7 +65,6 @@ type SetupResponse = {
   live?: boolean;
   sandbox: Sandbox | null;
   error?: string;
-  line?: { left: number | null };
 };
 
 type Plan = { id: "line" | "pro" | "fleet"; name: string; price: number; tagline: string; featured: boolean; checkoutReady: boolean };
@@ -101,7 +100,6 @@ export function TurnOnOrvius({
 }) {
   const router = useRouter();
   const [loaded, setLoaded] = useState(false);
-  const [lineLeft, setLineLeft] = useState<number | null | undefined>(undefined);
   const [sandbox, setSandbox] = useState<Sandbox | null>(null);
   const [step, setStep] = useState<SetupStep>("business");
   const [busy, setBusy] = useState(false);
@@ -125,7 +123,6 @@ export function TurnOnOrvius({
       const res = await fetch("/api/setup", { cache: "no-store" });
       const json = (await res.json().catch(() => ({ sandbox: null }))) as SetupResponse;
       if (cancelled) return;
-      if ("line" in json) setLineLeft(json.line?.left ?? null);
       if (json.live) {
         router.replace("/dashboard");
         return;
@@ -225,7 +222,7 @@ export function TurnOnOrvius({
           />
         ) : null}
         {step === "live" && sandbox ? (
-          <LiveStep sandbox={sandbox} checkoutOpen={checkoutOpen} canceled={Boolean(canceled)} lineLeft={lineLeft} />
+          <LiveStep sandbox={sandbox} checkoutOpen={checkoutOpen} canceled={Boolean(canceled)} />
         ) : null}
         {error ? (
           <p className="ton-error" role="alert">
@@ -1044,13 +1041,10 @@ function LiveStep({
   sandbox,
   checkoutOpen,
   canceled,
-  lineLeft,
 }: {
   sandbox: Sandbox;
   checkoutOpen: boolean;
   canceled: boolean;
-  /** Undefined while the count is loading. Null when no purchase is recorded. */
-  lineLeft: number | null | undefined;
 }) {
   const [ownerPhone, setOwnerPhone] = useState(sandbox.liveDraft.ownerPhone ?? "");
   const [areaCode, setAreaCode] = useState(sandbox.liveDraft.areaCode ?? "");
@@ -1087,10 +1081,8 @@ function LiveStep({
     return item;
   });
 
-  const lineBlocked = typeof lineLeft === "number" && lineLeft < 1;
   const canGo =
     checkoutOpen &&
-    !lineBlocked &&
     Boolean(plans?.length) &&
     ownerPhone.replace(/\D/g, "").length >= 10 &&
     (!areaCode || /^[2-9]\d{2}$/.test(areaCode)) &&
@@ -1260,11 +1252,6 @@ function LiveStep({
 
           {plans && plans.length === 0 ? (
             <p className="ton-error">Card checkout isn&apos;t open right now. Your setup is saved. Email support@orvius.im and we&apos;ll turn it on with you.</p>
-          ) : null}
-          {lineBlocked ? (
-            <p className="ton-note" role="status">
-              A call line has to be held for your shop before it can go live. Your setup is saved. Email support@orvius.im and we&apos;ll turn it on when a line is reserved for you.
-            </p>
           ) : null}
           {error ? (
             <p className="ton-error" role="alert">
