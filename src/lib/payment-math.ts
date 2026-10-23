@@ -69,6 +69,29 @@ export function claimedCents(payments: PaymentRow[] | undefined | null): number 
   return (payments ?? []).filter((p) => p.status === PAYMENT_CLAIMED).reduce((sum, p) => sum + p.amountCents, 0);
 }
 
+/**
+ * Where a paid bill sits. A card charge pays out to the shop's bank only
+ * when Stripe payouts are on. Cash, a check, or the customer's word stayed
+ * in the shop. Never call either of those "landed."
+ */
+export function paidBankLine(how: string | null | undefined, payoutsEnabled: boolean): string {
+  const text = how ?? "";
+  const card = /card|bank transfer/i.test(text);
+  const alsoInShop = /cash|recorded|customer|check/i.test(text);
+  if (card && payoutsEnabled) {
+    return alsoInShop
+      ? "The card amount pays out to your bank, usually within two business days. The rest stayed in the shop."
+      : "The card payment pays out to your bank, usually within two business days.";
+  }
+  if (card) {
+    return "The card cleared. Payout to your bank waits until payouts are on.";
+  }
+  if (text) return "Recorded in the shop. This did not go to your bank through the card.";
+  return payoutsEnabled
+    ? "A card payment pays out to your bank. Anything you recorded stayed in the shop."
+    : "A card payment pays out once your bank is connected. Anything you recorded stayed in the shop.";
+}
+
 /** How the money came in, in the owner's words. */
 export function collectedHow(payments: PaymentRow[] | undefined | null): string | null {
   const methods = new Set(

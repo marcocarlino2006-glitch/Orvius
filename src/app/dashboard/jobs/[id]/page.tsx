@@ -154,6 +154,7 @@ export default function JobDetailPage() {
           invoice: jobData.invoice ?? null,
           finalAmountCents: jobData.finalAmountCents ?? null,
           cardPayReady: Boolean(jobData.cardPayReady),
+          payoutsEnabled: Boolean(jobData.payoutsEnabled),
           salesTaxBps: Number(jobData.salesTaxBps) || 0,
         });
         setCrew(techData.technicians ?? []);
@@ -361,6 +362,7 @@ export default function JobDetailPage() {
           deposit={deposit}
           depositReadiness={depositReadiness}
           jobClosed={!open}
+          payoutsToBank={Boolean(bill?.payoutsEnabled)}
           onRefresh={load}
         />
         {bill && !openBill ? (

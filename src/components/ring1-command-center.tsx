@@ -132,6 +132,8 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
       })
     : null;
   const onTheLine = liveCall ? callerName(liveCall.leadName, liveCall.callerPhone) : null;
+  const latestCall = (data?.recentCalls ?? []).find((call) => call.id !== liveCall?.id) ?? null;
+  const latestWho = latestCall ? callerName(latestCall.leadName, latestCall.callerPhone) : null;
   const sentence = commandSentence({
     loaded: Boolean(data),
     brief: brief?.headline ?? null,
@@ -205,13 +207,32 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
 
       <section className="cmd-live" aria-label="Now">
         {liveCall ? (
-          <p className="cmd-live-call">
-            <span className="ask-live-dot" aria-hidden />
-            <Link href={`/dashboard/calls/${liveCall.id}`}>{onTheLine}</Link>
-            <span className="cmd-live-about">{liveCall.serviceType?.trim() || "On the line"}</span>
-            <time dateTime={liveCall.createdAt}>{minutesOnTheLine(liveCall.createdAt)}</time>
-          </p>
-        ) : liveApproval ? (
+          <div className="cmd-call">
+            <p className="cmd-call-kicker">On the line</p>
+            <p className="cmd-live-call">
+              <span className="ask-live-dot" aria-hidden />
+              <Link href={`/dashboard/calls/${liveCall.id}`}>{onTheLine}</Link>
+              <span className="cmd-live-about">{liveCall.serviceType?.trim() || "On the line"}</span>
+              <time dateTime={liveCall.createdAt}>{minutesOnTheLine(liveCall.createdAt)}</time>
+            </p>
+            <Link href={`/dashboard/calls/${liveCall.id}`} className="ox-btn ox-btn--primary ox-btn--sm">
+              Open the call
+            </Link>
+          </div>
+        ) : latestCall && latestWho ? (
+          <div className="cmd-call">
+            <p className="cmd-call-kicker">Latest call</p>
+            <p className="cmd-live-call">
+              <Link href={`/dashboard/calls/${latestCall.id}`}>{latestWho}</Link>
+              <span className="cmd-live-about">{latestCall.serviceType?.trim() || "Call"}</span>
+              <time dateTime={latestCall.createdAt}>{formatWhen(latestCall.createdAt)}</time>
+            </p>
+            <Link href={`/dashboard/calls/${latestCall.id}`} className="ox-btn ox-btn--primary ox-btn--sm">
+              Open the call
+            </Link>
+          </div>
+        ) : null}
+        {liveCall ? null : liveApproval ? (
           <ul className="wc-list cmd-queue">
             <li className="wc wc--approval wc--now">
               {liveApproval.needsCheck ? (
@@ -225,7 +246,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
           <ul className="wc-list cmd-queue">
             <WorkCard key={liveItem.key} item={liveItem} approval={approvalFor(liveItem.approvalId)} technicians={data?.technicians ?? []} onChange={() => void refresh()} variant="now" timezone={data?.coverage?.timezone} />
           </ul>
-        ) : lastDone ? (
+        ) : latestCall ? null : lastDone ? (
           <p className="cmd-live-trace">
             <span className="cmd-feed-dot" aria-hidden />
             {lastDone.jobId || lastDone.leadId ? (

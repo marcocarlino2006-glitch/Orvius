@@ -280,7 +280,14 @@ function MessagesInner() {
             body={
               query
                 ? "Try a name, the last four digits, or a word from the text."
-                : "When a customer texts your line, the conversation shows up here. Reminders and confirmations Orvius sends land here too."
+                : "Text a customer in the field above. A call that still needs a text is in the Inbox."
+            }
+            action={
+              query ? undefined : (
+                <Link href="/dashboard/inbox" className="ox-btn ox-btn--primary ox-btn--sm">
+                  Inbox
+                </Link>
+              )
             }
           />
         ) : (
@@ -316,8 +323,14 @@ function MessagesInner() {
       <section className="msg-pane" aria-label="Conversation">
         {!active ? (
           <div className="msg-pane-empty">
-            <p className="msg-pane-empty-title">Pick a conversation</p>
-            <p>Texts and calls with the same customer show up together, oldest first.</p>
+            <p className="msg-pane-empty-title">{threads === null ? "Texts" : threads.length ? "Pick a conversation" : "Start a text above"}</p>
+            <p>
+              {threads === null
+                ? "Loading conversations."
+                : threads.length
+                  ? "Texts and calls with the same customer show up together, oldest first."
+                  : "The thread opens here. A call that still needs a text is in the Inbox."}
+            </p>
           </div>
         ) : detailLoading && !detail ? (
           <DashboardSkeleton />
