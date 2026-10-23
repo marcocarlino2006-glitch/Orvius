@@ -549,11 +549,14 @@ body {
   text-transform: none !important;
 }
 
-.ov-public .tier1-section-title {
+.ov-public .tier1-section-title,
+.ov-public .type-headline {
   color: var(--ov-ink) !important;
   font-family: var(--ov-font) !important;
+  font-size: var(--type-section) !important;
   font-weight: 400 !important;
-  letter-spacing: -0.04em !important;
+  line-height: var(--type-section-leading) !important;
+  letter-spacing: var(--type-section-tracking) !important;
 }
 
 .ov-public .brand-intro-subline,
@@ -561,6 +564,10 @@ body {
 .ov-public .tier1-section-lead {
   color: var(--ov-muted) !important;
   font-family: var(--ov-font) !important;
+  font-size: var(--type-lead) !important;
+  font-weight: 400 !important;
+  line-height: var(--type-lead-leading) !important;
+  letter-spacing: var(--type-lead-tracking) !important;
 }
 
 .ov-public .tier1-story,
@@ -2453,7 +2460,10 @@ body {
   }
 
   .ov-public .ov-hero-title {
-    font-size: var(--fs-display-xl);
+    font-size: var(--type-sentence);
+    font-weight: 400;
+    letter-spacing: var(--type-sentence-tracking);
+    line-height: var(--type-sentence-leading);
   }
 
   .ov-public .ov-console-body {
@@ -2512,11 +2522,10 @@ body {
 
 .ov-public .ov-hero-inner--poster .ov-hero-title {
   max-width: 18ch;
-  /* Whisper authority — size + tracking, not weight (Cursor gothic 400) */
-  font-size: var(--fs-display-xl);
+  font-size: var(--type-sentence);
   font-weight: 400;
-  line-height: 1.04;
-  letter-spacing: -0.038em;
+  line-height: var(--type-sentence-leading);
+  letter-spacing: var(--type-sentence-tracking);
   animation: ov-world-copy-in 780ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
@@ -2655,10 +2664,11 @@ body {
    Cursor demos a mock. Orvius ships a dialable night instrument. */
 
 .ov-public .ov-hero-title {
-  letter-spacing: -0.038em;
-  max-width: 11ch;
-  font-size: var(--fs-display-xl);
-  line-height: 1.08;
+  letter-spacing: var(--type-sentence-tracking);
+  max-width: 22em;
+  font-size: var(--type-sentence);
+  font-weight: 400;
+  line-height: var(--type-sentence-leading);
 }
 
 .ov-public .ov-hero-liveline {
@@ -3031,7 +3041,7 @@ html[data-theme="night"] .ov-public .mkt-nav--institution.mkt-nav--elevated .mkt
 }
 
 .ov-public .ov-hero-inner--poster .ov-hero-title {
-  font-size: var(--fs-display-xl);
+  font-size: var(--type-sentence);
   max-width: 28ch;
 }
 
@@ -3289,11 +3299,11 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
 /* Hero claim sizing — Cursor-weight headline */
 
 .ov-public .ov-hero-inner--poster .ov-hero-title {
-  font-size: var(--fs-display-xl);
-  max-width: 16ch;
-  font-weight: 500;
-  letter-spacing: -0.04em;
-  line-height: 1.02;
+  font-size: var(--type-sentence);
+  max-width: 22em;
+  font-weight: 400;
+  letter-spacing: var(--type-sentence-tracking);
+  line-height: var(--type-sentence-leading);
 }
 
 .ov-public .ov-hero-inner--poster .ov-hero-liveline {
@@ -3792,8 +3802,11 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
   }
 
   .ov-public .ov-hero-title {
-    max-width: 17ch !important;
-    font-size: var(--fs-display-xl) !important;
+    max-width: 22em !important;
+    font-size: var(--type-sentence) !important;
+    font-weight: 400 !important;
+    line-height: var(--type-sentence-leading) !important;
+    letter-spacing: var(--type-sentence-tracking) !important;
   }
 
   .ov-public .tier1-hero-compact .tier1-page-title {
@@ -3965,8 +3978,10 @@ html[data-theme="night"] .ov-public .mkt-nav--institution .mkt-nav-cta:hover,
   margin: 1.25rem 0 0;
   color: var(--ov-muted);
   font-family: var(--ov-font);
-  font-size: clamp(1.0625rem, 0.4vw + 0.95rem, 1.25rem);
-  line-height: 1.5;
+  font-size: var(--type-lead);
+  font-weight: 400;
+  line-height: var(--type-lead-leading);
+  letter-spacing: var(--type-lead-tracking);
   text-wrap: pretty;
 }
 

@@ -9,6 +9,22 @@ import { brandWordmark, logoSizes } from "../src/lib/brand-typography.ts";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (path) => readFileSync(join(root, path), "utf8");
 
+test("the words use Cursor's sentence: 26px, weight 400, tracking -0.0125em", () => {
+  const tokens = read("src/app/theme-tokens.css");
+  assert.match(tokens, /--type-sentence:\s*1\.625rem;/);
+  assert.match(tokens, /--type-sentence-leading:\s*1\.25;/);
+  assert.match(tokens, /--type-sentence-tracking:\s*-0\.0125em;/);
+  assert.match(tokens, /--type-lead:\s*1rem;/);
+  assert.match(tokens, /--type-lead-tracking:\s*0\.005em;/);
+  assert.match(tokens, /--type-body:\s*0\.875rem;/);
+  assert.match(tokens, /--type-meta:\s*0\.75rem;/);
+  assert.match(tokens, /--type-section:\s*2\.25rem;/);
+  const hero = read("src/app/home-sections.css");
+  assert.match(hero, /\.ov-hero-title \{[^}]*font-size: var\(--type-sentence\);[^}]*font-weight: 400;/);
+  const desk = read("src/app/dashboard/orvius.css");
+  assert.match(desk, /\.cmd-headline \{[^}]*font-size: var\(--type-sentence\);[^}]*font-weight: 400;/);
+});
+
 test("the logo is the symbol beside the ORVIUS wordmark, in one ink", () => {
   assert.equal(brandWordmark, "orvius");
   assert.equal(logoSizes.lg.word, "1.9rem");

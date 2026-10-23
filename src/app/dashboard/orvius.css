@@ -12718,10 +12718,10 @@ a.dt-row:focus-visible,
 }
 
 .cmd-one .cmd-headline {
-  font-size: clamp(1.375rem, 1.15rem + 0.55vw, 1.75rem);
-  font-weight: 560;
-  letter-spacing: -0.028em;
-  line-height: 1.2;
+  font-size: var(--type-sentence);
+  font-weight: 400;
+  letter-spacing: var(--type-sentence-tracking);
+  line-height: var(--type-sentence-leading);
 }
 
 .cmd-one,
@@ -12928,10 +12928,10 @@ a.dt-row:focus-visible,
 
 .cmd-headline {
   margin: 0;
-  font-size: var(--fs-display-sm);
-  font-weight: 500;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
+  font-size: var(--type-sentence);
+  font-weight: 400;
+  letter-spacing: var(--type-sentence-tracking);
+  line-height: var(--type-sentence-leading);
   color: var(--ox-text);
 }
 
@@ -12941,8 +12941,10 @@ a.dt-row:focus-visible,
   gap: 0.25rem 1.25rem;
   margin: 0.625rem 0 0;
   max-width: 46rem;
-  font-size: 0.9375rem;
-  line-height: 1.45;
+  font-size: var(--type-lead);
+  font-weight: 400;
+  line-height: var(--type-lead-leading);
+  letter-spacing: var(--type-lead-tracking);
   color: var(--ox-text-2);
 }
 
@@ -19129,17 +19131,18 @@ html body .os-shell .os-topbar-shop-phone {
 
 :root body .os-shell.os-shell-pro.os-shell-pro.os-shell-night .cmd .cmd-call-kicker {
   margin: 0;
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0;
+  font-size: var(--type-meta);
+  font-weight: 400;
+  line-height: var(--type-meta-leading);
+  letter-spacing: var(--type-meta-tracking);
   color: var(--ox-mute);
 }
 
 :root body .os-shell.os-shell-pro.os-shell-pro.os-shell-night .cmd .cmd-call .cmd-live-call {
-  font-size: 1.375rem !important;
-  font-weight: 500 !important;
-  letter-spacing: -0.022em !important;
-  line-height: 1.25 !important;
+  font-size: var(--type-name) !important;
+  font-weight: 400 !important;
+  letter-spacing: var(--type-name-tracking) !important;
+  line-height: var(--type-name-leading) !important;
 }
 
 :root body .os-shell.os-shell-pro.os-shell-pro.os-shell-night .cmd .cmd-call .cmd-live-about,
@@ -19151,16 +19154,16 @@ html body .os-shell .os-topbar-shop-phone {
 :root body .os-shell.os-shell-pro.os-shell-pro.os-shell-night .cmd .cmd-headline,
 :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .ask-intro-title,
 :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .os-content h1 {
-  font-size: 1.375rem !important;
-  font-weight: 500 !important;
-  letter-spacing: -0.022em !important;
-  line-height: 1.25 !important;
+  font-size: var(--type-sentence) !important;
+  font-weight: 400 !important;
+  letter-spacing: var(--type-sentence-tracking) !important;
+  line-height: var(--type-sentence-leading) !important;
 }
 
 @media (max-width: 640px) {
   :root body .os-shell.os-shell-pro.os-shell-pro.os-shell-night .cmd .cmd-headline {
-    font-size: 1.375rem !important;
-    font-weight: 500 !important;
+    font-size: var(--type-sentence) !important;
+    font-weight: 400 !important;
   }
 }
 
@@ -19689,17 +19692,20 @@ html .os-shell .dsp-block[draggable="true"] {
 
 .cmd-call-summary {
   color: var(--ox-text);
-  font-size: 0.875rem;
+  font-size: var(--type-body);
   font-weight: 400;
-  line-height: 1.5;
+  line-height: var(--type-body-leading);
+  letter-spacing: var(--type-body-tracking);
 }
 
 .cmd-call-note,
 .cmd-call-meta,
 .cmd-call-where {
   color: var(--ox-text-2);
-  font-size: 0.75rem;
+  font-size: var(--type-meta);
   font-weight: 400;
+  line-height: var(--type-meta-leading);
+  letter-spacing: var(--type-meta-tracking);
 }
 
 .cmd-call-where {
@@ -19730,8 +19736,10 @@ html .os-shell .dsp-block[draggable="true"] {
 
 :root body .os-shell.os-shell-pro.os-shell-pro.os-shell-night .cmd .cmd-call-summary {
   color: var(--ox-text) !important;
-  font-size: 0.875rem !important;
+  font-size: var(--type-body) !important;
   font-weight: 400 !important;
+  line-height: var(--type-body-leading) !important;
+  letter-spacing: var(--type-body-tracking) !important;
 }
 
 :root body .os-shell.os-shell-pro.os-shell-pro.os-shell-night .cmd .cmd-call-note,

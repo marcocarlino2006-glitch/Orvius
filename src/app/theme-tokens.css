@@ -102,6 +102,33 @@ body {
 }
 
 /*
+  Cursor's words, measured from cursor.com on 23 Oct 2026.
+  The homepage sentence is type-md-lg: 26px, weight 400, tracking -0.0125em, leading 1.25.
+  A short claim is type-lg. A paragraph is type-base. A label is type-sm or type-xs.
+  Small text opens tracking. Large text tightens it. Reading weight is 400.
+*/
+:root {
+  --type-sentence: 1.625rem;
+  --type-sentence-leading: 1.25;
+  --type-sentence-tracking: -0.0125em;
+  --type-name: 1.375rem;
+  --type-name-leading: 1.3;
+  --type-name-tracking: -0.005em;
+  --type-section: 2.25rem;
+  --type-section-leading: 1.2;
+  --type-section-tracking: -0.02em;
+  --type-lead: 1rem;
+  --type-lead-leading: 1.5;
+  --type-lead-tracking: 0.005em;
+  --type-body: 0.875rem;
+  --type-body-leading: 1.5;
+  --type-body-tracking: 0.01em;
+  --type-meta: 0.75rem;
+  --type-meta-leading: 1.5;
+  --type-meta-tracking: 0.01em;
+}
+
+/*
   The dock is fixed to the bottom-right, so the last row of any page it floats
   over has to give up that corner or the dock lands on top of it — which is
   exactly what happened to the footer's trademark line. This is the dock's
