@@ -24,7 +24,7 @@ import { repoRoot } from "./lib/module-graph.mjs";
 
 const WRITE = process.argv.includes("--write");
 const SOURCE = "src/app/globals.css";
-const TARGET = "src/app/dashboard/dashboard.css";
+const TARGET = "src/app/dashboard/orvius.css";
 
 const surfaces = analyzeSurfaces();
 const dashboard = surfaces.get("dashboard") ?? new Set();

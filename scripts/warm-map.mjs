@@ -19,7 +19,7 @@ import { join } from "node:path";
 
 import { repoRoot } from "./lib/module-graph.mjs";
 
-const FILES = ["src/app/globals.css", "src/app/dashboard/dashboard.css"];
+const FILES = ["src/app/globals.css", "src/app/dashboard/orvius.css"];
 
 const parse = (hex) => {
   const h = hex.replace("#", "");

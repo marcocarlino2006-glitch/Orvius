@@ -33,8 +33,8 @@ test("a phone reaches Calls, Work and Ask from search, and owed money opens the 
   assert.match(desk, /Open work/);
   assert.match(desk, /personLabel/);
   assert.doesNotMatch(desk, /A caller|Nothing booked today|Still open/);
-  assert.match(read("src/app/dashboard/work.css"), /cmd-desk-split/);
-  assert.doesNotMatch(read("src/app/dashboard/work.css"), /grid-row: 1 \/ span 2/);
+  assert.match(read("src/app/dashboard/orvius.css"), /cmd-desk-split/);
+  assert.doesNotMatch(read("src/app/dashboard/orvius.css"), /grid-row: 1 \/ span 2/);
   assert.match(read("src/app/dashboard/jobs/page.tsx"), /jobsBrief/);
   assert.match(read("src/app/dashboard/inbox/page.tsx"), /inboxBrief/);
 });

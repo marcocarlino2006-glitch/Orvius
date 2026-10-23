@@ -199,7 +199,7 @@ test("Help lives in the account menu, and Search is a mark", () => {
 });
 
 test("without the rail, Command puts the numbers above the board and System last", () => {
-  const css = read("src/app/dashboard/orvius-system.css");
+  const css = read("src/app/dashboard/orvius.css");
   const block = css.match(/@media \(max-width: 1239px\) \{[\s\S]*?\n\}/)?.[0] ?? "";
   assert.match(block, /\.cc-main,\s*\.cc-rail \{\s*display: contents;/);
   assert.match(block, /\.cc > \* > \.cs-grid \{ order: 1; \}/, "the summary numbers stay first");

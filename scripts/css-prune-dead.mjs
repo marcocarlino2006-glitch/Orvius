@@ -18,8 +18,7 @@ import postcss from "postcss";
 const DRY = process.argv.includes("--dry");
 const FILES = [
   "src/app/globals.css",
-  "src/app/dashboard/dashboard.css",
-  "src/app/dashboard/orvius-system.css",
+  "src/app/dashboard/orvius.css",
 ];
 
 const report = execFileSync("node", ["scripts/css-usage.mjs"], {

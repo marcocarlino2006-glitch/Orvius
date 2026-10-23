@@ -34,6 +34,7 @@ type VapiAssistantPayload = {
   };
   startSpeakingPlan?: {
     waitSeconds?: number;
+    smartEndpointingPlan?: { provider: "vapi" | "livekit" };
     transcriptionEndpointingPlan?: { onPunctuationSeconds?: number; onNoPunctuationSeconds?: number; onNumberSeconds?: number };
   };
   stopSpeakingPlan?: { numWords?: number; voiceSeconds?: number; backoffSeconds?: number };
@@ -324,8 +325,8 @@ export function buildVapiAssistantConfig(params: {
       provider: VOICE_PROVIDER,
       voiceId: params.voiceId || DEFAULT_VOICE_ID,
       model: VOICE_MODEL,
-      // Vapi buffers 30 characters of model output before its first TTS request; a short opener like "Got it." can speak on its own.
-      chunkPlan: { enabled: true, minCharacters: 10 },
+      // Speak the first few characters instead of buffering a sentence. 30 characters held a short opener like "Got it."
+      chunkPlan: { enabled: true, minCharacters: 8 },
     },
     transcriber: {
       provider: "deepgram",
@@ -333,15 +334,20 @@ export function buildVapiAssistantConfig(params: {
       language: TRANSCRIPTION_POLICY.language,
     },
     startSpeakingPlan: {
-      // 0.1s measured ~100ms faster but cut a caller off mid-spelling ("S-I-O-B-H-A-N") in the voice sim.
-      waitSeconds: 0.3,
-      // Vapi waits 1.5s after an unpunctuated transcript before replying; that pause measured as the slowest turn on live calls.
-      // Digits get a longer wait than Vapi's 0.5s default: callers read numbers in groups, and 0.6s cut one off mid-number.
-      // 0.8s cut nobody off across 11 sim calls of addresses, phone numbers and spelling; 1s made every number turn the slowest.
-      transcriptionEndpointingPlan: { onPunctuationSeconds: 0.1, onNoPunctuationSeconds: 0.8, onNumberSeconds: 0.8 },
+      /*
+        A finished sentence used to sit through 0.8s of silence plus 0.3s of
+        wait before the model even started, which is the second people hear.
+        LiveKit lets a completed turn go as soon as it is complete. The silence
+        timers stay as the fallback: 0.8s still protects an address or a
+        spelled name, and a number waits a full second so a grouped phone
+        number is not cut at 0.6s.
+      */
+      waitSeconds: 0.15,
+      smartEndpointingPlan: { provider: "livekit" },
+      transcriptionEndpointingPlan: { onPunctuationSeconds: 0.1, onNoPunctuationSeconds: 0.8, onNumberSeconds: 1 },
     },
     // A caller's "yeah" or "mm-hm" should not cut the receptionist off mid-sentence.
-    stopSpeakingPlan: { numWords: 2, voiceSeconds: 0.3, backoffSeconds: 1 },
+    stopSpeakingPlan: { numWords: 2, voiceSeconds: 0.2, backoffSeconds: 0.5 },
     serverUrl: params.webhookUrl,
     serverUrlSecret: params.webhookSecret,
     monitorPlan: { controlEnabled: true },
