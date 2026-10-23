@@ -36,6 +36,7 @@ import { checkActivationClaim, draftActivationBusiness, recordActivationAck } fr
 import { resolveShopAccess } from "@/lib/workspace-access";
 import { withLease } from "@/lib/provision-attempt";
 import { isSetupSandbox, missingForStep, parseSetup } from "@/lib/setup-flow";
+import { canReserveShopLine, LINE_NOT_RESERVED, shopLineAvailability } from "@/lib/shop-machine";
 import { ACQUISITION_COOKIE, parseAcquisition } from "@/lib/acquisition";
 import { acquisitionMetadata, findReferrer } from "@/lib/referrals";
 
@@ -169,6 +170,10 @@ export async function POST(request: NextRequest) {
         },
         { status: 403 },
       );
+    }
+
+    if ((!business || turningOn) && !(await shopLineAvailability().then(canReserveShopLine))) {
+      return NextResponse.json({ error: LINE_NOT_RESERVED, code: "line_not_reserved" }, { status: 409 });
     }
 
     const setupPath = `/dashboard/onboarding?plan=${body.planId}&interval=${body.interval}`;

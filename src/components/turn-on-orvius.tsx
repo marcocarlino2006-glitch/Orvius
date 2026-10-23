@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { TalkInBrowser } from "@/components/talk-in-browser";
+import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
 import { OrviusMarkSvg } from "@/lib/orvius-mark";
 import { company } from "@/lib/company";
 import {
@@ -59,7 +61,12 @@ type Sandbox = {
   providerEffects: Array<{ provider: string; operation: string; status: string; lastError: string | null; updatedAt: string }>;
 };
 
-type SetupResponse = { live?: boolean; sandbox: Sandbox | null; error?: string };
+type SetupResponse = {
+  live?: boolean;
+  sandbox: Sandbox | null;
+  error?: string;
+  line?: { left: number | null };
+};
 
 type Plan = { id: "line" | "pro" | "fleet"; name: string; price: number; tagline: string; featured: boolean; checkoutReady: boolean };
 
@@ -94,6 +101,7 @@ export function TurnOnOrvius({
 }) {
   const router = useRouter();
   const [loaded, setLoaded] = useState(false);
+  const [lineLeft, setLineLeft] = useState<number | null | undefined>(undefined);
   const [sandbox, setSandbox] = useState<Sandbox | null>(null);
   const [step, setStep] = useState<SetupStep>("business");
   const [busy, setBusy] = useState(false);
@@ -117,6 +125,7 @@ export function TurnOnOrvius({
       const res = await fetch("/api/setup", { cache: "no-store" });
       const json = (await res.json().catch(() => ({ sandbox: null }))) as SetupResponse;
       if (cancelled) return;
+      if ("line" in json) setLineLeft(json.line?.left ?? null);
       if (json.live) {
         router.replace("/dashboard");
         return;
@@ -215,7 +224,9 @@ export function TurnOnOrvius({
             onNext={() => go("live")}
           />
         ) : null}
-        {step === "live" && sandbox ? <LiveStep sandbox={sandbox} checkoutOpen={checkoutOpen} canceled={Boolean(canceled)} /> : null}
+        {step === "live" && sandbox ? (
+          <LiveStep sandbox={sandbox} checkoutOpen={checkoutOpen} canceled={Boolean(canceled)} lineLeft={lineLeft} />
+        ) : null}
         {error ? (
           <p className="ton-error" role="alert">
             {error}
@@ -836,8 +847,20 @@ function TestStep({
         </p>
       ) : null}
       <Heading
-        title="See your business run."
-        lead="A scripted test call goes through the same steps a real one would, with your settings. No one is called or texted."
+        title="Hear your shop answer."
+        lead="Talk to it as a customer would. It answers as your business, with the hours and rules you set. No one else is called, and nothing is charged."
+      />
+
+      <TalkInBrowser
+        personal
+        phoneHref={demoLineHref()}
+        phoneDisplay={DEMO_LINE_DISPLAY}
+        initial={{ name: sandbox.name, trade: sandbox.trade }}
+      />
+
+      <Heading
+        title="See the job it would book."
+        lead="A written call runs through the same steps, with your settings. No one is called or texted."
       />
 
       <div className="ton-cards" role="radiogroup" aria-label="Test call">
@@ -1017,7 +1040,18 @@ const STATE_LABEL: Record<GoLiveItem["state"], string> = {
   needs_approval: "Needs approval",
 };
 
-function LiveStep({ sandbox, checkoutOpen, canceled }: { sandbox: Sandbox; checkoutOpen: boolean; canceled: boolean }) {
+function LiveStep({
+  sandbox,
+  checkoutOpen,
+  canceled,
+  lineLeft,
+}: {
+  sandbox: Sandbox;
+  checkoutOpen: boolean;
+  canceled: boolean;
+  /** Undefined while the count is loading. Null when no purchase is recorded. */
+  lineLeft: number | null | undefined;
+}) {
   const [ownerPhone, setOwnerPhone] = useState(sandbox.liveDraft.ownerPhone ?? "");
   const [areaCode, setAreaCode] = useState(sandbox.liveDraft.areaCode ?? "");
   const [draftNote, setDraftNote] = useState("");
@@ -1053,8 +1087,10 @@ function LiveStep({ sandbox, checkoutOpen, canceled }: { sandbox: Sandbox; check
     return item;
   });
 
+  const lineReady = lineLeft != null && lineLeft >= 1;
   const canGo =
     checkoutOpen &&
+    lineReady &&
     Boolean(plans?.length) &&
     ownerPhone.replace(/\D/g, "").length >= 10 &&
     (!areaCode || /^[2-9]\d{2}$/.test(areaCode)) &&
@@ -1224,6 +1260,11 @@ function LiveStep({ sandbox, checkoutOpen, canceled }: { sandbox: Sandbox; check
 
           {plans && plans.length === 0 ? (
             <p className="ton-error">Card checkout isn&apos;t open right now. Your setup is saved. Email support@orvius.im and we&apos;ll turn it on with you.</p>
+          ) : null}
+          {lineLeft !== undefined && !lineReady ? (
+            <p className="ton-note" role="status">
+              A call line has to be held for your shop before it can go live. Your setup is saved. Email support@orvius.im and we&apos;ll turn it on when a line is reserved for you.
+            </p>
           ) : null}
           {error ? (
             <p className="ton-error" role="alert">

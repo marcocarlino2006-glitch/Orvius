@@ -3,6 +3,7 @@ import { DEMO_OVERFLOW_SAY, demoDailyCeiling, demoVerdict, readDemoLoad, reserve
 import { logWarn } from "@/lib/logger";
 import { enqueueOwnerAlert } from "@/lib/notification-queue";
 import { prisma } from "@/lib/prisma";
+import { reserveShopLine, shopLineBusySay } from "@/lib/shop-machine";
 import { CALLER_HOURLY_LIMIT, DEFAULT_SHOP_DAILY_CEILING } from "@/lib/usage-limits";
 
 /*
@@ -24,7 +25,11 @@ export function shopDailyCallCeiling() {
   return Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : DEFAULT_SHOP_DAILY_CEILING;
 }
 
-export type SpendCut = { reason: "caller_repeat" | "shop_ceiling" | "demo_live_cap" | "demo_daily_ceiling"; say: string; count: number };
+export type SpendCut = {
+  reason: "caller_repeat" | "shop_ceiling" | "shop_line" | "demo_live_cap" | "demo_daily_ceiling";
+  say: string;
+  count: number;
+};
 
 export async function callSpendCut(params: {
   shop: { id: string; name: string; ownerPhone: string | null; transferPhone: string | null };
@@ -33,6 +38,8 @@ export async function callSpendCut(params: {
   demo?: boolean;
   /** The demo call asking for a slot; without it the live cap falls back to a count. */
   vapiCallId?: string;
+  /** A paying shop's own line: one call at a time, so another shop keeps its line. */
+  ownsLine?: boolean;
   now?: Date;
 }): Promise<SpendCut | null> {
   const now = params.now ?? new Date();
@@ -76,6 +83,13 @@ export async function callSpendCut(params: {
     return { reason: verdict.reason, say: DEMO_OVERFLOW_SAY, count: verdict.reason === "demo_live_cap" ? load.live : load.today };
   }
 
+  if (params.ownsLine && params.vapiCallId) {
+    if (!(await reserveShopLine(params.shop.id, params.vapiCallId, now))) {
+      logWarn("call.spend_cut", { businessId: params.shop.id, reason: "shop_line" });
+      return { reason: "shop_line", say: shopLineBusySay(params.shop.name), count: 1 };
+    }
+  }
+
   const dayStart = new Date(now.getTime() - 24 * 60 * 60_000);
   const today = await prisma.call.count({ where: { businessId: params.shop.id, createdAt: { gte: dayStart } } });
   if (today > shopDailyCallCeiling()) {
@@ -102,7 +116,7 @@ export async function alertSpendCut(params: {
   callerPhone: string | null;
   now?: Date;
 }) {
-  if (params.cut.reason === "demo_live_cap" || params.cut.reason === "demo_daily_ceiling") return null;
+  if (params.cut.reason === "demo_live_cap" || params.cut.reason === "demo_daily_ceiling" || params.cut.reason === "shop_line") return null;
   const now = params.now ?? new Date();
   const tail = (normalizePhone(params.callerPhone) ?? "").slice(-4) || "unknown";
   const bucket = params.cut.reason === "caller_repeat" ? now.toISOString().slice(0, 13) : now.toISOString().slice(0, 10);

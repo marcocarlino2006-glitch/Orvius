@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { busyCalendarHost } from "@/lib/busy-calendar";
 import { prisma } from "@/lib/prisma";
 import { sharedRateLimit, tooManyRequests } from "@/lib/rate-limit";
+import { shopLineAvailability } from "@/lib/shop-machine";
 import {
   HOURS_PRESETS,
   alwaysToAPerson,
@@ -230,7 +231,11 @@ export async function GET() {
     where: { ownerEmail: email, isActive: true, environment: "production" },
     select: { id: true },
   });
-  return NextResponse.json({ live: Boolean(live), ...(await view(await findSetupSandbox(email))) });
+  return NextResponse.json({
+    live: Boolean(live),
+    line: await shopLineAvailability(),
+    ...(await view(await findSetupSandbox(email))),
+  });
 }
 
 /** Test mode only: every action here writes settings or simulated records. Nothing reaches a real caller. */
