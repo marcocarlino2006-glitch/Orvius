@@ -19674,9 +19674,42 @@ html .os-shell .dsp-block[draggable="true"] {
 }
 
 .cmd-stage .cmd-call {
-  flex: 1 1 auto;
-  justify-content: center;
+  flex: 0 1 auto;
+  justify-content: flex-start;
   margin-bottom: 0;
+}
+
+.cmd-call-summary,
+.cmd-call-note,
+.cmd-call-meta,
+.cmd-call-where {
+  margin: 0;
+  max-width: 40rem;
+}
+
+.cmd-call-summary {
+  color: var(--ox-text);
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.cmd-call-note,
+.cmd-call-meta,
+.cmd-call-where {
+  color: var(--ox-text-2);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+.cmd-call-where {
+  font-size: 0.875rem;
+}
+
+.cmd-call-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .cmd-day-step {
@@ -19695,9 +19728,17 @@ html .os-shell .dsp-block[draggable="true"] {
   font-weight: 400;
 }
 
-:root body .os-shell.os-shell-pro.os-shell-pro.os-shell-night .cmd .cmd-stage .cmd-call .cmd-live-call {
-  font-size: clamp(1.75rem, 1.1rem + 2vw, 2.75rem) !important;
-  line-height: 1.15 !important;
+:root body .os-shell.os-shell-pro.os-shell-pro.os-shell-night .cmd .cmd-call-summary {
+  color: var(--ox-text) !important;
+  font-size: 0.875rem !important;
+  font-weight: 400 !important;
+}
+
+:root body .os-shell.os-shell-pro.os-shell-pro.os-shell-night .cmd .cmd-call-note,
+:root body .os-shell.os-shell-pro.os-shell-pro.os-shell-night .cmd .cmd-call-meta,
+:root body .os-shell.os-shell-pro.os-shell-pro.os-shell-night .cmd .cmd-call-where {
+  color: var(--ox-text-2) !important;
+  font-weight: 400 !important;
 }
 
 @media (max-width: 767px) {

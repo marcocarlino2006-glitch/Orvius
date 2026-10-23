@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { commandCallActions, commandCallOutcomeLine, commandCallPhone, commandCallSummary } from "../src/lib/command-call.ts";
 import { commandSentence } from "../src/lib/command-sentence.ts";
 import { commandNow } from "../src/lib/command-now.ts";
 import { connectedLine } from "../src/lib/connected-line.ts";
@@ -154,4 +155,36 @@ test("Ask and Home open on the same sentence", () => {
   };
   assert.equal(commandNow(shop), "Dana Cole is on the line.");
   assert.equal(commandNow({ ...shop, recentCalls: [] }), "Call Dana back.");
+});
+
+test("the desk shows the call: a booked one opens the job, an open one calls back", () => {
+  const booked = {
+    id: "c1",
+    status: "ended",
+    booked: true,
+    hasLead: true,
+    durationSec: 180,
+    callerPhone: "+13125550100",
+    leadPhone: "+13125550194",
+    summary: "  No heat since last night.   She can do Thursday morning.  ",
+    job: { id: "j1", title: "No heat", status: "scheduled", scheduledAt: "2026-10-23T14:00:00Z" },
+  };
+  assert.equal(commandCallSummary(booked.summary), "No heat since last night. She can do Thursday morning.");
+  assert.equal(commandCallOutcomeLine(booked, false), "Booked");
+  assert.equal(commandCallOutcomeLine(booked, true), null);
+  assert.deepEqual(commandCallActions(booked, false), {
+    primary: { href: "/dashboard/jobs/j1", label: "Open the job" },
+    secondary: { href: "tel:+13125550194", label: "Call back" },
+  });
+  assert.equal(commandCallPhone(booked), "+1 312 555 0194");
+  assert.deepEqual(commandCallActions(booked, true).primary, { href: "/dashboard/calls/c1", label: "Open the call" });
+
+  const open = { id: "c2", status: "ended", booked: false, hasLead: true, durationSec: 90, callerPhone: "+13125550100", summary: null, job: null };
+  assert.equal(commandCallOutcomeLine(open, false), "Held for review");
+  assert.deepEqual(commandCallActions(open, false), {
+    primary: { href: "tel:+13125550100", label: "Call back" },
+    secondary: { href: "/dashboard/calls/c2", label: "Open the call" },
+  });
+  const long = commandCallSummary(`${"word ".repeat(80)}`);
+  assert.ok(long && long.endsWith("…") && long.length <= 280);
 });

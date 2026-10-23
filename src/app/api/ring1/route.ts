@@ -8,6 +8,7 @@ import { shopDayBounds } from "@/lib/availability";
 import { isAfterHours } from "@/lib/business";
 import { getShopLineForBusiness, isDemoBusiness } from "@/lib/demo-business";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
+import { commandCallSummary } from "@/lib/command-call";
 import { getCommandFlow, getCommandMoney } from "@/lib/command-depth";
 import { getCommandTomorrow } from "@/lib/command-tomorrow";
 import { getDispatchBoard } from "@/lib/field";
@@ -142,7 +143,16 @@ export async function GET(request: Request) {
       take: 5,
       orderBy: { createdAt: "desc" },
       include: {
-        lead: { select: { name: true, serviceType: true } },
+        lead: {
+          select: {
+            name: true,
+            phone: true,
+            serviceType: true,
+            urgency: true,
+            address: true,
+            job: { select: { id: true, title: true, status: true, scheduledAt: true } },
+          },
+        },
       },
     }),
     getDispatchBoard(business.id, null, business),
@@ -363,6 +373,21 @@ export async function GET(request: Request) {
       leadName: call.lead?.name ?? null,
       serviceType: call.lead?.serviceType ?? null,
       replyP50Ms: call.replyP50Ms,
+      summary: commandCallSummary(call.summary),
+      booked: call.booked,
+      endedReason: call.endedReason,
+      leadPhone: call.lead?.phone ?? null,
+      urgency: call.lead?.urgency ?? null,
+      address: call.lead?.address ?? null,
+      hasLead: Boolean(call.lead),
+      job: call.lead?.job
+        ? {
+            id: call.lead.job.id,
+            title: call.lead.job.title,
+            status: call.lead.job.status,
+            scheduledAt: call.lead.job.scheduledAt?.toISOString() ?? null,
+          }
+        : null,
     })),
     dispatchToday: {
       jobCount: dispatchBoard.jobCount,

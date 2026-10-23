@@ -8,12 +8,13 @@ import { SupportContact } from "@/components/support-contact";
 import { TestAlertButton } from "@/components/test-alert-button";
 import { WorkCard } from "@/components/work-card";
 import { replyClock, replyPhrase } from "@/lib/call-latency";
+import { commandCallActions, commandCallOutcomeLine, commandCallPhone, commandCallSummary, type CommandCall, type CommandCallLink } from "@/lib/command-call";
 import { commandNow } from "@/lib/command-now";
 import { deskFacts } from "@/lib/desk-status";
 import { isLiveCall } from "@/lib/live-call";
 import { useRing1 } from "@/lib/ring1-context";
 import { personLabel } from "@/lib/spoken-name";
-import { formatWhen } from "@/lib/when";
+import { formatBeat, formatWhen } from "@/lib/when";
 
 function callerName(name: string | null | undefined, phone: string | null | undefined): string {
   return personLabel(name, phone);
@@ -32,6 +33,65 @@ function scheduleConflicts(board: { lanes?: Array<{ blocks: Array<{ conflict: st
     }
   }
   return lines;
+}
+
+function CallAction({ link, who, quiet }: { link: CommandCallLink; who: string; quiet?: boolean }) {
+  const className = quiet ? "ox-btn ox-btn--quiet ox-btn--sm" : "ox-btn ox-btn--primary ox-btn--sm";
+  if (link.href.startsWith("tel:")) {
+    return (
+      <a href={link.href} className={className} aria-label={`Call back ${who}`}>
+        {link.label}
+      </a>
+    );
+  }
+  return (
+    <Link href={link.href} className={className}>
+      {link.label}
+    </Link>
+  );
+}
+
+function DeskCall({
+  call,
+  live,
+  who,
+  when,
+  reply,
+  timezone,
+}: {
+  call: CommandCall & { createdAt: string };
+  live: boolean;
+  who: string;
+  when: string;
+  reply: string | null;
+  timezone?: string | null;
+}) {
+  const summary = commandCallSummary(call.summary);
+  const outcome = commandCallOutcomeLine(call, live);
+  const bookedAt = outcome === "Booked" && call.job?.scheduledAt ? formatBeat(call.job.scheduledAt, timezone) : "";
+  const phone = commandCallPhone(call);
+  const facts = [bookedAt ? `${outcome} · ${bookedAt}` : outcome, phone].filter(Boolean);
+  const actions = commandCallActions(call, live);
+  return (
+    <div className="cmd-call">
+      <p className="cmd-call-kicker">{live ? "On the line" : "Latest call"}</p>
+      <p className="cmd-live-call">
+        {live ? <span className="ask-live-dot" aria-hidden /> : null}
+        <Link href={`/dashboard/calls/${call.id}`}>{who}</Link>
+        <span className="cmd-live-about">{call.serviceType?.trim() || (live ? "On the line" : "Call")}</span>
+        <time dateTime={call.createdAt}>{when}</time>
+      </p>
+      {summary ? <p className="cmd-call-summary">{summary}</p> : live ? null : <p className="cmd-call-summary">Nothing was written down.</p>}
+      {summary ? <p className="cmd-call-note">Written by Orvius</p> : null}
+      {facts.length ? <p className="cmd-call-meta">{facts.join(" · ")}</p> : null}
+      {call.address?.trim() ? <p className="cmd-call-where">{call.address.trim()}</p> : null}
+      <div className="cmd-call-actions">
+        <CallAction link={actions.primary} who={who} />
+        {actions.secondary ? <CallAction link={actions.secondary} who={who} quiet /> : null}
+      </div>
+      {reply ? <p className="cmd-call-reply">{reply}</p> : null}
+    </div>
+  );
 }
 
 function minutesOnTheLine(createdAt: string): string {
@@ -198,33 +258,10 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
       </header>
 
       <section className="cmd-live" aria-label="Now">
-        {liveCall ? (
-          <div className="cmd-call">
-            <p className="cmd-call-kicker">On the line</p>
-            <p className="cmd-live-call">
-              <span className="ask-live-dot" aria-hidden />
-              <Link href={`/dashboard/calls/${liveCall.id}`}>{onTheLine}</Link>
-              <span className="cmd-live-about">{liveCall.serviceType?.trim() || "On the line"}</span>
-              <time dateTime={liveCall.createdAt}>{minutesOnTheLine(liveCall.createdAt)}</time>
-            </p>
-            <Link href={`/dashboard/calls/${liveCall.id}`} className="ox-btn ox-btn--primary ox-btn--sm">
-              Open the call
-            </Link>
-            {replyLine ? <p className="cmd-call-reply">{replyLine}</p> : null}
-          </div>
+        {liveCall && onTheLine ? (
+          <DeskCall call={liveCall} live who={onTheLine} when={minutesOnTheLine(liveCall.createdAt)} reply={replyLine} timezone={data?.coverage?.timezone} />
         ) : latestCall && latestWho ? (
-          <div className="cmd-call">
-            <p className="cmd-call-kicker">Latest call</p>
-            <p className="cmd-live-call">
-              <Link href={`/dashboard/calls/${latestCall.id}`}>{latestWho}</Link>
-              <span className="cmd-live-about">{latestCall.serviceType?.trim() || "Call"}</span>
-              <time dateTime={latestCall.createdAt}>{formatWhen(latestCall.createdAt)}</time>
-            </p>
-            <Link href={`/dashboard/calls/${latestCall.id}`} className="ox-btn ox-btn--primary ox-btn--sm">
-              Open the call
-            </Link>
-            {replyLine ? <p className="cmd-call-reply">{replyLine}</p> : null}
-          </div>
+          <DeskCall call={latestCall} live={false} who={latestWho} when={formatWhen(latestCall.createdAt)} reply={replyLine} timezone={data?.coverage?.timezone} />
         ) : null}
         {!pictured && liveApproval ? (
           <ul className="wc-list cmd-queue">
