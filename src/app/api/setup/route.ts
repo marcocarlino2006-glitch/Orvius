@@ -103,9 +103,9 @@ function businessFacts(business: Business, setup: ReturnType<typeof parseSetup>)
     fact("Time zone", business.timezone, setup.done?.business ? "imported" : "starting_default", "Read from your device. Change it in Settings if it's wrong."),
     fact(
       "Open hours",
-      hoursPresetFor(business.hoursJson),
+      hoursSummary(business.hoursJson) ?? hoursPresetFor(business.hoursJson),
       done.day ? "confirmed" : "starting_default",
-      done.day ? "You chose them." : "A starting week, not yet confirmed. Callers aren't offered times from it until you confirm your hours.",
+      done.day ? "You chose them." : "A starting week: weekdays 8am–6pm, Saturday 9am–2pm, Sunday closed. Change it on the desk.",
     ),
     fact(
       "Services",
@@ -117,9 +117,13 @@ function businessFacts(business: Business, setup: ReturnType<typeof parseSetup>)
     fact("Shop address", business.address, business.address ? "confirmed" : "unknown", business.address ? "On file." : "Not set."),
     fact(
       "What Orvius may do",
-      setup.permissions ?? null,
-      setup.permissions ? "confirmed" : "unknown",
-      setup.permissions ? "You chose it." : "Not chosen. Orvius never picks this for you.",
+      setup.permissions ?? (business.bookingMode === "book" && !business.autopilot ? "offer" : null),
+      setup.permissions ? "confirmed" : business.bookingMode === "book" && !business.autopilot ? "starting_default" : "unknown",
+      setup.permissions
+        ? "You chose it."
+        : business.bookingMode === "book" && !business.autopilot
+          ? "Starts ready to offer open times. It takes the request until you set how far apart jobs sit, on the desk."
+          : "Not chosen.",
     ),
   ];
 }

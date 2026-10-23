@@ -69,14 +69,18 @@ type SetupResponse = {
 
 type Plan = { id: "line" | "pro" | "fleet"; name: string; price: number; tagline: string; featured: boolean; checkoutReady: boolean };
 
-const STEP_TITLES: Record<SetupStep, string> = {
-  business: "Business",
-  goal: "First job",
-  day: "Your day",
-  permissions: "Permissions",
-  test: "Test call",
-  live: "Go live",
+/** What the owner walks. Hours, the first job and permissions start as a normal shop week and change on the desk. */
+const OWNER_STEPS = ["business", "test", "live"] as const;
+
+const STEP_TITLES: Record<(typeof OWNER_STEPS)[number], string> = {
+  business: "Your shop",
+  test: "Hear it",
+  live: "Pay",
 };
+
+function walkStep(value: SetupStep): (typeof OWNER_STEPS)[number] {
+  return value === "business" || value === "live" ? value : "test";
+}
 
 async function post(body: Record<string, unknown>): Promise<SetupResponse> {
   const res = await fetch("/api/setup", {
@@ -129,7 +133,7 @@ export function TurnOnOrvius({
       }
       setSandbox(json.sandbox);
       const wanted = SETUP_STEPS.find((s) => s === initialStep && (!json.sandbox || json.sandbox.progress.allowed.includes(s)));
-      setStep(json.sandbox ? (wanted ?? json.sandbox.step) : "business");
+      setStep(json.sandbox ? walkStep(wanted ?? json.sandbox.step) : "business");
       setLoaded(true);
     })();
     return () => {
@@ -154,8 +158,8 @@ export function TurnOnOrvius({
     [apply],
   );
 
-  const index = SETUP_STEPS.indexOf(step);
-  const back = index > 0 && sandbox ? SETUP_STEPS[index - 1] : null;
+  const index = OWNER_STEPS.indexOf(walkStep(step));
+  const back = index > 0 && sandbox ? OWNER_STEPS[index - 1] : null;
 
   const go = (next: SetupStep) => {
     setError("");
@@ -194,7 +198,7 @@ export function TurnOnOrvius({
             sandbox={sandbox}
             busy={busy}
             onSave={(name, trade, found) =>
-              run({ action: "start", name, trade, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, ...(found ? { found } : {}) }, "goal")
+              run({ action: "start", name, trade, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, ...(found ? { found } : {}) }, "test")
             }
           />
         ) : null}
@@ -205,22 +209,7 @@ export function TurnOnOrvius({
         {step === "permissions" && sandbox ? (
           <PermissionsStep sandbox={sandbox} busy={busy} onSave={(level, followUps) => run({ action: "permissions", level, followUps }, "test")} />
         ) : null}
-        {step === "test" && sandbox ? (
-          <TestStep
-            sandbox={sandbox}
-            busy={busy}
-            onRun={async (scenario) => {
-              const ok = await run({ action: "test", scenario });
-              if (!ok) return;
-              for (const wait of [1200, 3000]) {
-                await new Promise((r) => setTimeout(r, wait));
-                const res = await fetch("/api/setup", { cache: "no-store" });
-                if (res.ok) apply((await res.json()) as SetupResponse);
-              }
-            }}
-            onNext={() => go("live")}
-          />
-        ) : null}
+        {step === "test" && sandbox ? <TestStep sandbox={sandbox} onNext={() => go("live")} /> : null}
         {step === "live" && sandbox ? (
           <LiveStep sandbox={sandbox} checkoutOpen={checkoutOpen} canceled={Boolean(canceled)} />
         ) : null}
@@ -259,12 +248,12 @@ function TopBar({
           </span>
         )}
         <span className="ton-count">
-          {index + 1} of {SETUP_STEPS.length} · {STEP_TITLES[SETUP_STEPS[index]]}
+          {index + 1} of {OWNER_STEPS.length} · {STEP_TITLES[OWNER_STEPS[index]]}
         </span>
         {testMode ? <span className="ton-pill">Test mode</span> : <span />}
       </div>
       <ol className="ton-progress" aria-label="Setup progress">
-        {SETUP_STEPS.map((s, i) => (
+        {OWNER_STEPS.map((s, i) => (
           <li key={s} className={done[s] || i === index ? "is-done" : ""} aria-current={i === index ? "step" : undefined}>
             <span className="sr-only">
               {STEP_TITLES[s]}
@@ -368,8 +357,8 @@ function BusinessStep({
   return (
     <>
       <Heading
-        title="What kind of business do you run?"
-        lead="Orvius loads the questions your callers get asked and the calls it must never handle alone."
+        title="Name your shop."
+        lead="Find the listing, or type the name. Next you hear it answer. No card yet."
       />
       <fieldset className="ton-group">
         <legend className="ton-group-title">Start with your shop as customers find it</legend>
@@ -452,7 +441,7 @@ function BusinessStep({
         </label>
       ) : null}
       <Primary disabled={!trade || name.trim().length < 2 || busy} onClick={save}>
-        {busy ? "Saving…" : "Continue"}
+        {busy ? "Saving…" : "Hear it answer"}
       </Primary>
       <p className="ton-fine">No card. Nothing answers real calls until you say so.</p>
     </>
@@ -817,35 +806,12 @@ function PermissionsStep({
 
 /* ── 5. See your business run ──────────────────────────────────────────── */
 
-function TestStep({
-  sandbox,
-  busy,
-  onRun,
-  onNext,
-}: {
-  sandbox: Sandbox;
-  busy: boolean;
-  onRun: (scenario: SetupScenarioId) => Promise<void>;
-  onNext: () => void;
-}) {
-  const ran = sandbox.test?.scenarioId ?? null;
-  const [pick, setPick] = useState<SetupScenarioId>(ran === "routine" ? "exception" : "routine");
-  const scenario = sandbox.scenarios.find((s) => s.id === (ran ?? pick));
-  const result = sandbox.test;
-  const lastFailure = sandbox.failures.filter((f) => f.step === "test").at(-1);
-  const failedSinceRun = lastFailure && (!sandbox.testedAt || lastFailure.at > sandbox.testedAt);
-
+function TestStep({ sandbox, onNext }: { sandbox: Sandbox; onNext: () => void }) {
   return (
     <>
-      {failedSinceRun ? (
-        <p className="ton-error" role="status">
-          The last test call didn&apos;t finish (attempt {lastFailure.attempt}, {new Date(lastFailure.at).toLocaleString()}). Nothing reached a real person.
-          Run it again{lastFailure.attempt >= 2 ? ", or email support@orvius.im with the time above" : ""}.
-        </p>
-      ) : null}
       <Heading
         title="Hear your shop answer."
-        lead="Talk to it as a customer would. It answers as your business, with the hours and rules you set. No one else is called, and nothing is charged."
+        lead="Talk to it as a customer would. It answers as your business. Weekdays 8 to 6, Saturday 9 to 2. It takes the request until you set how far apart jobs sit, on the desk. No one else is called, and nothing is charged."
       />
 
       <TalkInBrowser
@@ -855,129 +821,11 @@ function TestStep({
         initial={{ name: sandbox.name, trade: sandbox.trade }}
       />
 
-      <Heading
-        title="See the job it would book."
-        lead="A written call runs through the same steps, with your settings. No one is called or texted."
-      />
-
-      <div className="ton-cards" role="radiogroup" aria-label="Test call">
-        {sandbox.scenarios.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            role="radio"
-            aria-checked={pick === item.id}
-            className={`ton-card ${pick === item.id ? "is-on" : ""}`}
-            onClick={() => setPick(item.id)}
-          >
-            <span className="ton-card-title">{item.label}</span>
-            <span className="ton-card-line">{item.expect}</span>
-          </button>
-        ))}
-      </div>
-
-      <Primary disabled={busy} onClick={() => void onRun(pick)}>
-        {busy ? "Running the call…" : result ? "Run this test call" : "Place the test call"}
-      </Primary>
-
-      {result && scenario ? (
-        <div className="ton-result" aria-live="polite">
-          <div className="ton-result-head">
-            <span className="ton-pill">Simulated</span>
-            <span className="ton-result-title">{scenario.label}</span>
-          </div>
-
-          <ol className="ton-transcript">
-            <li className="is-ai">{sandbox.opening}</li>
-            {scenario.lines.map((line, i) => {
-              const ai = line.startsWith("AI:");
-              return (
-                <li key={i} className={ai ? "is-ai" : ""}>
-                  {line.replace(/^(AI|User):\s*/, "")}
-                </li>
-              );
-            })}
-          </ol>
-
-          <div className="ton-facts">
-            <section>
-              <h2 className="ton-fact-title">The request</h2>
-              {result.request ? (
-                <dl>
-                  <dt>Caller</dt>
-                  <dd>{result.request.name ?? "Unknown"}</dd>
-                  <dt>Needs</dt>
-                  <dd>{result.request.need ?? "Not given"}</dd>
-                  <dt>When</dt>
-                  <dd>{URGENCY_LABEL[result.request.urgency ?? ""] ?? "Not given"}</dd>
-                  {result.request.address ? (
-                    <>
-                      <dt>Where</dt>
-                      <dd>{result.request.address}</dd>
-                    </>
-                  ) : null}
-                </dl>
-              ) : (
-                <p className="ton-note">Nothing captured.</p>
-              )}
-            </section>
-
-            <section>
-              <h2 className="ton-fact-title">The schedule decision</h2>
-              <p className={`ton-decision is-${result.decision.outcome}`}>{result.decision.headline}</p>
-              {result.exception ? <p className="ton-exception">{result.exception}</p> : null}
-              <details className="ton-trail">
-                <summary>Every step Orvius took</summary>
-                <ol>
-                  {result.decision.trail.map((line, i) => (
-                    <li key={i}>{line}</li>
-                  ))}
-                </ol>
-              </details>
-            </section>
-
-            <section>
-              <h2 className="ton-fact-title">The messages</h2>
-              {result.messages.length ? (
-                <ul className="ton-messages">
-                  {result.messages.map((m, i) => (
-                    <li key={i}>
-                      <span className="ton-message-meta">
-                        {m.to === "customer" ? "Text to the caller" : m.channel === "text" ? "Text to you" : "Email to you"}
-                        {m.simulated ? <span className="ton-tag">Simulated, not sent</span> : null}
-                      </span>
-                      <span className="ton-message-body">{m.body}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="ton-note">No messages yet. Texts appear here a moment after the call.</p>
-              )}
-            </section>
-          </div>
-
-          <div className="ton-actions ton-actions--split">
-            <Link href="/dashboard" className="ton-secondary">
-              See it in Command
-            </Link>
-            <button type="button" className="ton-primary" onClick={onNext}>
-              Go live
-            </button>
-          </div>
-        </div>
-      ) : null}
+      <Primary onClick={onNext}>Continue to pay</Primary>
     </>
   );
 }
 
-/* ── 6. Go live ────────────────────────────────────────────────────────── */
-
-const URGENCY_LABEL: Record<string, string> = {
-  emergency: "Emergency",
-  "same-day": "Today",
-  "this-week": "This week",
-  flexible: "Whenever works",
-};
 
 const FACT_SOURCE: Record<Sandbox["facts"][number]["source"], string> = {
   confirmed: "You confirmed",
@@ -1132,8 +980,8 @@ function LiveStep({
   return (
     <>
       <Heading
-        title="Go live."
-        lead="This is the only step that reaches real people. Nothing changes until you approve it and choose a plan."
+        title="Pay."
+        lead="This puts your shop on its own line. Weekdays 8 to 6, Saturday 9 to 2. It takes the request until you set how far apart jobs sit. Change both on the desk."
       />
       {canceled ? <p className="ton-note" role="status">Checkout closed before payment. Nothing was charged and your setup is saved.</p> : null}
 
@@ -1232,7 +1080,7 @@ function LiveStep({
           <div className="ton-consent">
             <label className="ton-check">
               <input type="checkbox" checked={approve} onChange={(e) => setApprove(e.target.checked)} />
-              <span>Turn Orvius on for {sandbox.name}. It may answer real callers with the permissions I chose.</span>
+              <span>Turn Orvius on for {sandbox.name}. It may answer real callers and take the request.</span>
             </label>
             <label className="ton-check">
               <input type="checkbox" checked={terms} onChange={(e) => setTerms(e.target.checked)} />

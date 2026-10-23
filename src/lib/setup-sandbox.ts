@@ -129,7 +129,7 @@ export async function startSetup(
 
   if (existing) {
     const tradeChanged = existing.trade !== input.trade;
-    const updated = await updateSetup(existing.id, (current) => mergeSetup(current, { step: "goal", ...(imported ? { imported } : {}) }, "business"), {
+    const updated = await updateSetup(existing.id, (current) => mergeSetup(current, { step: "test", ...(imported ? { imported } : {}) }, "business"), {
       name,
       trade: input.trade,
       greeting,
@@ -155,9 +155,10 @@ export async function startSetup(
       ...(input.timezone ? { timezone: input.timezone } : {}),
       billingStatus: "pilot",
       pilotEndsAt: new Date(Date.now() + TEST_WINDOW_DAYS * 24 * 60 * 60_000),
-      bookingMode: "alert",
+      bookingMode: "book",
       autopilot: false,
-      setupJson: JSON.stringify({ sandbox: true, step: "goal", done: { business: new Date().toISOString() }, ...(imported ? { imported } : {}) } satisfies SetupState),
+      followUpMode: "auto",
+      setupJson: JSON.stringify({ sandbox: true, step: "test", done: { business: new Date().toISOString() }, ...(imported ? { imported } : {}) } satisfies SetupState),
       operatingPolicy: { create: { travelMode: "not_configured" } },
     },
   });

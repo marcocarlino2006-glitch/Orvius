@@ -252,7 +252,7 @@ test("Command in test mode says so and never asks for a card on its own", () => 
   assert.match(shell, /Calls and texts are simulated/);
   assert.match(read("src/components/pay-prompt-modal.tsx"), /environment === "test"/);
   const flow = read("src/components/turn-on-orvius.tsx");
-  assert.match(flow, /Simulated, not sent/);
+  assert.match(flow, /nothing is charged/);
   assert.match(flow, /I approve it\./);
-  assert.match(flow, /It may answer real callers with the permissions I chose/);
+  assert.match(flow, /It may answer real callers and take the request/);
 });

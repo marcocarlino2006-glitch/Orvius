@@ -195,7 +195,7 @@ export async function POST(request: NextRequest) {
       const missing = missingForStep("live", parseSetup(business.setupJson));
       if (missing.length) {
         return NextResponse.json(
-          { error: "Finish your hours and what Orvius may do before going live. Your setup is saved.", code: "setup_incomplete", missing, setupUrl: `/dashboard/onboarding?step=${missing[0]}` },
+          { error: "Name your shop first. Your setup is saved.", code: "setup_incomplete", missing, setupUrl: `/dashboard/onboarding?step=${missing[0]}` },
           { status: 409 },
         );
       }
