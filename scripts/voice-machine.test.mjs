@@ -10,10 +10,8 @@ const { buildBusinessAssistantConfig } = await import("../src/lib/sync-business-
 const { prisma } = await import("../src/lib/prisma.ts");
 
 test("the production column statements are the reviewed ones", async () => {
-  const { readFileSync } = await import("node:fs");
-  const { VOICE_MACHINE_SQL, VOICE_MACHINE_PLAN_SHA256, voiceMachinePlanSha256 } = await import("./apply-voice-machine-column.mjs");
+  const { VOICE_MACHINE_PLAN_SHA256, voiceMachinePlanSha256 } = await import("./apply-voice-machine-column.mjs");
   assert.equal(voiceMachinePlanSha256(), VOICE_MACHINE_PLAN_SHA256);
-  assert.ok(readFileSync(new URL("../prisma/turso-migrate.sql", import.meta.url), "utf8").includes(VOICE_MACHINE_SQL));
 });
 
 test("a shop's seal opens only that shop's machine", () => {

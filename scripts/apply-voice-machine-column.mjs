@@ -4,8 +4,9 @@
  *
  * Runs only as its own step, after a backup. Refuses unless the checkout,
  * the approval, the target host, the backup reference and this file's
- * checksum all match. The statements are the voiceMachineId section of
- * prisma/turso-migrate.sql. Nothing else in that file is applied here.
+ * checksum all match. These two statements are the whole plan. They stay
+ * out of prisma/turso-migrate.sql because the Prisma client does not select
+ * the column until a later schema change, and that file must match the schema.
  */
 import { createClient } from "@libsql/client";
 import { readFileSync } from "node:fs";
@@ -37,10 +38,6 @@ function headCommit() {
 async function main() {
   if (voiceMachinePlanSha256() !== VOICE_MACHINE_PLAN_SHA256) {
     throw new Error("voiceMachineId statements no longer match the reviewed checksum");
-  }
-  const file = readFileSync(resolve(root, "prisma/turso-migrate.sql"), "utf8");
-  if (!file.includes(VOICE_MACHINE_SQL)) {
-    throw new Error("prisma/turso-migrate.sql does not contain the reviewed voiceMachineId statements");
   }
   const databaseUrl = process.env.DATABASE_URL?.trim() || null;
   const decision = migrationAuthorization(databaseUrl, process.env, {
