@@ -172,10 +172,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if ((!business || turningOn) && !(await shopLineAvailability().then(canReserveShopLine))) {
-      return NextResponse.json({ error: LINE_NOT_RESERVED, code: "line_not_reserved" }, { status: 409 });
-    }
-
     const setupPath = `/dashboard/onboarding?plan=${body.planId}&interval=${body.interval}`;
     if ((!business || turningOn) && !body.shop) {
       return NextResponse.json(
@@ -205,6 +201,14 @@ export async function POST(request: NextRequest) {
       }
       const refusal = checkActivationClaim(business, body.activation);
       if (refusal) return NextResponse.json(refusal, { status: 409 });
+    }
+    if (!business || turningOn) {
+      const lines = await shopLineAvailability();
+      if (lines.purchased != null && !canReserveShopLine(lines)) {
+        return NextResponse.json({ error: LINE_NOT_RESERVED, code: "line_not_reserved" }, { status: 409 });
+      }
+    }
+    if (turningOn && business) {
       const ack = await recordActivationAck({
         business,
         actorEmail: sessionEmail,

@@ -1087,10 +1087,10 @@ function LiveStep({
     return item;
   });
 
-  const lineReady = lineLeft != null && lineLeft >= 1;
+  const lineBlocked = typeof lineLeft === "number" && lineLeft < 1;
   const canGo =
     checkoutOpen &&
-    lineReady &&
+    !lineBlocked &&
     Boolean(plans?.length) &&
     ownerPhone.replace(/\D/g, "").length >= 10 &&
     (!areaCode || /^[2-9]\d{2}$/.test(areaCode)) &&
@@ -1261,7 +1261,7 @@ function LiveStep({
           {plans && plans.length === 0 ? (
             <p className="ton-error">Card checkout isn&apos;t open right now. Your setup is saved. Email support@orvius.im and we&apos;ll turn it on with you.</p>
           ) : null}
-          {lineLeft !== undefined && !lineReady ? (
+          {lineBlocked ? (
             <p className="ton-note" role="status">
               A call line has to be held for your shop before it can go live. Your setup is saved. Email support@orvius.im and we&apos;ll turn it on when a line is reserved for you.
             </p>

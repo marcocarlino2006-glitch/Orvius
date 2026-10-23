@@ -316,13 +316,7 @@ export async function POST(request: NextRequest) {
           return;
         }
         const onDemoLine = isDemoPlatformLine(inboundNumber ?? business.vapiPhoneNumber ?? business.twilioPhone);
-        const cut = await callSpendCut({
-          shop: business,
-          callerPhone,
-          vapiCallId,
-          demo: onDemoLine,
-          ownsLine: business.environment === "production" && !onDemoLine,
-        });
+        const cut = await callSpendCut({ shop: business, callerPhone, vapiCallId, demo: isDemoPlatformLine(inboundNumber ?? business.vapiPhoneNumber ?? business.twilioPhone), ownsLine: business.environment === "production" && !onDemoLine });
         if (cut) {
           await endCallWith(controlUrl, cut.say);
           if (cut.reason === "caller_repeat" || cut.reason === "shop_ceiling") {
