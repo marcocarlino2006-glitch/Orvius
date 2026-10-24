@@ -83,8 +83,8 @@ export const HELP_ARTICLES: HelpArticle[] = [
     body: (
       <>
         <p>
-          Your public number stays on Google, trucks and ads. Dial one code from the phone that owns it and Orvius
-          answers every call. Your phone won’t ring. That is a setting in your carrier, not an application, and you can
+          Your public number stays on Google, trucks and ads. Dial one code from the phone that owns it and the calls
+          to that number come to Orvius. Your phone won’t ring. That is a setting in your carrier, not an application, and you can
           turn it off yourself. Codes can differ by plan — if one doesn’t work, use your carrier’s app. The steps also
           include the code for calls you don’t answer, if you want your phone to ring first.
         </p>

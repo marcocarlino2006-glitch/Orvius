@@ -1064,7 +1064,7 @@ function LiveStep({
             {draftNote ? <p className="ton-note" role="status">{draftNote}</p> : null}
             <p className="ton-note">
               Alerts and safety calls go to this mobile. This area code is for a private Orvius line. Right after checkout,
-              you dial one code from the phone customers already call, and Orvius answers every call to that number. You
+              you dial one code from the phone customers already call, and those calls come to Orvius. You
               keep the number. Answering those calls does not take a carrier application.
             </p>
           </fieldset>

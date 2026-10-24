@@ -4,7 +4,7 @@ Hand this to every pilot owner. Same content as `/pilot/forward` and `npm run pi
 
 ## What Orvius does
 
-- Answers every call you send from the number customers already call
+- Answers the calls you forward from the number customers already call
 - Qualifies: name, phone, service, urgency, address
 - When the caller picks a time, the job is booked and they hear that time
 - A window that was only proposed still texts a **confirm link**

@@ -28,7 +28,7 @@ export default function PilotForwardPage() {
         <div className="editorial-wrap" style={{ maxWidth: "40rem" }}>
           <h2 className="tier1-section-title type-headline">What Orvius does</h2>
           <ul className="mt-4 space-y-2 font-sans text-sm leading-relaxed text-ash">
-            <li>Answers every call you send from the number customers already call</li>
+            <li>Answers the calls you forward from the number customers already call</li>
             <li>Qualifies: name, phone, service, urgency, address</li>
             <li>Books an open time on the call, checked against your jobs and calendar</li>
             <li>Texts you the lead summary (email backup if a text can&apos;t deliver)</li>
