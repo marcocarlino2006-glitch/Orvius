@@ -18,6 +18,11 @@ if (!KEY) {
 }
 const APP_URL = (process.env.APP_URL ?? "https://api.orvius.im").replace(/\/$/, "");
 const WEBHOOK = `${APP_URL}/api/webhooks/vapi`;
+const MACHINE_DOOR = `${WEBHOOK}/machines/`;
+
+function deliversToOrvius(url) {
+  return url === WEBHOOK || (typeof url === "string" && url.startsWith(MACHINE_DOOR));
+}
 const asJson = process.argv.includes("--json");
 
 async function vapi(path) {
@@ -48,8 +53,8 @@ for (const [number, entries] of byNumber) {
     lines.push({ number, phoneNumberId: entry.id, assistant: assistant?.name ?? entry.assistantId ?? null, webhook: url });
     if (!entry.assistantId && !url) problems.push({ severity: "error", number, issue: "no assistant and no server — calls are not answered" });
     else if (entry.assistantId && !assistant) problems.push({ severity: "error", number, issue: `assistant ${entry.assistantId} does not exist` });
-    else if (url !== WEBHOOK) {
-      problems.push({ severity: "error", number, issue: `webhook is ${url ?? "unset"}, not ${WEBHOOK} — calls leave no record in Orvius` });
+    else if (!deliversToOrvius(url)) {
+      problems.push({ severity: "error", number, issue: `webhook is ${url ?? "unset"} — calls leave no record in Orvius` });
     }
   }
 }

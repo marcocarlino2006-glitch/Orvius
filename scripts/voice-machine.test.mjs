@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 process.env.ORVIUS_MACHINE_KEY = "voice-machine-test-key";
@@ -91,6 +92,10 @@ test("a live shop's receptionist is pointed at its own machine, and the demo sta
   });
   assert.match(summit.serverUrl, /\/api\/webhooks\/vapi$/);
   assert.doesNotMatch(summit.serverUrl, /machines/);
+  assert.equal(machine.callReachesThisDeployment(live.serverUrl), true);
+  assert.equal(machine.callReachesThisDeployment(demo.serverUrl), true);
+  assert.equal(machine.callReachesThisDeployment("https://evil.example/api/webhooks/vapi/machines/abc123"), false);
+  assert.match(readFileSync(new URL("./vapi-doctor.mjs", import.meta.url), "utf8"), /deliversToOrvius/);
 });
 
 test("each live shop gets one voice machine, and another shop's seal cannot open it", async () => {
@@ -151,6 +156,9 @@ test("a live shop with no stored machine id opens on its own id, and the demo do
     assert.equal(await machine.openVoiceMachine(quiet.id, machine.machineSeal(quiet.id)), null);
     const stored = await machine.ensureVoiceMachine(live.id);
     assert.notEqual(stored, live.id);
+    assert.match(await machine.shopReceptionistUrl(live), new RegExp(`/api/webhooks/vapi/machines/${stored}$`));
+    assert.match(await machine.shopReceptionistUrl(demo), /\/api\/webhooks\/vapi$/);
+    assert.doesNotMatch(await machine.shopReceptionistUrl(demo), /machines/);
     assert.equal(await machine.openVoiceMachine(live.id, machine.machineSeal(live.id)), null);
     assert.deepEqual(await machine.openVoiceMachine(stored, machine.machineSeal(stored)), { machineId: stored, businessId: live.id });
   } finally {
@@ -204,7 +212,8 @@ test("a live shop still gets its own door when the machine column is missing", a
   prisma.$executeRaw = missing;
   try {
     assert.equal(await machine.ensureVoiceMachine(live.id), live.id);
-    assert.equal(await machine.ensureVoiceMachine(live.id), live.id);
+    assert.match(await machine.shopReceptionistUrl(live), new RegExp(`/api/webhooks/vapi/machines/${live.id}$`));
+    assert.match(await machine.shopReceptionistUrl(demo), /\/api\/webhooks\/vapi$/);
     assert.deepEqual(await machine.openVoiceMachine(live.id, machine.machineSeal(live.id)), { machineId: live.id, businessId: live.id });
     assert.equal(await machine.openVoiceMachine(live.id, machine.machineSeal("other-shop")), null);
     assert.equal(await machine.openVoiceMachine(demo.id, machine.machineSeal(demo.id)), null);

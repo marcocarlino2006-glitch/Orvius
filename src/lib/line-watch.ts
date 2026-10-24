@@ -1,11 +1,11 @@
 import type { Business } from "@prisma/client";
 import { ingestEndOfCallReport } from "@/lib/call-ingest";
-import { getWebhookUrl } from "@/lib/env";
 import { logInfo, logWarn } from "@/lib/logger";
 import { enqueueOwnerAlert } from "@/lib/notification-queue";
 import { prisma } from "@/lib/prisma";
 import { pickTenant } from "@/lib/resolve-shop-line";
 import { syncBusinessAssistant } from "@/lib/sync-business-assistant";
+import { shopReceptionistUrl } from "@/lib/voice-machine";
 import { listVapiNumbers, vapiRequest, type VapiNumber, type VapiWebhookMessage } from "@/lib/vapi";
 
 /**
@@ -125,7 +125,7 @@ async function detectLineProblem(business: Business): Promise<string | null> {
   if (!entry) return `${line} is not connected to the receptionist`;
   if (entry.assistantId !== business.vapiAssistantId) return `${line} is answered by a different receptionist`;
   const url = assistant.server?.url ?? assistant.serverUrl ?? null;
-  if (url !== getWebhookUrl("/api/webhooks/vapi")) return "the receptionist is sending calls to the wrong address";
+  if (url !== (await shopReceptionistUrl(business))) return "the receptionist is sending calls to the wrong address";
   return null;
 }
 

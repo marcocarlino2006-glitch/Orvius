@@ -41,6 +41,28 @@ function shopNamedOn(business: object): { environment?: string | null; slug: str
   return { environment, slug: business.slug, name };
 }
 
+/** Where this shop's receptionist must send calls. The demo stays on the shared route. */
+export async function shopReceptionistUrl(business: {
+  id: string;
+  environment?: string | null;
+  slug: string;
+  name?: string | null;
+}): Promise<string> {
+  if (!shopGetsOwnVoiceMachine({ ...business, name: business.name ?? undefined }) || !machineKey()) return getWebhookUrl("/api/webhooks/vapi");
+  try {
+    const voiceMachineId = await ensureVoiceMachine(business.id);
+    return voiceRoute({ ...business, voiceMachineId }).webhookUrl;
+  } catch {
+    return getWebhookUrl("/api/webhooks/vapi");
+  }
+}
+
+/** A call reaches this deployment on the shared route or on a shop's own door. */
+export function callReachesThisDeployment(url: string | null | undefined, base = getWebhookUrl("/api/webhooks/vapi")): boolean {
+  if (!url) return false;
+  return url === base || url.startsWith(`${base}/machines/`);
+}
+
 export function voiceRoute(business: object): { webhookUrl: string; webhookSecret?: string } {
   const id = "voiceMachineId" in business && typeof business.voiceMachineId === "string" ? business.voiceMachineId : null;
   const secret = id ? machineSeal(id) : null;

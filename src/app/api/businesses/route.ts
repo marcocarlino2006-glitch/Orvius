@@ -8,10 +8,10 @@ import {
   DEFAULT_HOURS_JSON,
 } from "@/lib/provision-business";
 import { prisma } from "@/lib/prisma";
+import { syncBusinessAssistant } from "@/lib/sync-business-assistant";
 import {
   buildVapiAssistantConfig,
   createAssistant,
-  updateAssistant,
   vapiRequest,
 } from "@/lib/vapi";
 import { performOnce, revertEffect } from "@/lib/provider-effect";
@@ -219,30 +219,6 @@ export async function PATCH(request: NextRequest) {
     const servicesJson = body.servicesJson ?? existing.servicesJson;
     const nextName = body.name ?? existing.name;
 
-    const systemPrompt = buildAssistantSystemPrompt({
-      name: nextName,
-      greeting:
-        greeting ??
-        `Thank you for calling ${nextName}. How can I help you today?`,
-      hoursJson,
-      servicesJson,
-    });
-
-    if (existing.vapiAssistantId) {
-      await updateAssistant(
-        existing.vapiAssistantId,
-        buildVapiAssistantConfig({
-          businessName: nextName,
-          greeting:
-            greeting ??
-            `Thank you for calling ${nextName}. How can I help you today?`,
-          systemPrompt,
-          webhookUrl: getWebhookUrl("/api/webhooks/vapi"),
-          webhookSecret: process.env.VAPI_WEBHOOK_SECRET,
-        }),
-      );
-    }
-
     const business = await prisma.business.update({
       where: { id: body.id },
       data: {
@@ -256,6 +232,8 @@ export async function PATCH(request: NextRequest) {
         servicesJson,
       },
     });
+
+    if (business.vapiAssistantId) await syncBusinessAssistant(business);
 
     return NextResponse.json(business);
   } catch (error) {
