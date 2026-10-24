@@ -81,7 +81,7 @@ export function dayOne(facts: DayOneFacts): DayOne {
         id: "number",
         done: false,
         title: "Prove a call on your number",
-        detail: "Call your existing number and let it ring through. Orvius marks this done when that call arrives.",
+        detail: "In Phone, dial the code so every call to your existing number reaches Orvius, then call that number from another phone.",
         href: "/dashboard?settings=phone",
       };
   const card: DayOneStep = facts.chargesEnabled

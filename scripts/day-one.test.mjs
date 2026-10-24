@@ -24,7 +24,7 @@ test("day one stays open until the number, the card account, and the ticket are 
   assert.equal(fresh.steps[0].href, "/dashboard?settings=phone");
   assert.equal(fresh.steps[1].href, "/dashboard/billing");
   assert.equal(fresh.steps[2].href, null);
-  assert.match(fresh.steps[0].detail, /when that call arrives/);
+  assert.match(fresh.steps[0].detail, /every call to your existing number/);
   assert.match(fresh.steps[1].detail, /1%/);
 
   const numberOnly = dayOne({ ...openShop, numberProved: true });

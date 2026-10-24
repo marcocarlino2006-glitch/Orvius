@@ -69,7 +69,7 @@ export const pricingPlans: readonly PricingPlan[] = [
     idealFor: "Shops verifying the after-hours workflow before a paid plan",
     highlights: [
       "Dedicated local line assigned at onboarding",
-      "After-hours answer on your Orvius line — or forward overflow from your shop number",
+      "The receptionist answers the number customers already call, once every call is forwarded",
       "Lead inbox + owner SMS alerts",
       "Pro workspace during the 30-day pilot",
       "Guided setup and verification",
@@ -90,7 +90,7 @@ export const pricingPlans: readonly PricingPlan[] = [
     idealFor: "Owner-operators who run the jobs themselves",
     highlights: [
       "300 answered calls a month included",
-      "Dedicated shop line + after-hours answer",
+      "Answers the number customers already call",
       "Qualified leads booked into open windows",
       "Owner SMS alerts, lead inbox and call transcripts",
       "Customer records and jobs. Card pay once payouts are connected",

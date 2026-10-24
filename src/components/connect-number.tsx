@@ -12,6 +12,7 @@ import {
   COVERAGE_LABEL,
   NUMBER_OWNERSHIP,
   PORT_OUT_RIGHTS,
+  RECOMMENDED_COVERAGE,
   connectSteps,
   dialHref,
   disconnectSteps,
@@ -197,8 +198,15 @@ export function ConnectNumber({ onConfirmManually }: { onConfirmManually?: (next
       <ol className="cn-steps">
         <Step n={1} title="Connect your number" done={hasNumber && Boolean(carrier)}>
           <p className="cn-muted">
-            Orvius answers on {line ? <strong className="cn-mono">{displayPhone(line)}</strong> : "your Orvius line once it's ready"}. Tell us the
-            number customers call today and who provides it.
+            Customers keep calling the number you already advertise.{" "}
+            {line ? (
+              <>
+                The Orvius line <strong className="cn-mono">{displayPhone(line)}</strong> is only where your carrier sends those calls.
+              </>
+            ) : (
+              "The Orvius line is only where your carrier sends those calls, once it's ready."
+            )}{" "}
+            Orvius can&apos;t change that setting. You dial one code from the phone that owns the number. Answering those calls does not take a carrier application.
           </p>
           <form
             className="cn-row"
@@ -230,7 +238,11 @@ export function ConnectNumber({ onConfirmManually }: { onConfirmManually?: (next
                 role="radio"
                 aria-checked={carrier === c.id}
                 className={`cn-chip${carrier === c.id ? " is-on" : ""}`}
-                onClick={() => void save({ carrier: c.id })}
+                onClick={() => {
+                  const allowed = CARRIER_PATHS[c.id].coverages;
+                  const keep = Boolean(coverage && allowed.includes(coverage));
+                  void save(keep ? { carrier: c.id } : { carrier: c.id, coverage: RECOMMENDED_COVERAGE });
+                }}
               >
                 {c.label}
               </button>
@@ -241,7 +253,7 @@ export function ConnectNumber({ onConfirmManually }: { onConfirmManually?: (next
 
         <Step n={2} title="Choose what Orvius answers" done={Boolean(coverage)}>
           <div className="cn-options" role="radiogroup" aria-label="Coverage">
-            {(path?.coverages ?? (["missed", "all", "main"] as Coverage[])).map((c) => (
+            {(path?.coverages ?? (["all", "missed", "main"] as Coverage[])).map((c) => (
               <button
                 key={c}
                 type="button"
@@ -252,14 +264,14 @@ export function ConnectNumber({ onConfirmManually }: { onConfirmManually?: (next
               >
                 <span className="cn-option-title">
                   {COVERAGE_LABEL[c]}
-                  {c === "missed" ? <span className="cn-tag">Recommended</span> : null}
+                  {c === RECOMMENDED_COVERAGE ? <span className="cn-tag">Recommended</span> : null}
                 </span>
                 <span className="cn-option-detail">{COVERAGE_DETAIL[c]}</span>
               </button>
             ))}
           </div>
-          {carrier && carrier !== "voip" && coverage !== "main" ? (
-            <p className="cn-note">Cell carriers can&apos;t forward on a schedule. &ldquo;Calls I don&apos;t answer&rdquo; covers after hours whenever nobody picks up.</p>
+          {carrier && carrier !== "voip" && coverage === "missed" ? (
+            <p className="cn-note">Cell carriers can&apos;t forward on a schedule. This still covers nights, whenever nobody picks up.</p>
           ) : null}
           {coverage && carrier && line ? (
             <>

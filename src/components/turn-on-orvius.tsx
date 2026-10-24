@@ -1058,13 +1058,14 @@ function LiveStep({
                 onBlur={saveDraft}
                 placeholder="Area code"
                 inputMode="numeric"
-                aria-label="Area code for your Orvius number"
+                aria-label="Area code for the private line your carrier forwards to"
               />
             </div>
             {draftNote ? <p className="ton-note" role="status">{draftNote}</p> : null}
             <p className="ton-note">
-              Alerts and safety calls go to this mobile. You get a local Orvius number in this area code. Right after, we
-              walk you through connecting your business number: you keep it, and you choose which calls Orvius takes.
+              Alerts and safety calls go to this mobile. This area code is for a private Orvius line. Right after checkout,
+              you dial one code from the phone customers already call, and Orvius answers every call to that number. You
+              keep the number. Answering those calls does not take a carrier application.
             </p>
           </fieldset>
 

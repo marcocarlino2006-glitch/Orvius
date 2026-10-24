@@ -4,7 +4,7 @@ Hand this to every pilot owner. Same content as `/pilot/forward` and `npm run pi
 
 ## What Orvius does
 
-- Answers the **Orvius line** (and any calls you forward to it)
+- Answers every call you send from the number customers already call
 - Qualifies: name, phone, service, urgency, address
 - When the caller picks a time, the job is booked and they hear that time
 - A window that was only proposed still texts a **confirm link**
@@ -13,7 +13,7 @@ Hand this to every pilot owner. Same content as `/pilot/forward` and `npm run pi
 
 ## What Orvius does not do (yet)
 
-- Catch calls on your public number **unless you forward**
+- Catch calls on your public number **unless you forward**. Orvius can't change the carrier's setting.
 - Treat a window the caller did not pick as a locked appointment until they confirm the text
 - Pay estimate card money into your shop bank (Stripe Connect later)
 - Sync Jobber / ServiceTitan
@@ -22,10 +22,10 @@ Hand this to every pilot owner. Same content as `/pilot/forward` and `npm run pi
 ## How to forward
 
 1. Keep your public number on Google, trucks, and ads.
-2. Set **missed / busy / no-answer / after-hours** forward to your Orvius line (carrier CFNA / CFB / after-hours routing).
-3. Or publish the Orvius line as your main number.
-4. Place a live test call from your cell → confirm owner SMS.
-5. In Orvius Settings, check **Missed-call overflow** only after forward is real (or Orvius is your published line).
+2. From the phone that owns it, dial the every-call code so Orvius answers. That is a setting, not an application.
+3. Or send only the calls you don't answer, or publish the Orvius line as a new main number.
+4. Call the business number from another phone. Orvius should answer, and the business phone should stay quiet.
+5. Settings marks it working when that call arrives. A line existing is not proof.
 
 ## Go-live check
 
@@ -38,7 +38,7 @@ Hand this to every pilot owner. Same content as `/pilot/forward` and `npm run pi
 
 ## Say on every sale
 
-- “We catch what hits the Orvius line — forward missed and after-hours, or publish this number.”
+- “Customers keep their number. One code sends every call to Orvius. We only catch what you forward.”
 - “If they picked the time on the call, they're booked. A window they did not pick still confirms by text.”
 - “Card pay on estimates is Orvius checkout until Connect.”
 

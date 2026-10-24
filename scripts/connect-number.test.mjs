@@ -12,8 +12,10 @@ import { PrismaClient } from "@prisma/client";
 import {
   CARRIER_PATHS,
   PORT_OUT_RIGHTS,
+  RECOMMENDED_COVERAGE,
   connectSteps,
   connectionHealth,
+  coverageWhenCarrierChosen,
   dialHref,
   disconnectSteps,
   forwardTestVerdict,
@@ -45,7 +47,16 @@ test("nothing claims Orvius can change a carrier's settings, and schedules are o
   assert.ok(!CARRIER_PATHS.verizon.coverages.includes("after_hours"));
   assert.ok(CARRIER_PATHS.voip.coverages.includes("after_hours"));
   assert.match(connectSteps("verizon", "missed", LINE)[0], /\*715125550100/);
+  assert.match(connectSteps("verizon", "all", LINE)[0], /\*725125550100/);
+  assert.match(connectSteps("verizon", "all", LINE)[2], /should stay quiet/);
   assert.match(disconnectSteps("att", "missed", LINE)[0], /##004#/);
+  assert.equal(RECOMMENDED_COVERAGE, "all");
+  assert.equal(CARRIER_PATHS.verizon.coverages[0], "all");
+  assert.equal(coverageWhenCarrierChosen({ existing: null, captureMode: "forward", allowed: CARRIER_PATHS.verizon.coverages }), "all");
+  assert.equal(coverageWhenCarrierChosen({ existing: "missed", captureMode: "forward", allowed: CARRIER_PATHS.verizon.coverages }), null);
+  assert.equal(coverageWhenCarrierChosen({ existing: null, captureMode: "publish", allowed: CARRIER_PATHS.verizon.coverages }), null);
+  assert.match(read("src/components/connect-number.tsx"), /RECOMMENDED_COVERAGE/);
+  assert.doesNotMatch(read("src/components/connect-number.tsx"), /c === "missed" \? <span className="cn-tag">Recommended/);
   assert.match(PORT_OUT_RIGHTS, /optional/);
   assert.match(PORT_OUT_RIGHTS, /never released/);
 });

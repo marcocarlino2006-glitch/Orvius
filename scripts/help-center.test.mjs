@@ -5,13 +5,14 @@ import test from "node:test";
 const { CARRIERS, forwardDialCode, getCarrier, buildForwardGuideSms } = await import("../src/lib/carrier-forward.ts");
 
 test("forward dial codes are complete strings for each carrier", () => {
-  assert.equal(forwardDialCode(getCarrier("verizon"), "+1 (844) 643-9170"), "*718446439170");
-  assert.equal(forwardDialCode(getCarrier("att"), "+18446439170"), "**004*18446439170#");
-  assert.equal(forwardDialCode(getCarrier("tmobile"), "844-643-9170"), "**004*18446439170#");
+  assert.equal(forwardDialCode(getCarrier("verizon"), "+1 (844) 643-9170"), "*728446439170");
+  assert.equal(forwardDialCode(getCarrier("att"), "+18446439170"), "**21*18446439170#");
+  assert.equal(forwardDialCode(getCarrier("tmobile"), "844-643-9170"), "**21*18446439170#");
   assert.equal(forwardDialCode(getCarrier("other"), "+18446439170"), null);
   assert.equal(forwardDialCode(getCarrier("att"), "12345"), null);
   const sms = buildForwardGuideSms({ shopName: "Summit HVAC", orviusLine: "+18446439170", mode: "forward", carrier: "att" });
-  assert.match(sms, /dial \*\*004\*18446439170# from your cell/);
+  assert.match(sms, /every call/i);
+  assert.match(sms, /dial \*\*21\*18446439170# from your cell/);
   assert.ok(CARRIERS.every((c) => c.steps.length >= 3));
 });
 
