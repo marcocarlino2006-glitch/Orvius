@@ -101,6 +101,9 @@ test("every trade has a pack, and each pack is about that trade", () => {
     assert.ok(pack.length > 200, `${trade} pack is substantive`);
     assert.match(pack, new RegExp(`TRADE — ${trade.toUpperCase()}`));
     assert.match(pack, /Emergency signals:/);
+    assert.match(pack, /^- Danger:/m);
+    const emergency = pack.split("\n").find((line) => line.startsWith("- Emergency signals:"));
+    assert.doesNotMatch(emergency, /burning smell|sparking|shock|sewer backup|gas smell/i);
   }
   for (const trade of TRADES) {
     const pack = tradePromptPack(trade);

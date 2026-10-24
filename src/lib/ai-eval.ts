@@ -215,9 +215,8 @@ export function runAiReadinessEval(): AiReadinessEval {
         /say this FIRST[\s\S]{0,80}leave the home now[\s\S]{0,80}call 911 from outside/i.test(
           prompt,
         ) &&
-        /Gas smell or carbon monoxide: say "call the gas company or 911"/.test(
-          prompt,
-        ) &&
+        /Gas smell: say "call the gas company or 911"/.test(prompt) &&
+        /A carbon monoxide alarm stays on 911/.test(prompt) &&
         /Sewage backing up is not that line/.test(prompt),
     },
     {
