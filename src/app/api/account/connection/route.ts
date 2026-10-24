@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { normalizePhone } from "@/lib/customer";
 import { latestForwardTest } from "@/lib/forward-test";
-import { CARRIER_PATHS, connectionHealth, type Coverage } from "@/lib/number-connection";
+import { CARRIER_PATHS, connectionHealth, coverageWhenCarrierChosen, type Coverage } from "@/lib/number-connection";
 import { getShopLine } from "@/lib/owner-setup-state";
 import { prisma } from "@/lib/prisma";
 import { isSetupSandbox } from "@/lib/setup-flow";
@@ -75,6 +75,17 @@ export async function PATCH(request: NextRequest) {
     }
     data.forwardCoverage = body.coverage;
     data.captureMode = body.coverage === "main" ? "publish" : "forward";
+  } else if (body.carrier) {
+    const allowed = CARRIER_PATHS[body.carrier].coverages;
+    const chosen = coverageWhenCarrierChosen({
+      existing: auth.business.forwardCoverage,
+      captureMode: auth.business.captureMode,
+      allowed,
+    });
+    if (chosen) {
+      data.forwardCoverage = chosen;
+      data.captureMode = "forward";
+    }
   }
   const changesRouting =
     (data.phone !== undefined && data.phone !== auth.business.phone) ||

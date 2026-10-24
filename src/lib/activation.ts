@@ -147,7 +147,7 @@ export function activationChecklist(input: {
           detail:
             input.connection.state === "test_failed"
               ? `${input.connection.detail} Your customers' calls don't reach Orvius yet.`
-              : "Your customers still call your business number. Connect it — you keep the number and choose which calls Orvius takes.",
+              : "Your customers still call your business number. Dial one code from that phone so those calls come to Orvius. You keep the number.",
           action: { kind: "link", label: "Connect your number", href: "/dashboard?settings=phone" },
         };
 

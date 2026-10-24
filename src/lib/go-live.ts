@@ -52,11 +52,11 @@ export function buildGoLiveReport(input: {
     },
     {
       id: "overflow_forward",
-      label: "Missed/busy/after-hours forward confirmed",
+      label: "Calls from the business number confirmed",
       ok: input.overflowForwardConfirmed,
       detail: input.overflowForwardConfirmed
-        ? "Owner confirmed carrier forward / after-hours routing to Orvius."
-        : "Without forward, you only catch calls to the Orvius number — say that on the sale.",
+        ? "A call from the business number reached Orvius."
+        : "Without that, you only catch calls to the Orvius number — say that on the sale.",
       href: "/dashboard/onboarding",
     },
     {

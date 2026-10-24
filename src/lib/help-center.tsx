@@ -27,15 +27,15 @@ export const HELP_ARTICLES: HelpArticle[] = [
   {
     slug: "set-up-your-line",
     title: "Set up your line",
-    summary: "From sign-in to your first answered call: get your number, send calls to it, and prove it with one test call.",
+    summary: "From sign-in to your first answered call: keep the number customers already call, send every call to Orvius, and prove it with one test call.",
     category: "Get started",
     keywords: "start onboarding new number setup first call",
     body: (
       <>
         <h2>1. Get your Orvius number</h2>
         <p>
-          Sign in and your shop gets its own Orvius line. You’ll find it under{" "}
-          <strong>Settings → Phone line</strong>.
+          Sign in and your shop gets a private Orvius line. Customers never have to learn it. You’ll find it under{" "}
+          <strong>Settings → Phone number</strong>. It is only where your carrier sends calls.
         </p>
         <h2>2. Tell the receptionist about your shop</h2>
         <ul>
@@ -52,16 +52,19 @@ export const HELP_ARTICLES: HelpArticle[] = [
             ask for a person.
           </li>
         </ul>
-        <h2>3. Send calls to it</h2>
+        <h2>3. Send every call from the number you already use</h2>
         <p>
-          Either forward missed, busy and after-hours calls from your current number, or put the Orvius number on
-          Google, your trucks and your ads. <Link href="/help/forward-your-calls">Forwarding steps by carrier →</Link>
+          Customers keep calling the number on your truck and Google. In <strong>Settings → Phone number</strong>, choose{" "}
+          <strong>Every call</strong> and dial the code from the phone that owns that number. Orvius answers. Your phone
+          won’t ring. That is a setting in your carrier, not an application. <strong>Calls I don’t answer</strong> is
+          the other choice, if you still want your phone to ring first. Putting the Orvius number on Google is only if
+          you want a new public number. <Link href="/help/forward-your-calls">Steps by carrier →</Link>
         </p>
         <h2>4. Prove it with one call</h2>
         <p>
-          Call your public number from a different phone and let it ring. Orvius should answer with your shop name,
-          and you should get the lead alert on your mobile. Add your mobile under <strong>Settings → Notifications</strong>{" "}
-          and use <strong>Send test</strong> to check alerts without placing a call.
+          Call your business number from a different phone. Orvius should answer with your shop name, and you should
+          get the lead alert on your mobile. Add your mobile under <strong>Settings → Notifications</strong> and use{" "}
+          <strong>Send test</strong> to check alerts without placing a call.
         </p>
         <h2>Texts</h2>
         <p>
@@ -74,15 +77,16 @@ export const HELP_ARTICLES: HelpArticle[] = [
   {
     slug: "forward-your-calls",
     title: "Forward your calls to Orvius",
-    summary: "Keep your current number. Send only the calls you miss — busy, unanswered and after-hours — to your Orvius line.",
+    summary: "Keep the number customers already call. One code from that phone sends every call to Orvius.",
     category: "Get started",
     keywords: "call forwarding verizon at&t att t-mobile tmobile voip business phone missed busy no answer publish",
     body: (
       <>
         <p>
-          Your public number stays on Google, trucks and ads. You pick up when you can; every call you miss goes to
-          Orvius. Codes can differ by plan — if one doesn’t work, use your carrier’s app or call their support and ask
-          for <em>conditional call forwarding</em> (busy, no answer, unreachable).
+          Your public number stays on Google, trucks and ads. Dial one code from the phone that owns it and the calls
+          to that number come to Orvius. Your phone won’t ring. That is a setting in your carrier, not an application, and you can
+          turn it off yourself. Codes can differ by plan — if one doesn’t work, use your carrier’s app. The steps also
+          include the code for calls you don’t answer, if you want your phone to ring first.
         </p>
         {CARRIERS.map((carrier) => (
           <section key={carrier.id}>
@@ -94,16 +98,17 @@ export const HELP_ARTICLES: HelpArticle[] = [
             </ol>
           </section>
         ))}
-        <h2>Or publish the Orvius number</h2>
+        <h2>A new public number, if you want one</h2>
         <p>
-          If you’d rather Orvius answer every call, put your Orvius number on Google, trucks and ads instead. Callers who
-          ask for a person are transferred to the number in <strong>Settings → Receptionist</strong>, or you get a
-          callback request.
+          Settings also offers an Orvius number as your main line. That is a new number. Put it on Google, trucks and
+          ads, and keep the old number forwarded until everything is updated. Callers who ask for a person are
+          transferred to the number in <strong>Settings → Receptionist</strong>, or you get a callback request.
         </p>
         <h2>Check it worked</h2>
         <p>
-          From another phone, call your public number and don’t answer. Orvius should pick up with your shop name.
-          Under <strong>Settings → Phone line</strong> you can text yourself these steps for your carrier.
+          From another phone, call your business number. Orvius should pick up with your shop name. If you chose every
+          call, your business phone should stay quiet. Under <strong>Settings → Phone number</strong> you can text yourself
+          these steps for your carrier.
         </p>
       </>
     ),

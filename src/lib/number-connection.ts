@@ -12,6 +12,9 @@ import type { CarrierId } from "@/lib/carrier-forward";
 
 export type Coverage = "missed" | "all" | "after_hours" | "main";
 
+/** The path a new shop walks: the receptionist answers the number customers already call. */
+export const RECOMMENDED_COVERAGE: Coverage = "all";
+
 export const COVERAGE_LABEL: Record<Coverage, string> = {
   missed: "Calls I don't answer",
   all: "Every call",
@@ -21,10 +24,25 @@ export const COVERAGE_LABEL: Record<Coverage, string> = {
 
 export const COVERAGE_DETAIL: Record<Coverage, string> = {
   missed: "Your phone rings first. If nobody picks up, the line is busy, or you have no signal, Orvius answers.",
-  all: "Orvius answers every call to your number. Your phone won't ring.",
+  all: "Customers keep calling the number on your truck and Google. Orvius answers every one. Your phone won't ring.",
   after_hours: "Your phone system sends calls to Orvius outside the hours you set there.",
-  main: "Put the Orvius number on Google, your trucks and ads. Nothing to forward.",
+  main: "Customers call a new Orvius number. Put it on Google, your trucks and ads. Nothing to forward.",
 };
+
+/**
+ * Naming a carrier before any coverage is chosen means every call on the existing number.
+ * A choice already saved is left alone. Publish mode with no coverage is the new-number path.
+ * Returns the coverage to write, or null when nothing should change.
+ */
+export function coverageWhenCarrierChosen(input: {
+  existing?: string | null;
+  captureMode?: string | null;
+  allowed: readonly Coverage[];
+}): Coverage | null {
+  if (input.existing && input.allowed.includes(input.existing as Coverage)) return null;
+  if (input.captureMode === "publish") return null;
+  return input.allowed.includes(RECOMMENDED_COVERAGE) ? RECOMMENDED_COVERAGE : null;
+}
 
 export type ConnectionSupport = "dial_code" | "phone_system" | "carrier_app";
 
@@ -39,27 +57,27 @@ export type CarrierPath = {
 export const CARRIER_PATHS: Record<CarrierId, CarrierPath> = {
   verizon: {
     support: "dial_code",
-    coverages: ["missed", "all", "main"],
+    coverages: ["all", "missed", "main"],
     howItWorks: "You dial one short code from the phone that owns the number. Orvius can't change Verizon's settings for you.",
   },
   att: {
     support: "dial_code",
-    coverages: ["missed", "all", "main"],
+    coverages: ["all", "missed", "main"],
     howItWorks: "You dial one short code from the phone that owns the number. Orvius can't change AT&T's settings for you.",
   },
   tmobile: {
     support: "dial_code",
-    coverages: ["missed", "all", "main"],
+    coverages: ["all", "missed", "main"],
     howItWorks: "You dial one short code from the phone that owns the number. Orvius can't change T-Mobile's settings for you.",
   },
   other: {
     support: "carrier_app",
-    coverages: ["missed", "all", "main"],
+    coverages: ["all", "missed", "main"],
     howItWorks: "Turn on call forwarding in your phone's settings or your carrier's app. Codes differ by carrier, so Orvius doesn't guess one.",
   },
   voip: {
     support: "phone_system",
-    coverages: ["missed", "all", "after_hours", "main"],
+    coverages: ["all", "missed", "after_hours", "main"],
     howItWorks: "Set the forwarding rule in your phone system's admin, or ask your provider to. Orvius can't sign in to it for you.",
   },
 };
@@ -93,12 +111,16 @@ export function connectSteps(carrier: CarrierId, coverage: Coverage, orviusLine:
       "Run the test below from any phone.",
     ];
   }
+  const prove =
+    coverage === "all"
+      ? "Run the test below from another phone. Your business phone should stay quiet. If it rings, every-call forwarding isn't on — don't answer it."
+      : "Run the test below. Don't answer when your phone rings.";
   const codes = forwardingCodes(carrier, coverage, orviusLine);
   if (codes) {
     return [
       `From the phone that owns your business number, dial ${codes.on} and press call.`,
       "Wait for the confirmation tone or message, then hang up.",
-      "Run the test below. Don't answer when your phone rings.",
+      prove,
     ];
   }
   if (carrier === "voip") {
@@ -111,12 +133,12 @@ export function connectSteps(carrier: CarrierId, coverage: Coverage, orviusLine:
       : [
           `In your phone system's admin, forward ${coverage === "all" ? "all calls" : "unanswered and busy calls"} to your Orvius number.`,
           "Save the rule. Some systems take a minute to apply it.",
-          "Run the test below.",
+          prove,
         ];
   }
   return [
-    `Open call forwarding in your phone's settings or your carrier's app and forward ${coverage === "all" ? "all calls" : "calls when unanswered, busy or unreachable"} to your Orvius number.`,
-    "Run the test below. Don't answer when your phone rings.",
+    `Open call forwarding in your phone's settings or your carrier's app and forward ${coverage === "all" ? "all calls" : "calls when unanswered, busy or unreachable"} to your Orvius number. This is a setting, not an application.`,
+    prove,
   ];
 }
 

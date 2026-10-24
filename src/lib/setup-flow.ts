@@ -502,7 +502,7 @@ export function buildGoLiveChecklist(input: {
         ? "Forwarding to Orvius. A call to your number came through."
         : input.overflowForwardConfirmedAt
           ? "You said forwarding is on. It isn't proven until a call to your number reaches Orvius. Run the test call."
-          : "Connected right after you go live. You keep your number and choose which calls Orvius takes.",
+          : "Right after you go live, dial one code from the phone customers already call so those calls come to Orvius. You keep the number.",
     },
     {
       id: "messaging",

@@ -140,7 +140,7 @@ async function pilotSaveReminders(now: Date) {
         `setup:pilot:${shop.id}:week`,
         calls > 0
           ? `Orvius: ${shop.name}'s pilot ends in ${leftWord(daysLeft)}. Your line took ${calls} ${callWord} — pay with card to keep it answering: ${link("/dashboard/billing")}`
-          : `Orvius: ${shop.name}'s pilot ends in ${leftWord(daysLeft)} and no customer calls have come through yet. Call your Orvius line once, then forward your main number (about 2 minutes): ${link("/dashboard?settings=phone")}`,
+          : `Orvius: ${shop.name}'s pilot ends in ${leftWord(daysLeft)} and no customer calls have come through yet. Dial the code in Phone so every call to your existing number reaches Orvius (about 2 minutes): ${link("/dashboard?settings=phone")}`,
       );
       if (result.queued.length) queued += 1;
       continue;
@@ -206,8 +206,8 @@ async function forwardingNudges(now: Date) {
       shop,
       days >= FORWARD_REMINDER_DAY ? `setup:forward:${shop.id}:reminder` : `setup:forward:${shop.id}`,
       days >= FORWARD_REMINDER_DAY
-        ? `Orvius: ${shop.name} hasn't had a customer call yet, because your main number still doesn't forward to your Orvius line. It takes about 2 minutes, and if it's not done in a few days we'll call to do it with you: ${link("/dashboard?settings=phone")}`
-        : `Orvius: ${shop.name}'s line works, but calls to your main number don't reach it yet. Forwarding takes about 2 minutes: ${link("/dashboard?settings=phone")}`,
+        ? `Orvius: ${shop.name} hasn't had a customer call yet, because your main number still doesn't send every call to your Orvius line. It takes about 2 minutes, and if it's not done in a few days we'll call to do it with you: ${link("/dashboard?settings=phone")}`
+        : `Orvius: ${shop.name}'s line works, but calls to your main number don't reach it yet. One code sends every call (about 2 minutes): ${link("/dashboard?settings=phone")}`,
     );
     if (result.queued.length) queued += 1;
     if (days >= FORWARD_FOUNDER_DAY) {

@@ -5,9 +5,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Forward your line",
+  title: "Put Orvius on your number",
   description:
-    "How to forward missed and after-hours calls to Orvius — and what Orvius does and does not do.",
+    "How to send every call on the number you already advertise to Orvius — and what Orvius does and does not do.",
 };
 
 export default function PilotForwardPage() {
@@ -17,9 +17,9 @@ export default function PilotForwardPage() {
         <div className="editorial-wrap" style={{ maxWidth: "40rem" }}>
           <ShellPageIntro
             label="Pilot setup"
-            title="Forward your line. Catch what you miss."
+            title="Put Orvius on the number you already use."
             subline="One page for every shop — honest about what Orvius captures"
-            description={`${company.productName} answers the Orvius number. Forward missed, busy, and after-hours from your public number — or publish the Orvius line.`}
+            description={`${company.productName} answers the number customers already call, once you send every call there. The Orvius number is only where your carrier sends them.`}
           />
         </div>
       </section>
@@ -28,7 +28,7 @@ export default function PilotForwardPage() {
         <div className="editorial-wrap" style={{ maxWidth: "40rem" }}>
           <h2 className="tier1-section-title type-headline">What Orvius does</h2>
           <ul className="mt-4 space-y-2 font-sans text-sm leading-relaxed text-ash">
-            <li>Answers the Orvius line (and any calls you forward to it)</li>
+            <li>Answers the calls you forward from the number customers already call</li>
             <li>Qualifies: name, phone, service, urgency, address</li>
             <li>Books an open time on the call, checked against your jobs and calendar</li>
             <li>Texts you the lead summary (email backup if a text can&apos;t deliver)</li>
@@ -40,7 +40,7 @@ export default function PilotForwardPage() {
           </h2>
           <ul className="mt-4 space-y-2 font-sans text-sm leading-relaxed text-ash">
             <li>
-              Catch calls on your public number <strong>unless you forward</strong>
+              Catch calls on your public number <strong>unless you forward</strong>. Orvius can&apos;t change your carrier&apos;s setting.
             </li>
             <li>Quote a price you haven&apos;t listed, or promise an arrival time that didn&apos;t come from your schedule</li>
             <li>
@@ -60,25 +60,24 @@ export default function PilotForwardPage() {
           <ol className="mt-4 list-decimal space-y-2 pl-5 font-sans text-sm leading-relaxed text-ash">
             <li>Keep your public number on Google, trucks, and ads.</li>
             <li>
-              Set missed, busy, and after-hours forward to your Orvius line in
-              your carrier app (Verizon, AT&amp;T, T-Mobile, or your business
-              phone system).{" "}
+              From the phone that owns it, dial the every-call code for your carrier
+              (Verizon, AT&amp;T, T-Mobile, or your business phone system). That is a
+              setting, not an application.{" "}
               <Link href="/help/forward-your-calls" className="underline underline-offset-2">
                 Steps and codes by carrier
               </Link>
             </li>
-            <li>Or publish the Orvius line as your main number.</li>
-            <li>Place a live test call from your cell → confirm owner SMS.</li>
+            <li>Or send only the calls you don&apos;t answer, or publish the Orvius line as a new main number.</li>
+            <li>Call your business number from another phone. Orvius should answer, and your phone should stay quiet.</li>
             <li>
-              In Settings, check Missed-call overflow only after forward is real.
+              Settings marks it working when that call arrives. A line existing is not proof.
             </li>
           </ol>
 
           <h2 className="tier1-section-title type-headline mt-12">Say this</h2>
           <ul className="mt-4 space-y-2 font-sans text-sm leading-relaxed text-ash">
             <li>
-              “We catch what hits the Orvius line — forward missed and after-hours,
-              or publish this number.”
+              “Customers keep their number. One code sends every call to Orvius. We only catch what you forward.”
             </li>
             <li>
               “You&apos;re booked for [time].” When they pick a time on the call, that is the appointment. A window

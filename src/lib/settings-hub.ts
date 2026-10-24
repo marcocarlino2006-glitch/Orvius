@@ -154,9 +154,9 @@ export function buildSettingsHub(input: SettingsHubInput): {
   if (!captureOk) {
     next = {
       id: "capture",
-      title: "Catch missed calls",
-      body: "Forward your shop number — or publish the Orvius line. One real call proves it.",
-      cta: "Set call capture",
+      title: "Put Orvius on your number",
+      body: "Dial one code from the phone customers already call. One test call proves every call reaches Orvius.",
+      cta: "Connect your number",
       href: "#overflow-forward",
     };
   } else if (!alertsOk) {

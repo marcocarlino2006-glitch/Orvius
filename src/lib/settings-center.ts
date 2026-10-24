@@ -108,7 +108,7 @@ export const SETTINGS_SEARCH: Array<{ label: string; section: SettingsSectionId;
   { label: "Business type", section: "business", keywords: "trade industry hvac plumbing electrical salon law auto real estate" },
   { label: "Shop address", section: "business", keywords: "location" },
   { label: "Your Orvius line", section: "phone", keywords: "phone number" },
-  { label: "Forwarding", section: "phone", keywords: "call forward carrier verizon att t-mobile missed calls" },
+  { label: "Forwarding", section: "phone", keywords: "call forward carrier verizon att t-mobile every call existing number missed calls" },
   { label: "Open hours", section: "hours", keywords: "schedule after hours weekend" },
   { label: "Services", section: "hours", keywords: "work you take jobs" },
   { label: "Service ZIPs", section: "hours", keywords: "area zip codes coverage" },
