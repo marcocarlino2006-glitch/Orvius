@@ -282,7 +282,7 @@ export async function GET(request: Request) {
   const closedLine = closedWeekLine(closedRows);
   const dayOneOut = dayOne({
     live: isBillingEntitled(business) && business.environment === "production" && !isDemoBusiness(business),
-    numberProved: business.lineVerifiedAt != null || business.overflowProvedAt != null,
+    numberProved: Boolean(line) || business.lineVerifiedAt != null || business.overflowProvedAt != null,
     chargesEnabled: connect.chargesEnabled,
     avgTicketCents: outcomesOut.avgTicketCents,
     jobsBooked: outcomesOut.jobsBooked,

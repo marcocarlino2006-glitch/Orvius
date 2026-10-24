@@ -116,7 +116,8 @@ test("Command opens before the test call; only a shop with no line is sent back 
   assert.match(guard, /next === "line"/);
   assert.doesNotMatch(guard, /next !== "done"/);
   const verify = readFileSync(new URL("../src/components/onboarding-call-verify.tsx", import.meta.url), "utf8");
-  assert.match(verify, /Open Command, call later/);
+  assert.match(verify, /Open the desk/);
+  assert.doesNotMatch(verify, /call later/);
 });
 
 async function shopWith(data) {

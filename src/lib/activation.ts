@@ -42,6 +42,8 @@ function lastFour(phone: string | null | undefined) {
 
 export function activationChecklist(input: {
   lineVerifiedAt: Date | string | null;
+  /** The number exists. The receptionist is on it whether or not a call has arrived. */
+  lineAssigned?: boolean;
   ownerPhone: string | null;
   ownerEmail: string | null;
   ownerSmsOptOutAt: Date | string | null;
@@ -202,13 +204,18 @@ export function activationChecklist(input: {
               },
         ];
 
+  const lineOn = Boolean(input.lineVerifiedAt || input.lineAssigned);
   return [
     {
       id: "line",
       label: "Your Orvius line",
-      state: input.lineVerifiedAt ? "live" : "todo",
-      ...(input.lineVerifiedAt ? {} : { waitingOn: "owner" as const }),
-      detail: input.lineVerifiedAt ? "Answering. A real call came through." : "Call it once to prove it answers.",
+      state: lineOn ? "live" : "todo",
+      ...(lineOn ? {} : { waitingOn: "owner" as const }),
+      detail: input.lineVerifiedAt
+        ? "Answering. A real call came through."
+        : lineOn
+          ? "Your receptionist answers the number we assigned."
+          : "Your number is assigned when the line is on.",
     },
     alerts,
     handoff,

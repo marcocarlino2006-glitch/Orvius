@@ -86,7 +86,7 @@ test("the owner chooses the work they take; it's never empty", () => {
 test("after the first real call the owner sees what is live, not a bare 'done'", () => {
   const verify = read("src/components/onboarding-call-verify.tsx");
   assert.match(verify, /<ActivationChecklist \/>/);
-  assert.match(verify, /The receptionist is answering/);
+  assert.match(verify, /Your receptionist is on/);
   assert.doesNotMatch(verify, /Connect my business number/);
   const route = read("src/app/api/onboarding/live-check/route.ts");
   assert.match(route, /requireEntitledSession/);

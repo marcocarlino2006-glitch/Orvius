@@ -155,7 +155,7 @@ export function buildSettingsHub(input: SettingsHubInput): {
     next = {
       id: "capture",
       title: "Call your number",
-      body: "Your receptionist answers the number we assigned. Call it once.",
+      body: "Your receptionist answers the number we assigned.",
       cta: "See the number",
       href: "#overflow-forward",
     };

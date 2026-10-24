@@ -52,18 +52,15 @@ export const HELP_ARTICLES: HelpArticle[] = [
             ask for a person.
           </li>
         </ul>
-        <h2>3. Call the number</h2>
+        <h2>3. The receptionist is already on</h2>
         <p>
-          Call it from your phone. The receptionist answers with your shop name, and you should get the lead alert on
-          your mobile. Add your mobile under <strong>Settings → Notifications</strong> and use <strong>Send test</strong>{" "}
-          to check alerts without placing a call. Put the number where customers look: Google, your website, trucks and
-          ads.
+          The number answers as your shop. Put it where customers look: Google, your website, trucks and ads. Alerts
+          go to the mobile under <strong>Settings → Notifications</strong>.
         </p>
-        <h2>4. An older number, only if you want it</h2>
+        <h2>4. A number you already have</h2>
         <p>
-          If customers already call a different number, <strong>Settings → Phone number</strong> can send those calls
-          here. That is a setting on the phone that owns the number, not something Orvius can turn on by itself.{" "}
-          <Link href="/help/forward-your-calls">Steps by carrier →</Link>
+          In <strong>Settings → Phone number</strong>, send the number you already advertise. Orvius files the move
+          with your carrier. The number we assigned keeps answering until that move is done.
         </p>
         <h2>Texts</h2>
         <p>

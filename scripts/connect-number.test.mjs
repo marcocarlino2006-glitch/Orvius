@@ -56,8 +56,9 @@ test("nothing claims Orvius can change a carrier's settings, and schedules are o
   assert.equal(coverageWhenCarrierChosen({ existing: null, captureMode: "forward", allowed: CARRIER_PATHS.verizon.coverages }), "main");
   assert.equal(coverageWhenCarrierChosen({ existing: "missed", captureMode: "forward", allowed: CARRIER_PATHS.verizon.coverages }), null);
   assert.equal(coverageWhenCarrierChosen({ existing: null, captureMode: "publish", allowed: CARRIER_PATHS.verizon.coverages }), null);
-  assert.match(read("src/components/connect-number.tsx"), /RECOMMENDED_COVERAGE/);
-  assert.doesNotMatch(read("src/components/connect-number.tsx"), /c === "missed" \? <span className="cn-tag">Recommended/);
+  const phone = read("src/components/connect-number.tsx");
+  assert.match(phone, /PortRequestForm/);
+  assert.doesNotMatch(phone, /RECOMMENDED_COVERAGE|\*72|Dial /);
   assert.match(PORT_OUT_RIGHTS, /optional/);
   assert.match(PORT_OUT_RIGHTS, /never released/);
 });

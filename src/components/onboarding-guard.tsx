@@ -78,8 +78,7 @@ export function OnboardingGuard({ children }: { children: ReactNode }) {
               return;
             }
           } else if (next === "line") {
-            /* Only a shop with no line is sent back. An unproved line opens
-               Command, where "Prove your line" waits as the next move. */
+            /* Only a shop with no line is sent back. A line that exists is the receptionist. */
             router.replace("/dashboard/onboarding");
             return;
           }

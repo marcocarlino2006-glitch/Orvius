@@ -3,7 +3,7 @@ export type OwnerSetupStatus = {
   hasOwnerPhone: boolean;
   captureConfirmed: boolean;
   lineVerified: boolean;
-  /** Command opens: the line exists, alerts have a phone, and one call proved it. */
+  /** Command opens: the line exists and alerts have a phone. */
   ready: boolean;
   /** The receptionist is answering the number we assigned. An older number is optional. */
   live: boolean;
@@ -32,15 +32,14 @@ export function getOwnerSetupStatus(business: {
   const hasOwnerPhone = Boolean(business.ownerPhone?.trim());
   const captureConfirmed = Boolean(business.overflowForwardConfirmedAt);
   const lineVerified = Boolean(business.lineVerifiedAt);
-  // A real call to the number we assigned is the shop being live. Sending an
-  // older advertised number here is optional and lives in Phone.
-  const ready = hasLine && hasOwnerPhone && lineVerified;
+  // The number we assigned is the business line. A later call records proof.
+  // It is not a step the owner has to finish before the receptionist is on.
+  const ready = hasLine && hasOwnerPhone;
   const live = ready;
 
   let nextStep: OwnerSetupStatus["nextStep"] = "done";
   if (!hasLine) nextStep = "line";
   else if (!hasOwnerPhone) nextStep = "owner_phone";
-  else if (!lineVerified) nextStep = "verify";
 
   return {
     hasLine,

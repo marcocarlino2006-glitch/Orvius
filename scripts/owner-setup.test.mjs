@@ -20,8 +20,12 @@ const base = {
   lineVerifiedAt: null,
 };
 
-test("a proved line is live — the receptionist is answering, with no carrier step", () => {
-  assert.equal(getOwnerSetupStatus(base).nextStep, "verify");
+test("a line is live — the receptionist is on, with no call the owner has to place", () => {
+  const open = getOwnerSetupStatus(base);
+  assert.equal(open.nextStep, "done");
+  assert.equal(open.ready, true);
+  assert.equal(open.live, true);
+  assert.equal(open.lineVerified, false);
   const verified = getOwnerSetupStatus({
     ...base,
     lineVerifiedAt: new Date(),

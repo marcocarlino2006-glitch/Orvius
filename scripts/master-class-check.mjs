@@ -106,15 +106,14 @@ try {
   const queue = read("src/lib/attention-queue.ts");
   const hasCapture =
     /needs_capture/.test(queue) &&
-    /Prove your line/.test(queue) &&
-    /Call your Orvius line/.test(queue) &&
-    /impact:\s*"critical"/.test(queue);
+    !/Prove your line/.test(queue) &&
+    !/Call your Orvius line/.test(queue);
   if (hasCapture) {
-    pass("Attention capture", "Prove-first capture items at critical impact");
+    pass("Attention capture", "The desk does not ask the owner to prove the line");
   } else {
     fail(
       "Attention capture",
-      "needs_capture must be critical with prove + confirm copy",
+      "needs_capture must stay, and the owner board must not ask them to prove the line",
     );
   }
   const card = read("src/components/work-card.tsx");

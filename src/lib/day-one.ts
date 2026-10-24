@@ -73,15 +73,15 @@ export function dayOne(facts: DayOneFacts): DayOne {
     ? {
         id: "number",
         done: true,
-        title: "Your receptionist answers",
-        detail: "A call reached the number we assigned.",
+        title: "Your receptionist is on",
+        detail: "Your receptionist answers the number we assigned.",
         href: null,
       }
     : {
         id: "number",
         done: false,
-        title: "Call your number",
-        detail: "Your receptionist answers the number we assigned. Call it once.",
+        title: "Your number",
+        detail: "Your number is assigned with your line. The receptionist answers it.",
         href: "/dashboard?settings=phone",
       };
   const card: DayOneStep = facts.chargesEnabled

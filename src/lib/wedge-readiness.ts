@@ -108,7 +108,7 @@ export async function getWedgeReadiness(
       detail:
         leadCount > 0
           ? `${leadCount} lead${leadCount === 1 ? "" : "s"} on record`
-          : "Call your line to create your first lead",
+          : "The first customer call shows up here.",
     },
     {
       id: "first-job",

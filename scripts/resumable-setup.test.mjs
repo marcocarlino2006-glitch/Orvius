@@ -29,7 +29,7 @@ test("a proved line is live — the receptionist is answering", () => {
 test("the line-proved screen says the receptionist is answering", () => {
   const verify = read("src/components/onboarding-call-verify.tsx");
   assert.doesNotMatch(verify, /You’re in\./);
-  assert.match(verify, /The receptionist is answering/);
+  assert.match(verify, /Your receptionist is on/);
   assert.match(verify, /<ActivationChecklist \/>/);
   assert.doesNotMatch(verify, /Connect my business number/);
 });
