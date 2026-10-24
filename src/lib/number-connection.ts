@@ -250,7 +250,7 @@ export function connectionHealth(input: {
   }
   return {
     state: "not_proven",
-    label: "Forwarding not proven yet",
-    detail: "Orvius has a line, but no call has come through your business number yet. Run the test.",
+    label: "On the number we assigned",
+    detail: "The receptionist answers it. A call on your own number is recorded once one comes in.",
   };
 }

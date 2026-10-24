@@ -150,19 +150,21 @@ export function activationChecklist(input: {
             detail: `${input.connection.detail} Your Orvius number still answers.`,
             action: { kind: "link", label: "See your number", href: "/dashboard?settings=phone" },
           }
-        : input.lineVerifiedAt
+        : input.lineVerifiedAt || input.lineAssigned
           ? {
               id: "number",
               label: "Your business number",
               state: "live",
-              detail: "Your receptionist answers your Orvius number.",
+              detail: input.lineVerifiedAt
+                ? "Your receptionist answers your Orvius number."
+                : "Your receptionist answers the number we assigned.",
             }
           : {
               id: "number",
               label: "Your business number",
               state: "todo",
               waitingOn: "owner",
-              detail: "Call your Orvius number. The receptionist answers.",
+              detail: "Your number is assigned when the line is on.",
               action: { kind: "link", label: "See your number", href: "/dashboard?settings=phone" },
             };
 
