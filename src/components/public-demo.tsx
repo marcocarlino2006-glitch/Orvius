@@ -15,9 +15,9 @@ type Run = { duplicate?: boolean; autoBooked?: boolean; skipReason?: string | nu
 
 /* What every run does, in order; describes the pipeline, never reports an outcome. */
 const PREVIEW_STEPS = [
-  "Checks the shop's schedule for the first real opening",
-  "Books the job, or holds it for a person when it can't book safely",
-  "Texts the customer a confirm link",
+  "Checks the shop's schedule for a real opening",
+  "Books the time the caller picked, or holds the request when it can't book safely",
+  "A window they didn't pick on the call still texts a confirm link",
   "Writes each step to the audit trail you can read",
 ];
 
@@ -36,7 +36,13 @@ function when(iso: string) {
 function outcome(run: Run): { tone: TraceEvent["tone"]; text: string } {
   if (run.duplicate) return { tone: "ok", text: "Recognised a caller with an open job. No second job was created." };
   const job = run.trace?.job;
-  if (job?.customerConfirmedAt) return { tone: "ok", text: `Confirmed by the customer. ${job.technician ?? "A tech"} is on ${job.scheduledAt ? when(job.scheduledAt) : "the schedule"}.` };
+  if (job?.customerConfirmedAt) {
+    const picked = run.trace?.events.some((e) => /picked this time|they're booked/i.test(e.title));
+    const whenText = job.scheduledAt ? when(job.scheduledAt) : "the schedule";
+    return picked
+      ? { tone: "ok", text: `Booked for ${whenText}. They picked that time.` }
+      : { tone: "ok", text: `Confirmed by the customer. ${job.technician ?? "A tech"} is on ${whenText}.` };
+  }
   if (job && run.trace?.events.some((e) => e.tone === "failed")) return { tone: "failed", text: "Booked, but the confirmation text bounced. The owner was alerted to call." };
   if (job) return { tone: "ok", text: `Booked ${job.scheduledAt ? when(job.scheduledAt) : ""}${job.technician ? ` with ${job.technician}` : ""}. Waiting on the customer to confirm.` };
   if (run.trace?.lead.urgency === "emergency") return { tone: "held", text: "Safety call. Nothing was booked, and the owner was alerted right away." };

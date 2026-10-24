@@ -73,7 +73,7 @@ export const company = {
     "Orvius™ and the Orvius logo are trademarks of Solution Development LLC.",
   copyrightNotice: "All rights reserved.",
   smsProgramName: "Orvius Owner Alerts",
-  legalUpdated: "October 8, 2026",
+  legalUpdated: "October 24, 2026",
 } as const;
 
 /**
@@ -131,7 +131,7 @@ export const osRings = [
     name: "Jobs",
     module: "Book · confirm · schedule",
     status: "live" as const,
-    body: "Leads become proposed windows — customer confirms by text.",
+    body: "When the caller picks a time, the job is booked. A window that was only proposed still confirms by text.",
   },
   {
     ring: 4,

@@ -15,7 +15,7 @@ const steps = [
   {
     id: "01",
     title: "Bring in the work.",
-    body: "Calls are answered in your business's name, in English or Spanish. Problem, urgency, address and callback go on the customer record as the caller says them. Gas, smoke and medical emergencies get safety steps first, then you.",
+    body: "Calls are answered in your business's name, in English or Spanish. Problem, urgency, address and callback go on the customer record as the caller says them. Gas, smoke, a burning smell, a shock, and water on electrical equipment get safety steps first, then you. Sewage gets its own. A medical emergency is told to call 911.",
   },
   {
     id: "02",
@@ -25,7 +25,7 @@ const steps = [
   {
     id: "03",
     title: "Coordinate people and follow up.",
-    body: "Whoever is going gets the address and one tap to call. The customer gets the time with one tap to confirm. Callers nobody reached get a follow-up, and a caller who wants a person is transferred to you or put on your board for a callback.",
+    body: "Whoever is going gets the address and one tap to call. When the caller picks a time, they hear it and the job is booked. A window that was only proposed still needs one tap to confirm. Callers nobody reached get a follow-up, and a caller who wants a person is transferred to you or put on your board for a callback.",
   },
   {
     id: "04",

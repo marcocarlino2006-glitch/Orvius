@@ -31,11 +31,16 @@ test("a visitor runs a call, books, confirms, and repeats without a duplicate jo
 
   const run = await runPublicScenario(shop, "no_cool");
   assert.ok(run.trace?.job, "booked a job");
+  assert.ok(run.trace.job.customerConfirmedAt, "the caller picked the time on the call");
+  assert.equal(run.trace.job.status, "confirmed");
   assert.ok(run.trace.events.length >= 3, "trail has steps");
   assert.ok(run.trace.events.some((e) => e.simulated), "texts are marked simulated");
 
-  const confirmed = await confirmPublicJob(shop, run.trace.job.id);
-  assert.ok(confirmed.trace?.job?.customerConfirmedAt);
+  const proposed = await runPublicScenario(shop, "bounced_text");
+  assert.ok(proposed.trace?.job, "a window they did not pick is still a job");
+  assert.equal(proposed.trace.job.customerConfirmedAt, null);
+  const confirmed = await confirmPublicJob(shop, proposed.trace.job.id);
+  assert.ok(confirmed.trace?.job?.customerConfirmedAt, "the confirm link still confirms a proposed window");
 
   const again = await runPublicScenario(shop, "repeat_caller");
   assert.equal(again.duplicate, true);

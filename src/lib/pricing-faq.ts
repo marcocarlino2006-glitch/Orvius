@@ -21,7 +21,7 @@ export const pricingFaq: readonly PricingFaqItem[] = [
     id: "line-vs-pro",
     question: "What's the difference between Line and Pro?",
     answer:
-      "Both plans answer, qualify and book your calls, and both include the lead inbox, customer records, jobs, text-to-pay and Ask. Line is for one person running the work, with one technician. Pro adds the dispatch board and up to 15 technicians, so you need it once you're sending a crew.",
+      "Both plans answer, qualify and book your calls, and both include the lead inbox, customer records, jobs, and Ask, which answers from your own records. Card pay starts once payouts are connected. Line is for one person running the work, with one technician. Pro adds the dispatch board and up to 15 technicians, so you need it once you're sending a crew.",
   },
   {
     id: "annual",

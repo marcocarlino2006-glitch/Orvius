@@ -40,45 +40,38 @@ async function leadFor(shop, phone) {
   return prisma.lead.findFirst({ where: { businessId: shop.id, phone }, orderBy: { createdAt: "desc" }, include: { job: true } });
 }
 
-test("HVAC call → request → real window → confirm → job, with every step traced", async () => {
+test("HVAC call → request → the caller picks a real window → the job is booked, with every step traced", async () => {
   const shop = await demoShop();
   const call = await simulateDemoCall(shop, "no_cool");
   assert.equal(call.duplicate, false);
   assert.equal(call.autoBooked, true, `expected a booking, got ${call.skipReason}`);
   const job = await prisma.job.findUniqueOrThrow({ where: { id: call.jobId }, include: { technician: true } });
-  assert.equal(job.status, "scheduled", "a proposed window, not a confirmed job");
-  assert.equal(job.customerConfirmedAt, null);
+  assert.equal(job.status, "confirmed", "the caller picked the time, so the job is booked");
+  assert.ok(job.customerConfirmedAt);
   assert.ok(job.technician, "a free cooling tech is assigned");
   assert.ok(job.scheduledAt && job.scheduledAt > new Date(), "the window is in the future");
 
-  const confirmText = await prisma.message.findFirst({
+  const receipt = await prisma.message.findFirst({
     where: { businessId: shop.id, phoneNormalized: "+13125550141", direction: "out" },
   });
-  assert.ok(confirmText?.sid?.startsWith("SIM_"), "the confirmation text was simulated, not sent to a stranger");
-  assert.match(confirmText.body, /Confirm here/);
-  assert.ok((await prisma.job.findUniqueOrThrow({ where: { id: job.id } })).customerConfirmSentAt);
+  assert.ok(receipt?.sid?.startsWith("SIM_"), "the receipt was simulated, not sent to a stranger");
+  assert.match(receipt.body, /you're booked for/i);
+  assert.doesNotMatch(receipt.body, /Confirm here/);
 
   await processNotificationQueue(10, { businessId: shop.id });
   const alert = await prisma.ownerNotification.findFirst({ where: { businessId: shop.id, leadId: call.leadId, channel: "sms" } });
   assert.equal(alert?.status, "sent");
   assert.equal(alert?.deliveryStatus, "simulated");
 
-  let board = await buildCommandBoard(shop.id);
-  const proposed = board.lanes.proposed.find((i) => i.jobId === job.id);
-  assert.equal(proposed?.confirm, "sent");
-  assert.equal(board.lanes.confirmed.some((i) => i.jobId === job.id), false);
-
-  const confirmed = await simulateCustomerConfirm(shop, job.id);
-  assert.equal(confirmed.ok, true);
-  board = await buildCommandBoard(shop.id);
-  assert.ok(board.lanes.confirmed.some((i) => i.jobId === job.id), "confirmed jobs move lanes");
+  const board = await buildCommandBoard(shop.id);
+  assert.ok(board.lanes.confirmed.some((i) => i.jobId === job.id), "a picked time lands in Confirmed");
   assert.equal(board.lanes.proposed.some((i) => i.jobId === job.id), false);
 
   const trace = await buildRequestTrace(shop.id, call.leadId);
   const titles = trace.events.map((e) => e.title).join("\n");
   assert.match(titles, /playbook/i);
   assert.match(titles, /Texted the customer/);
-  assert.match(titles, /confirmed the window/);
+  assert.match(titles, /they're booked/);
   assert.match(titles, /Owner sms alert delivered \(simulated\)/);
   assert.ok(trace.events.some((e) => e.simulated), "simulated sends are marked");
   assert.equal(trace.job.id, job.id);

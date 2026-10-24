@@ -127,7 +127,7 @@ function transcriptFor(s: Sample, shop: string): string {
     `User: Hi, this is ${s.name}. ${s.service}.`,
     "AI: Sorry about that. What's the address for the visit?",
     `User: ${s.address}.`,
-    "AI: Got it. The shop will confirm a time with you shortly.",
+    "AI: Got it. You're booked for the open time we just set.",
   ].join("\n");
 }
 
