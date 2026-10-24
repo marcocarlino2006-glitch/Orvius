@@ -514,12 +514,14 @@ export async function PATCH(request: Request) {
     }
 
     const networkOn = body.networkOn ?? existing.networkOn;
-    const networkZip3 = networkOn
+    const derived = networkOn
       ? networkZip3For(
           body.address !== undefined ? body.address : existing.address,
           body.serviceZipsJson !== undefined ? body.serviceZipsJson : existing.serviceZipsJson,
         )
-      : existing.networkZip3;
+      : null;
+    // A save with no ZIP in the address must not wipe the area a referral already set.
+    const networkZip3 = networkOn ? (derived ?? existing.networkZip3) : existing.networkZip3;
     if (body.networkOn === true && !networkZip3) {
       return NextResponse.json(
         { error: "Add your shop address with its ZIP code first, so nearby shops can be matched." },

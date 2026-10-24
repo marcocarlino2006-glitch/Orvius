@@ -25,6 +25,7 @@ import {
 } from "@/lib/setup-flow";
 import type { Capability } from "@/lib/capabilities";
 import type { SetupTestResult } from "@/lib/setup-sandbox";
+import { inviteSetupLine, type InviteArea } from "@/lib/acquisition";
 import type { Trade } from "@/lib/trades";
 
 type Sandbox = {
@@ -64,8 +65,14 @@ type Sandbox = {
 type SetupResponse = {
   live?: boolean;
   sandbox: Sandbox | null;
+  invited?: { trade: string; zip3: string } | null;
   error?: string;
 };
+
+function readInvited(raw: SetupResponse["invited"]): InviteArea | null {
+  if (!raw || !isSetupTrade(raw.trade) || !/^\d{3}$/.test(raw.zip3)) return null;
+  return { trade: raw.trade, zip3: raw.zip3 };
+}
 
 type Plan = { id: "line" | "pro" | "fleet"; name: string; price: number; tagline: string; featured: boolean; checkoutReady: boolean };
 
@@ -108,6 +115,7 @@ export function TurnOnOrvius({
   const router = useRouter();
   const [loaded, setLoaded] = useState(false);
   const [sandbox, setSandbox] = useState<Sandbox | null>(null);
+  const [invited, setInvited] = useState<InviteArea | null>(null);
   const [step, setStep] = useState<SetupStep>("business");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -135,6 +143,7 @@ export function TurnOnOrvius({
         return;
       }
       setSandbox(json.sandbox);
+      setInvited(readInvited(json.invited));
       const wanted = SETUP_STEPS.find((s) => s === initialStep && (!json.sandbox || json.sandbox.progress.allowed.includes(s)));
       setStep(json.sandbox ? walkStep(wanted ?? json.sandbox.step) : "business");
       setLoaded(true);
@@ -199,6 +208,7 @@ export function TurnOnOrvius({
         {step === "business" ? (
           <BusinessStep
             sandbox={sandbox}
+            invited={invited}
             busy={busy}
             onSave={(name, trade, found) =>
               run({ action: "start", name, trade, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone, ...(found ? { found } : {}) }, "test")
@@ -304,14 +314,16 @@ type Claimed = { address?: string; hoursJson?: string; source: "website" | "goog
 
 function BusinessStep({
   sandbox,
+  invited,
   busy,
   onSave,
 }: {
   sandbox: Sandbox | null;
+  invited: InviteArea | null;
   busy: boolean;
   onSave: (name: string, trade: Trade, found?: Claimed) => void;
 }) {
-  const [trade, setTrade] = useState<Trade | null>(sandbox?.trade ?? null);
+  const [trade, setTrade] = useState<Trade | null>(sandbox?.trade ?? invited?.trade ?? null);
   const [name, setName] = useState(sandbox?.name ?? "");
   const groups = useMemo(() => setupTradeGroups(), []);
   const [query, setQuery] = useState("");
@@ -363,6 +375,7 @@ function BusinessStep({
         title="Name your shop."
         lead="Find the listing, or type the name. Next you hear it answer. No card yet."
       />
+      {invited && (!sandbox || sandbox.trade === invited.trade) ? <p className="ton-note">{inviteSetupLine(invited)}</p> : null}
       <fieldset className="ton-group">
         <legend className="ton-group-title">Start with your shop as customers find it</legend>
         <form

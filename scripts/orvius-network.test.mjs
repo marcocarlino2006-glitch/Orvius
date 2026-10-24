@@ -12,7 +12,7 @@ for (const key of ["TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_PHONE_NUMB
   delete process.env[key];
 }
 
-const { answerNetworkConsent, findNetworkPartners, isNo, isYes, passLeadToNetwork, takeNetworkJob, zip3From } = await import(
+const { answerNetworkConsent, findNetworkPartners, isNo, isYes, passConsentedCallLead, passLeadToNetwork, takeNetworkJob, zip3From } = await import(
   "../src/lib/orvius-network.ts"
 );
 const { parseOwnerCommand } = await import("../src/lib/owner-text-commands.ts");
@@ -177,7 +177,26 @@ test("no is respected, and nothing happens without the network on or a partner",
   const lonelyLead = await prisma.lead.create({
     data: { businessId: lonely.id, name: "Lee", phone: randomPhone(), postalCode: `${ZIP3}10` },
   });
-  assert.match(await passLeadToNetwork({ ...lonely, networkOn: true }, { ...lonelyLead, job: null }, t.texts), /No other Orvius Electrical shop/);
+  const lonelyReply = await passLeadToNetwork({ ...lonely, networkOn: true }, { ...lonelyLead, job: null }, t.texts);
+  assert.match(lonelyReply, /No other Orvius Electrical shop/);
+  assert.match(lonelyReply, new RegExp(`/r/${lonely.slug}\\?via=network&trade=Electrical&zip=${ZIP3}`));
+  assert.match(lonelyReply, /Reply TEXT/);
+});
+
+test("a booked-solid call with nobody nearby tells the owner how to send the next shop", async () => {
+  const lonely = await shop({ trade: "Plumbing" });
+  const lead = await prisma.lead.create({
+    data: { businessId: lonely.id, name: "Pat", phone: randomPhone(), postalCode: `${ZIP3}10`, serviceType: "Leak" },
+  });
+  const passed = await passConsentedCallLead({ ...lonely, networkOn: true }, { ...lead, job: null });
+  assert.deepEqual(passed, { offered: 0 });
+  const alert = await prisma.ownerNotification.findFirst({
+    where: { businessId: lonely.id, dedupeKey: `network-empty:${lead.id}` },
+  });
+  assert.ok(alert, "the owner is told there is no shop to take it");
+  assert.match(alert.message, /No other Orvius Plumbing shop/);
+  assert.match(alert.message, new RegExp(`/r/${lonely.slug}\\?via=network&trade=Plumbing&zip=${ZIP3}`));
+  assert.match(alert.message, /Call them back/);
 });
 
 test("the network is wired into owner texts, caller replies and Settings", () => {

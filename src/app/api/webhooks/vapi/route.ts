@@ -26,7 +26,7 @@ import { callerWordsSoFar, readToolCalls } from "@/lib/in-call-tool-defs";
 import { loadCallerContextNote, sendCallerContext } from "@/lib/caller-context";
 import { backstopLateSweeps } from "@/lib/cron-backstop";
 import { isVapiBillingRefusal, pagePlatform } from "@/lib/platform-pager";
-import { alertSpendCut, callSpendCut, endCallWith } from "@/lib/call-spend-guard";
+import { alertSpendCut, callSpendCut, endCallWith, holdLineBusyCaller } from "@/lib/call-spend-guard";
 import { releaseDemoSlot } from "@/lib/demo-load";
 import { releaseShopLine } from "@/lib/shop-machine";
 import { businessIdForVoiceMachine, callBelongsToShop, ForeignVoiceShop } from "@/lib/voice-machine";
@@ -368,6 +368,9 @@ export async function handleVapiWebhook(
         const cut = await callSpendCut({ shop: business, callerPhone, vapiCallId, demo: isDemoPlatformLine(inboundNumber ?? business.vapiPhoneNumber ?? business.twilioPhone), ownsLine: business.environment === "production" && !onDemoLine });
         if (cut) {
           await endCallWith(controlUrl, cut.say);
+          if (cut.reason === "shop_line") {
+            await holdLineBusyCaller({ shop: business, callerPhone, callId: call.id });
+          }
           if (cut.reason === "caller_repeat" || cut.reason === "shop_ceiling") {
             await alertSpendCut({ shop: business, cut, callerPhone });
           }

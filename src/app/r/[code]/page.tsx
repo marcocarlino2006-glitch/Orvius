@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
+import { invitePageLine, inviteQuery } from "@/lib/acquisition";
 import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
 import { findReferrer } from "@/lib/referrals";
 import { SIGNUP_HREF } from "@/lib/signup-href";
@@ -13,9 +14,20 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
-export default async function ReferralPage({ params }: { params: Promise<{ code: string }> }) {
+const first = (value: string | string[] | undefined) => (Array.isArray(value) ? value[0] : value);
+
+export default async function ReferralPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ code: string }>;
+  searchParams: Promise<{ trade?: string | string[]; zip?: string | string[] }>;
+}) {
   const { code } = await params;
+  const query = await searchParams;
   const referrer = await findReferrer(code.toLowerCase()).catch(() => null);
+  const area = inviteQuery(first(query.trade), first(query.zip));
+  const fromShop = referrer && area ? invitePageLine(referrer.name, area) : null;
   const discount = Boolean(referrer && process.env.ORVIUS_REFERRAL_COUPON_ID?.trim());
   return (
     <MarketingShell>
@@ -24,7 +36,7 @@ export default async function ReferralPage({ params }: { params: Promise<{ code:
           <ShellPageIntro
             label={referrer ? `Sent by ${referrer.name}` : "Orvius"}
             title={referrer ? `${referrer.name} answers its phone with Orvius.` : "Your phone, answered by Orvius."}
-            subline="Your own number and your own AI receptionist, set up in about five minutes."
+            subline={fromShop ?? "Your own number and your own AI receptionist, set up in about five minutes."}
             description={`It picks up when you can't, books the job on your calendar, and texts you what happened. Call ${DEMO_LINE_DISPLAY} to hear it answer first.${discount ? " Your discount from this link is applied at checkout." : ""}`}
           />
           <div className="shop-preview-actions" style={{ marginTop: "1.5rem" }}>

@@ -10,6 +10,7 @@ import { formatCentsExact } from "@/lib/money";
 import { zip3FromAddress } from "@/lib/network-density";
 import { NETWORK_FEE_BPS, networkSenderCreditCents } from "@/lib/platform-fee";
 import { prisma } from "@/lib/prisma";
+import { nextShopInvite } from "@/lib/referrals";
 import { getStripe } from "@/lib/stripe";
 import { sendSms } from "@/lib/twilio-sms";
 
@@ -81,7 +82,35 @@ export async function findNetworkPartners(params: {
   return [...shops].sort((a, b) => (offers.get(a.id) ?? 0) - (offers.get(b.id) ?? 0)).slice(0, params.limit ?? MAX_OFFERS);
 }
 
-type SenderShop = { id: string; name: string; trade: string | null; address: string | null; networkOn: boolean };
+type SenderShop = {
+  id: string;
+  name: string;
+  trade: string | null;
+  address: string | null;
+  networkOn: boolean;
+  slug?: string | null;
+  ownerPhone?: string | null;
+  ownerEmail?: string | null;
+};
+
+/** The owner's invite when this trade and ZIP3 have nobody to TAKE. Slug and alert routes load from the shop when the caller omitted them. */
+async function inviteForShop(shop: SenderShop, zip3: string) {
+  if (!shop.trade) return null;
+  let slug = shop.slug ?? null;
+  let ownerPhone = shop.ownerPhone;
+  let ownerEmail = shop.ownerEmail;
+  if (!slug || ownerPhone === undefined || ownerEmail === undefined) {
+    const row = await prisma.business.findUnique({
+      where: { id: shop.id },
+      select: { slug: true, ownerPhone: true, ownerEmail: true },
+    });
+    slug = slug ?? row?.slug ?? null;
+    if (ownerPhone === undefined) ownerPhone = row?.ownerPhone ?? null;
+    if (ownerEmail === undefined) ownerEmail = row?.ownerEmail ?? null;
+  }
+  if (!slug) return null;
+  return { ...nextShopInvite({ slug, trade: shop.trade, zip3 }), ownerPhone: ownerPhone ?? null, ownerEmail: ownerEmail ?? null };
+}
 type PassLead = {
   id: string;
   name: string | null;
@@ -107,7 +136,10 @@ export async function passLeadToNetwork(shop: SenderShop, lead: PassLead, texts:
 
   const partners = await findNetworkPartners({ trade: shop.trade, zip3, excludeBusinessId: shop.id });
   if (!partners.length) {
-    return `No other Orvius ${shop.trade} shop near ${zip3}xx yet. Reply TEXT <message> to tell ${who} yourself.`;
+    const invite = await inviteForShop(shop, zip3);
+    return invite
+      ? `${invite.line}. Reply TEXT <message> to tell ${who} yourself.`
+      : `No other Orvius ${shop.trade} shop near ${zip3}xx yet. Reply TEXT <message> to tell ${who} yourself.`;
   }
 
   const sent = await texts.toCustomer({
@@ -257,6 +289,20 @@ export async function passConsentedCallLead(
       : "Booked solid and the caller agreed to a nearby pro, but no Orvius shop nearby was free.",
     detail: { zip3, offered, via: "call" },
   });
+  if (offered === 0) {
+    const invite = await inviteForShop(shop, zip3);
+    if (invite) {
+      await enqueueOwnerAlert({
+        businessId: shop.id,
+        leadId: lead.id,
+        dedupeKey: `network-empty:${lead.id}`,
+        businessName: shop.name,
+        message: `${invite.line}. The caller agreed to a nearby pro and is still waiting. Call them back.`,
+        ownerPhone: invite.ownerPhone,
+        ownerEmail: invite.ownerEmail,
+      });
+    }
+  }
   return { offered: offered ?? 0 };
 }
 

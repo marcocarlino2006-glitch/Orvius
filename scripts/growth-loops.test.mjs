@@ -37,7 +37,20 @@ test("first touch wins the channel, a referral link always wins the referrer", (
   assert.equal(referred.ref, "rays-heating");
   assert.equal(referred.via, "booking");
   assert.equal(referred.src, "tiktok", "the original channel is kept");
+  assert.equal(referred.trade, undefined, "a referral without an area does not invent one");
   assert.equal(acquisitionChannel(referred), "referral");
+
+  const invited = visit("/r/rays-heating?via=network&trade=Electrical&zip=10001-0001", { existing: tiktok });
+  assert.equal(invited.ref, "rays-heating");
+  assert.equal(invited.via, "network");
+  assert.equal(invited.src, "tiktok");
+  assert.equal(invited.trade, "Electrical");
+  assert.equal(invited.zip3, "100");
+  assert.equal(visit("/?trade=hvac&zip=10001"), null, "a trade on the homepage is not a visit");
+  const unnamed = visit("/r/rays-heating?trade=roofing&zip=10001");
+  assert.equal(unnamed.ref, "rays-heating");
+  assert.equal(unnamed.trade, undefined, "only a launch trade rides along");
+  assert.equal(visit("/r/rays-heating?trade=hvac&zip=10").zip3, undefined);
 
   assert.equal(visit("/?ref=Rays-Heating").ref, "rays-heating");
   assert.equal(visit("/?ref=<script>").ref, "script", "codes are reduced to safe characters");

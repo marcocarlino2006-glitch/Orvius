@@ -19,8 +19,10 @@ export const LINES_PER_SHOP = 1;
 export const LINE_NOT_RESERVED =
   "We're holding a call line for your shop. Your setup is saved. Checkout opens once that line is reserved.";
 
-export function shopLineBusySay(shopName: string) {
-  return `Thanks for calling ${shopName}. This line is with another caller. Please try again in a few minutes. Goodbye.`;
+/** Spoken when this shop's one line is already in a call. A known number is a callback, not a hang-up. */
+export function shopLineBusySay(shopName: string, hasNumber = false) {
+  const next = hasNumber ? "We have your number and will call you back." : "Please try again in a few minutes.";
+  return `Thanks for calling ${shopName}. This line is with another caller. ${next} Goodbye.`;
 }
 
 const envInt = (raw: string | undefined) => {
