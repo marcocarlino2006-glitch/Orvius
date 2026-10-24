@@ -1,5 +1,8 @@
+import { afterResponse } from "@/lib/after-response";
 import { isInformationOnlyRequest } from "@/lib/info-request";
 import { recordAudit, type AuditQueue } from "@/lib/audit";
+import { sendBookingReceiptSms } from "@/lib/customer-confirm";
+import { logWarn } from "@/lib/logger";
 import { detectCallIntent, type CallIntent } from "@/lib/call-intent";
 import { createJobFromLead, findOpenSlots, RepeatCallerError, SlotTakenError } from "@/lib/job";
 import { getSchedulingPolicy, holdsForApproval } from "@/lib/scheduling-policy";
@@ -79,6 +82,8 @@ export type AutoBookResult = {
   intent?: CallIntent;
   /** Open work this call was about, when it was not a new request. */
   existingJob?: ExistingJobRef;
+  /** The existing visit was moved to the time the caller picked. */
+  moved?: boolean;
 };
 
 const OPEN_JOB_STATUSES = ["scheduled", "confirmed", "en_route", "on_site"];
@@ -280,7 +285,16 @@ export async function maybeAutoBookLead(
             ],
           },
           orderBy: { scheduledAt: "asc" },
-          select: { id: true, title: true, scheduledAt: true, categoryCode: true, createdAt: true },
+          select: {
+            id: true,
+            title: true,
+            scheduledAt: true,
+            categoryCode: true,
+            createdAt: true,
+            status: true,
+            customerConfirmedAt: true,
+            confirmedAt: true,
+          },
           take: 5,
         })
       : [],
@@ -298,10 +312,98 @@ export async function maybeAutoBookLead(
   if (intent !== "new") {
     const target = openJobs[0];
     if (target) {
+      const movable = openJobs.find((job) => job.status === "scheduled" || job.status === "confirmed");
+      const heldMove = intent === "reschedule" && call?.heldSlotAt && call.heldSlotAt.getTime() > Date.now() ? call.heldSlotAt : null;
+      if (movable && heldMove && call) {
+        const stillOpen = await findOpenSlots(
+          {
+            businessId,
+            urgency: null,
+            durationMin: classification.service.durationMin,
+            skill: classification.service.skill,
+            hoursJson: lead.business.hoursJson ?? "{}",
+            timezone: lead.business.timezone ?? "America/New_York",
+            excludeCallId: call.id,
+            excludeJobId: movable.id,
+          },
+          { count: 1, onlyAt: heldMove },
+        );
+        if (stillOpen.length) {
+          const now = new Date();
+          await prisma.job.update({
+            where: { id: movable.id },
+            data: {
+              scheduledAt: heldMove,
+              ...(movable.customerConfirmedAt
+                ? {}
+                : { customerConfirmedAt: now, confirmedAt: movable.confirmedAt ?? now }),
+              ...(movable.status === "scheduled" ? { status: "confirmed" } : {}),
+            },
+          });
+          const movedTo = heldMove.toISOString();
+          const jobAudit = {
+            businessId,
+            callId: lead.callId,
+            leadId: lead.id,
+            customerId: lead.customerId,
+            jobId: movable.id,
+            entityType: "job" as const,
+            entityId: movable.id,
+            action: "job.rescheduled",
+            summary: `Moved to ${movedTo} — the caller picked that time on the call`,
+            detail: { from: movable.scheduledAt?.toISOString() ?? null, to: movedTo },
+            idempotencyKey: `job:${movable.id}:caller-move:${movedTo}`,
+          };
+          if (options.audit) options.audit.add(jobAudit);
+          else await recordAudit(jobAudit);
+          await decide(
+            "lead.rescheduled",
+            `Moved ${movable.title ?? "their visit"} to the time they picked on the call. No second job.`,
+            { intent, jobId: movable.id, to: movedTo },
+          );
+          const movedId = movable.id;
+          await afterResponse(async () => {
+            try {
+              const receipt = await sendBookingReceiptSms(movedId, { moved: true });
+              await recordAudit({
+                businessId,
+                entityType: "job",
+                entityId: movedId,
+                jobId: movedId,
+                callId: lead.callId,
+                leadId: lead.id,
+                customerId: lead.customerId,
+                action: receipt.sent ? "customer.booking_receipt_sent" : "customer.booking_receipt_skipped",
+                summary: receipt.sent
+                  ? "Texted the customer that their visit moved to the time they picked"
+                  : `Move receipt not sent (${(receipt.reason ?? "unknown").replace(/_/g, " ")})`,
+                detail: { reason: receipt.reason ?? null, moved: true, to: movedTo },
+                idempotencyKey: `job:${movedId}:move-receipt:${movedTo}`,
+              });
+            } catch (error) {
+              logWarn("job.move_receipt_error", {
+                jobId: movedId,
+                error: error instanceof Error ? error.message : "unknown",
+              });
+            }
+          });
+          return {
+            jobId: movable.id,
+            created: false,
+            qualified: true,
+            skipReason: "existing_job",
+            classification,
+            intent,
+            moved: true,
+            existingJob: { id: movable.id, title: movable.title, scheduledAt: movable.scheduledAt },
+          };
+        }
+      }
+      const subject = movable ?? target;
       await decide(
         "lead.follow_up",
-        `About existing job — caller wants to ${intent === "status" ? "check on" : intent} ${target.title ?? "their appointment"}. No new job created.`,
-        { intent, jobId: target.id },
+        `About existing job — caller wants to ${intent === "status" ? "check on" : intent} ${subject.title ?? "their appointment"}. No new job created.`,
+        { intent, jobId: subject.id },
       );
       return {
         jobId: null,
@@ -310,7 +412,7 @@ export async function maybeAutoBookLead(
         skipReason: "existing_job",
         classification,
         intent,
-        existingJob: { id: target.id, title: target.title, scheduledAt: target.scheduledAt },
+        existingJob: { id: subject.id, title: subject.title, scheduledAt: subject.scheduledAt },
       };
     }
     await decide(
@@ -498,6 +600,7 @@ export async function maybeAutoBookLead(
       leadId,
       scheduledAt: held,
       enforceCapacity: Boolean(held),
+      callerPickedTime: Boolean(held),
       repeatSince: { at: new Date(Date.now() - REPEAT_WINDOW_MS), statuses: OPEN_JOB_STATUSES },
       notes: held ? "Booked on the call — the caller picked this time" : "Auto-booked from inbound lead",
     });

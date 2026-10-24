@@ -23,7 +23,7 @@ import {
 import { ensureAssistantCurrent } from "@/lib/sync-business-assistant";
 import { handleInCallToolCalls } from "@/lib/in-call-tools";
 import { callerWordsSoFar, readToolCalls } from "@/lib/in-call-tool-defs";
-import { loadCallerContextNote, sendCallerContext } from "@/lib/caller-context";
+import { loadCallerContextNote, noteForConnectedCall, sendCallerContext } from "@/lib/caller-context";
 import { backstopLateSweeps } from "@/lib/cron-backstop";
 import { isVapiBillingRefusal, pagePlatform } from "@/lib/platform-pager";
 import { alertSpendCut, callSpendCut, endCallWith, holdLineBusyCaller } from "@/lib/call-spend-guard";
@@ -381,12 +381,12 @@ export async function handleVapiWebhook(
           return;
         }
         if (!callerPhone) return;
-        const note = await loadCallerContextNote({
+        const returning = await loadCallerContextNote({
           businessId: business.id,
           phone: callerPhone,
           timezone: business.timezone ?? "America/New_York",
         });
-        if (note) await sendCallerContext(controlUrl, note);
+        await sendCallerContext(controlUrl, noteForConnectedCall(returning));
       });
     }
 

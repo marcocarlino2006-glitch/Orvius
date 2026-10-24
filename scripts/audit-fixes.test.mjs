@@ -723,11 +723,19 @@ test("22. the Vapi bill has a ceiling: a caller dialing on repeat and a runaway 
     assert.equal(cut[0].endCallAfterSpoken, true);
     assert.match(cut[0].content, /several calls from this number/);
 
+    const stayedUp = (bodies, label) => {
+      assert.equal(bodies.filter((b) => b.type === "say" || b.endCallAfterSpoken).length, 0, label);
+      assert.equal(bodies.length, 1, label);
+      assert.equal(bodies[0].type, "add-message");
+      assert.match(bodies[0].message.content, /a callback number is already on this call/);
+      assert.doesNotMatch(bodies[0].message.content, /\d{3}/);
+      assert.equal(bodies[0].triggerResponseEnabled, false);
+    };
     await prisma.call.createMany({ data: Array.from({ length: 12 }, (_, i) => ({ businessId: shop.id, vapiCallId: `own-${uid()}-${i}`, callerPhone: "+13035550160", createdAt: ago(1 + i) })) });
-    assert.deepEqual(await connect("+13035550160"), [], "the owner testing their own line is never cut");
+    stayedUp(await connect("+13035550160"), "the owner testing their own line is never cut");
 
     const fresh = `+1720556${String(Math.floor(Math.random() * 9000) + 1000)}`;
-    assert.deepEqual(await connect(fresh), [], "a new caller on a normal day goes straight through");
+    stayedUp(await connect(fresh), "a new caller on a normal day goes straight through");
 
     process.env.ORVIUS_SHOP_DAILY_CALL_CEILING = "20";
     await prisma.cronRun.deleteMany({ where: { name: "page:spend_ceiling" } });

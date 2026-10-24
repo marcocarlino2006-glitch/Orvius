@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /*
  * A customer moving a visit on the call: the new time is held so nobody else
- * takes it, the owner is told exactly what to move, and no second job is ever
- * booked, whatever words the caller used.
+ * takes it, the visit moves when that time is still open, and no second job
+ * is ever booked, whatever words the caller used.
  */
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -76,7 +76,8 @@ test("a new time for an existing visit is held and never becomes a second job", 
   try {
     const { call, lead, slot, reply } = await callAboutIt(shop, customer, "hold_new_time");
     assert.match(reply, /^Held .* as the new time for their existing visit/);
-    assert.match(reply, /Never say the visit is moved or confirmed/);
+    assert.match(reply, /Tell the caller the visit is moved/);
+    assert.match(reply, /Do not book a second visit/);
     assert.doesNotMatch(reply, /penciled in/);
     const stored = await prisma.call.findUnique({ where: { id: call.id } });
     assert.equal(stored.heldIntent, "reschedule");
@@ -86,8 +87,12 @@ test("a new time for an existing visit is held and never becomes a second job", 
     assert.equal(result.created, false, JSON.stringify(result));
     assert.equal(result.intent, "reschedule");
     assert.equal(result.skipReason, "existing_job");
+    assert.equal(result.moved, true);
     assert.equal(result.existingJob.id, booked.id);
     assert.equal(await prisma.job.count({ where: { businessId: shop.id } }), 1, "still exactly one job");
+    const moved = await prisma.job.findUnique({ where: { id: booked.id } });
+    assert.equal(moved.scheduledAt.getTime(), slot.getTime(), "the board shows the time they were told");
+    assert.ok(moved.customerConfirmedAt, "they picked the time on the call");
   } finally {
     await prisma.business.delete({ where: { id: shop.id } }).catch(() => {});
   }
@@ -99,6 +104,25 @@ test("without the reschedule hold, the same words book a duplicate (why hold_new
     const { lead } = await callAboutIt(shop, customer, "hold_appointment");
     const result = await maybeAutoBookLead(lead.id);
     assert.equal(result.created, true);
+    assert.equal(await prisma.job.count({ where: { businessId: shop.id } }), 2);
+  } finally {
+    await prisma.business.delete({ where: { id: shop.id } }).catch(() => {});
+  }
+});
+
+test("a taken time stays where it was, and no second job is booked", async () => {
+  const { shop, customer, booked } = await shopWithBookedCustomer();
+  try {
+    const { lead, slot } = await callAboutIt(shop, customer, "hold_new_time");
+    await prisma.job.create({
+      data: { businessId: shop.id, title: "Already there", status: "scheduled", scheduledAt: slot, durationMin: 180 },
+    });
+    const result = await maybeAutoBookLead(lead.id);
+    assert.notEqual(result.moved, true);
+    assert.equal(result.created, false);
+    assert.equal(result.skipReason, "existing_job");
+    const stayed = await prisma.job.findUnique({ where: { id: booked.id } });
+    assert.notEqual(stayed.scheduledAt.getTime(), slot.getTime());
     assert.equal(await prisma.job.count({ where: { businessId: shop.id } }), 2);
   } finally {
     await prisma.business.delete({ where: { id: shop.id } }).catch(() => {});
@@ -118,19 +142,32 @@ test("a complaint still wins over a reschedule hold", async () => {
   }
 });
 
-test("the owner is told the exact new time to move the visit to, once", () => {
+test("the owner is told the visit moved, and only hears 'not moved yet' when it did not", () => {
   const heldSlotAt = new Date("2026-10-02T15:00:00.000Z");
-  const line = ownerAlertContextLine({
+  const existingJob = { title: "Furnace tune-up", scheduledAt: new Date("2026-10-01T14:00:00.000Z") };
+  const moved = ownerAlertContextLine({
     skipReason: "existing_job",
     intent: "reschedule",
-    existingJob: { title: "Furnace tune-up", scheduledAt: new Date("2026-10-01T14:00:00.000Z") },
+    existingJob,
+    heldSlotAt,
+    moved: true,
+    timezone: "America/Chicago",
+  });
+  assert.match(moved, /Moved the Furnace tune-up on .* to /);
+  assert.match(moved, /They were told that time/);
+  assert.doesNotMatch(moved, /Not moved yet/);
+  assert.doesNotMatch(moved, /Caller was offered and took/);
+
+  const waiting = ownerAlertContextLine({
+    skipReason: "existing_job",
+    intent: "reschedule",
+    existingJob,
     heldSlotAt,
     timezone: "America/Chicago",
   });
-  assert.match(line, /Wants to move the Furnace tune-up on .* to .*Fri.*held for them/);
-  assert.match(line, /Not moved yet/);
-  assert.doesNotMatch(line, /call to pick a time/);
-  assert.doesNotMatch(line, /Caller was offered and took/);
+  assert.match(waiting, /Wants to move the Furnace tune-up on .* to .*Fri.*held for them/);
+  assert.match(waiting, /Not moved yet/);
+  assert.doesNotMatch(waiting, /call to pick a time/);
 });
 
 test("the sim sandbox answers hold_new_time with the production words", () => {
@@ -144,7 +181,10 @@ test("the sim sandbox answers hold_new_time with the production words", () => {
 test("the receptionist knows how to move a visit, and says the tech's status once the caller is confirmed", () => {
   const prompt = buildAssistantSystemPrompt({ name: "Move Air", greeting: null, hoursJson: "{}", servicesJson: "[]", canBook: true });
   assert.match(prompt, /call hold_new_time, never hold_appointment/);
-  assert.match(prompt, /Never say a visit is moved or cancelled/);
+  assert.match(prompt, /Tell them the visit is moved to that time/);
+  assert.match(prompt, /Never say it is moved otherwise/);
+  assert.match(prompt, /never say a visit is cancelled/i);
+  assert.doesNotMatch(prompt, /Never say a visit is moved or cancelled/);
   const legacy = buildAssistantSystemPrompt({ name: "Move Air", greeting: null, hoursJson: "{}", servicesJson: "[]" });
   assert.doesNotMatch(legacy, /hold_new_time/);
   assert.match(legacy, /Never say a visit is moved or cancelled/);

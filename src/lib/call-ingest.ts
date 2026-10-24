@@ -473,7 +473,13 @@ export async function finishCallReport(input: Omit<Captured, "duplicate">): Prom
             callerId: phoneMismatch ? callerId : null,
             silentHangup: !spoken.trim() && !freshLead.serviceType && (durationSec ?? 0) < 30,
             promiseWarning: describeAssistantPromises(promises),
-            heldSlotAt: !autoBook.jobId && call.heldSlotAt ? call.heldSlotAt : null,
+            moved: Boolean(autoBook.moved),
+            heldSlotAt:
+              autoBook.moved && call.heldSlotAt
+                ? call.heldSlotAt
+                : !autoBook.jobId && call.heldSlotAt
+                  ? call.heldSlotAt
+                  : null,
             summary,
           },
         });

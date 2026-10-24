@@ -266,11 +266,13 @@ export function availabilityReply(slots: Date[], timezone: string, note = "") {
 }
 
 export function heldReply(at: Date, timezone: string) {
-  return `Held ${describeSlot(at, timezone)}. Tell the caller they're penciled in for that time and the shop will confirm with them shortly. Do not promise a text. Make sure you have their name, callback number and service address before ending the call.`;
+  const when = describeSlot(at, timezone);
+  return `Held ${when}. If the caller is a person, tell them "You're booked for ${when}." If the caller is an AI assistant booking for someone else, do not say the time is confirmed; the shop confirms with the customer. Do not promise a text. Make sure you have their name, callback number and service address before ending the call.`;
 }
 
 export function heldNewTimeReply(at: Date, timezone: string) {
-  return `Held ${describeSlot(at, timezone)} as the new time for their existing visit. Tell the caller "I've held ${describeSlot(at, timezone)} for you, and the shop will confirm the change with you." Never say the visit is moved or confirmed.`;
+  const when = describeSlot(at, timezone);
+  return `Held ${when} as the new time for their existing visit. Tell the caller the visit is moved to ${when}. Do not book a second visit. Never say it is cancelled.`;
 }
 
 /*
