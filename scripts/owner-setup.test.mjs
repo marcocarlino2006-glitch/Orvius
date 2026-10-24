@@ -20,14 +20,15 @@ const base = {
   lineVerifiedAt: null,
 };
 
-test("line proof unlocks Command — capture is next, not a fake door", () => {
+test("a proved line is live — the receptionist is answering, with no carrier step", () => {
   assert.equal(getOwnerSetupStatus(base).nextStep, "verify");
   const verified = getOwnerSetupStatus({
     ...base,
     lineVerifiedAt: new Date(),
   });
-  assert.equal(verified.nextStep, "capture");
+  assert.equal(verified.nextStep, "done");
   assert.equal(verified.ready, true);
+  assert.equal(verified.live, true);
   assert.equal(verified.captureConfirmed, false);
   assert.equal(
     getOwnerSetupStatus({

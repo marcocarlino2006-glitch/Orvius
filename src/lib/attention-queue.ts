@@ -457,24 +457,6 @@ export async function collectAttention(businessId: string, now = new Date()): Pr
       entityId: businessId,
       createdAt: now.toISOString(),
     });
-  } else if (
-    hasLine &&
-    business?.ownerPhone?.trim() &&
-    !business.overflowForwardConfirmedAt
-  ) {
-    items.push({
-      id: `needs_capture:${businessId}`,
-      kind: "needs_capture",
-      rank: kindRank("needs_capture", null, afterHours),
-      impact: "critical",
-      title: "Your calls aren't proven to reach Orvius",
-      detail: "Having an Orvius line doesn't mean your business calls reach it. Connect your number and run the test call.",
-      recommendedAction: "Connect and test your number",
-      href: "/dashboard?settings=phone",
-      entityType: "shop",
-      entityId: businessId,
-      createdAt: now.toISOString(),
-    });
   }
 
   // Founder phone cert stays on Settings /admin — never on the owner Command board.

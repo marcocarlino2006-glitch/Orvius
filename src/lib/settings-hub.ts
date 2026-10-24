@@ -70,10 +70,10 @@ export function buildSettingsHub(input: SettingsHubInput): {
   const items: SettingsHubItem[] = [
     {
       id: "capture",
-      label: "Forwarding",
+      label: "Your number",
       detail: captureOk
-        ? "Line path confirmed"
-        : "Forward or publish your shop number",
+        ? "Receptionist answering"
+        : "Call the number we assigned",
       href: "#overflow-forward",
       ok: captureOk,
     },
@@ -154,9 +154,9 @@ export function buildSettingsHub(input: SettingsHubInput): {
   if (!captureOk) {
     next = {
       id: "capture",
-      title: "Put Orvius on your number",
-      body: "Dial one code from the phone customers already call. One test call proves every call reaches Orvius.",
-      cta: "Connect your number",
+      title: "Call your number",
+      body: "Your receptionist answers the number we assigned. Call it once.",
+      cta: "See the number",
       href: "#overflow-forward",
     };
   } else if (!alertsOk) {

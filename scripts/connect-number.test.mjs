@@ -50,9 +50,10 @@ test("nothing claims Orvius can change a carrier's settings, and schedules are o
   assert.match(connectSteps("verizon", "all", LINE)[0], /\*725125550100/);
   assert.match(connectSteps("verizon", "all", LINE)[2], /should stay quiet/);
   assert.match(disconnectSteps("att", "missed", LINE)[0], /##004#/);
-  assert.equal(RECOMMENDED_COVERAGE, "all");
+  assert.equal(RECOMMENDED_COVERAGE, "main");
   assert.equal(CARRIER_PATHS.verizon.coverages[0], "all");
-  assert.equal(coverageWhenCarrierChosen({ existing: null, captureMode: "forward", allowed: CARRIER_PATHS.verizon.coverages }), "all");
+  assert.match(connectSteps("verizon", "main", LINE)[0], /already answering/);
+  assert.equal(coverageWhenCarrierChosen({ existing: null, captureMode: "forward", allowed: CARRIER_PATHS.verizon.coverages }), "main");
   assert.equal(coverageWhenCarrierChosen({ existing: "missed", captureMode: "forward", allowed: CARRIER_PATHS.verizon.coverages }), null);
   assert.equal(coverageWhenCarrierChosen({ existing: null, captureMode: "publish", allowed: CARRIER_PATHS.verizon.coverages }), null);
   assert.match(read("src/components/connect-number.tsx"), /RECOMMENDED_COVERAGE/);

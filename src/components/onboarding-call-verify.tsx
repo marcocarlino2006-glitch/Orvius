@@ -3,7 +3,6 @@
 import { ActivationChecklist } from "@/components/activation-checklist";
 import { displayLine, telHref } from "@/lib/demo-line";
 import { markFirstNightPending } from "@/components/first-night-handoff";
-import { ownerSetupHref } from "@/lib/owner-setup-state";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
@@ -21,7 +20,7 @@ type OnboardingCallVerifyProps = {
 const POLL_MS = 3_000;
 
 /**
- * One job after the line exists: call it. Then forwarding is offered first;
+ * One job after the line exists: call it. The receptionist is on.
  * capture is confirmed in Settings, never stamped here.
  */
 export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyProps) {
@@ -125,7 +124,7 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
           </h1>
           <p className="onboarding-lead font-sans">
             {verified
-              ? `${leadName ? `It caught a lead from ${leadName}. ` : ""}Here is what's on now, and what's left before you count on it.`
+              ? `${leadName ? `It caught a lead from ${leadName}. ` : ""}The receptionist is answering this number.`
               : `Tap Call. Orvius answers as ${shopName} and texts you. Stay on this screen — we watch for the call.`}
           </p>
         </div>
@@ -172,17 +171,9 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
               type="button"
               className="btn btn-void font-sans"
               disabled={entering}
-              onClick={() => void enterCommand(ownerSetupHref("capture"))}
-            >
-              {entering ? "Opening…" : "Connect my business number"}
-            </button>
-            <button
-              type="button"
-              className="btn btn-secondary font-sans"
-              disabled={entering}
               onClick={() => void enterCommand()}
             >
-              Enter Command
+              {entering ? "Opening…" : "Enter Command"}
             </button>
           </>
         ) : (

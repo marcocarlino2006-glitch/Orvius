@@ -107,7 +107,7 @@ try {
   const hasCapture =
     /needs_capture/.test(queue) &&
     /Prove your line/.test(queue) &&
-    /proven to reach Orvius/.test(queue) &&
+    /Call your Orvius line/.test(queue) &&
     /impact:\s*"critical"/.test(queue);
   if (hasCapture) {
     pass("Attention capture", "Prove-first capture items at critical impact");

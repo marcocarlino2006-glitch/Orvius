@@ -24,7 +24,7 @@ test("day one stays open until the number, the card account, and the ticket are 
   assert.equal(fresh.steps[0].href, "/dashboard?settings=phone");
   assert.equal(fresh.steps[1].href, "/dashboard/billing");
   assert.equal(fresh.steps[2].href, null);
-  assert.match(fresh.steps[0].detail, /every call to your existing number/);
+  assert.match(fresh.steps[0].detail, /receptionist answers the number we assigned/);
   assert.match(fresh.steps[1].detail, /1%/);
 
   const numberOnly = dayOne({ ...openShop, numberProved: true });
@@ -98,7 +98,7 @@ test("Command shows day one from the proved call, card charges, and the ticket",
   const route = readFileSync(new URL("../src/app/api/ring1/route.ts", import.meta.url), "utf8");
   const desk = readFileSync(new URL("../src/components/ring1-command-center.tsx", import.meta.url), "utf8");
   const version = readFileSync(new URL("../src/lib/shop-version.ts", import.meta.url), "utf8");
-  assert.match(route, /dayOne\(\{[\s\S]*numberProved: business\.overflowProvedAt != null[\s\S]*chargesEnabled: connect\.chargesEnabled/);
+  assert.match(route, /dayOne\(\{[\s\S]*numberProved: business\.lineVerifiedAt != null \|\| business\.overflowProvedAt != null[\s\S]*chargesEnabled: connect\.chargesEnabled/);
   assert.match(route, /environment === "production"/);
   assert.match(route, /!isDemoBusiness\(business\)/);
   assert.match(desk, /dayOne\?\.open[\s\S]*<DayOnePanel/);

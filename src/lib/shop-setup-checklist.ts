@@ -139,7 +139,7 @@ export function buildShopSetupChecklist(input: ShopSetupInput): ShopSetupCheckli
         ? "Create your dedicated Orvius number"
         : captureOk
           ? `Line ${input.line} · calls routed to Orvius`
-          : `Line ${input.line} — send every call from the number customers already call`,
+          : `Line ${input.line}. Call it. The receptionist answers.`,
       href: hasLine ? "/dashboard/settings#overflow-forward" : "/dashboard/onboarding",
       done: hasLine && captureOk,
     },

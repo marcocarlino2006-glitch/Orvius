@@ -496,13 +496,21 @@ export function buildGoLiveChecklist(input: {
     },
     {
       id: "forward",
-      label: "Your existing number",
-      state: input.overflowProvedAt ? "live" : "not_connected",
+      label: "Your receptionist",
+      state: input.overflowProvedAt
+        ? "live"
+        : input.overflowForwardConfirmedAt
+          ? "not_connected"
+          : input.lineVerifiedAt
+            ? "live"
+            : "not_connected",
       detail: input.overflowProvedAt
         ? "Forwarding to Orvius. A call to your number came through."
         : input.overflowForwardConfirmedAt
           ? "You said forwarding is on. It isn't proven until a call to your number reaches Orvius. Run the test call."
-          : "Right after you go live, dial one code from the phone customers already call so those calls come to Orvius. You keep the number.",
+          : input.lineVerifiedAt
+            ? "Answering the number we assigned. A real call came through."
+            : "Answers the number we assign when the line is on. No codes to dial.",
     },
     {
       id: "messaging",

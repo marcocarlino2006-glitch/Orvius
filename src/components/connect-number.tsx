@@ -58,9 +58,9 @@ function Step({ n, title, done, children }: { n: number; title: string; done: bo
 }
 
 /**
- * Connect your number → choose coverage → test → activate. Guided, because
- * Orvius can't change a carrier's settings; proven by a real test call,
- * because a receiving number existing doesn't mean the shop's calls reach it.
+ * The receptionist answers the number we assigned. Catching an older
+ * advertised number is optional and stays folded away, because Orvius can't
+ * change a carrier's settings.
  */
 export function ConnectNumber({ onConfirmManually }: { onConfirmManually?: (next: boolean) => Promise<void> | void }) {
   const [conn, setConn] = useState<Connection | null>(null);
@@ -185,28 +185,49 @@ export function ConnectNumber({ onConfirmManually }: { onConfirmManually?: (next
   const codes = carrier && coverage && line ? forwardingCodes(carrier, coverage, line) : null;
   const proven = conn.health.state === "proven";
   const hasNumber = Boolean(conn.businessNumber) || coverage === "main";
+  const catchingOld = Boolean(
+    conn.businessNumber || conn.confirmedAt || conn.provenAt || (coverage && coverage !== "main"),
+  );
   const testing = test?.state === "calling";
   const showFallback = testError != null || (test && test.state !== "calling" && test.state !== "reached");
 
   return (
     <div className="cn font-sans">
-      <div className={`cn-health cn-health--${conn.health.state}`} role="status">
-        <StatusDot tone={TONE[conn.health.state]}>{conn.health.label}</StatusDot>
-        <span className="cn-muted">{conn.health.detail}</span>
-      </div>
+      {line && !catchingOld ? (
+        <div className="cn-health cn-health--proven" role="status">
+          <StatusDot tone="good">Answering</StatusDot>
+          <span className="cn-muted">Your receptionist answers this number. Call it.</span>
+        </div>
+      ) : (
+        <div className={`cn-health cn-health--${conn.health.state}`} role="status">
+          <StatusDot tone={TONE[conn.health.state]}>{conn.health.label}</StatusDot>
+          <span className="cn-muted">{conn.health.detail}</span>
+        </div>
+      )}
 
+      {line ? (
+        <p className="cn-row">
+          <a href={`tel:${line}`} className="ox-btn ox-btn--primary ox-btn--sm">
+            Call {displayPhone(line)}
+          </a>
+        </p>
+      ) : (
+        <p className="cn-muted">Your number is assigned when you go live. The receptionist answers it.</p>
+      )}
+
+      <details className="cn-more" open={catchingOld || undefined}>
+        <summary>Also catch a number you already advertise</summary>
       <ol className="cn-steps">
-        <Step n={1} title="Connect your number" done={hasNumber && Boolean(carrier)}>
+        <Step n={1} title="That number" done={hasNumber && Boolean(carrier)}>
           <p className="cn-muted">
-            Customers keep calling the number you already advertise.{" "}
             {line ? (
               <>
-                The Orvius line <strong className="cn-mono">{displayPhone(line)}</strong> is only where your carrier sends those calls.
+                Your receptionist already answers <strong className="cn-mono">{displayPhone(line)}</strong>.
               </>
             ) : (
-              "The Orvius line is only where your carrier sends those calls, once it's ready."
+              "Your receptionist answers the number we assign."
             )}{" "}
-            Orvius can&apos;t change that setting. You dial one code from the phone that owns the number. Answering those calls does not take a carrier application.
+            These steps only matter if customers already call a different number. One tap from the phone that owns it. Orvius can&apos;t change that carrier setting.
           </p>
           <form
             className="cn-row"
@@ -361,6 +382,7 @@ export function ConnectNumber({ onConfirmManually }: { onConfirmManually?: (next
           )}
         </Step>
       </ol>
+      </details>
 
       <details className="cn-more">
         <summary>Turn it off or move your number</summary>

@@ -83,7 +83,7 @@ test("a proved line that isn't forwarded after a day gets one nudge; a fresh or 
     await sendOwnerNudges();
     const sent = (await alerts(waiting.id)).filter((a) => a.dedupeKey.startsWith("setup:forward:"));
     assert.equal(sent.length, 1);
-    assert.match(sent[0].message, /main number don't reach it yet/);
+    assert.match(sent[0].message, /receptionist is answering/);
     assert.equal((await alerts(fresh.id)).length, 0);
     assert.equal((await alerts(forwarded.id)).length, 0);
   } finally {

@@ -1,7 +1,7 @@
 /*
  * Setup that resumes and a checklist that tells the truth (docs/BACKLOG.md G3):
- * an owner who paid and left comes back to the form, and Command never says
- * "covered" while the shop's main number still doesn't reach Orvius.
+ * an owner who paid and left comes back to the form. A proved line is live:
+ * the receptionist is answering the number we assigned.
  */
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -15,34 +15,23 @@ const read = (rel) => readFileSync(new URL(`../${rel}`, import.meta.url), "utf8"
 const proved = { twilioPhone: "+15125550100", ownerPhone: "+15125550199", lineVerifiedAt: new Date() };
 const quiet = { failedAlerts: 0, stuckAlerts: 0, criticalAttention: 0, attentionCount: 0, proofStale: false, economicsReady: false };
 
-test("a proved line opens Command but is not live until the main number reaches it", () => {
+test("a proved line is live — the receptionist is answering", () => {
   const before = getOwnerSetupStatus(proved);
   assert.equal(before.ready, true);
-  assert.equal(before.live, false);
-  assert.equal(before.nextStep, "capture");
+  assert.equal(before.live, true);
+  assert.equal(before.nextStep, "done");
 
-  const after = getOwnerSetupStatus({ ...proved, overflowForwardConfirmedAt: new Date() });
-  assert.equal(after.live, true);
-  assert.equal(after.nextStep, "done");
+  const next = resolveShopOperateNext({ ...quiet, setupReady: before.ready, setupNext: before.nextStep, setupHref: "/dashboard" });
+  assert.equal(next.id, "covered");
+  assert.equal(shopOperateBannerVisible(next), false);
 });
 
-test("Command shows the forwarding step instead of 'covered' until capture is confirmed", () => {
-  const setup = getOwnerSetupStatus(proved);
-  const next = resolveShopOperateNext({ ...quiet, setupReady: setup.ready, setupNext: setup.nextStep, setupHref: "/dashboard?settings=phone" });
-  assert.equal(next.id, "setup:capture");
-  assert.match(next.title, /main number/);
-  assert.equal(shopOperateBannerVisible(next), true);
-
-  const done = getOwnerSetupStatus({ ...proved, overflowForwardConfirmedAt: new Date() });
-  assert.equal(resolveShopOperateNext({ ...quiet, setupReady: done.ready, setupNext: done.nextStep, setupHref: "/dashboard" }).id, "covered");
-});
-
-test("the line-proved screen says forwarding is next, and offers it first", () => {
+test("the line-proved screen says the receptionist is answering", () => {
   const verify = read("src/components/onboarding-call-verify.tsx");
   assert.doesNotMatch(verify, /You’re in\./);
-  assert.match(verify, /what's left before you count on it/);
+  assert.match(verify, /The receptionist is answering/);
   assert.match(verify, /<ActivationChecklist \/>/);
-  assert.ok(verify.indexOf("Connect my business number") < verify.lastIndexOf("Enter Command"));
+  assert.doesNotMatch(verify, /Connect my business number/);
 });
 
 test("an owner who paid and left resumes from their paid checkout, not 'Pay first'", () => {

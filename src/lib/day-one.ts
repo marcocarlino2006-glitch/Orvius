@@ -73,15 +73,15 @@ export function dayOne(facts: DayOneFacts): DayOne {
     ? {
         id: "number",
         done: true,
-        title: "Your number reaches Orvius",
-        detail: "A call came through your existing number.",
+        title: "Your receptionist answers",
+        detail: "A call reached the number we assigned.",
         href: null,
       }
     : {
         id: "number",
         done: false,
-        title: "Prove a call on your number",
-        detail: "In Phone, dial the code so every call to your existing number reaches Orvius, then call that number from another phone.",
+        title: "Call your number",
+        detail: "Your receptionist answers the number we assigned. Call it once.",
         href: "/dashboard?settings=phone",
       };
   const card: DayOneStep = facts.chargesEnabled

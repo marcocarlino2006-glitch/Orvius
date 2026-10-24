@@ -27,15 +27,15 @@ export const HELP_ARTICLES: HelpArticle[] = [
   {
     slug: "set-up-your-line",
     title: "Set up your line",
-    summary: "From sign-in to your first answered call: keep the number customers already call, send every call to Orvius, and prove it with one test call.",
+    summary: "From sign-in to your first answered call: you get a number, the receptionist answers it, and you call it once.",
     category: "Get started",
     keywords: "start onboarding new number setup first call",
     body: (
       <>
         <h2>1. Get your Orvius number</h2>
         <p>
-          Sign in and your shop gets a private Orvius line. Customers never have to learn it. You’ll find it under{" "}
-          <strong>Settings → Phone number</strong>. It is only where your carrier sends calls.
+          Sign in and your shop gets a number. The receptionist answers it. You’ll find it under{" "}
+          <strong>Settings → Phone number</strong>. Call it.
         </p>
         <h2>2. Tell the receptionist about your shop</h2>
         <ul>
@@ -52,19 +52,18 @@ export const HELP_ARTICLES: HelpArticle[] = [
             ask for a person.
           </li>
         </ul>
-        <h2>3. Send every call from the number you already use</h2>
+        <h2>3. Call the number</h2>
         <p>
-          Customers keep calling the number on your truck and Google. In <strong>Settings → Phone number</strong>, choose{" "}
-          <strong>Every call</strong> and dial the code from the phone that owns that number. Orvius answers. Your phone
-          won’t ring. That is a setting in your carrier, not an application. <strong>Calls I don’t answer</strong> is
-          the other choice, if you still want your phone to ring first. Putting the Orvius number on Google is only if
-          you want a new public number. <Link href="/help/forward-your-calls">Steps by carrier →</Link>
+          Call it from your phone. The receptionist answers with your shop name, and you should get the lead alert on
+          your mobile. Add your mobile under <strong>Settings → Notifications</strong> and use <strong>Send test</strong>{" "}
+          to check alerts without placing a call. Put the number where customers look: Google, your website, trucks and
+          ads.
         </p>
-        <h2>4. Prove it with one call</h2>
+        <h2>4. An older number, only if you want it</h2>
         <p>
-          Call your business number from a different phone. Orvius should answer with your shop name, and you should
-          get the lead alert on your mobile. Add your mobile under <strong>Settings → Notifications</strong> and use{" "}
-          <strong>Send test</strong> to check alerts without placing a call.
+          If customers already call a different number, <strong>Settings → Phone number</strong> can send those calls
+          here. That is a setting on the phone that owns the number, not something Orvius can turn on by itself.{" "}
+          <Link href="/help/forward-your-calls">Steps by carrier →</Link>
         </p>
         <h2>Texts</h2>
         <p>

@@ -139,17 +139,30 @@ export function activationChecklist(input: {
   const number: ActivationItem =
     input.connection.state === "proven"
       ? { id: "number", label: "Your business number", state: "live", detail: input.connection.detail }
-      : {
-          id: "number",
-          label: "Your business number",
-          state: "todo",
-          waitingOn: "owner",
-          detail:
-            input.connection.state === "test_failed"
-              ? `${input.connection.detail} Your customers' calls don't reach Orvius yet.`
-              : "Your customers still call your business number. Dial one code from that phone so those calls come to Orvius. You keep the number.",
-          action: { kind: "link", label: "Connect your number", href: "/dashboard?settings=phone" },
-        };
+      : input.connection.state === "test_failed"
+        ? {
+            id: "number",
+            label: "Your business number",
+            state: "todo",
+            waitingOn: "owner",
+            detail: `${input.connection.detail} Your Orvius number still answers.`,
+            action: { kind: "link", label: "See your number", href: "/dashboard?settings=phone" },
+          }
+        : input.lineVerifiedAt
+          ? {
+              id: "number",
+              label: "Your business number",
+              state: "live",
+              detail: "Your receptionist answers your Orvius number.",
+            }
+          : {
+              id: "number",
+              label: "Your business number",
+              state: "todo",
+              waitingOn: "owner",
+              detail: "Call your Orvius number. The receptionist answers.",
+              action: { kind: "link", label: "See your number", href: "/dashboard?settings=phone" },
+            };
 
   const level = PERMISSION_LEVELS.find((l) => l.id === input.level) ?? PERMISSION_LEVELS[0];
 

@@ -1,19 +1,15 @@
 import type { CarrierId } from "@/lib/carrier-forward";
 
 /**
- * Connect your number → choose coverage → test → activate.
- *
- * Orvius cannot change a carrier's settings. Cell carriers accept a short code
- * dialed from the phone itself, and office phone systems are set in their own
- * admin. So every path here is guided, never "one click", and the test call is
- * what proves the connection: a receiving number existing is not proof the
- * shop's calls reach it.
+ * The receptionist answers the number we assign. Catching an older number is
+ * optional. Orvius cannot change a carrier's settings, so that path is a code
+ * the owner dials, proved by a real call.
  */
 
 export type Coverage = "missed" | "all" | "after_hours" | "main";
 
-/** The path a new shop walks: the receptionist answers the number customers already call. */
-export const RECOMMENDED_COVERAGE: Coverage = "all";
+/** The path a new shop walks: the receptionist answers the number we assign. Nothing to dial. */
+export const RECOMMENDED_COVERAGE: Coverage = "main";
 
 export const COVERAGE_LABEL: Record<Coverage, string> = {
   missed: "Calls I don't answer",
@@ -30,7 +26,7 @@ export const COVERAGE_DETAIL: Record<Coverage, string> = {
 };
 
 /**
- * Naming a carrier before any coverage is chosen means every call on the existing number.
+ * Naming a carrier before any coverage is chosen means the number we assign is the line.
  * A choice already saved is left alone. Publish mode with no coverage is the new-number path.
  * Returns the coverage to write, or null when nothing should change.
  */
@@ -106,9 +102,9 @@ export function dialHref(code: string) {
 export function connectSteps(carrier: CarrierId, coverage: Coverage, orviusLine: string): string[] {
   if (coverage === "main") {
     return [
-      "Replace the number on Google, your website, trucks and ads with your Orvius number.",
-      "Keep your old number forwarded to Orvius until everything is updated.",
-      "Run the test below from any phone.",
+      "This number is already answering. Call it.",
+      "Put it where customers look: Google, your website, trucks and ads.",
+      "Call it from another phone. The receptionist should answer with your shop name.",
     ];
   }
   const prove =
@@ -237,7 +233,7 @@ export function connectionHealth(input: {
   lastTest: { state: string; title: string; at: Date | string } | null;
 }): ConnectionHealth {
   if (input.testMode) {
-    return { state: "test_mode", label: "Not connected yet", detail: "You're in test mode. Connect your number when you go live." };
+    return { state: "test_mode", label: "Not on yet", detail: "You're in test mode. Go live and the receptionist answers the number we assign." };
   }
   if (!input.line) return { state: "no_line", label: "No Orvius line", detail: "Calls can't reach Orvius until a line exists." };
   const lastTestAt = input.lastTest ? new Date(input.lastTest.at).getTime() : 0;
