@@ -1,5 +1,6 @@
 import { recordAudit } from "@/lib/audit";
 import { normalizePhone } from "@/lib/customer";
+import { getPrimaryDomain } from "@/lib/domains";
 import { sendCustomerSms } from "@/lib/customer-sms";
 import { isShopDaytime } from "@/lib/lead-follow-up";
 import { logInfo, logWarn } from "@/lib/logger";
@@ -64,9 +65,11 @@ function firstName(name: string | null | undefined) {
   return first && /^[\p{L}'-]{2,}$/u.test(first) ? first : null;
 }
 
-export function reviewMessage(params: { businessName: string; name: string | null; reviewUrl: string }) {
+export function reviewMessage(params: { businessName: string; name: string | null; reviewUrl: string; visitUrl?: string | null }) {
   const first = firstName(params.name);
-  return `${first ? `Hi ${first}, thanks` : "Thanks"} for choosing ${params.businessName}. Would you take a minute to leave us a review? It really helps a small business: ${params.reviewUrl} Reply STOP to opt out.`;
+  const google = `${first ? `Hi ${first}, thanks` : "Thanks"} for choosing ${params.businessName}. Would you take a minute to leave us a review? It really helps a small business: ${params.reviewUrl}`;
+  const here = params.visitUrl ? ` You can also tell the next customer how it went: ${params.visitUrl}` : "";
+  return `${google}${here} Reply STOP to opt out.`;
 }
 
 export type ReviewJob = {
@@ -108,6 +111,7 @@ export async function sendReviewRequest(params: {
       completedAt: true,
       resolutionCode: true,
       reviewRequestedAt: true,
+      customerConfirmToken: true,
       customerId: true,
       customer: { select: { name: true, phone: true, phoneNormalized: true } },
       lead: { select: { name: true, phone: true } },
@@ -153,6 +157,7 @@ export async function sendReviewRequest(params: {
       businessName: job.business.name,
       name: job.customer?.name ?? job.lead?.name ?? null,
       reviewUrl: job.business.reviewUrl,
+      visitUrl: job.customerConfirmToken ? `https://${getPrimaryDomain()}/v/${job.customerConfirmToken}` : null,
     }),
   });
   if (!result.sent) {

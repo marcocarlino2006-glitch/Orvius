@@ -47,6 +47,7 @@ export function MarketingShell({ children }: MarketingShellProps) {
               <Link href="/product">Product</Link>
               <Link href="/pricing">Pricing</Link>
               <Link href="/trades">Trades we support</Link>
+              <Link href="/find">Find a shop</Link>
               <Link href="/enterprise">Enterprise</Link>
               <Link href="/pilot">Call audit</Link>
               <Link href="/resources">Resources</Link>

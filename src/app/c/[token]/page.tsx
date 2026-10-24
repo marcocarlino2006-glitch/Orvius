@@ -194,12 +194,12 @@ export default function CustomerConfirmPage() {
         </header>
       ) : null}
 
-      {state.status === "ok" ? <VisitView v={state} /> : null}
+      {state.status === "ok" ? <VisitView v={state} token={token} /> : null}
     </main>
   );
 }
 
-function VisitView({ v }: { v: Visit }) {
+function VisitView({ v, token }: { v: Visit; token: string }) {
   const head = headline(v);
   const live = v.jobStatus === "en_route" || v.jobStatus === "on_site";
   return (
@@ -241,6 +241,12 @@ function VisitView({ v }: { v: Visit }) {
       ) : (
         <p className="pf-muted">The shop has your confirmation. Reply to their text if plans change.</p>
       )}
+      {v.jobStatus === "completed" ? (
+        <a className="pf-action" href={`/v/${token}`}>
+          <span className="pf-action-label">Tell the next customer how it went</span>
+          <span className="pf-action-detail">Every rating is shown</span>
+        </a>
+      ) : null}
       {v.businessSlug ? (
         <p className="pf-muted pf-foot">
           <a href={`/r/${encodeURIComponent(v.businessSlug)}?via=confirm`}>Answered by Orvius</a>
