@@ -1,4 +1,5 @@
 import type { CommandMoney } from "@/lib/command-depth";
+import { weekBooked } from "@/lib/day-one";
 import { formatCentsTidy } from "@/lib/money";
 
 /**
@@ -52,12 +53,16 @@ export type MoneyBrief = {
 };
 
 /** Collected and billed in one sentence. Owed and unbilled only when they are real. */
-export function moneyBrief(money: CommandMoney): MoneyBrief {
+export function moneyBrief(
+  money: CommandMoney,
+  week?: { jobsBooked: number; avgTicketCents: number | null | undefined },
+): MoneyBrief {
   const days = money.windowDays === 1 ? "the last day" : `the last ${money.windowDays} days`;
   const collected = money.payments ? `collected ${formatCentsTidy(money.collectedCents) ?? "$0"}` : "collected nothing";
   const billed = money.invoices ? `billed ${formatCentsTidy(money.invoicedCents) ?? "$0"}` : "billed nothing";
+  const booked = week ? weekBooked(week) : null;
   return {
-    summary: `In ${days}: ${collected}, ${billed}.`,
+    summary: booked ? `${booked} In ${days}: ${collected}, ${billed}.` : `In ${days}: ${collected}, ${billed}.`,
     owed:
       money.outstandingCents > 0
         ? `${formatCentsTidy(money.outstandingCents) ?? "$0"} is still owed on ${money.outstandingInvoices === 1 ? "1 invoice" : `${money.outstandingInvoices} invoices`}.`

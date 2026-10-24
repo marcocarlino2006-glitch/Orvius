@@ -159,6 +159,8 @@ test("Command's version holds while nothing changes and moves when a lead lands 
     await prisma.lead.create({ data: { businessId: shop.id, name: "New caller", phone: "+15125550100", source: "call" } });
     const second = commandVersion(await shopVersion(shop.id), now, null);
     assert.notEqual(second, first);
+    await prisma.business.update({ where: { id: shop.id }, data: { avgTicketCents: 40_000 } });
+    assert.notEqual(commandVersion(await shopVersion(shop.id), now, null), second, "a saved average ticket rebuilds");
     const later = new Date(now.getTime() + COMMAND_VERSION_BUCKET_MS);
     assert.notEqual(commandVersion(await shopVersion(shop.id), later, null), second, "time-based parts still refresh");
     assert.notEqual(commandVersion(await shopVersion(shop.id), now, new Date(now.getTime() - DAY)), second, "a new brief window rebuilds");
