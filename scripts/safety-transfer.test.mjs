@@ -62,6 +62,9 @@ test("the transfer is warm: the owner hears a summary of the call before the cal
   assert.equal(destination.transferPlan.summaryPlan.enabled, true);
   assert.ok(destination.transferPlan.summaryPlan.messages.some((m) => m.content === "{{transcript}}"));
   assert.match(destination.transferPlan.summaryPlan.messages[0].content, /Safety call/);
+  assert.match(destination.transferPlan.summaryPlan.messages[0].content, /burning smell/);
+  assert.match(destination.transferPlan.summaryPlan.messages[0].content, /shock/);
+  assert.match(destination.transferPlan.summaryPlan.messages[0].content, /sewage/);
   assert.match(destination.description, /danger calls/);
   assert.ok(config.model.tools.some((t) => t.function?.name === "alert_team_now"));
 });

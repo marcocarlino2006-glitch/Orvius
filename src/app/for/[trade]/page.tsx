@@ -67,6 +67,22 @@ export default async function TradePage({ params }: Props) {
             </ul>
           </section>
 
+          {page.dangerSignals.length ? (
+            <section className="trade-block">
+              <h2 className="trade-block-title">What it treats as danger</h2>
+              <p className="trade-block-lead font-sans">
+                These are not booked. The caller hears the safety line first, then you are called.
+                A gas smell says to call the gas company or 911. A carbon monoxide alarm stays on 911.
+                Sewage stays out of the water and off the drains.
+              </p>
+              <ul className="tier1-plan-list font-sans">
+                {page.dangerSignals.map((s) => (
+                  <li key={s}>{s[0].toUpperCase() + s.slice(1)}</li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
           {page.urgentSignals.length ? (
             <section className="trade-block">
               <h2 className="trade-block-title">What it treats as urgent</h2>

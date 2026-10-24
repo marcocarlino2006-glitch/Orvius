@@ -141,7 +141,7 @@ export const HELP_ARTICLES: HelpArticle[] = [
           <li>
             Gas smell, a carbon monoxide alarm, smoke, sparking, a burning smell, a shock, or water on electrical
             equipment: the first thing they hear is to leave the home, not touch switches, and call 911 from outside.
-            For a gas smell or carbon monoxide alarm, it says to call the gas company or 911. Then it alerts you. None
+            A gas smell says to call the gas company or 911. A carbon monoxide alarm stays on 911. Then it alerts you. None
             of these are booked.
           </li>
           <li>

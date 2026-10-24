@@ -284,7 +284,7 @@ export function buildVapiAssistantConfig(params: {
                 number: params.transferPhone,
                 message: "One moment, I'm connecting you now.",
                 description:
-                  "The shop owner or on-call tech: callers who ask for a person, and danger calls (gas smell, carbon monoxide, smoke, sparking)",
+                  "The shop owner or on-call tech: callers who ask for a person, and danger calls (gas smell, carbon monoxide, smoke, sparking, a burning smell, a shock, water on electrical equipment, sewage)",
                 /*
                   Warm, not blind: the owner hears who is calling and why before
                   the caller is put through, so a 2 a.m. transfer doesn't open
@@ -301,7 +301,7 @@ export function buildVapiAssistantConfig(params: {
                     messages: [
                       {
                         role: "system",
-                        content: `You are briefing the owner of ${params.businessName}, who just answered a transferred call from a customer. In at most two short spoken sentences say who is calling, what the problem is, and the address if given. If the caller reported gas, carbon monoxide, smoke or sparking, start with "Safety call." Return only the words to say.`,
+                        content: `You are briefing the owner of ${params.businessName}, who just answered a transferred call from a customer. In at most two short spoken sentences say who is calling, what the problem is, and the address if given. If the caller reported gas, carbon monoxide, smoke, sparking, a burning smell, a shock, water on electrical equipment, or sewage, start with "Safety call." Return only the words to say.`,
                       },
                       { role: "user", content: "{{transcript}}" },
                     ],
@@ -393,7 +393,7 @@ export function buildVapiAssistantConfig(params: {
               type: "string",
               enum: ["emergency", "same-day", "this-week", "flexible"],
               description:
-                "How urgent the request is. emergency: gas smell, no heat or AC in extreme weather (90°F or hotter, or freezing) or with a baby, elderly or sick person at home, active water leak (including water pouring or dripping from a unit or ceiling), flooding, no power, burning smell or sparking. Otherwise same-day, this-week, or flexible.",
+                "How urgent the request is. emergency includes danger, which is never booked: gas smell, carbon monoxide, smoke, sparking, a burning smell, a shock, water on electrical equipment, sewage. It also includes no heat or AC in extreme weather (90°F or hotter, or freezing) or with a baby, elderly or sick person at home, an active water leak, flooding, or no power. Otherwise same-day, this-week, or flexible.",
             },
             address: {
               type: "string",

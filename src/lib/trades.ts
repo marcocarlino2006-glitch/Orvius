@@ -180,19 +180,22 @@ export function tradePromptPack(trade: Trade): string {
     case "HVAC":
       return `TRADE — HVAC
 - Common calls: no AC in summer, no heat in winter, weird noises, weak airflow, thermostat issues, maintenance/tune-ups, new system quotes.
-- Emergency signals: no cooling when it's hot, no heat when it's cold, burning smell from unit, water leaking from indoor unit.
+- Emergency signals: no cooling when it's hot, no heat when it's cold, water leaking from indoor unit.
+- Danger: a burning smell from the unit.
 - Ask: system type if they know (central AC, heat pump, furnace), whether system is running at all, and floor/room affected.
 - Never quote equipment prices or promise same-day install.`;
     case "Plumbing":
       return `TRADE — PLUMBING
 - Common calls: active leaks, clogged drains, water heater failure, running toilets, low pressure, sewer smell, burst pipe.
-- Emergency signals: active leak/flooding, no water, sewer backup, water heater leaking, gas water heater issues.
+- Emergency signals: an active leak or flooding, no water, a water heater that is not heating.
+- Danger: a gas smell, sewage backing up.
 - Ask: is water still flowing, can they shut off the main, which fixture/room, how long it's been happening.
 - Never quote flat rates or promise a fix without diagnosis.`;
     case "Electrical":
       return `TRADE — ELECTRICAL
 - Common calls: partial power loss, tripping breakers, dead outlets, flickering lights, panel upgrades, new circuits.
-- Emergency signals: burning smell, sparking, shock, full power loss, exposed wires — treat as emergency; mention 911 if immediate danger.
+- Emergency signals: full power loss, exposed wires.
+- Danger: a burning smell, sparking, a shock.
 - Ask: whole home vs one room, breaker tripped or not, when it started, any recent work done.
 - Never instruct DIY on panel work; always capture address for dispatch.`;
     case "Roofing":
@@ -232,7 +235,8 @@ export function tradePromptPack(trade: Trade): string {
     case "Appliance repair":
       return `TRADE — APPLIANCE REPAIR
 - Common calls: refrigerator not cooling, washer or dryer not working, dishwasher, oven or range, ice maker.
-- Emergency signals: a gas smell from a gas range or dryer, sparks or burning from an appliance, water flooding from a washer.
+- Emergency signals: water flooding from a washer.
+- Danger: a gas smell from a range or dryer, sparks or burning from an appliance.
 - Ask: which appliance, the brand if they know, what it's doing, how old it is.
 - Never quote a price or promise a part is in stock.`;
     case "Auto repair":

@@ -35,6 +35,7 @@ export function tradePage(slug: string) {
     article: /^(hvac|[aeiou])/i.test(entry.noun) ? "an" : "a",
     commonCalls: packLine(pack, "Common calls"),
     urgentSignals: packLine(pack, "Emergency signals"),
+    dangerSignals: packLine(pack, "Danger"),
     services: parseJson<ServiceOffering[]>(servicesForTrade(entry.trade), []).map((s) => s.name),
     workflows: tradeScope(entry.trade)?.workflows.map((w) => w.label) ?? [],
     notCovered: tradeScope(entry.trade)?.notCovered.map((n) => n.label) ?? [],

@@ -263,7 +263,7 @@ ${
 - If spam/sales/robo (a recorded message or a pitch): politely end — "We're not interested, thank you." Put exactly this in notes: "Spam / sales — not a job".
 - If out of your service area or wrong trade for this shop: say you can't take it, capture the callback if they insist, and put in notes either "Out of service area — not a job" or "Wrong trade for this shop — not a job".
 - If caller hangs up mid-call: capture whatever you have. Put exactly this in notes: "Hung up mid-call — partial".
-- DANGER — only gas smell, carbon monoxide alarm, smoke, sparking, a burning smell, a shock, or water on electrical equipment: say this FIRST: "Please leave the home now, don't touch any switches, and call 911 from outside." Gas smell or carbon monoxide: say "call the gas company or 911" instead. Sewage backing up is not that line. Say "Stay out of the water and don't use the drains. I'm telling the team now."${
+- DANGER — only gas smell, carbon monoxide alarm, smoke, sparking, a burning smell, a shock, or water on electrical equipment: say this FIRST: "Please leave the home now, don't touch any switches, and call 911 from outside." Gas smell: say "call the gas company or 911" instead. A carbon monoxide alarm stays on 911. Sewage backing up is not that line. Say "Stay out of the water and don't use the drains. I'm telling the team now."${
     business.canBook
       ? ` In that same turn, before asking anything else, call alert_team_now with what you already know (the hazard alone is enough), and do what it tells you.${
           business.canTransfer

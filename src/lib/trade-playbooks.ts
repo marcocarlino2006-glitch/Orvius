@@ -73,8 +73,8 @@ const HVAC: TradePlaybook = {
   ],
   fallback: { key: "hvac_diagnostic", label: "HVAC diagnostic", durationMin: 120, skill: "general", keywords: [] },
   safety: [
-    { key: "gas_smell", label: "Gas smell", instruction: "Tell the caller to leave the home and call the gas utility or 911. Call them back now.", keywords: GAS_WORDS },
-    { key: "carbon_monoxide", label: "Carbon monoxide alarm", instruction: "Tell the caller to get outside and call 911. Call them back now.", keywords: [/carbon[- ]?monoxide/, /\bco (alarm|detector|monitor)s?\b/, /mon[oó]xido de carbono/] },
+    { key: "gas_smell", label: "Gas smell", instruction: "Tell the caller to leave the home, not touch any switches, and call the gas utility or 911 from outside. Call them back now.", keywords: GAS_WORDS },
+    { key: "carbon_monoxide", label: "Carbon monoxide alarm", instruction: "Tell the caller to leave the home, not touch any switches, and call 911 from outside. Call them back now.", keywords: [/carbon[- ]?monoxide/, /\bco (alarm|detector|monitor)s?\b/, /mon[oó]xido de carbono/] },
     { key: "burning_unit", label: "Burning smell or smoke from the unit", instruction: "Tell the caller to leave the home, not touch any switches, and call 911 from outside. Call them back now.", keywords: [/(burning|smoke|smoking).{0,20}(unit|furnace|system|vent)/, /(unit|furnace).{0,20}(burning|smoke)/, /burning smell/, /smell(s|ing)? (like )?burning/] },
   ],
   emergency: [
@@ -109,9 +109,9 @@ const PLUMBING: TradePlaybook = {
   ],
   fallback: { key: "plumbing_diagnostic", label: "Plumbing diagnostic", durationMin: 90, skill: "general", keywords: [] },
   safety: [
-    { key: "gas_smell", label: "Gas smell near a gas appliance", instruction: "Tell the caller to leave the home and call the gas utility or 911. Call them back now.", keywords: GAS_WORDS },
+    { key: "gas_smell", label: "Gas smell near a gas appliance", instruction: "Tell the caller to leave the home, not touch any switches, and call the gas utility or 911 from outside. Call them back now.", keywords: GAS_WORDS },
     { key: "water_on_electrical", label: "Water reaching the electrical panel or outlets", instruction: "Tell the caller to leave the home, stay out of the water, not touch any switches, and call 911 from outside. Call them back now.", keywords: [/water.{0,40}\b(electrical panel|breaker (box|panel)|fuse box|outlets?|wiring)\b/, /\b(electrical panel|breaker (box|panel)|fuse box|outlets?)\b.{0,30}\b(wet|under water|flooded|flooding|soaked)\b/] },
-    { key: "sewage_backup", label: "Sewage backing up into the home", instruction: "Tell the caller to stop using water and keep people away from it. Call them back now.", keywords: [/sewage (backing|coming) (up|in)/, /raw sewage/] },
+    { key: "sewage_backup", label: "Sewage backing up into the home", instruction: "Tell the caller to stay out of the water and not use the drains. Call them back now.", keywords: [/sewage (backing|coming) (up|in)/, /raw sewage/] },
   ],
   emergency: [/burst/, /flood/, /water everywhere/, /can'?t (shut|turn) (it |the water )?off/],
   sameDay: [/\bno (hot )?water\b/, /\bleak/, /\basap\b/, /\btoday\b/, /\burgent\b/],
@@ -139,7 +139,7 @@ const ELECTRICAL: TradePlaybook = {
 const GAS_SMELL: SafetyRule = {
   key: "gas_smell",
   label: "Gas smell",
-  instruction: "Tell the caller to leave the home and call the gas utility or 911. Call them back now.",
+  instruction: "Tell the caller to leave the home, not touch any switches, and call the gas utility or 911 from outside. Call them back now.",
   keywords: GAS_WORDS,
 };
 
