@@ -1,5 +1,6 @@
 "use client";
 
+import { ShopAreaCard } from "@/components/shop-area-card";
 import { ShopOperateBanner } from "@/components/shop-operate-banner";
 import { Ring1CommandCenter } from "@/components/ring1-command-center";
 import { OsShell } from "@/components/os-shell";
@@ -17,6 +18,7 @@ export default function DashboardPage() {
         setup={
           <Suspense fallback={null}>
             <ShopOperateBanner />
+            <ShopAreaCard />
           </Suspense>
         }
       />
