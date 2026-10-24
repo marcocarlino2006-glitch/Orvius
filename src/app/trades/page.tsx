@@ -37,9 +37,14 @@ export default function TradesPage() {
             subline={`${open.map((s) => s.trade).join(", ")}, for the jobs listed below.`}
             description="A trade opens only when a shop in it can set up its own services, have calls sorted correctly, get work booked inside its real hours and team, hear about changes and failures, and have anything unsafe or unsupported handed to a person. Every one of those is checked by an automated test on every change."
             actions={
-              <a href="#interest" className="ov-btn ov-btn--quiet">
-                Join the interest list
-              </a>
+              <>
+                <Link href="/find" className="ov-btn ov-btn--solid">
+                  Find a shop
+                </Link>
+                <a href="#interest" className="ov-btn ov-btn--quiet">
+                  Join the interest list
+                </a>
+              </>
             }
           />
           <aside className="ov-hero-aside">
