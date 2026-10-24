@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Call one effectful scheduled sweep (alert-drain, line-watch) on an explicitly
- * named deployment, never a default one.
+ * Call one effectful scheduled sweep (alert-drain, line-watch, assistants) on
+ * an explicitly named deployment, never a default one.
  *
  * Before the sweep is requested it needs, from the environment:
  *   DRAIN_TARGET_URL        the deployment base URL, listed in ops/drain-targets.json
@@ -18,7 +18,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-export const SWEEPS = new Set(["alert-drain", "line-watch"]);
+export const SWEEPS = new Set(["alert-drain", "line-watch", "assistants"]);
 export const DRAIN_TARGETS_FILE = "ops/drain-targets.json";
 
 export function readDrainTargets(path = resolve(root, DRAIN_TARGETS_FILE)) {
@@ -60,9 +60,10 @@ export function drainPlan(sweep, env, targets) {
   return releaseTargetPlan(env, targets);
 }
 
-export async function runScheduledDrain(sweep, { env = process.env, targets = readDrainTargets(), fetchImpl = fetch, timeoutMs = 60_000 } = {}) {
+export async function runScheduledDrain(sweep, { env = process.env, targets = readDrainTargets(), fetchImpl = fetch, timeoutMs = 60_000, query = "" } = {}) {
   const plan = drainPlan(sweep, env, targets);
   if (!plan.ok) return { ok: false, stage: "plan", reason: plan.reason };
+  if (query && !/^\?after=[a-z0-9]+$/i.test(query)) return { ok: false, stage: "plan", reason: "bad assistant cursor" };
   let health;
   try {
     const res = await fetchImpl(`${plan.base}/api/health`, { redirect: "manual", signal: AbortSignal.timeout(15_000) });
@@ -74,7 +75,7 @@ export async function runScheduledDrain(sweep, { env = process.env, targets = re
   if (!served) return { ok: false, stage: "identity", reason: "the deployment did not report its release; nothing was requested" };
   if (served.environment !== plan.target) return { ok: false, stage: "identity", reason: `the deployment is ${served.environment}, not ${plan.target}` };
   if (served.commit !== plan.release) return { ok: false, stage: "identity", reason: `the deployment serves ${served.commit ?? "an unnamed build"}, not the approved ${plan.release}` };
-  const res = await fetchImpl(`${plan.base}/api/cron/${sweep}`, {
+  const res = await fetchImpl(`${plan.base}/api/cron/${sweep}${query}`, {
     method: "GET",
     redirect: "manual",
     headers: { authorization: `Bearer ${plan.secret}`, "x-orvius-target": plan.target, "x-orvius-release": plan.release },
@@ -84,9 +85,45 @@ export async function runScheduledDrain(sweep, { env = process.env, targets = re
   return { ok: res.ok, stage: "sweep", status: res.status, body: body.slice(0, 2000) };
 }
 
+/**
+ * Walk every live receptionist. Each pass stops at the function deadline and
+ * names the last shop; the next pass resumes there. Nothing else runs.
+ */
+export async function runAssistantSync({ env = process.env, targets = readDrainTargets(), fetchImpl = fetch, timeoutMs = 70_000, log = () => {} } = {}) {
+  let after = "";
+  const totals = { current: 0, updated: 0, skipped: 0, passes: 0 };
+  for (let pass = 0; pass < 24; pass++) {
+    const query = after ? `?after=${encodeURIComponent(after)}` : "";
+    const r = await runScheduledDrain("assistants", { env, targets, fetchImpl, timeoutMs, query });
+    if (!r.ok) return { ...r, ...totals, done: false };
+    let body;
+    try {
+      body = JSON.parse(r.body);
+    } catch {
+      return { ok: false, stage: "sweep", reason: "the assistant sync reply was not JSON", body: r.body, ...totals, done: false };
+    }
+    totals.passes += 1;
+    totals.current += Number(body.current) || 0;
+    totals.updated += Number(body.updated) || 0;
+    totals.skipped += Number(body.skipped) || 0;
+    log(r.body);
+    if (body.done === true) {
+      const summary = { ok: true, done: true, ...totals };
+      return { ok: true, stage: "sweep", body: JSON.stringify(summary), ...totals, done: true };
+    }
+    if (typeof body.after !== "string" || !body.after || body.after === after) {
+      return { ok: false, stage: "sweep", reason: "sync stopped without finishing", body: r.body, ...totals, done: false };
+    }
+    after = body.after;
+  }
+  return { ok: false, stage: "sweep", reason: "sync did not finish", ...totals, done: false };
+}
+
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const [sweep, seconds] = process.argv.slice(2);
-  runScheduledDrain(sweep, { timeoutMs: (Number(seconds) || 60) * 1000 })
+  const timeoutMs = (Number(seconds) || 60) * 1000;
+  const run = sweep === "assistants" ? runAssistantSync({ timeoutMs, log: (line) => console.log(line) }) : runScheduledDrain(sweep, { timeoutMs });
+  run
     .then((r) => {
       if (r.body) console.log(r.body);
       if (!r.ok) {

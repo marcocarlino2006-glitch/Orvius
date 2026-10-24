@@ -1,0 +1,27 @@
+name: Assistant sync
+
+# Rewrites live receptionists to the words this commit deployed. Dispatch only.
+# It does not bill, suspend, text, or send the scoreboard. Run it again if a
+# pass stops at the deadline; the reply names the shop to resume from.
+on:
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+      # One named target: production, listed in ops/drain-targets.json. The
+      # approved release is the commit this run checked out (main's head),
+      # verified against the deployment's own /api/health before any sweep is
+      # requested — the script refuses anything else and has no default.
+      DRAIN_TARGET_URL: https://orvius.im
+      DRAIN_TARGET_ENV: production
+      DRAIN_EXPECTED_RELEASE: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Sync receptionists
+        run: node scripts/scheduled-drain.mjs assistants 70
