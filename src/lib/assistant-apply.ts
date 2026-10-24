@@ -94,6 +94,7 @@ export async function applyReceptionistSettings(business: Business, by: { actor:
     try {
       voiceMachineId = await ensureVoiceMachine(business.id);
     } catch (error) {
+      // The demo has no door of its own, so a missing column leaves it on the shared route.
       if (!(error instanceof VoiceMachineColumnMissing)) throw error;
     }
   }

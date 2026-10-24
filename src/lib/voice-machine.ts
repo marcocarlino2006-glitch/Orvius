@@ -10,6 +10,7 @@ import { prisma } from "@/lib/prisma";
   A call whose assistant or number belongs to another shop is refused, and a
   call record that already belongs to another shop is not rewritten.
   The public demo stays on the shared route.
+  Until voiceMachineId is on the database, a live shop's own id is that route.
 */
 
 export class ForeignVoiceShop extends Error {
@@ -33,10 +34,41 @@ export function shopGetsOwnVoiceMachine(business: { environment?: string | null;
   return workspaceEnvironment(business.environment) === "production" && !isDemoBusiness(business);
 }
 
+function shopNamedOn(business: object): { environment?: string | null; slug: string; name?: string } | null {
+  if (!("slug" in business) || typeof business.slug !== "string") return null;
+  const environment = "environment" in business && (typeof business.environment === "string" || business.environment == null) ? business.environment : undefined;
+  const name = "name" in business && typeof business.name === "string" ? business.name : undefined;
+  return { environment, slug: business.slug, name };
+}
+
+/** Where this shop's receptionist must send calls. The demo stays on the shared route. */
+export async function shopReceptionistUrl(business: {
+  id: string;
+  environment?: string | null;
+  slug: string;
+  name?: string | null;
+}): Promise<string> {
+  if (!shopGetsOwnVoiceMachine({ ...business, name: business.name ?? undefined }) || !machineKey()) return getWebhookUrl("/api/webhooks/vapi");
+  try {
+    const voiceMachineId = await ensureVoiceMachine(business.id);
+    return voiceRoute({ ...business, voiceMachineId }).webhookUrl;
+  } catch {
+    return getWebhookUrl("/api/webhooks/vapi");
+  }
+}
+
+/** A call reaches this deployment on the shared route or on a shop's own door. */
+export function callReachesThisDeployment(url: string | null | undefined, base = getWebhookUrl("/api/webhooks/vapi")): boolean {
+  if (!url) return false;
+  return url === base || url.startsWith(`${base}/machines/`);
+}
+
 export function voiceRoute(business: object): { webhookUrl: string; webhookSecret?: string } {
   const id = "voiceMachineId" in business && typeof business.voiceMachineId === "string" ? business.voiceMachineId : null;
   const secret = id ? machineSeal(id) : null;
-  if (id && secret) {
+  const named = shopNamedOn(business);
+  const own = named ? shopGetsOwnVoiceMachine(named) : true;
+  if (id && secret && own) {
     return { webhookUrl: getWebhookUrl(`/api/webhooks/vapi/machines/${id}`), webhookSecret: secret };
   }
   return { webhookUrl: getWebhookUrl("/api/webhooks/vapi"), webhookSecret: process.env.VAPI_WEBHOOK_SECRET };
@@ -72,9 +104,37 @@ export class VoiceMachineColumnMissing extends Error {
   }
 }
 
+function columnErrorText(error: unknown): string {
+  const parts: string[] = [];
+  const seen = new Set<unknown>();
+  let current: unknown = error;
+  while (current && typeof current === "object" && !seen.has(current)) {
+    seen.add(current);
+    const record = current as { code?: unknown; message?: unknown; cause?: unknown; meta?: { message?: unknown } };
+    if (record.code === "P2022") return "P2022";
+    if (typeof record.message === "string") parts.push(record.message);
+    if (typeof record.meta?.message === "string") parts.push(record.meta.message);
+    current = record.cause;
+  }
+  if (typeof error === "string") parts.push(error);
+  return parts.join(" ");
+}
+
 function missingColumn(error: unknown) {
-  const message = error instanceof Error ? error.message : String(error);
-  return /no such column/i.test(message);
+  const message = columnErrorText(error);
+  return message === "P2022" || /no such column/i.test(message) || /has no column named/i.test(message) || /does not exist in the current database/i.test(message);
+}
+
+/*
+  SQLite accepts a missing double-quoted column as a string literal. A read of
+  "voiceMachineId" then returns the text voiceMachineId for every shop, and a
+  filter on it matches every row. That text is never a machine id.
+*/
+const QUOTED_COLUMN_SENTINEL = "voiceMachineId";
+
+function realStoredId(value: string | null | undefined): string | null {
+  if (!value || value === QUOTED_COLUMN_SENTINEL) return null;
+  return value;
 }
 
 async function machineColumn<T>(read: () => Promise<T>): Promise<T> {
@@ -86,35 +146,69 @@ async function machineColumn<T>(read: () => Promise<T>): Promise<T> {
   }
 }
 
-/** Create this shop's voice process once. A second call returns the same id. */
+/** Create this shop's voice process once. A second call returns the same id.
+ *  A live shop whose database has no voiceMachineId column yet uses its own id.
+ *  The demo has no separate door.
+ */
 export async function ensureVoiceMachine(businessId: string): Promise<string> {
-  const shop = await prisma.business.findUnique({ where: { id: businessId }, select: { id: true } });
+  const shop = await prisma.business.findUnique({
+    where: { id: businessId },
+    select: { id: true, environment: true, slug: true, name: true },
+  });
   if (!shop) throw new Error("Shop not found");
-  const current = await machineColumn(async () => {
-    const rows = await prisma.$queryRaw<Array<{ voiceMachineId: string | null }>>`
-      SELECT "voiceMachineId" AS voiceMachineId FROM "Business" WHERE "id" = ${businessId} LIMIT 1
-    `;
-    return rows[0]?.voiceMachineId ?? null;
-  });
-  if (current) return current;
-  const id = randomBytes(16).toString("hex");
-  const won = await machineColumn(() => prisma.$executeRaw`
-    UPDATE "Business" SET "voiceMachineId" = ${id} WHERE "id" = ${businessId} AND "voiceMachineId" IS NULL
-  `);
-  if (Number(won) === 1) return id;
-  const again = await machineColumn(async () => {
-    const rows = await prisma.$queryRaw<Array<{ voiceMachineId: string | null }>>`
-      SELECT "voiceMachineId" AS voiceMachineId FROM "Business" WHERE "id" = ${businessId} LIMIT 1
-    `;
-    return rows[0]?.voiceMachineId ?? null;
-  });
-  if (!again) throw new Error("The voice machine was not saved.");
-  return again;
+  try {
+    const current = await machineColumn(async () => {
+      const rows = await prisma.$queryRaw<Array<{ voiceMachineId: string | null }>>`
+        SELECT "voiceMachineId" AS voiceMachineId FROM "Business" WHERE "id" = ${businessId} LIMIT 1
+      `;
+      return rows[0]?.voiceMachineId ?? null;
+    });
+    if (current === QUOTED_COLUMN_SENTINEL) throw new VoiceMachineColumnMissing();
+    if (current) return current;
+    const id = randomBytes(16).toString("hex");
+    const won = await machineColumn(() => prisma.$executeRaw`
+      UPDATE "Business" SET "voiceMachineId" = ${id} WHERE "id" = ${businessId} AND "voiceMachineId" IS NULL
+    `);
+    if (Number(won) === 1) return id;
+    const again = await machineColumn(async () => {
+      const rows = await prisma.$queryRaw<Array<{ voiceMachineId: string | null }>>`
+        SELECT "voiceMachineId" AS voiceMachineId FROM "Business" WHERE "id" = ${businessId} LIMIT 1
+      `;
+      return rows[0]?.voiceMachineId ?? null;
+    });
+    if (again === QUOTED_COLUMN_SENTINEL) throw new VoiceMachineColumnMissing();
+    if (!again) throw new Error("The voice machine was not saved.");
+    return again;
+  } catch (error) {
+    if (!(error instanceof VoiceMachineColumnMissing)) throw error;
+    if (!shopGetsOwnVoiceMachine(shop)) throw error;
+    return shop.id;
+  }
 }
 
-/** The business id this machine route is sealed to. Null when the seal is wrong or the column is not there yet. */
+/** An active live shop may be opened by its own id while it has no stored machine id. */
+async function doorForShopId(machineId: string, storedId: string | null | undefined): Promise<string | null> {
+  if (storedId) return null;
+  const shop = await prisma.business.findUnique({
+    where: { id: machineId },
+    select: { id: true, isActive: true, environment: true, slug: true, name: true },
+  });
+  if (!shop?.isActive || !shopGetsOwnVoiceMachine(shop)) return null;
+  return shop.id;
+}
+
+/** The business id this machine route is sealed to. Null when no active live shop owns it. */
 export async function businessIdForVoiceMachine(machineId: string): Promise<string | null> {
+  if (!machineId || machineId === QUOTED_COLUMN_SENTINEL) return null;
   try {
+    const stored = await prisma.$queryRaw<Array<{ voiceMachineId: string | null }>>`
+      SELECT "voiceMachineId" AS voiceMachineId FROM "Business" WHERE "id" = ${machineId} LIMIT 1
+    `;
+    if (stored[0]) {
+      const id = realStoredId(stored[0].voiceMachineId);
+      if (!id || id === machineId) return doorForShopId(machineId, null);
+      return null;
+    }
     const rows = await prisma.$queryRaw<Array<{ id: string; isActive: number | boolean }>>`
       SELECT "id" AS id, "isActive" AS isActive FROM "Business" WHERE "voiceMachineId" = ${machineId} LIMIT 1
     `;
@@ -122,7 +216,7 @@ export async function businessIdForVoiceMachine(machineId: string): Promise<stri
     if (!shop || Number(shop.isActive) === 0) return null;
     return shop.id;
   } catch (error) {
-    if (missingColumn(error)) return null;
+    if (missingColumn(error)) return doorForShopId(machineId, null);
     throw error;
   }
 }

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 process.env.ORVIUS_MACHINE_KEY = "voice-machine-test-key";
@@ -72,6 +73,29 @@ test("a live shop's receptionist is pointed at its own machine, and the demo sta
   });
   assert.match(demo.serverUrl, /\/api\/webhooks\/vapi$/);
   assert.doesNotMatch(demo.serverUrl, /machines/);
+
+  const summit = buildBusinessAssistantConfig({
+    name: "Summit HVAC",
+    slug: "summit-hvac",
+    environment: "production",
+    voiceMachineId: "should-not-route",
+    greeting: "Thanks for calling Summit HVAC.",
+    hoursJson: "{}",
+    servicesJson: "[]",
+    trade: "HVAC",
+    bookingMode: "book",
+    receptionistRulesJson: "[]",
+    closedDatesJson: "[]",
+    timezone: "America/Chicago",
+    voiceId: null,
+    transferPhone: null,
+  });
+  assert.match(summit.serverUrl, /\/api\/webhooks\/vapi$/);
+  assert.doesNotMatch(summit.serverUrl, /machines/);
+  assert.equal(machine.callReachesThisDeployment(live.serverUrl), true);
+  assert.equal(machine.callReachesThisDeployment(demo.serverUrl), true);
+  assert.equal(machine.callReachesThisDeployment("https://evil.example/api/webhooks/vapi/machines/abc123"), false);
+  assert.match(readFileSync(new URL("./vapi-doctor.mjs", import.meta.url), "utf8"), /deliversToOrvius/);
 });
 
 test("each live shop gets one voice machine, and another shop's seal cannot open it", async () => {
@@ -102,5 +126,107 @@ test("each live shop gets one voice machine, and another shop's seal cannot open
     assert.equal(await machine.openVoiceMachine(other, machine.machineSeal(first)), null);
   } finally {
     await prisma.business.deleteMany({ where: { id: { in: [a.id, b.id] } } });
+  }
+});
+
+async function withMachineColumn() {
+  const columns = await prisma.$queryRawUnsafe('PRAGMA table_info("Business")');
+  if (!columns.some((column) => column.name === "voiceMachineId")) {
+    await prisma.$executeRawUnsafe('ALTER TABLE "Business" ADD COLUMN "voiceMachineId" TEXT');
+  }
+  await prisma.$executeRawUnsafe('CREATE UNIQUE INDEX IF NOT EXISTS "Business_voiceMachineId_key" ON "Business"("voiceMachineId")');
+}
+
+test("a live shop with no stored machine id opens on its own id, and the demo does not", async () => {
+  await withMachineColumn();
+  const stamp = Date.now().toString(36);
+  const live = await prisma.business.create({
+    data: { name: `Door Live ${stamp}`, slug: `door-live-${stamp}`, environment: "production", ownerEmail: `door-live-${stamp}@example.test` },
+  });
+  const demo = await prisma.business.create({
+    data: { name: "Summit HVAC", slug: `summit-hvac-${stamp}`, environment: "production", ownerEmail: `summit-${stamp}@example.test` },
+  });
+  const quiet = await prisma.business.create({
+    data: { name: `Door Quiet ${stamp}`, slug: `door-quiet-${stamp}`, environment: "production", isActive: false, ownerEmail: `door-quiet-${stamp}@example.test` },
+  });
+  try {
+    assert.deepEqual(await machine.openVoiceMachine(live.id, machine.machineSeal(live.id)), { machineId: live.id, businessId: live.id });
+    assert.equal(await machine.openVoiceMachine(live.id, machine.machineSeal(demo.id)), null);
+    assert.equal(await machine.openVoiceMachine(demo.id, machine.machineSeal(demo.id)), null);
+    assert.equal(await machine.openVoiceMachine(quiet.id, machine.machineSeal(quiet.id)), null);
+    const stored = await machine.ensureVoiceMachine(live.id);
+    assert.notEqual(stored, live.id);
+    assert.match(await machine.shopReceptionistUrl(live), new RegExp(`/api/webhooks/vapi/machines/${stored}$`));
+    assert.match(await machine.shopReceptionistUrl(demo), /\/api\/webhooks\/vapi$/);
+    assert.doesNotMatch(await machine.shopReceptionistUrl(demo), /machines/);
+    assert.equal(await machine.openVoiceMachine(live.id, machine.machineSeal(live.id)), null);
+    assert.deepEqual(await machine.openVoiceMachine(stored, machine.machineSeal(stored)), { machineId: stored, businessId: live.id });
+  } finally {
+    await prisma.business.deleteMany({ where: { id: { in: [live.id, demo.id, quiet.id] } } });
+  }
+});
+
+test("a missing machine column is not one shared door named voiceMachineId", async () => {
+  const stamp = Date.now().toString(36);
+  const live = await prisma.business.create({
+    data: { name: `Literal Live ${stamp}`, slug: `literal-live-${stamp}`, environment: "production", ownerEmail: `literal-live-${stamp}@example.test` },
+  });
+  const demo = await prisma.business.create({
+    data: { name: `Literal Demo ${stamp}`, slug: `literal-demo-${stamp}`, environment: "demo", ownerEmail: `literal-demo-${stamp}@example.test` },
+  });
+  const queryRaw = prisma.$queryRaw;
+  const executeRaw = prisma.$executeRaw;
+  prisma.$queryRaw = async () => [{ voiceMachineId: "voiceMachineId", id: live.id, isActive: 1 }];
+  prisma.$executeRaw = () => {
+    throw new Error("no such column: voiceMachineId");
+  };
+  try {
+    assert.equal(await machine.ensureVoiceMachine(live.id), live.id);
+    assert.equal(await machine.businessIdForVoiceMachine(live.id), live.id);
+    assert.equal(await machine.businessIdForVoiceMachine("voiceMachineId"), null);
+    assert.deepEqual(await machine.openVoiceMachine(live.id, machine.machineSeal(live.id)), { machineId: live.id, businessId: live.id });
+    assert.equal(await machine.openVoiceMachine("voiceMachineId", machine.machineSeal("voiceMachineId")), null);
+    assert.equal(await machine.openVoiceMachine(demo.id, machine.machineSeal(demo.id)), null);
+    await assert.rejects(() => machine.ensureVoiceMachine(demo.id), machine.VoiceMachineColumnMissing);
+  } finally {
+    prisma.$queryRaw = queryRaw;
+    prisma.$executeRaw = executeRaw;
+    await prisma.business.deleteMany({ where: { id: { in: [live.id, demo.id] } } });
+  }
+});
+
+test("a live shop still gets its own door when the machine column is missing", async () => {
+  const stamp = Date.now().toString(36);
+  const live = await prisma.business.create({
+    data: { name: `Missing Live ${stamp}`, slug: `missing-live-${stamp}`, environment: "production", ownerEmail: `missing-live-${stamp}@example.test` },
+  });
+  const demo = await prisma.business.create({
+    data: { name: `Sample Shop ${stamp}`, slug: `missing-demo-${stamp}`, environment: "demo", ownerEmail: `missing-demo-${stamp}@example.test` },
+  });
+  const queryRaw = prisma.$queryRaw;
+  const executeRaw = prisma.$executeRaw;
+  const missing = () => {
+    throw new Error("no such column: voiceMachineId");
+  };
+  prisma.$queryRaw = missing;
+  prisma.$executeRaw = missing;
+  try {
+    assert.equal(await machine.ensureVoiceMachine(live.id), live.id);
+    assert.match(await machine.shopReceptionistUrl(live), new RegExp(`/api/webhooks/vapi/machines/${live.id}$`));
+    assert.match(await machine.shopReceptionistUrl(demo), /\/api\/webhooks\/vapi$/);
+    assert.deepEqual(await machine.openVoiceMachine(live.id, machine.machineSeal(live.id)), { machineId: live.id, businessId: live.id });
+    assert.equal(await machine.openVoiceMachine(live.id, machine.machineSeal("other-shop")), null);
+    assert.equal(await machine.openVoiceMachine(demo.id, machine.machineSeal(demo.id)), null);
+    await assert.rejects(() => machine.ensureVoiceMachine(demo.id), machine.VoiceMachineColumnMissing);
+    const pointed = buildBusinessAssistantConfig({
+      ...live,
+      voiceMachineId: live.id,
+    });
+    assert.match(pointed.serverUrl, new RegExp(`/api/webhooks/vapi/machines/${live.id}$`));
+    assert.equal(pointed.serverUrlSecret, machine.machineSeal(live.id));
+  } finally {
+    prisma.$queryRaw = queryRaw;
+    prisma.$executeRaw = executeRaw;
+    await prisma.business.deleteMany({ where: { id: { in: [live.id, demo.id] } } });
   }
 });
