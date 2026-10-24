@@ -26,6 +26,7 @@ async function sealedShop(business: Business): Promise<Business & { voiceMachine
     const voiceMachineId = existing ?? (await ensureVoiceMachine(business.id));
     return voiceMachineId === existing ? business : { ...business, voiceMachineId };
   } catch (error) {
+    // The demo has no door of its own, so a missing column leaves it on the shared route.
     if (error instanceof VoiceMachineColumnMissing) return business;
     throw error;
   }
