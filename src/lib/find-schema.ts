@@ -1,5 +1,4 @@
 import { createHash } from "node:crypto";
-import { approvalOk, backupRefOk, type SqlRunner } from "@/lib/job-billing-schema";
 
 /**
  * The VisitReview and AreaRequest section of prisma/turso-migrate.sql.
@@ -50,8 +49,20 @@ export const FIND_INDEXES = {
 
 const LEDGER = "_OrviusReleaseMigration";
 
-export { approvalOk, backupRefOk };
-export type { SqlRunner };
+export type SqlRunner = {
+  execute(sql: string, args?: unknown[]): Promise<void>;
+  query<T = Record<string, unknown>>(sql: string, args?: unknown[]): Promise<T[]>;
+};
+
+export function approvalOk(value: string | null | undefined) {
+  const text = value?.trim() ?? "";
+  return /^[\w .:,'#-]{8,180}$/.test(text);
+}
+
+export function backupRefOk(value: string | null | undefined) {
+  const text = value?.trim() ?? "";
+  return /^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,180}$/.test(text);
+}
 
 export function findPlanSha256(statements: readonly string[] = FIND_STATEMENTS) {
   return createHash("sha256").update(statements.join("\n")).digest("hex");
