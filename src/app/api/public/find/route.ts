@@ -20,6 +20,6 @@ export async function POST(request: Request) {
   if (!parsed.success) return NextResponse.json({ error: "Add your name, a mobile number, and what you need done." }, { status: 400 });
   if (parsed.data.website) return NextResponse.json({ ok: true });
   const saved = await saveAreaRequest(parsed.data);
-  if (!saved.ok) return NextResponse.json({ error: saved.error }, { status: 400 });
+  if (!saved.ok) return NextResponse.json({ error: saved.error }, { status: saved.status ?? 400 });
   return NextResponse.json({ ok: true });
 }

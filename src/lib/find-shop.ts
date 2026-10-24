@@ -2,6 +2,7 @@ import { recordAudit } from "@/lib/audit";
 import { isLineEntitled, isBillingEntitled } from "@/lib/billing-entitlement";
 import { linkTouchToCustomer, normalizePhone, displayPhone } from "@/lib/customer";
 import { deriveDemandSignal } from "@/lib/demand-capture";
+import { relationMissing } from "@/lib/find-schema";
 import { zip3FromAddress } from "@/lib/network-density";
 import { getShopLine } from "@/lib/owner-setup-state";
 import { prisma } from "@/lib/prisma";
@@ -117,7 +118,12 @@ export async function findShops(query: FindQuery, now = new Date()): Promise<Fou
     take: 100,
   });
   const matched = rows.filter((shop) => shopZip3(shop) === query.zip3 && listable(shop, now));
-  const scores = await reviewScores(matched.map((shop) => shop.id));
+  let scores = new Map<string, ReviewScore>();
+  try {
+    scores = await reviewScores(matched.map((shop) => shop.id));
+  } catch (error) {
+    if (!relationMissing(error, "VisitReview")) throw error;
+  }
   return matched
     .map((shop) => {
       const phone = getShopLine(shop)!;
@@ -217,14 +223,19 @@ export async function shopArea(businessId: string, now = new Date()): Promise<Sh
         })
       ).filter((row) => shopZip3(row) === query.zip3 && listable(row, now))
     : [];
-  const waiting = query
-    ? await prisma.areaRequest.findMany({
+  let waiting: { id: string; name: string; phone: string; need: string; createdAt: Date }[] = [];
+  if (query) {
+    try {
+      waiting = await prisma.areaRequest.findMany({
         where: { trade: query.trade, zip3: query.zip3, claimedAt: null },
         orderBy: { createdAt: "asc" },
         take: 8,
         select: { id: true, name: true, phone: true, need: true, createdAt: true },
-      })
-    : [];
+      });
+    } catch (error) {
+      if (!relationMissing(error, "AreaRequest")) throw error;
+    }
+  }
   const invite =
     query && shop.slug && partnerRows.length === 0
       ? `${referralLink(shop.slug)}?via=network&trade=${encodeURIComponent(query.trade)}&zip=${encodeURIComponent(query.zip3)}`
@@ -255,7 +266,7 @@ export async function saveAreaRequest(input: {
   phone: string;
   need: string;
   now?: Date;
-}): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
+}): Promise<{ ok: true; id: string } | { ok: false; error: string; status?: number }> {
   const query = parseFindQuery({ trade: input.trade, zip: input.zip });
   if (!query) return { ok: false, error: "Choose HVAC, plumbing or electrical, and a ZIP code." };
   const name = input.name.trim().slice(0, 80);
@@ -265,16 +276,23 @@ export async function saveAreaRequest(input: {
   const need = input.need.trim().slice(0, 400);
   if (need.length < 8) return { ok: false, error: "Say what you need done, in a sentence." };
   const now = input.now ?? new Date();
-  const recent = await prisma.areaRequest.findFirst({
-    where: { trade: query.trade, zip3: query.zip3, phone, claimedAt: null, createdAt: { gte: new Date(now.getTime() - DAY_MS) } },
-    select: { id: true },
-  });
-  if (recent) return { ok: true, id: recent.id };
-  const row = await prisma.areaRequest.create({
-    data: { trade: query.trade, zip3: query.zip3, name, phone, need },
-    select: { id: true },
-  });
-  return { ok: true, id: row.id };
+  try {
+    const recent = await prisma.areaRequest.findFirst({
+      where: { trade: query.trade, zip3: query.zip3, phone, claimedAt: null, createdAt: { gte: new Date(now.getTime() - DAY_MS) } },
+      select: { id: true },
+    });
+    if (recent) return { ok: true, id: recent.id };
+    const row = await prisma.areaRequest.create({
+      data: { trade: query.trade, zip3: query.zip3, name, phone, need },
+      select: { id: true },
+    });
+    return { ok: true, id: row.id };
+  } catch (error) {
+    if (relationMissing(error, "AreaRequest")) {
+      return { ok: false, error: "Orvius couldn't take that yet. Try again in a few minutes.", status: 503 };
+    }
+    throw error;
+  }
 }
 
 export class AreaClaimError extends Error {
@@ -292,9 +310,17 @@ export async function claimAreaRequest(params: { businessId: string; requestId: 
   if (!area.listed || !area.trade || !area.zip3) {
     throw new AreaClaimError("This shop isn't in search for that area yet.", 409);
   }
-  const open = await prisma.areaRequest.findFirst({
-    where: { id: params.requestId, trade: area.trade, zip3: area.zip3, claimedAt: null },
-  });
+  let open: Awaited<ReturnType<typeof prisma.areaRequest.findFirst>> | undefined;
+  try {
+    open = await prisma.areaRequest.findFirst({
+      where: { id: params.requestId, trade: area.trade, zip3: area.zip3, claimedAt: null },
+    });
+  } catch (error) {
+    if (relationMissing(error, "AreaRequest")) {
+      throw new AreaClaimError("Orvius couldn't take that yet. Try again in a few minutes.", 503);
+    }
+    throw error;
+  }
   if (!open) throw new AreaClaimError("That request is already with a shop.", 409);
 
   const demand = deriveDemandSignal({

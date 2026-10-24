@@ -1,3 +1,4 @@
+import { relationMissing } from "@/lib/find-schema";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -44,17 +45,34 @@ export type VisitReviewView =
   | { ok: true; businessName: string; title: string; already: boolean }
   | { ok: false; error: string; status: number };
 
+const REVIEW_LATER = { ok: false as const, error: "Reviews aren't open yet. Try again in a few minutes.", status: 503 };
+
 export async function visitReviewView(token: string): Promise<VisitReviewView> {
-  const job = await prisma.job.findUnique({
-    where: { customerConfirmToken: token },
+  let job: Awaited<ReturnType<typeof prisma.job.findUnique<{
+    where: { customerConfirmToken: string };
     select: {
-      id: true,
-      title: true,
-      status: true,
-      business: { select: { name: true } },
-      visitReview: { select: { id: true } },
-    },
-  });
+      id: true;
+      title: true;
+      status: true;
+      business: { select: { name: true } };
+      visitReview: { select: { id: true } };
+    };
+  }>>> | undefined;
+  try {
+    job = await prisma.job.findUnique({
+      where: { customerConfirmToken: token },
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        business: { select: { name: true } },
+        visitReview: { select: { id: true } },
+      },
+    });
+  } catch (error) {
+    if (relationMissing(error, "VisitReview")) return REVIEW_LATER;
+    throw error;
+  }
   if (!job) return { ok: false, error: "This link isn't valid.", status: 404 };
   if (job.status !== "completed") return { ok: false, error: "This visit isn't finished yet.", status: 409 };
   return { ok: true, businessName: job.business.name, title: job.title, already: Boolean(job.visitReview) };
@@ -70,16 +88,31 @@ export async function leaveVisitReview(params: {
     return { ok: false, error: "Choose a rating from 1 to 5.", status: 400 };
   }
   const body = params.body?.trim().slice(0, REVIEW_BODY_MAX) || null;
-  const job = await prisma.job.findUnique({
-    where: { customerConfirmToken: params.token },
-    select: { id: true, businessId: true, status: true, visitReview: { select: { id: true } } },
-  });
+  let job: Awaited<ReturnType<typeof prisma.job.findUnique<{
+    where: { customerConfirmToken: string };
+    select: {
+      id: true;
+      businessId: true;
+      status: true;
+      visitReview: { select: { id: true } };
+    };
+  }>>> | undefined;
+  try {
+    job = await prisma.job.findUnique({
+      where: { customerConfirmToken: params.token },
+      select: { id: true, businessId: true, status: true, visitReview: { select: { id: true } } },
+    });
+  } catch (error) {
+    if (relationMissing(error, "VisitReview")) return REVIEW_LATER;
+    throw error;
+  }
   if (!job) return { ok: false, error: "This link isn't valid.", status: 404 };
   if (job.status !== "completed") return { ok: false, error: "This visit isn't finished yet.", status: 409 };
   if (job.visitReview) return { ok: false, error: "You already told the next customer how it went.", status: 409 };
   try {
     await prisma.visitReview.create({ data: { businessId: job.businessId, jobId: job.id, rating, body } });
-  } catch {
+  } catch (error) {
+    if (relationMissing(error, "VisitReview")) return REVIEW_LATER;
     const again = await prisma.visitReview.findUnique({ where: { jobId: job.id }, select: { id: true } });
     if (again) return { ok: false, error: "You already told the next customer how it went.", status: 409 };
     throw new Error("The review didn't save.");
