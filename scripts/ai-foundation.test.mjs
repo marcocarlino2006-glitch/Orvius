@@ -34,7 +34,11 @@ test("model policy is versioned and each task can roll independently", () => {
 test("offline AI readiness eval protects intake and prompt contracts", () => {
   const result = runAiReadinessEval();
   assert.equal(result.cases, 10);
-  assert.equal(result.failures.length, 0);
+  assert.equal(
+    result.failures.length,
+    0,
+    result.failures.map((failure) => `${failure.caseId}:${failure.check}`).join(", "),
+  );
   assert.equal(result.passed, result.checks);
 });
 
