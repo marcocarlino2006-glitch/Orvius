@@ -55,14 +55,16 @@ export type MoneyBrief = {
 /** Collected and billed in one sentence. Owed and unbilled only when they are real. */
 export function moneyBrief(
   money: CommandMoney,
-  week?: { jobsBooked: number; avgTicketCents: number | null | undefined },
+  week?: { jobsBooked: number; avgTicketCents: number | null | undefined; closed?: string | null },
 ): MoneyBrief {
   const days = money.windowDays === 1 ? "the last day" : `the last ${money.windowDays} days`;
   const collected = money.payments ? `collected ${formatCentsTidy(money.collectedCents) ?? "$0"}` : "collected nothing";
   const billed = money.invoices ? `billed ${formatCentsTidy(money.invoicedCents) ?? "$0"}` : "billed nothing";
   const booked = week ? weekBooked(week) : null;
+  const closed = week?.closed?.trim() || null;
+  const head = [booked, closed].filter(Boolean).join(" ");
   return {
-    summary: booked ? `${booked} In ${days}: ${collected}, ${billed}.` : `In ${days}: ${collected}, ${billed}.`,
+    summary: head ? `${head} In ${days}: ${collected}, ${billed}.` : `In ${days}: ${collected}, ${billed}.`,
     owed:
       money.outstandingCents > 0
         ? `${formatCentsTidy(money.outstandingCents) ?? "$0"} is still owed on ${money.outstandingInvoices === 1 ? "1 invoice" : `${money.outstandingInvoices} invoices`}.`

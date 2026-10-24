@@ -241,6 +241,12 @@ test("texts classify from the body, since serviceType says nothing", () => {
   assert.equal(signal.postalCode, "78702");
 });
 
+test("a real request that only appears in the transcript stays uncoded", () => {
+  const words = "the ac is not cooling at all";
+  assert.equal(classifyDemand({ text: words, trade: "HVAC" }), "hvac.no_cool");
+  assert.equal(deriveDemandSignal({ callerWords: words, trade: "HVAC" }).categoryCode, null);
+});
+
 test("the short field is read before the transcript drowns it", () => {
   const signal = deriveDemandSignal({
     serviceType: "AC not cooling",

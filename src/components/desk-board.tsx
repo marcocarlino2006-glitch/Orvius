@@ -85,7 +85,7 @@ function Money({
   week,
 }: {
   money: CommandMoney;
-  week?: { jobsBooked: number; avgTicketCents: number | null };
+  week?: { jobsBooked: number; avgTicketCents: number | null; closed?: string | null };
 }) {
   const brief = moneyBrief(money, week);
   return (
@@ -236,7 +236,7 @@ export function DeskBoard({
 }: {
   jobs: TodayJob[];
   money?: CommandMoney;
-  week?: { jobsBooked: number; avgTicketCents: number | null };
+  week?: { jobsBooked: number; avgTicketCents: number | null; closed?: string | null };
   items: OpenItem[];
   asideKey: string | null;
   timezone?: string | null;

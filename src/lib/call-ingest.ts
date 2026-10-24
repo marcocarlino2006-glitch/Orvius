@@ -187,6 +187,9 @@ export async function captureEndOfCallReport(params: {
           source: "call",
           categoryCode: demand.categoryCode,
           postalCode: demand.postalCode,
+          systemType: structured.systemType ?? null,
+          equipmentBrand: structured.equipmentBrand ?? null,
+          equipmentModel: structured.equipmentModel ?? null,
         },
         update: {
           name: structured.name ?? undefined,
@@ -198,6 +201,9 @@ export async function captureEndOfCallReport(params: {
           notes: structured.notes ?? summary,
           categoryCode: demand.categoryCode ?? undefined,
           postalCode: demand.postalCode ?? undefined,
+          systemType: structured.systemType ?? undefined,
+          equipmentBrand: structured.equipmentBrand ?? undefined,
+          equipmentModel: structured.equipmentModel ?? undefined,
         },
       });
 

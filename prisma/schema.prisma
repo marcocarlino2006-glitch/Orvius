@@ -739,6 +739,14 @@ model Lead {
    */
   postalCode        String?
   /**
+   * What the caller said the system is. Empty when they did not say. Never a price.
+   */
+  systemType        String?
+  /** Brand the caller named. Empty when they did not say. Never a price. */
+  equipmentBrand    String?
+  /** Model the caller named. Empty when they did not say. Never a price. */
+  equipmentModel    String?
+  /**
    * First time the shop worked this lead, for speed-to-lead vs. win rate.
    */
   firstContactedAt  DateTime?

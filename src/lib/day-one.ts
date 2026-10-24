@@ -11,6 +11,8 @@ export type DayOneFacts = {
   collectedCents: number;
   /** Collected dollars could not be read. Never report that as zero. */
   moneyPaused?: boolean;
+  /** This shop's closed amounts for the week, already one shop. */
+  closed?: string | null;
 };
 
 export type DayOneStepId = "number" | "card" | "ticket";
@@ -53,6 +55,7 @@ export function weekWorth(input: {
   avgTicketCents: number | null | undefined;
   collectedCents: number;
   moneyPaused?: boolean;
+  closed?: string | null;
 }): string {
   const collected = input.moneyPaused
     ? "Collected dollars are paused until the books can be read."
@@ -60,8 +63,9 @@ export function weekWorth(input: {
       ? `Collected ${formatCentsTidy(input.collectedCents) ?? "$0"}.`
       : "Collected nothing.";
   const booked = weekBooked(input);
-  if (!booked) return `Set your average ticket to see what this week's jobs are worth. ${collected}`;
-  return `${booked} ${collected}`;
+  const closed = input.closed?.trim() || null;
+  if (!booked && !closed) return `Set your average ticket to see what this week's jobs are worth. ${collected}`;
+  return [booked, closed, collected].filter(Boolean).join(" ");
 }
 
 export function dayOne(facts: DayOneFacts): DayOne {

@@ -109,6 +109,8 @@ export type Ring1Data = {
   money?: CommandMoney;
   /** Still open after pay: the shop's number, a card account, and one average ticket. */
   dayOne?: DayOne;
+  /** This shop's closed amounts for the week, by job type. */
+  closedWeek?: string | null;
   tomorrow?: import("@/lib/command-tomorrow").CommandTomorrow | null;
   crewBoard?: CrewBoard;
   technicians?: Array<{ id: string; name: string }>;
