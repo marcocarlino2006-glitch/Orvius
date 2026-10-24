@@ -9,7 +9,7 @@ import assert from "node:assert/strict";
 
 import { findAvailableSchedules } from "../src/lib/availability.ts";
 import { buildInCallTools, describeSlot, parseSlotPreference, readToolCalls } from "../src/lib/in-call-tool-defs.ts";
-import { buildCallerContextNote } from "../src/lib/caller-context.ts";
+import { buildCallerContextNote, noteForConnectedCall } from "../src/lib/caller-context.ts";
 import { buildAssistantSystemPrompt } from "../src/lib/business.ts";
 import { assistantConfigFingerprint, buildVapiAssistantConfig } from "../src/lib/vapi.ts";
 import { ownerAlertContextLine } from "../src/lib/owner-alert-message.ts";
@@ -95,6 +95,14 @@ test("a returning caller is recognised but must confirm before details are used"
   assert.match(note, /Nothing is booked for them.*do not say you found or confirmed it/);
 
   assert.equal(buildCallerContextNote({ name: "New", interactionCount: 1, timezone: NY, lastJob: null, openJob: null }), null);
+
+  const onThisCall = noteForConnectedCall(null);
+  assert.match(onThisCall, /a callback number is already on this call/);
+  assert.match(onThisCall, /do not say any digits/);
+  assert.doesNotMatch(onThisCall, /\d{3}/, "the note never contains the caller's number");
+  const withHistory = noteForConnectedCall(note);
+  assert.match(withHistory, /a callback number is already on this call/);
+  assert.match(withHistory, /Is this Maria\?/);
 });
 
 test("the receptionist books on the call and never names a time the schedule didn't give it", () => {
@@ -108,6 +116,8 @@ test("the receptionist books on the call and never names a time the schedule did
   assert.match(prompt, /do not ask for it again/);
   assert.match(prompt, /Only the danger rule below tells anyone to leave the home/);
   assert.match(prompt, /urgent, not dangerous\. NEVER tell those callers to leave the home/);
+  assert.match(prompt, /You're booked for \[time\]/);
+  assert.doesNotMatch(prompt, /penciled in/);
   assert.match(prompt, /never read out digits the caller did not say/);
   assert.match(prompt, /never read their address or history to someone who has not confirmed/);
 

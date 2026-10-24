@@ -1,6 +1,6 @@
 import { afterResponse } from "@/lib/after-response";
 import { linkTouchToCustomer } from "@/lib/customer";
-import { sendCustomerConfirmSms } from "@/lib/customer-confirm";
+import { sendBookingReceiptSms, sendCustomerConfirmSms } from "@/lib/customer-confirm";
 import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
 import {
   DEFAULT_JOB_DURATION_MIN,
@@ -556,6 +556,11 @@ export async function createJobFromLead(params: {
    */
   enforceCapacity?: boolean;
   /**
+   * The caller picked this slot on the phone. That yes is the confirmation:
+   * the board shows the time as booked, and the text is a receipt.
+   */
+  callerPickedTime?: boolean;
+  /**
    * Refuse when this caller already has an open job created since then. Auto-book
    * checks before booking, but a dropped call and its callback can both pass that
    * read; the check inside the transaction is the one that holds.
@@ -924,9 +929,36 @@ export async function createJobFromLead(params: {
     const bookedJobId = job.id;
     const businessId = lead.businessId!;
     const confirmLink = { businessId, callId: lead.callId, leadId: lead.id, customerId, jobId: bookedJobId };
+    if (params.callerPickedTime) {
+      const now = new Date();
+      job = await prisma.job.update({
+        where: { id: bookedJobId },
+        data: {
+          customerConfirmedAt: now,
+          confirmedAt: job.confirmedAt ?? now,
+          status: job.status === "scheduled" ? "confirmed" : job.status,
+        },
+      });
+    }
+    const callerPickedTime = Boolean(params.callerPickedTime);
     await afterResponse(async () => {
       await closeBookingMoneyLoop({ businessId, leadId: lead.id, jobId: bookedJobId });
       try {
+        if (callerPickedTime) {
+          const receipt = await sendBookingReceiptSms(bookedJobId);
+          await recordAudit({
+            ...confirmLink,
+            entityType: "job",
+            entityId: bookedJobId,
+            action: receipt.sent ? "customer.booking_receipt_sent" : "customer.booking_receipt_skipped",
+            summary: receipt.sent
+              ? "Texted the customer that they're booked for the time they picked"
+              : `Booking receipt not sent (${(receipt.reason ?? "unknown").replace(/_/g, " ")})`,
+            detail: { reason: receipt.reason ?? null },
+            idempotencyKey: `job:${bookedJobId}:booking_receipt`,
+          });
+          return;
+        }
         const confirm = await sendCustomerConfirmSms(bookedJobId, { firstOnly: true });
         await recordAudit({
           ...confirmLink,

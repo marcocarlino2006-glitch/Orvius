@@ -171,6 +171,8 @@ test("a held time still open at end of call books at exactly that time", async (
     assert.equal(result.created, true, JSON.stringify(result));
     const job = await prisma.job.findUnique({ where: { id: result.jobId } });
     assert.equal(job.scheduledAt.getTime(), slot.getTime());
+    assert.ok(job.customerConfirmedAt, "the caller picked this time on the phone");
+    assert.equal(job.status, "confirmed");
   } finally {
     await drop(shop.id);
   }

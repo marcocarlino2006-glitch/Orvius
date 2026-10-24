@@ -35,6 +35,17 @@ function firstName(name: string | null) {
   return first && first.length > 1 ? first : null;
 }
 
+/**
+ * Caller ID is on the call, and the model must not recite those digits.
+ * The number itself stays out of this note.
+ */
+export const NUMBER_ON_THIS_CALL =
+  'Private note, never read this aloud: a callback number is already on this call. Ask once "Can we use the number you\'re calling from?" If they say yes, say "Got it — we\'ll use the number you\'re calling from." and do not say any digits. If they dictate a different number, read back only the digits they said.';
+
+export function noteForConnectedCall(returning: string | null): string {
+  return returning ? `${NUMBER_ON_THIS_CALL} ${returning}` : NUMBER_ON_THIS_CALL;
+}
+
 export function buildCallerContextNote(input: CallerContextInput): string | null {
   if (input.interactionCount < 2 && !input.lastJob && !input.openJob) return null;
   const who = firstName(input.name);

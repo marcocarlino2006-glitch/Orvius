@@ -188,6 +188,77 @@ export async function sendCustomerConfirmSms(
 }
 
 /**
+ * The caller already picked this time on the phone. The text is a receipt,
+ * not a second confirmation. A missed text does not un-book the visit.
+ */
+export async function sendBookingReceiptSms(
+  jobId: string,
+  options: { moved?: boolean } = {},
+): Promise<{ sent: boolean; reason?: string }> {
+  const job = await prisma.job.findUnique({
+    where: { id: jobId },
+    include: {
+      business: { select: { id: true, name: true, timezone: true } },
+      customer: { select: { phone: true } },
+      lead: { select: { phone: true } },
+    },
+  });
+  if (!job) return { sent: false, reason: "not_found" };
+
+  const now = new Date();
+  if (!job.customerConfirmedAt) {
+    await prisma.job.updateMany({
+      where: { id: jobId, customerConfirmedAt: null },
+      data: {
+        customerConfirmedAt: now,
+        confirmedAt: job.confirmedAt ?? now,
+        ...(job.status === "scheduled" ? { status: "confirmed" } : {}),
+      },
+    });
+  }
+  if (!options.moved && job.customerConfirmSentAt) {
+    return { sent: false, reason: "already_confirmed" };
+  }
+
+  const to = job.customer?.phone?.trim() || job.lead?.phone?.trim() || null;
+  if (!to) return { sent: false, reason: "no_customer_phone" };
+  const when = formatWindow(job.scheduledAt, job.business.timezone);
+  const shop = job.business.name;
+  const line = options.moved
+    ? when
+      ? `${shop}: you're moved to ${when}.`
+      : `${shop}: your visit was moved.`
+    : when
+      ? `${shop}: you're booked for ${when}.`
+      : `${shop}: you're booked.`;
+  try {
+    const result = await sendCustomerSms({
+      businessId: job.businessId,
+      to,
+      body: withSmsOptOutFooter(line),
+      intent: {
+        eventType: options.moved ? "job.moved_receipt" : "job.booking_receipt",
+        eventId: `${jobId}@${job.scheduledAt?.toISOString() ?? "unscheduled"}`,
+        version: 1,
+      },
+    });
+    if (!result.sent) return result;
+    await prisma.job.update({
+      where: { id: jobId },
+      data: { customerConfirmSentAt: new Date(), customerConfirmSid: result.sid ?? null },
+    });
+    logInfo("customer.booking_receipt_sent", { jobId, businessId: job.businessId, moved: Boolean(options.moved) });
+    return { sent: true };
+  } catch (error) {
+    logWarn("customer.booking_receipt_failed", {
+      jobId,
+      error: error instanceof Error ? error.message : "send failed",
+    });
+    return { sent: false, reason: "send_failed" };
+  }
+}
+
+/**
  * The caller was told the shop would confirm. When the text cannot carry that,
  * the owner has to — once per job, however many receipts arrive.
  */

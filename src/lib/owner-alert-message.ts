@@ -55,6 +55,8 @@ export type OwnerAlertContext = {
   promiseWarning?: string | null;
   /** Time the caller took on the call when it could not be booked — they think they have it. */
   heldSlotAt?: Date | null;
+  /** The visit was moved to heldSlotAt. The old time is existingJob.scheduledAt. */
+  moved?: boolean;
   summary?: string | null;
   timezone: string;
 };
@@ -80,7 +82,9 @@ export function ownerAlertContextLine(context: OwnerAlertContext): string | null
     line = "Unhappy about a past visit or bill · call them yourself — not booked";
   } else if (skipReason === "existing_job" && existingJob) {
     if (intent === "cancel") line = `Wants to cancel the ${jobRef}. Not cancelled yet — call to confirm.`;
-    else if (intent === "reschedule" && context.heldSlotAt) {
+    else if (intent === "reschedule" && context.moved && context.heldSlotAt) {
+      line = `Moved the ${jobRef} to ${formatSchedule(context.heldSlotAt, context.timezone)}. They were told that time.`;
+    } else if (intent === "reschedule" && context.heldSlotAt) {
       line = `Wants to move the ${jobRef} to ${formatSchedule(context.heldSlotAt, context.timezone)}. That time is held for them for 2 hours — move the job and confirm with them. Not moved yet.`;
     } else if (intent === "reschedule") line = `Wants to move the ${jobRef}. Not moved yet — call to pick a time.`;
     else if (intent === "status") line = `Asking about their ${jobRef}. No new job created.`;
