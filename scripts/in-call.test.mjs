@@ -103,6 +103,9 @@ test("the receptionist books on the call and never names a time the schedule did
   assert.match(prompt, /call hold_appointment/);
   assert.match(prompt, /NEVER say an appointment time that did not come from check_availability/);
   assert.match(prompt, /Never book an emergency/);
+  assert.match(prompt, /call tell_the_team/);
+  assert.match(prompt, /tell_the_team is not for gas/);
+  assert.match(prompt, /do not ask for it again/);
   assert.match(prompt, /Only the danger rule below tells anyone to leave the home/);
   assert.match(prompt, /urgent, not dangerous\. NEVER tell those callers to leave the home/);
   assert.match(prompt, /never read out digits the caller did not say/);
@@ -124,7 +127,7 @@ test("the assistant carries the booking tools, live control and the shop's voice
     inCallBooking: true,
   });
   const names = config.model.tools.map((t) => t.function?.name ?? t.type);
-  assert.deepEqual(names, ["check_availability", "hold_appointment", "hold_new_time", "alert_team_now", "pass_to_network"]);
+  assert.deepEqual(names, ["check_availability", "hold_appointment", "hold_new_time", "alert_team_now", "tell_the_team", "pass_to_network"]);
   for (const tool of config.model.tools) assert.equal(tool.server.url, "https://api.orvius.im/api/webhooks/vapi");
   assert.deepEqual(config.monitorPlan, { controlEnabled: true });
   assert.equal(config.voice.voiceId, RECEPTIONIST_VOICES[3].id);

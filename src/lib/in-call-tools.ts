@@ -28,6 +28,7 @@ import {
   OWNER_SETS_TIMES_REPLY,
   outsideScopeReply,
   URGENT_NO_BOOK_REPLY,
+  urgentTeamReply,
   OFFER_GAP_MIN,
   OFFERED_SLOTS,
   parseSlotPreference,
@@ -337,6 +338,60 @@ async function alertTeamNow(shop: ShopForTools, call: CallForTools, args: Record
   return safetyAlertReply({ queued, transferring });
 }
 
+/** An urgent job that is not a danger: the owner hears it while the caller is still talking. */
+async function tellTheTeam(shop: ShopForTools, call: CallForTools, args: Record<string, unknown>, callerWords?: string | null) {
+  const what = str(args.what) ?? "an urgent job";
+  const address = str(args.address);
+  const name = str(args.callerName);
+  const callback = trustedCallbackNumber({
+    extracted: str(args.callbackNumber),
+    callerId: call.callerPhone,
+    callerLines: (callerWords ?? "").split("\n").filter((line) => line.trim()),
+  });
+  const number = callback.phone ? displayPhone(callback.phone) : callback.withheld ? "number not confirmed, check the call" : null;
+  let queued = false;
+
+  if (shop.ownerPhone || shop.ownerEmail) {
+    const alert = await enqueueOwnerAlert({
+      businessId: shop.id,
+      businessName: shop.name,
+      ownerPhone: shop.ownerPhone,
+      ownerEmail: shop.ownerEmail,
+      dedupeKey: `urgent-live:${call.vapiCallId ?? call.id}`,
+      message: [
+        `Urgent call, caller still on the line: ${what}.`,
+        address ? `Address: ${address}.` : null,
+        [name, number].filter(Boolean).length ? `Caller: ${[name, number].filter(Boolean).join(", ")}.` : null,
+        "Call them back now.",
+      ]
+        .filter(Boolean)
+        .join(" "),
+    });
+    const channels = alert.duplicate
+      ? (
+          await prisma.ownerNotification.findMany({
+            where: { businessId: shop.id, dedupeKey: `urgent-live:${call.vapiCallId ?? call.id}`, status: { not: "failed" } },
+            select: { channel: true },
+          })
+        ).map((row) => row.channel)
+      : alert.queued;
+    queued = channels.length > 0;
+    await afterResponse(() =>
+      processNotificationQueue(5, { businessId: shop.id })
+        .then(() => drainOwnerAlerts({ at: "in-call.tell_the_team", businessId: shop.id }))
+        .catch((error) =>
+          logError("in_call.urgent_alert_drain_failed", {
+            businessId: shop.id,
+            error: error instanceof Error ? error.message : String(error),
+          }),
+        ),
+    );
+    logInfo("in_call.urgent_alert", { businessId: shop.id, callId: call.id, callbackSource: callback.source, callbackReplaced: callback.replaced });
+  }
+
+  return urgentTeamReply({ queued });
+}
+
 export async function handleInCallToolCalls(params: {
   shop: ShopForTools;
   callId: string;
@@ -346,6 +401,20 @@ export async function handleInCallToolCalls(params: {
 }): Promise<Array<{ toolCallId: string; result: string }>> {
   return Promise.all(
     params.toolCalls.map(async (call) => {
+      if (call.name === "tell_the_team") {
+        try {
+          return {
+            toolCallId: call.id,
+            result: await tellTheTeam(params.shop, params.call ?? { id: params.callId }, call.args, params.callerWords),
+          };
+        } catch (error) {
+          logError("in_call.urgent_alert_failed", {
+            businessId: params.shop.id,
+            error: error instanceof Error ? error.message : String(error),
+          });
+          return { toolCallId: call.id, result: urgentTeamReply({ queued: false }) };
+        }
+      }
       if (call.name === "alert_team_now") {
         try {
           return {

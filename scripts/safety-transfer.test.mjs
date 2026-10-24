@@ -167,6 +167,36 @@ test("without a transfer number the caller is told the team will call right back
   }
 });
 
+test("tell_the_team texts the owner while an urgent caller is still on the line, and never calls it a safety call", async () => {
+  const shop = await makeShop();
+  try {
+    const call = await prisma.call.create({
+      data: { businessId: shop.id, vapiCallId: `urgent-${stamp()}`, callerPhone: "+15125550123", status: "in-progress" },
+    });
+    const run = () =>
+      handleInCallToolCalls({
+        shop: toolsShop(shop),
+        callId: call.id,
+        call,
+        toolCalls: [{ id: "u1", name: "tell_the_team", args: { what: "no heat and a baby at home", address: "412 Main Street" } }],
+      });
+    const [first] = await run();
+    await run();
+    assert.match(first.result, /The owner is being told now/);
+    assert.match(first.result, /Do not tell them to leave the home or call 911/);
+    assert.doesNotMatch(first.result, /SAFETY|leave the home now/i);
+    const sms = await prisma.ownerNotification.findMany({ where: { businessId: shop.id, channel: "sms" } });
+    assert.equal(sms.length, 1);
+    assert.equal(sms[0].dedupeKey, `urgent-live:${call.vapiCallId}`);
+    assert.match(sms[0].message, /^Urgent call, caller still on the line: no heat and a baby at home\./);
+    assert.doesNotMatch(sms[0].message, /SAFETY/);
+    assert.match(sms[0].message, /412 Main Street/);
+    assert.match(sms[0].message, /Call them back now/);
+  } finally {
+    await drop(shop.id);
+  }
+});
+
 test("the schedule tool refuses a danger call and points at the alert, instead of claiming one was sent", async () => {
   const shop = await makeShop();
   try {

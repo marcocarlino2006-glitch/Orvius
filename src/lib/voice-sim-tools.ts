@@ -10,6 +10,7 @@ import {
   NO_SLOTS_REPLY,
   outsideScopeReply,
   URGENT_NO_BOOK_REPLY,
+  urgentTeamReply,
   NETWORK_NOT_OFFERED_REPLY,
   OFFER_GAP_MIN,
   OFFERED_SLOTS,
@@ -125,6 +126,7 @@ function answer(shop: SimShop, call: ToolCall, now: Date, transferring: boolean,
     return call.name === "hold_new_time" ? heldNewTimeReply(at, tz) : heldReply(at, tz);
   }
   if (call.name === "alert_team_now") return safetyAlertReply({ queued: true, transferring });
+  if (call.name === "tell_the_team") return urgentTeamReply({ queued: true });
   // The sandbox never offers the network, and production refuses a pass that wasn't offered.
   if (call.name === "pass_to_network") return NETWORK_NOT_OFFERED_REPLY;
   return "Unknown tool. Continue the call without it.";

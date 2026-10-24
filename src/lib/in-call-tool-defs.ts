@@ -6,7 +6,7 @@ import type { SlotPreference } from "@/lib/availability";
  * assistant config can be built and tested anywhere.
  */
 
-export const IN_CALL_TOOL_NAMES = ["check_availability", "hold_appointment", "hold_new_time", "alert_team_now", "pass_to_network"] as const;
+export const IN_CALL_TOOL_NAMES = ["check_availability", "hold_appointment", "hold_new_time", "alert_team_now", "tell_the_team", "pass_to_network"] as const;
 export type InCallToolName = (typeof IN_CALL_TOOL_NAMES)[number];
 
 const URGENCY = ["emergency", "same-day", "this-week", "flexible"] as const;
@@ -90,6 +90,25 @@ export function buildInCallTools(params: { webhookUrl: string; webhookSecret?: s
             callbackNumber: { type: "string", description: "Callback number the caller gave, if different from the one they are calling from" },
           },
           required: ["hazard"],
+        },
+      },
+      server,
+    },
+    {
+      type: "function",
+      function: {
+        name: "tell_the_team",
+        description:
+          "Text the shop owner right now because this call is urgent and the caller is still on the line. Use it for no heat or no AC in extreme weather or with a baby, elderly or sick person at home, an active water leak, or no power. Do not use it for gas, carbon monoxide, smoke, or sparking (use alert_team_now), and do not use it for an estimate or a flexible visit. Pass whatever you already know. Do not wait to collect more before calling it.",
+        parameters: {
+          type: "object",
+          properties: {
+            what: { type: "string", description: "What the caller needs, e.g. 'no heat and a baby at home'" },
+            address: { type: "string", description: "Service address, if the caller has given it" },
+            callerName: { type: "string", description: "Caller's name, if given" },
+            callbackNumber: { type: "string", description: "Callback number the caller gave, if different from the one they are calling from" },
+          },
+          required: ["what"],
         },
       },
       server,
@@ -217,7 +236,15 @@ export const PASSED_TO_NETWORK_REPLY =
 export const NETWORK_UNAVAILABLE_REPLY =
   "Passing along is not available. Take their details and say the office will call to schedule.";
 export const URGENT_NO_BOOK_REPLY =
-  "This is an emergency: do not offer or book a time. Say \"I'm marking this urgent so the team calls you right back.\" Then take their name, callback number and address if you don't have them.";
+  "This is an emergency: do not offer or book a time. Call tell_the_team if you have not already. Say \"I'm telling the team now. They'll call you right back.\" Then take their name, callback number and address if you don't have them. Do not tell them to leave the home or call 911.";
+
+/** What to say after paging the owner for an urgent call that is not a danger. */
+export function urgentTeamReply(params: { queued: boolean }) {
+  const status = params.queued
+    ? "The owner is being told now. Never say they were texted, have seen it, or are on the way."
+    : "The team could not be told just now. Do not say they were alerted.";
+  return `${status} This is not a danger call. Do not tell them to leave the home or call 911. Say "I'm telling the team now. They'll call you right back." Then take any name, callback number or address you do not already have. Do not book a time.`;
+}
 export function outsideScopeReply(label: string) {
   return `Do not book this. ${label} isn't work this shop books through you. Take their name, callback number and address, say "I'll have the owner call you back about that," and do not offer a time.`;
 }
