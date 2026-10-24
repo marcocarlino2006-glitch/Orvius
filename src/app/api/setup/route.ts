@@ -220,9 +220,14 @@ async function view(business: Business | null) {
   };
 }
 
+/** The invite cookie, or null outside a request (scripts, tests). */
 async function readInvite() {
-  const raw = (await cookies()).get(ACQUISITION_COOKIE)?.value;
-  return inviteArea(parseAcquisition(raw));
+  try {
+    const raw = (await cookies()).get(ACQUISITION_COOKIE)?.value;
+    return inviteArea(parseAcquisition(raw));
+  } catch {
+    return null;
+  }
 }
 
 async function signedInEmail(): Promise<string | null> {
