@@ -184,6 +184,7 @@ export async function GET(request: NextRequest) {
   );
 
   // Calls already refresh a shop's assistant as they connect; this catches shops that had no call.
+  // A prompt change that should not wait for either is /api/cron/assistants, dispatch only.
   const assistants = { current: 0, updated: 0, skipped: 0 };
   const assistantsDone = await forEachShop(
     { isActive: true, vapiAssistantId: { not: null }, environment: { not: "test" } },

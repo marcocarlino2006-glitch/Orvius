@@ -50,7 +50,7 @@ test("no workflow runs untrusted PR code with secrets, and paid voice is manual 
 });
 
 test("effectful scheduled sweeps name the one listed target and the release they run from", () => {
-  for (const file of ["alert-drain.yml", "line-watch.yml", "sweep-heartbeat.yml"]) {
+  for (const file of ["alert-drain.yml", "line-watch.yml", "sweep-heartbeat.yml", "assistant-sync.yml"]) {
     const src = read(`.github/workflows/${file}`);
     assert.doesNotMatch(src, /api\.orvius\.im|\|\| 'https/, `${file}: no implicit production fallback`);
     assert.doesNotMatch(src, /curl .*api\/cron/, `${file}: sweeps go through scheduled-drain.mjs`);
@@ -74,6 +74,7 @@ const env = { CRON_SECRET: "s", DRAIN_TARGET_ENV: "production", DRAIN_TARGET_URL
 
 test("the caller refuses before any request when target, listing or release is missing or wrong", () => {
   assert.equal(drainPlan("alert-drain", env, targets).ok, true);
+  assert.equal(drainPlan("assistants", env, targets).ok, true);
   for (const [bad, why] of [
     [{ DRAIN_TARGET_URL: "" }, /no default target/],
     [{ DRAIN_TARGET_ENV: "" }, /DRAIN_TARGET_ENV/],
@@ -137,11 +138,13 @@ test("the server refuses a sweep meant for another environment or release before
   try {
     const alert = await import("../src/app/api/cron/alert-drain/route.ts");
     const watch = await import("../src/app/api/cron/line-watch/route.ts");
+    const assistants = await import("../src/app/api/cron/assistants/route.ts");
     const { NextRequest } = await import("next/server");
     const req = (path, headers) => new NextRequest(`https://app.example.test/api/cron/${path}`, { headers: { authorization: "Bearer cron-test", ...headers } });
     const wrong = { "x-orvius-target": "staging", "x-orvius-release": SHA };
     assert.equal((await alert.GET(req("alert-drain", wrong))).status, 409);
     assert.equal((await watch.GET(req("line-watch", {}))).status, 409);
+    assert.equal((await assistants.GET(req("assistants", wrong))).status, 409);
     assert.equal(drained + lineWatched, 0, "no effect ran");
     const right = { "x-orvius-target": "production", "x-orvius-release": SHA };
     assert.equal((await alert.GET(req("alert-drain", right))).status, 200);

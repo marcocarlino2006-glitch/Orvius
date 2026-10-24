@@ -334,7 +334,7 @@ test("19. cron routes refuse unsigned requests against a live database, not only
   delete process.env.CRON_SECRET;
   try {
     const { NextRequest } = await import("next/server");
-    for (const name of ["line-watch", "notifications", "alert-drain"]) {
+    for (const name of ["line-watch", "notifications", "alert-drain", "assistants"]) {
       const { GET } = await import(`../src/app/api/cron/${name}/route.ts`);
       const res = await GET(new NextRequest(`http://localhost/api/cron/${name}`));
       assert.equal(res.status, 503, `${name} must not run unsigned against Turso`);
