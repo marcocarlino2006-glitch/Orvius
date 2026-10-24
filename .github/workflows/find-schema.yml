@@ -1,5 +1,7 @@
 name: Find schema
 
+# The apply script loads src/lib/find-schema.ts with node, so that file
+# stays free of the app's @/ alias.
 # By hand, or when the find-live merge reaches main. Backs up through the app
 # (the encrypted bytes are the artifact), restore-drills them there, then
 # creates VisitReview and AreaRequest. The database URL stays on the host.
