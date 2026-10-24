@@ -28,6 +28,9 @@ type CallRow = {
     id: string;
     name: string | null;
     serviceType: string | null;
+    systemType?: string | null;
+    equipmentBrand?: string | null;
+    equipmentModel?: string | null;
     urgency: string | null;
   } | null;
   quality: { score: number; verdict: CallVerdict; headline: string };
@@ -176,6 +179,9 @@ export default function CallsPage() {
                   createdAt={call.createdAt}
                   leadName={call.lead?.name ?? call.customer?.name}
                   serviceType={call.lead?.serviceType}
+                  systemType={call.lead?.systemType}
+                  equipmentBrand={call.lead?.equipmentBrand}
+                  equipmentModel={call.lead?.equipmentModel}
                   urgency={call.lead?.urgency}
                   returning={(call.customer?.interactionCount ?? 0) > 1}
                   quality={call.quality}

@@ -1386,3 +1386,8 @@ CREATE TABLE IF NOT EXISTS "JobBilling" (
 CREATE UNIQUE INDEX IF NOT EXISTS "JobBilling_jobId_key" ON "JobBilling"("jobId");
 CREATE INDEX IF NOT EXISTS "JobBilling_businessId_status_idx" ON "JobBilling"("businessId", "status");
 CREATE INDEX IF NOT EXISTS "JobBilling_status_attemptedAt_idx" ON "JobBilling"("status", "attemptedAt");
+
+-- What the caller said the equipment is. A price is not one of these fields.
+ALTER TABLE "Lead" ADD COLUMN "systemType" TEXT;
+ALTER TABLE "Lead" ADD COLUMN "equipmentBrand" TEXT;
+ALTER TABLE "Lead" ADD COLUMN "equipmentModel" TEXT;

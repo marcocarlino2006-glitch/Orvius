@@ -316,7 +316,15 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
         <DeskBoard
           jobs={data.dispatchToday?.jobs ?? []}
           money={data.money}
-          week={data.outcomes ? { jobsBooked: data.outcomes.jobsBooked, avgTicketCents: data.outcomes.avgTicketCents } : undefined}
+          week={
+            data.outcomes || data.closedWeek
+              ? {
+                  jobsBooked: data.outcomes?.jobsBooked ?? 0,
+                  avgTicketCents: data.outcomes?.avgTicketCents ?? null,
+                  closed: data.closedWeek,
+                }
+              : undefined
+          }
           items={items}
           asideKey={liveItem?.key ?? null}
           timezone={data.coverage?.timezone}

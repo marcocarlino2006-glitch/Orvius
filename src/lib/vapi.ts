@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { buildInCallTools } from "@/lib/in-call-tool-defs";
 import { DEFAULT_VOICE_ID, VOICE_MODEL, VOICE_PROVIDER } from "@/lib/voices";
+import { spokenEquipmentFact } from "@/lib/equipment-fact";
 import { DEMAND_CATEGORY_CODES } from "@/lib/job-taxonomy";
 import {
   getAiModelPolicy,
@@ -403,6 +404,19 @@ export function buildVapiAssistantConfig(params: {
               description:
                 'Additional details and appointment preference. If the caller is outside the service area, start with "Out of service area — not a job". If the request is a trade this shop does not do, start with "Wrong trade for this shop — not a job".',
             },
+            systemType: {
+              type: "string",
+              description:
+                "The system the caller named, such as central AC, heat pump, furnace, tank water heater, or panel. Omit when they did not say. Never a price.",
+            },
+            equipmentBrand: {
+              type: "string",
+              description: "Brand the caller named. Omit when they did not say. Never a price.",
+            },
+            equipmentModel: {
+              type: "string",
+              description: "Model the caller named. Omit when they did not say. Never a price.",
+            },
           },
         },
       },
@@ -479,5 +493,8 @@ export function extractLeadFromStructuredData(
     urgency: typeof data.urgency === "string" ? data.urgency : undefined,
     address: typeof data.address === "string" ? data.address : undefined,
     notes: typeof data.notes === "string" ? data.notes : undefined,
+    systemType: spokenEquipmentFact(data.systemType),
+    equipmentBrand: spokenEquipmentFact(data.equipmentBrand),
+    equipmentModel: spokenEquipmentFact(data.equipmentModel),
   };
 }

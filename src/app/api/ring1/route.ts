@@ -6,6 +6,7 @@ import { isPriorityUrgency } from "@/lib/auto-job";
 import { listHandled, runAutopilot } from "@/lib/autopilot";
 import { shopDayBounds } from "@/lib/availability";
 import { isAfterHours } from "@/lib/business";
+import { closedWeekLine } from "@/lib/closed-week";
 import { dayOne } from "@/lib/day-one";
 import { getShopLineForBusiness, isDemoBusiness } from "@/lib/demo-business";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
@@ -268,6 +269,17 @@ export async function GET(request: Request) {
 
   const line = getShopLineForBusiness(business);
   const connect = getConnectStatus(business);
+  const closedRows = await prisma.job.findMany({
+    where: {
+      businessId: business.id,
+      status: "completed",
+      completedAt: { gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) },
+      finalAmountCents: { gt: 0 },
+    },
+    select: { businessId: true, categoryCode: true, postalCode: true, finalAmountCents: true },
+    take: 200,
+  });
+  const closedLine = closedWeekLine(closedRows);
   const dayOneOut = dayOne({
     live: isBillingEntitled(business) && business.environment === "production" && !isDemoBusiness(business),
     numberProved: business.overflowProvedAt != null,
@@ -276,6 +288,7 @@ export async function GET(request: Request) {
     jobsBooked: outcomesOut.jobsBooked,
     collectedCents: money?.collectedCents ?? outcomesOut.collectedCents,
     moneyPaused: money === undefined || Boolean(outcomesOut.moneyPaused),
+    closed: closedLine,
   });
 
   let certDone = 0;
@@ -416,6 +429,7 @@ export async function GET(request: Request) {
     flow,
     money,
     dayOne: dayOneOut,
+    closedWeek: closedLine,
     tomorrow,
     crewBoard: crewBoard(dispatchBoard, boardJobs),
     technicians: crew.map((tech) => ({ id: tech.id, name: tech.name })),

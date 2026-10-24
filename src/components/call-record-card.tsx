@@ -6,6 +6,7 @@ import { displayPhone, normalizePhone } from "@/lib/customer";
 import { CALL_OUTCOME_LABEL, type CallOutcome } from "@/lib/call-outcome";
 import { isEmergency } from "@/lib/urgency";
 import { isLiveCall } from "@/lib/live-call";
+import { equipmentLine } from "@/lib/equipment-fact";
 
 type CallRecordCardProps = {
   id: string;
@@ -17,6 +18,9 @@ type CallRecordCardProps = {
   createdAt: string;
   leadName?: string | null;
   serviceType?: string | null;
+  systemType?: string | null;
+  equipmentBrand?: string | null;
+  equipmentModel?: string | null;
   urgency?: string | null;
   returning?: boolean;
   quality?: { verdict: "clean" | "listen" | "fix"; headline: string };
@@ -58,6 +62,9 @@ export function CallRecordCard({
   createdAt,
   leadName,
   serviceType,
+  systemType,
+  equipmentBrand,
+  equipmentModel,
   urgency,
   returning,
   quality,
@@ -74,6 +81,7 @@ export function CallRecordCard({
   const need = [serviceType, summaryAddsSomething(summary, serviceType, leadName) ? summary : null]
     .filter(Boolean)
     .join(". ");
+  const equipment = equipmentLine({ systemType, equipmentBrand, equipmentModel });
   const live = isLiveCall(status, createdAt);
   const kind: CallOutcome = outcomeKind ?? (booked ? "booked" : "held");
   const outcome: { tone: StatusTone; label: string } = live
@@ -89,6 +97,7 @@ export function CallRecordCard({
           {returning ? <span className="dt-tag">Returning</span> : null}
         </RecordLink>
         {need ? <span className="dt-sub">{need}</span> : null}
+        {equipment ? <span className="dt-sub">{equipment}</span> : null}
         {quality && quality.verdict !== "clean" ? (
           <span className={quality.verdict === "fix" ? "dt-sub is-risk" : "dt-attention"}>
             {quality.verdict === "fix" ? "Fix" : "Listen"}: {quality.headline}
