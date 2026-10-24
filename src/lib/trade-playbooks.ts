@@ -75,7 +75,7 @@ const HVAC: TradePlaybook = {
   safety: [
     { key: "gas_smell", label: "Gas smell", instruction: "Tell the caller to leave the home and call the gas utility or 911. Call them back now.", keywords: GAS_WORDS },
     { key: "carbon_monoxide", label: "Carbon monoxide alarm", instruction: "Tell the caller to get outside and call 911. Call them back now.", keywords: [/carbon[- ]?monoxide/, /\bco (alarm|detector|monitor)s?\b/, /mon[oó]xido de carbono/] },
-    { key: "burning_unit", label: "Burning smell or smoke from the unit", instruction: "Tell the caller to shut the system off at the breaker. Call them back now.", keywords: [/(burning|smoke|smoking).{0,20}(unit|furnace|system|vent)/, /(unit|furnace).{0,20}(burning|smoke)/] },
+    { key: "burning_unit", label: "Burning smell or smoke from the unit", instruction: "Tell the caller to leave the home, not touch any switches, and call 911 from outside. Call them back now.", keywords: [/(burning|smoke|smoking).{0,20}(unit|furnace|system|vent)/, /(unit|furnace).{0,20}(burning|smoke)/, /burning smell/, /smell(s|ing)? (like )?burning/] },
   ],
   emergency: [
     /\bno heat\b.*\b(freez|cold|baby|infant|elderly)/,
@@ -110,7 +110,7 @@ const PLUMBING: TradePlaybook = {
   fallback: { key: "plumbing_diagnostic", label: "Plumbing diagnostic", durationMin: 90, skill: "general", keywords: [] },
   safety: [
     { key: "gas_smell", label: "Gas smell near a gas appliance", instruction: "Tell the caller to leave the home and call the gas utility or 911. Call them back now.", keywords: GAS_WORDS },
-    { key: "water_on_electrical", label: "Water reaching the electrical panel or outlets", instruction: "Tell the caller to stay out of the water and away from the panel, and call 911 or the utility if anything sparks. Call them back now.", keywords: [/water.{0,40}\b(electrical panel|breaker (box|panel)|fuse box|outlets?|wiring)\b/, /\b(electrical panel|breaker (box|panel)|fuse box|outlets?)\b.{0,30}\b(wet|under water|flooded|flooding|soaked)\b/] },
+    { key: "water_on_electrical", label: "Water reaching the electrical panel or outlets", instruction: "Tell the caller to leave the home, stay out of the water, not touch any switches, and call 911 from outside. Call them back now.", keywords: [/water.{0,40}\b(electrical panel|breaker (box|panel)|fuse box|outlets?|wiring)\b/, /\b(electrical panel|breaker (box|panel)|fuse box|outlets?)\b.{0,30}\b(wet|under water|flooded|flooding|soaked)\b/] },
     { key: "sewage_backup", label: "Sewage backing up into the home", instruction: "Tell the caller to stop using water and keep people away from it. Call them back now.", keywords: [/sewage (backing|coming) (up|in)/, /raw sewage/] },
   ],
   emergency: [/burst/, /flood/, /water everywhere/, /can'?t (shut|turn) (it |the water )?off/],
@@ -128,8 +128,8 @@ const ELECTRICAL: TradePlaybook = {
   ],
   fallback: { key: "electrical_diagnostic", label: "Electrical diagnostic", durationMin: 90, skill: "general", keywords: [] },
   safety: [
-    { key: "sparking", label: "Sparking, burning smell, or smoke", instruction: "Tell the caller to shut off the main breaker if it is safe and call 911 if there is fire. Call them back now.", keywords: [/spark/, /burning smell/, /smell(s|ing)? (like )?burning/, ...SMOKE_WORDS, /electrical fire/, /chispa/, /\bhumo\b/, /olor a quemado/] },
-    { key: "shock", label: "Someone was shocked", instruction: "If anyone is hurt, the caller should call 911. Call them back now.", keywords: [/(got|was|been) shocked/, /electrocut/] },
+    { key: "sparking", label: "Sparking, burning smell, or smoke", instruction: "Tell the caller to leave the home, not touch any switches, and call 911 from outside. Call them back now.", keywords: [/spark/, /burning smell/, /smell(s|ing)? (like )?burning/, ...SMOKE_WORDS, /electrical fire/, /chispa/, /\bhumo\b/, /olor a quemado/] },
+    { key: "shock", label: "Someone was shocked", instruction: "Tell the caller to leave the home, not touch any switches, and call 911 from outside. Call them back now.", keywords: [/(got|was|been) shocked/, /electrocut/] },
     { key: "exposed_wires", label: "Exposed or hot wires", instruction: "Tell the caller to keep everyone away and shut off the breaker. Call them back now.", keywords: [/exposed wire/, /wires? (hanging|exposed|hot)/, /downed (power )?line/] },
   ],
   emergency: [/no power/, /power (is )?out/, ...WATER_LOOSE],

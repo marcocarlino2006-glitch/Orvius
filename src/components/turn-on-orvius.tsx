@@ -1105,6 +1105,10 @@ function LiveStep({
                 <Link href="/refunds">Refunds</Link>.
               </span>
             </label>
+            <p className="ton-note">
+              Texts to your mobile start when the line is live. Texts to customers wait for carrier approval. Until
+              then those texts are held, not sent. Paying does not skip that.
+            </p>
             <label className="ton-check">
               <input type="checkbox" checked={sms} onChange={(e) => setSms(e.target.checked)} />
               <span>

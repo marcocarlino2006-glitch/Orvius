@@ -32,8 +32,8 @@ export default function SmsTermsPage() {
           <strong>Service texts to a shop&apos;s customers.</strong> When a
           person calls or texts a home-service business that uses{" "}
           {company.productName} and asks for service, that business may text
-          them about that request: that the request was received, a proposed or
-          booked appointment and a request to confirm it, a reminder, a single
+          them about that request: that the request was received, a booked time,
+          a proposed time with a request to confirm it, a reminder, a single
           follow-up if nobody from the shop has reached them yet, and a link to
           pay a deposit or invoice. After a completed visit the business may
           send one text asking for a review. Replies go to the shop.

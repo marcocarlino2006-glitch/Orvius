@@ -63,6 +63,11 @@ export const HELP_ARTICLES: HelpArticle[] = [
           and you should get the lead alert on your mobile. Add your mobile under <strong>Settings → Notifications</strong>{" "}
           and use <strong>Send test</strong> to check alerts without placing a call.
         </p>
+        <h2>Texts</h2>
+        <p>
+          Alerts to your mobile start once the line is live. Texts to customers need carrier approval after you go
+          live. Until a carrier approves them, customer texts are held, not sent. Paying does not skip that step.
+        </p>
       </>
     ),
   },
@@ -108,43 +113,53 @@ export const HELP_ARTICLES: HelpArticle[] = [
     title: "What the receptionist does on a call",
     summary: "What it asks, what it books, and what it will never say — so you know exactly what your callers hear.",
     category: "Calls",
-    keywords: "ai receptionist script questions booking emergency gas leak spanish transfer spam disclosure recorded",
+    keywords: "ai receptionist script questions booking emergency gas leak spanish transfer spam disclosure recorded booked confirm link digits shock sewage burning",
     body: (
       <>
         <h2>Every call</h2>
         <ul>
           <li>Answers with your opening line and says the call may be recorded and assisted by an automated receptionist.</li>
           <li>Works out what’s wrong and how urgent it is — callers aren’t asked to pick a category.</li>
-          <li>Takes the service address, name and callback number, and reads numbers back digit by digit.</li>
+          <li>
+            Takes the service address, name and callback number. If a number is already on the call, it asks once and
+            says no digits. Otherwise it reads back only the digits the caller said.
+          </li>
           <li>If the caller spells a name or street, that spelling is what gets saved.</li>
           <li>Speaks Spanish if the caller does. Your records stay in English.</li>
         </ul>
         <h2>Booking</h2>
         <p>
           When booking on the call is on, it offers up to two open times from your hours, your technicians’ existing
-          jobs, and <Link href="/help/calendar">busy times on your own calendar</Link>. When the caller picks one, the
-          time is held for them and they hear “The shop will confirm with you shortly.” Two callers at once are never
-          given the same time.
+          jobs, and <Link href="/help/calendar">busy times on your own calendar</Link>. When the caller picks one, they
+          hear “You’re booked for [time].” An assistant calling for someone else is not told the time is confirmed. A
+          visit they already have is moved when that slot is open. It never promises a text. Two callers at once are
+          never given the same time. A window that was only proposed, not picked on the call, still texts a confirm
+          link.
         </p>
         <h2>Emergencies and danger</h2>
         <ul>
           <li>
-            Gas smell, a carbon monoxide alarm, smoke or sparking: the first thing the caller hears is to leave the
-            home, not touch switches, and call the gas company or 911 from outside. Then it takes their details for an
-            urgent callback.
+            Gas smell, a carbon monoxide alarm, smoke, sparking, a burning smell, a shock, or water on electrical
+            equipment: the first thing they hear is to leave the home, not touch switches, and call 911 from outside.
+            For a gas smell or carbon monoxide alarm, it says to call the gas company or 911. Then it alerts you. None
+            of these are booked.
           </li>
           <li>
-            No heat, no AC, a leak, or a baby or elderly person at home is marked urgent — it is not treated as danger,
-            and those callers are never told to leave.
+            Sewage backing up: stay out of the water and don’t use the drains. It does not use the gas-leak script, and
+            it does not book a slot.
           </li>
-          <li>Emergencies are never booked into a slot; they’re marked for your team to call back right away.</li>
+          <li>
+            No heat, no AC, a leak, or a baby, elderly or sick person at home is urgent. Those callers are never told
+            to leave, and the visit is not booked. You are told to call them right back.
+          </li>
         </ul>
         <h2>What it will never do</h2>
         <ul>
           <li>Quote prices, arrival times or technician names.</li>
           <li>Promise a text, an email or a callback time.</li>
-          <li>Claim it found or confirmed an earlier request — it can’t see your records.</li>
+          <li>Claim it found an earlier request unless a private note or a tool result said so.</li>
           <li>Read a returning caller’s address or history before they’ve confirmed their name.</li>
+          <li>Read out digits the caller did not say.</li>
         </ul>
         <h2>Other callers</h2>
         <p>
@@ -298,9 +313,9 @@ export const HELP_ARTICLES: HelpArticle[] = [
         </ol>
         <h2>A detail was captured wrong</h2>
         <p>
-          Numbers are read back to every caller, and spelled names are saved as spelled. Names the caller doesn’t
-          spell are saved as heard, so unusual names can come through wrong — the recording and transcript are on
-          the call so you can check.
+          A number already on the call is confirmed without reading digits. Any other number is read back only as the
+          caller said it, and spelled names are saved as spelled. Names the caller doesn’t spell are saved as heard,
+          so unusual names can come through wrong — the recording and transcript are on the call so you can check.
         </p>
         <h2>Still stuck</h2>
         <p>

@@ -6,14 +6,15 @@ Hand this to every pilot owner. Same content as `/pilot/forward` and `npm run pi
 
 - Answers the **Orvius line** (and any calls you forward to it)
 - Qualifies: name, phone, service, urgency, address
-- Proposes a job window and texts the customer a **confirm link**
+- When the caller picks a time, the job is booked and they hear that time
+- A window that was only proposed still texts a **confirm link**
 - Texts you the lead summary (email failover if SMS fails)
 - Keeps one shop record for leads, jobs, and weekly proof
 
 ## What Orvius does not do (yet)
 
 - Catch calls on your public number **unless you forward**
-- Treat a proposed window as a locked appointment until the customer confirms
+- Treat a window the caller did not pick as a locked appointment until they confirm the text
 - Pay estimate card money into your shop bank (Stripe Connect later)
 - Sync Jobber / ServiceTitan
 - Guarantee “zero missed jobs” or 100% answer rate
@@ -30,7 +31,7 @@ Hand this to every pilot owner. Same content as `/pilot/forward` and `npm run pi
 
 - [ ] Orvius line answers a real call
 - [ ] Owner cell gets the alert (not the Twilio line)
-- [ ] Customer confirm SMS / link works after a book
+- [ ] Customer receipt, or confirm text for a proposed window, works
 - [ ] Overflow forward confirmed — or you told them honestly
 - [ ] Avg ticket + before-Orvius baselines set
 - [ ] Founder phone cert 5/5 stamped
@@ -38,7 +39,7 @@ Hand this to every pilot owner. Same content as `/pilot/forward` and `npm run pi
 ## Say on every sale
 
 - “We catch what hits the Orvius line — forward missed and after-hours, or publish this number.”
-- “Booked means proposed until the customer confirms.”
+- “If they picked the time on the call, they're booked. A window they did not pick still confirms by text.”
 - “Card pay on estimates is Orvius checkout until Connect.”
 
 ## CLI

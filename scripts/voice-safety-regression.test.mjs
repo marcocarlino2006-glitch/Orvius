@@ -229,7 +229,10 @@ test("the ship gate fails the Sept 26 behavior in any wording, and passes the ri
 
 test("the live prompt separates urgent from dangerous and forbids reading out unsaid digits", () => {
   const prompt = buildAssistantSystemPrompt({ name: "Summit Heating & Air", trade: "HVAC", hoursJson: "{}", servicesJson: "[]", timezone: "America/Chicago" });
-  assert.match(prompt, /DANGER — only gas smell, carbon monoxide alarm, smoke or sparking/);
+  assert.match(prompt, /DANGER — only gas smell, carbon monoxide alarm, smoke, sparking, a burning smell, a shock, or water on electrical equipment/);
+  assert.match(prompt, /Sewage backing up is not that line/);
+  assert.match(prompt, /Stay out of the water and don't use the drains/);
+  assert.doesNotMatch(prompt.slice(prompt.indexOf("Sewage backing up")), /gas company/);
   assert.match(prompt, /baby or elderly person at home is urgent, not dangerous\. NEVER tell those callers to leave the home or call 911/);
   assert.match(prompt, /You cannot see that number: never read out digits the caller did not say/);
   assert.match(prompt, /callback number \(read back only digits the caller said; if they said to use the number they're calling from, confirm that instead — never say digits\)/);

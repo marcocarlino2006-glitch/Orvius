@@ -1,7 +1,9 @@
 import { randomUUID } from "node:crypto";
 import type { Business } from "@prisma/client";
 import { recordAudit } from "@/lib/audit";
-import { ingestEndOfCallReport } from "@/lib/call-ingest";
+import { captureEndOfCallReport, finishCallReport, ingestEndOfCallReport } from "@/lib/call-ingest";
+import { findOpenSlots } from "@/lib/job";
+import { classifyRequest } from "@/lib/trade-playbooks";
 import { confirmJobByCustomerToken, ensureCustomerConfirmToken } from "@/lib/customer-confirm";
 import { seedDemoDataset } from "@/lib/demo-dataset";
 import { isOwnerDemoWorkspace, OWNER_DEMO_SLUG_PREFIX } from "@/lib/demo-fence";
@@ -75,23 +77,26 @@ type Scenario = {
   urgency: "emergency" | "same-day" | "this-week" | "flexible";
   address?: string;
   lines: string[];
+  /** The caller picked an open time on the call, so the job is booked rather than proposed. */
+  picked?: boolean;
 };
 
 export const DEMO_SCENARIOS: Scenario[] = [
   {
     id: "no_cool",
     label: "AC not cooling",
-    expect: "Books the first real open window, assigns a cooling tech, texts a confirm link.",
+    expect: "Books the first real open window. The caller picked that time, so the job is booked.",
     name: "Maria Lopez",
     phone: "+13125550141",
     serviceType: "AC not cooling",
     urgency: "same-day",
     address: "418 Elm St, Evanston IL 60201",
+    picked: true,
     lines: [
       "User: Hi, my AC stopped cooling, it's 84 upstairs.",
       "AI: I'm sorry — let's get someone out. What's the address?",
       "User: 418 Elm Street in Evanston.",
-      "AI: Got it. I'll text you the first open window to confirm.",
+      "AI: The first open window works. You're booked for that time.",
     ],
   },
   {
@@ -105,7 +110,7 @@ export const DEMO_SCENARIOS: Scenario[] = [
     address: "418 Elm St, Evanston IL 60201",
     lines: [
       "User: Hi, I called earlier about my AC not cooling — just checking you got it.",
-      "AI: We did. You're on the schedule; the confirm link is in your texts.",
+      "AI: We did. You're already booked for that time.",
     ],
   },
   {
@@ -417,26 +422,56 @@ export async function simulateDemoCall(
   const scenario = demoScenariosFor(business.trade).find((s) => s.id === scenarioId);
   if (!scenario) throw new Error("Unknown scenario");
   const vapiCallId = `demo_${business.id}_${scenario.id}_${randomUUID().slice(0, 8)}`;
-  const result = await ingestEndOfCallReport({
-    business,
-    vapiCallId,
-    message: {
-      type: "end-of-call-report",
-      call: { id: vapiCallId, customer: { number: scenario.phone } },
-      summary: `${scenario.name} called about ${scenario.serviceType}.`,
-      durationSeconds: 60 + scenario.lines.length * 15,
-      transcript: [`AI: ${(business.name ?? "Summit Heating & Air").replace(/\s*\(demo\)$/, "")}, this is Orvius. What's going on?`, ...scenario.lines].join("\n"),
-      analysis: {
-        structuredData: {
-          name: scenario.name,
-          phone: scenario.phone,
-          serviceType: scenario.serviceType,
-          urgency: scenario.urgency,
-          address: scenario.address,
-        },
+  const message = {
+    type: "end-of-call-report",
+    call: { id: vapiCallId, customer: { number: scenario.phone } },
+    summary: `${scenario.name} called about ${scenario.serviceType}.`,
+    durationSeconds: 60 + scenario.lines.length * 15,
+    transcript: [`AI: ${(business.name ?? "Summit Heating & Air").replace(/\s*\(demo\)$/, "")}, this is Orvius. What's going on?`, ...scenario.lines].join("\n"),
+    analysis: {
+      structuredData: {
+        name: scenario.name,
+        phone: scenario.phone,
+        serviceType: scenario.serviceType,
+        urgency: scenario.urgency,
+        address: scenario.address,
       },
     },
+  };
+  if (!scenario.picked) {
+    const result = await ingestEndOfCallReport({ business, vapiCallId, message });
+    return { scenario, vapiCallId, ...result };
+  }
+  const captured = await captureEndOfCallReport({ business, vapiCallId, message });
+  if (captured.duplicate) return { scenario, vapiCallId, duplicate: true as const };
+  const classification = classifyRequest({
+    business: captured.business,
+    serviceType: scenario.serviceType,
+    urgency: scenario.urgency,
+    callerWords: scenario.lines
+      .filter((line) => line.startsWith("User:"))
+      .map((line) => line.slice(5).trim())
+      .join(" "),
   });
+  const [slot] = await findOpenSlots(
+    {
+      businessId: captured.business.id,
+      urgency: classification.urgency,
+      durationMin: classification.service.durationMin,
+      skill: classification.service.skill,
+      hoursJson: captured.business.hoursJson ?? "{}",
+      timezone: captured.business.timezone ?? "America/Chicago",
+      excludeCallId: captured.call.id,
+    },
+    { count: 1 },
+  );
+  const call = slot
+    ? await prisma.call.update({
+        where: { id: captured.call.id },
+        data: { heldSlotAt: slot, heldSlotDurationMin: classification.service.durationMin },
+      })
+    : captured.call;
+  const result = await finishCallReport({ ...captured, call });
   return { scenario, vapiCallId, ...result };
 }
 

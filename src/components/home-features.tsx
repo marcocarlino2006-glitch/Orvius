@@ -20,7 +20,7 @@ const features: Feature[] = [
     id: "receptionist",
     scene: { time: "11:48 PM", label: "A furnace quits after hours" },
     title: "The receptionist brings in the work.",
-    body: "Calls answered in your name, with your opening line, voice and hours. Gas, smoke and medical emergencies get safety steps first, then you.",
+    body: "Calls answered in your name, with your opening line, voice and hours. Gas, smoke, a burning smell, a shock, and water on electrical equipment get safety steps first, then you. Sewage gets its own.",
     link: { href: "/product", label: "See how the receptionist works" },
     art: "/marketing/art/after-hours.webp",
     demo: <ReceptionistDemo />,
@@ -38,7 +38,7 @@ const features: Feature[] = [
     id: "field",
     scene: { time: "9:15 AM", label: "Out on the job" },
     title: "Your people and customers, coordinated.",
-    body: "Whoever is going gets the address and one tap to call. The customer gets the time with one tap to confirm, and callers nobody reached get a follow-up. When the work is done the bill goes out by text, and it counts as paid only once the money arrives. No app to install. Coordinating a crew across jobs is a Pro and Fleet feature.",
+    body: "Whoever is going gets the address and one tap to call. When the caller picks a time, they hear it and the job is booked. A window that was only proposed still needs one tap to confirm. Callers nobody reached get a follow-up. When the work is done the bill goes out by text, and it counts as paid only once the money arrives. No app to install. Coordinating a crew across jobs is a Pro and Fleet feature.",
     link: { href: "/help", label: "Read the help center" },
     art: "/marketing/art/on-the-job.webp",
     demo: <PhonesDemo />,
@@ -56,9 +56,9 @@ const features: Feature[] = [
 ];
 
 const industries = [
-  { name: "Heating & cooling", detail: "No heat, no cooling, carbon monoxide and gas calls handled by its own safety rules" },
-  { name: "Plumbing", detail: "Leaks, backups and water heaters, with flooding and gas sent straight to you" },
-  { name: "Electrical", detail: "Outages and repairs, with sparking, burning smells and shocks sent straight to you" },
+  { name: "Heating & cooling", detail: "No heat and no cooling stay urgent. Gas, carbon monoxide, and a burning smell are handed to you and never booked" },
+  { name: "Plumbing", detail: "Leaks and water heaters. Gas, sewage, and water on electrical equipment are handed to you and never booked" },
+  { name: "Electrical", detail: "Outages and repairs. Sparking, burning smells, and shocks are handed to you and never booked" },
 ];
 
 function Arrow() {

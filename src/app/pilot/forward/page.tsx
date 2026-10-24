@@ -80,7 +80,10 @@ export default function PilotForwardPage() {
               “We catch what hits the Orvius line — forward missed and after-hours,
               or publish this number.”
             </li>
-            <li>“You&apos;re penciled in — the shop will confirm with you shortly.”</li>
+            <li>
+              “You&apos;re booked for [time].” When they pick a time on the call, that is the appointment. A window
+              that was only proposed still needs their confirm text.
+            </li>
             <li>
               “Card pay on estimates goes to your shop bank after you finish
               payouts in Billing.”

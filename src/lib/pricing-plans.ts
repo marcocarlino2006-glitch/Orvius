@@ -93,8 +93,8 @@ export const pricingPlans: readonly PricingPlan[] = [
       "Dedicated shop line + after-hours answer",
       "Qualified leads booked into open windows",
       "Owner SMS alerts, lead inbox and call transcripts",
-      "Customer records, jobs and text-to-pay",
-      "Ask — shop intelligence on your data",
+      "Customer records and jobs. Card pay once payouts are connected",
+      "Ask — answers from your own records",
     ],
   },
   {

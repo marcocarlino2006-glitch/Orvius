@@ -43,10 +43,12 @@ const BIZ: Biz[] = [
     transcript: [
       ["Caller", "Our furnace stopped and the house is getting cold."],
       ["Orvius", "Is a carbon monoxide alarm going off, or does anyone feel dizzy?"],
-      ["Caller", "No, it's just not coming on."],
-      ["Orvius", "I can get a technician there at 6:30 tonight. What's the address?"],
+      ["Caller", "No. It's just not coming on. 418 Quarry Road."],
+      ["Orvius", "Tonight at 6:30 is open. Does that work?"],
+      ["Caller", "Yes."],
+      ["Orvius", "You're booked for tonight at 6:30."],
     ],
-    confirm: { when: "Tonight 6:30 PM", with: "Ray", service: "No heat", place: "418 Quarry Rd" },
+    confirm: { when: "tonight at 6:30", with: "Ray", service: "No heat", place: "418 Quarry Rd" },
     earlier: [
       { when: "8:00 AM", what: "Furnace tune-up · Elm Ct" },
       { when: "11:30 AM", what: "Thermostat swap · Birch Ln" },
@@ -77,9 +79,9 @@ const BIZ: Biz[] = [
       ["Caller", "My water heater is leaking all over the garage."],
       ["Orvius", "Is the water near anything electrical, and do you smell gas?"],
       ["Caller", "No gas. It's just a lot of water."],
-      ["Orvius", "Shut the cold valve on top. I can get someone there at 7 AM."],
+      ["Orvius", "I'm telling the team now. They'll call you right back."],
     ],
-    confirm: { when: "Wed 7:00 AM", with: "Chris", service: "Water heater leak", place: "1842 Oak St" },
+    confirm: { when: "today between 2 and 4", with: "Chris", service: "Kitchen drain", place: "1842 Oak St" },
     earlier: [
       { when: "Tue 9:00 AM", what: "Disposal install · Maple Dr" },
       { when: "Tue 1:00 PM", what: "Leak under sink · Cedar St" },
@@ -413,16 +415,8 @@ export function PhonesDemo() {
                 {biz.name}
               </span>
               <div className="hd-sms">
-                <p className="hd-bubble">
-                  Thanks for calling {biz.name}. We have your request for {biz.confirm.service.toLowerCase()} at{" "}
-                  {biz.confirm.place}.
-                </p>
                 <p className={`hd-bubble ${s >= 1 ? "" : "is-pending"}`}>
-                  You&apos;re booked {biz.confirm.when} with {biz.confirm.with}. Tap to confirm: orvius.im/c/8f2k
-                </p>
-                <p className={`hd-bubble hd-bubble--me ${s >= 2 ? "" : "is-pending"}`}>Confirmed ✓</p>
-                <p className={`hd-bubble ${s >= 3 ? "" : "is-pending"}`}>
-                  See you then. Reply here if anything changes.
+                  {biz.name}: you&apos;re booked for {biz.confirm.when}.
                 </p>
               </div>
               <span className="hd-compose">Text message</span>
@@ -434,8 +428,8 @@ export function PhonesDemo() {
                 <p className="hd-job-when">{biz.confirm.when}</p>
                 <p className="hd-job-what">{biz.confirm.service}</p>
                 <p className="hd-job-where">{biz.confirm.place}</p>
-                <span className={`hd-tag ${s >= 2 ? "is-green" : "is-amber"}`}>
-                  {s >= 2 ? "Customer confirmed" : "Waiting on customer"}
+                <span className={`hd-tag ${s >= 1 ? "is-green" : "is-amber"}`}>
+                  {s >= 1 ? "Booked" : "Booking"}
                 </span>
               </div>
               <ul className="hd-done">

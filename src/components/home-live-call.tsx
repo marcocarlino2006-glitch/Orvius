@@ -65,16 +65,22 @@ const SCRIPT: Beat[] = [
   },
   {
     who: "orvius",
-    text: "Got it. I'll mark this same-day and check the next open window.",
+    text: "Got it. Today between 4 and 6 is open. Does that work?",
     duration: 4.2,
-    gap: 0.55,
+    gap: 0.45,
+  },
+  {
+    who: "caller",
+    text: "Yes. Today between 4 and 6.",
+    duration: 2.4,
+    gap: 0.4,
     captures: { window: "Today · 4–6 PM" },
     stage: 3,
   },
   {
     who: "orvius",
-    text: "Your window will arrive by text to confirm. The owner has your request.",
-    duration: 4.6,
+    text: "You're booked for today between 4 and 6.",
+    duration: 3.4,
     // Long enough to read the owner's text before the loop restarts.
     gap: 5,
     stage: 4,
@@ -126,7 +132,7 @@ const BARS = Array.from({ length: BAR_COUNT }, (_, i) => {
 });
 
 /** Everything the player conveys, written out for assistive technology. */
-const TEXT_ALTERNATIVE = `Representative after-hours call for Summit HVAC. Orvius answers, the caller reports an air conditioner that stopped cooling and asks for same-day service, and Orvius collects the address 1842 Oak Street and callback number 512-555-0123. Orvius captures the service, urgency, address, callback number, and a proposed window of today between 4 and 6 PM, then texts the owner the job: same day, AC not cooling, the callback number, the address, and the proposed window awaiting the customer's confirmation. The customer confirms the window by text — Orvius never quotes a price or an arrival time.`;
+const TEXT_ALTERNATIVE = `Representative after-hours call for Summit HVAC. Orvius answers, the caller reports an air conditioner that stopped cooling and asks for same-day service, and Orvius collects the address 1842 Oak Street and callback number 512-555-0123. The caller picks today between 4 and 6. Orvius says they are booked for that time. The owner is texted the job: same day, AC not cooling, the callback number, the address, and the confirmed appointment. Orvius never quotes a price or an arrival time, and does not promise a text.`;
 
 function clock(seconds: number) {
   const whole = Math.max(0, Math.floor(seconds));
@@ -434,7 +440,7 @@ export function HomeLiveCall() {
               <br />
               1842 Oak Street
               <br />
-              Proposed window · Today 4–6 PM (awaiting customer confirm)
+              Confirmed appointment · Today 4–6 PM
             </p>
           </div>
         ) : null}

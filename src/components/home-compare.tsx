@@ -14,8 +14,8 @@ const groups: { title: string; rows: Row[] }[] = [
   {
     title: "Booking",
     rows: [
-      { label: "Proposes a real appointment window", voicemail: "no", service: "some", orvius: "yes" },
-      { label: "Texts the customer a confirmation", voicemail: "no", service: "some", orvius: "yes" },
+      { label: "Books the time the caller picks", voicemail: "no", service: "some", orvius: "yes" },
+      { label: "Texts the customer that time", voicemail: "no", service: "some", orvius: "yes" },
     ],
   },
   {

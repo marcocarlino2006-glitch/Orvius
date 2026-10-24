@@ -80,7 +80,7 @@ export function buildInCallTools(params: { webhookUrl: string; webhookSecret?: s
       function: {
         name: "alert_team_now",
         description:
-          "Text the shop owner right now, while the caller is still on the line. Use it only on a danger call — gas smell, carbon monoxide alarm, smoke or sparking — right after giving the safety instruction. Pass whatever you already know; do not hold the call to collect more.",
+          "Text the shop owner right now, while the caller is still on the line. Use it only on a DANGER call — gas smell, carbon monoxide alarm, smoke, sparking, a burning smell, a shock, water on electrical equipment, or sewage backing up — right after the safety instruction. Pass whatever you already know; do not hold the call to collect more.",
         parameters: {
           type: "object",
           properties: {
@@ -99,7 +99,7 @@ export function buildInCallTools(params: { webhookUrl: string; webhookSecret?: s
       function: {
         name: "tell_the_team",
         description:
-          "Text the shop owner right now because this call is urgent and the caller is still on the line. Use it for no heat or no AC in extreme weather or with a baby, elderly or sick person at home, an active water leak, or no power. Do not use it for gas, carbon monoxide, smoke, or sparking (use alert_team_now), and do not use it for an estimate or a flexible visit. Pass whatever you already know. Do not wait to collect more before calling it.",
+          "Text the shop owner right now because this call is urgent and the caller is still on the line. Use it for no heat or no AC in extreme weather or with a baby, elderly or sick person at home, an active water leak, or no power. Do not use it for gas, carbon monoxide, smoke, sparking, a burning smell, a shock, water on electrical equipment, or sewage (use alert_team_now), and do not use it for an estimate or a flexible visit. Pass whatever you already know. Do not wait to collect more before calling it.",
         parameters: {
           type: "object",
           properties: {
