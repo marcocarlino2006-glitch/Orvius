@@ -10,6 +10,7 @@ import { DEFAULT_JOB_DURATION_MIN, shopWallInputToUtc } from "@/lib/availability
 import { textDelivery } from "@/lib/job-lifecycle";
 import { transitionJob, type CompletionEvidence } from "@/lib/job-transition";
 import { authorizeScheduleOverride, scheduleOverrideRecord, type OverrideAuthority } from "@/lib/scheduling-policy";
+import { relationMissing } from "@/lib/find-schema";
 import { JOB_INCLUDE, JobTransitionError, isJobStatus, ownerScheduleClash, serializeJob } from "@/lib/job";
 import { classifyRequest } from "@/lib/trade-playbooks";
 import { logWarn } from "@/lib/logger";
@@ -86,6 +87,17 @@ export async function GET(_request: Request, { params }: Params) {
         ])
       : null;
 
+  let visitReview: { rating: number; body: string | null } | null = null;
+  try {
+    const row = await prisma.visitReview.findUnique({
+      where: { jobId: job.id },
+      select: { rating: true, body: true },
+    });
+    if (row && row.rating >= 1 && row.rating <= 5) visitReview = { rating: row.rating, body: row.body };
+  } catch (error) {
+    if (!relationMissing(error, "VisitReview")) throw error;
+  }
+
   const serialized = serializeJob(job);
   if (serialized.customer) {
     const counts = await prisma.customer.findUnique({
@@ -101,7 +113,7 @@ export async function GET(_request: Request, { params }: Params) {
   }
 
   return NextResponse.json({
-    job: { ...serialized, customerConfirmDelivery },
+    job: { ...serialized, customerConfirmDelivery, visitReview },
     deposit: deposit
       ? {
           id: deposit.id,

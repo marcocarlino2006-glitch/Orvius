@@ -108,6 +108,7 @@ type JobDetail = {
     name: string | null;
     phone: string | null;
   } | null;
+  visitReview?: { rating: number; body: string | null } | null;
 };
 
 export default function JobDetailPage() {
@@ -442,6 +443,15 @@ export default function JobDetailPage() {
                     <span className="jv-sub">{whenNote}</span>
                   </dd>
                 </div>
+                {job.visitReview ? (
+                  <div>
+                    <dt>They said</dt>
+                    <dd>
+                      {job.visitReview.rating} out of 5
+                      {job.visitReview.body ? <span className="jv-sub">{job.visitReview.body}</span> : null}
+                    </dd>
+                  </div>
+                ) : null}
                 {prior ? null : (
                 <div>
                   <dt>Technician</dt>

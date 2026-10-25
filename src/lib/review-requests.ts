@@ -8,10 +8,11 @@ import { prisma } from "@/lib/prisma";
 import { textingHeld } from "@/lib/twilio-sms";
 
 /**
- * After a finished visit the customer gets one text with the shop's review
- * link. Everyone gets the same link — asking only the happy ones is review
- * gating, which Google and the FTC both prohibit — so the guard is on timing
- * and frequency, never on sentiment.
+ * After a finished visit the customer gets one text asking how it went.
+ * A Google, Yelp, or Facebook link is included when the shop has one.
+ * Everyone gets the same ask — asking only the happy ones is review gating,
+ * which Google and the FTC both prohibit — so the guard is on timing and
+ * frequency, never on sentiment.
  */
 
 export const REVIEW_AFTER_MS = 60 * 60_000;
@@ -65,11 +66,15 @@ function firstName(name: string | null | undefined) {
   return first && /^[\p{L}'-]{2,}$/u.test(first) ? first : null;
 }
 
-export function reviewMessage(params: { businessName: string; name: string | null; reviewUrl: string; visitUrl?: string | null }) {
+export function reviewMessage(params: { businessName: string; name: string | null; reviewUrl?: string | null; visitUrl?: string | null }) {
   const first = firstName(params.name);
-  const google = `${first ? `Hi ${first}, thanks` : "Thanks"} for choosing ${params.businessName}. Would you take a minute to leave us a review? It really helps a small business: ${params.reviewUrl}`;
-  const here = params.visitUrl ? ` You can also tell the next customer how it went: ${params.visitUrl}` : "";
-  return `${google}${here} Reply STOP to opt out.`;
+  const hello = `${first ? `Hi ${first}, thanks` : "Thanks"} for choosing ${params.businessName}.`;
+  const stop = " Reply STOP to opt out.";
+  if (params.reviewUrl) {
+    const here = params.visitUrl ? ` You can also tell the next customer how it went: ${params.visitUrl}` : "";
+    return `${hello} Would you take a minute to leave us a review? It really helps a small business: ${params.reviewUrl}${here}${stop}`;
+  }
+  return `${hello} How did the visit go? Every rating is shown: ${params.visitUrl}${stop}`;
 }
 
 export type ReviewJob = {
@@ -120,7 +125,8 @@ export async function sendReviewRequest(params: {
   });
   if (!job) return { sent: false, reason: "not_found" };
   if (!job.business.reviewRequestsOn) return { sent: false, reason: "off" };
-  if (!job.business.reviewUrl) return { sent: false, reason: "no_review_url" };
+  const visitUrl = job.customerConfirmToken ? `https://${getPrimaryDomain()}/v/${job.customerConfirmToken}` : null;
+  if (!job.business.reviewUrl && !visitUrl) return { sent: false, reason: "no_review_url" };
 
   const phone = job.customer?.phone ?? job.lead?.phone ?? null;
   const block = reviewBlock({ ...job, phone }, now);
@@ -157,7 +163,7 @@ export async function sendReviewRequest(params: {
       businessName: job.business.name,
       name: job.customer?.name ?? job.lead?.name ?? null,
       reviewUrl: job.business.reviewUrl,
-      visitUrl: job.customerConfirmToken ? `https://${getPrimaryDomain()}/v/${job.customerConfirmToken}` : null,
+      visitUrl,
     }),
   });
   if (!result.sent) {
@@ -193,7 +199,6 @@ export async function runReviewRequests(
     const shops = await prisma.business.findMany({
       where: {
         reviewRequestsOn: true,
-        reviewUrl: { not: null },
         isActive: true,
         environment: { not: "test" },
         ...(cursor ? { id: { gt: cursor } } : {}),

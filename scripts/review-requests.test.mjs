@@ -89,6 +89,10 @@ test("the text: thanks, one ask, the link, a way out", () => {
     "Hi Ann, thanks for choosing Luxe Hair Studio. Would you take a minute to leave us a review? It really helps a small business: https://g.page/r/x/review Reply STOP to opt out.",
   );
   assert.match(reviewMessage({ businessName: "Luxe", name: null, reviewUrl: "u" }), /^Thanks for choosing Luxe\./);
+  assert.equal(
+    reviewMessage({ businessName: "Luxe", name: "Ann Cole", visitUrl: "https://orvius.im/v/tok" }),
+    "Hi Ann, thanks for choosing Luxe. How did the visit go? Every rating is shown: https://orvius.im/v/tok Reply STOP to opt out.",
+  );
   assert.ok(body.length <= 320);
 });
 
@@ -147,8 +151,12 @@ test("no link, switched off, or Twilio down: nothing sent, and an unsent text is
   try {
     const sms = fakeSms();
     assert.deepEqual(await sendReviewRequest({ jobId: (await visit(none)).id, now: AFTERNOON, send: sms.send }), { sent: false, reason: "no_review_url" });
+    const asked = await visit(none, { customerConfirmToken: `tok-${stamp()}` });
+    assert.deepEqual(await sendReviewRequest({ jobId: asked.id, now: AFTERNOON, send: sms.send }), { sent: true });
+    assert.match(sms.sent[0].body, /How did the visit go\? Every rating is shown: https:\/\/orvius\.im\/v\//);
+    assert.doesNotMatch(sms.sent[0].body, /g\.page/);
     assert.deepEqual(await sendReviewRequest({ jobId: (await visit(off)).id, now: AFTERNOON, send: sms.send }), { sent: false, reason: "off" });
-    assert.equal(sms.sent.length, 0);
+    assert.equal(sms.sent.length, 1, "a switched-off shop sends nothing, and a visit with no link sends nothing");
 
     const job = await visit(live);
     const down = async () => ({ sent: false, reason: "sms_not_configured" });
