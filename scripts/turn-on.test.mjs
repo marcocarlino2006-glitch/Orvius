@@ -144,15 +144,20 @@ test("a test-mode shop runs the real pipeline: alert-first holds, book-and-confi
   await saveSetupPermissions(owner, "confirm", true);
   await runSetupTest(owner, "routine");
   result = await readSetupTest((await findSetupSandbox(owner)));
-  assert.equal(result.decision.outcome, "held", "a new shop holds until the owner sets how jobs are spaced");
+  assert.equal(result.decision.outcome, "booked", "a new shop books the job length without inventing a drive time");
+  assert.ok(result.messages.some((m) => m.to === "customer"), "the caller's confirmation is shown");
+  assert.ok(result.messages.length > 0 && result.messages.every((m) => m.simulated), "every message is simulated");
+  assert.equal(await prisma.job.count({ where: { businessId: shop.id } }), 1, "each test starts from a clean slate");
+
+  await prisma.shopOperatingPolicy.update({ where: { businessId: shop.id }, data: { travelMode: "not_configured" } });
+  await runSetupTest(owner, "routine");
+  result = await readSetupTest((await findSetupSandbox(owner)));
+  assert.equal(result.decision.outcome, "held", "a shop left without a spacing choice still holds");
 
   await prisma.shopOperatingPolicy.update({ where: { businessId: shop.id }, data: { travelMode: "duration_only" } });
   await runSetupTest(owner, "routine");
   result = await readSetupTest((await findSetupSandbox(owner)));
-  assert.equal(result.decision.outcome, "booked");
-  assert.ok(result.messages.some((m) => m.to === "customer"), "the caller's confirmation is shown");
-  assert.ok(result.messages.length > 0 && result.messages.every((m) => m.simulated), "every message is simulated");
-  assert.equal(await prisma.job.count({ where: { businessId: shop.id } }), 1, "each test starts from a clean slate");
+  assert.equal(result.decision.outcome, "booked", "choosing the job length books again");
 
   await runSetupTest(owner, "exception");
   result = await readSetupTest((await findSetupSandbox(owner)));
