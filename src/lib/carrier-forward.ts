@@ -108,8 +108,8 @@ export function buildForwardGuideSms(params: {
     return [
       `Orvius for ${params.shopName}:`,
       `Your shop line is ${line}.`,
+      "It is already answering.",
       "Put this number on Google, trucks, and ads.",
-      "Call the Orvius line once to prove it answers, then reply DONE.",
     ].join("\n");
   }
 

@@ -45,6 +45,8 @@ export type PersonalBriefInput = {
   openNeedsYou: number;
   totalCalls: number;
   lineVerified: boolean;
+  /** A number is assigned. The receptionist is on it before any call arrives. */
+  hasLine?: boolean;
   afterHoursNow: boolean;
   patterns: ShopPattern[];
 };
@@ -192,10 +194,11 @@ export function composePersonalBrief(input: PersonalBriefInput): PersonalBrief {
   const detail: string[] = [];
 
   let headline: string;
-  if (!input.lineVerified || input.totalCalls === 0) {
-    headline = input.lineVerified
-      ? "Your line is live. The first real call will show up here the moment it ends."
-      : "One step left: call your Orvius line once so we can prove it answers.";
+  const lineOn = Boolean(input.hasLine || input.lineVerified);
+  if (!lineOn) {
+    headline = "Your number is assigned when the line is on.";
+  } else if (input.totalCalls === 0) {
+    headline = "Your receptionist is on. The first real call shows up here the moment it ends.";
   } else if (since && since.calls + since.booked + since.needsYou > 0) {
     const parts = [
       since.calls ? plural(since.calls, "call") : null,

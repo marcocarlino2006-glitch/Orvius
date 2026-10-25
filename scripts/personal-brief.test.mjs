@@ -42,10 +42,13 @@ test("the greeting uses the owner's first name when there is one", () => {
   assert.equal(firstNameFrom(""), null);
 });
 
-test("setup comes before anything else for a shop that isn't proven yet", () => {
+test("a shop with a number is on before any call, and a shop without one is told the number comes with the line", () => {
   const now = new Date("2026-09-25T13:00:00Z");
-  const unproven = composePersonalBrief({ ...base, lineVerified: false, now });
-  assert.match(unproven.headline, /call your Orvius line once/);
+  const waiting = composePersonalBrief({ ...base, lineVerified: false, hasLine: false, now });
+  assert.match(waiting.headline, /assigned when the line is on/);
+  const on = composePersonalBrief({ ...base, lineVerified: false, hasLine: true, totalCalls: 0, now });
+  assert.match(on.headline, /receptionist is on/);
+  assert.doesNotMatch(on.headline, /prove it/);
   const noCalls = composePersonalBrief({ ...base, totalCalls: 0, now, since: { at: new Date(now - 3_600_000), calls: 0, booked: 0, needsYou: 0 } });
   assert.match(noCalls.headline, /first real call/);
 });

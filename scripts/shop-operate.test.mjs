@@ -40,7 +40,7 @@ test("setup precedes board work when the front door is open", () => {
     attentionCount: 4,
   });
   assert.equal(next?.id, "setup:verify");
-  assert.match(next?.cta ?? "", /Prove/);
+  assert.match(next?.cta ?? "", /See your number/);
 });
 
 test("critical board items beat weekly proof", () => {

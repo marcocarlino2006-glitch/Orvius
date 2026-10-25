@@ -45,9 +45,9 @@ const SETUP_COPY: Record<
     cta: "Add mobile",
   },
   verify: {
-    title: "Prove your line",
-    detail: "Place one test call so the night shift is verified end-to-end.",
-    cta: "Prove it",
+    title: "Your receptionist is on",
+    detail: "The number we assigned is answering.",
+    cta: "See your number",
   },
   capture: {
     title: "Your receptionist is answering",

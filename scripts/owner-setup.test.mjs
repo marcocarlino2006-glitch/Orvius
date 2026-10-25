@@ -66,6 +66,7 @@ test("onboarding state survives refresh and existing-shop conflicts", () => {
   assert.match(wizard, /res\.status === 409 && \(await resumeExisting\(\)\.catch\(\(\) => false\)\)/);
   assert.match(wizard, /OnboardingCallVerify/);
   assert.match(wizard, /setProvisionedLine/);
-  assert.match(forwardGuide, /call your Orvius line once; then reply DONE/i);
+  assert.match(forwardGuide, /Your number is answering/);
+  assert.match(forwardGuide, /Then reply DONE/);
   assert.doesNotMatch(verify, /overflowForwardConfirmedAt:\s*true/);
 });

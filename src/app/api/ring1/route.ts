@@ -220,6 +220,7 @@ export async function GET(request: Request) {
   const crew = dispatchBoard.crew;
   const boardJobs = [...dispatchBoard.unassigned, ...dispatchBoard.columns.flatMap((c) => c.jobs)];
   const afterHoursNow = isAfterHours(now, business.hoursJson, business.timezone ?? "America/New_York", business.closedDatesJson);
+  const line = getShopLineForBusiness(business);
   const personalBrief = await loadPersonalBrief({
     business,
     ownerName: session.user?.name,
@@ -231,6 +232,7 @@ export async function GET(request: Request) {
     work,
     totalCalls,
     lineVerified: health.lineVerified,
+    hasLine: Boolean(line),
     afterHoursNow,
   }).catch(() => null);
   if (health.stuckPendingAlerts > 0) {
@@ -267,7 +269,6 @@ export async function GET(request: Request) {
         : null,
     }));
 
-  const line = getShopLineForBusiness(business);
   const connect = getConnectStatus(business);
   const closedRows = await prisma.job.findMany({
     where: {

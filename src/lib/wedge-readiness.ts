@@ -74,11 +74,13 @@ export async function getWedgeReadiness(
     },
     {
       id: "verified",
-      label: "Line tested end-to-end",
-      ok: health.lineVerified,
+      label: "Receptionist",
+      ok: health.dedicatedLine,
       detail: health.lineVerified
-        ? "Completed call reached your inbox"
-        : "Place a test call from your cell",
+        ? "A call came through"
+        : health.line
+          ? "Answering the assigned number"
+          : "No number yet",
       actionHref: health.line ? undefined : "/dashboard/settings",
     },
     {

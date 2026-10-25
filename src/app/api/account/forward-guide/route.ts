@@ -61,6 +61,8 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     ok: true,
     message:
-      "Setup steps texted. Call your Orvius line once; then reply DONE.",
+      parsed.mode === "publish"
+        ? "Your number is answering. Put it where customers call you."
+        : "Setup steps texted. Call your business number from another phone. Orvius should answer. Then reply DONE.",
   });
 }

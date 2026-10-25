@@ -161,7 +161,9 @@ export async function getShopHealth(businessId: string): Promise<ShopHealth> {
       ok: lineVerified,
       detail: lineVerified
         ? `Verified ${business.lineVerifiedAt!.toISOString()}`
-        : "Place a completed test call to confirm end-to-end",
+        : lineOk
+          ? "Answering the assigned number. A call marks this when one comes through."
+          : "No number yet",
     },
     {
       id: "owner-phone",
@@ -225,7 +227,6 @@ export async function getShopHealth(businessId: string): Promise<ShopHealth> {
   const criticalFailed = !lineOk || !assistantOk;
   const attentionFailed =
     !alertsReachable ||
-    !lineVerified ||
     failedAlerts > 0 ||
     ownerPhoneConflict ||
     (smsEnabled && !ownerPhoneOk) ||
