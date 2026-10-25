@@ -17,8 +17,8 @@ export const revalidate = 60;
 
 export const metadata: Metadata = {
   alternates: { canonical: "/launch" },
-  title: "Orvius: the phone answered, the job booked",
-  description: "Talk to the Orvius receptionist in your browser, read real calls it answered for shops, and get your line.",
+  title: "I built Orvius. Call it.",
+  description: "Orvius answers for HVAC, plumbing and electrical shops. Call the live line, then get your own.",
 };
 
 function LaunchVideo({ src, poster }: { src: string; poster?: string }) {
@@ -46,10 +46,14 @@ export default async function LaunchPage() {
       <section className="tier1-hero tier1-hero-compact lx-hero">
         <div className="editorial-wrap lx-wrap">
           <p className="tier1-eyebrow type-eyebrow">For HVAC, plumbing and electrical shops</p>
-          <h1 className="lx-title">Your phone, answered. The job, booked.</h1>
+          <h1 className="lx-title">I built this. Call it.</h1>
           <p className="lx-lead font-sans">
-            Orvius picks up when you can&apos;t, books the job on your calendar, texts the customer and tells you what happened. Don&apos;t take our word for it: talk to it.
+            Orvius is the night shift for shops that run on the phone. It answers, books the job, and leaves the day on the desk. This line is the same receptionist a shop&apos;s callers get.
           </p>
+          <a href={demoLineHref()} className="lx-bang">
+            <span>Call the live line</span>
+            <strong>{DEMO_LINE_DISPLAY}</strong>
+          </a>
           {video ? <LaunchVideo src={video} poster={process.env.ORVIUS_LAUNCH_VIDEO_POSTER?.trim() || undefined} /> : null}
           <TalkInBrowser personal phoneHref={demoLineHref()} phoneDisplay={DEMO_LINE_DISPLAY} />
           <p className="lx-alt font-sans">

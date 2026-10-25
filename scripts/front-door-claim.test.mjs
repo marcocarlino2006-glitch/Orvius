@@ -34,6 +34,9 @@ test("the claim is on the launch page and the homepage, not buried", () => {
   assert.match(launch, /id="claim"/);
   assert.match(launch, /<ClaimFrontDoor \/>/);
   assert.match(launch, /Claim your front door\./);
+  assert.match(launch, /I built this\. Call it\./);
+  assert.match(read("src/components/home-line-hero.tsx"), /I built this\./);
+  assert.match(read("src/components/home-line-hero.tsx"), /The night shift for shops that run on the phone\./);
   const home = read("src/app/page.tsx");
   assert.match(home, /<ClaimFrontDoor compact \/>/);
   assert.match(home, /Claim your front door\./);
