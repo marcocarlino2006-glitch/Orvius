@@ -47,6 +47,7 @@ type TimelineEvent = {
   status: string | null;
   amountCents?: number | null;
   refundedCents?: number;
+  day?: boolean;
 };
 
 export default function CustomerDetailPage() {
@@ -219,11 +220,101 @@ export default function CustomerDetailPage() {
             <header className="rec-head">
               <h2 className="rec-title">History</h2>
             </header>
+            <PastVisitForm customerId={customer.id} onSaved={() => setAttempt((n) => n + 1)} />
             <CustomerTimeline events={timeline} />
           </section>
         </div>
       </div>
     </OsShell>
+  );
+}
+
+function PastVisitForm({ customerId, onSaved }: { customerId: string; onSaved: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [title, setTitle] = useState("");
+  const [day, setDay] = useState("");
+  const [notes, setNotes] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  function close() {
+    setOpen(false);
+    setTitle("");
+    setDay("");
+    setNotes("");
+    setError(null);
+  }
+
+  async function save() {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/customers/${customerId}/visits`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ title: title.trim(), day, notes: notes.trim() || null }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "That didn't save.");
+      close();
+      onSaved();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "That didn't save.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (!open) {
+    return (
+      <p className="rec-add-links">
+        <button type="button" className="rec-add-link" onClick={() => setOpen(true)}>
+          Add a past visit
+        </button>
+      </p>
+    );
+  }
+
+  return (
+    <form
+      className="rec-stack font-sans"
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (!title.trim() || !day) return;
+        void save();
+      }}
+    >
+      <p className="jv-sub" style={{ margin: 0 }}>
+        This stays on their history. It does not text them, send a bill, or add a review.
+      </p>
+      <input
+        className="rec-field"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="Furnace tune-up"
+        aria-label="What the visit was"
+        maxLength={120}
+        autoFocus
+      />
+      <input className="rec-field" type="date" value={day} onChange={(e) => setDay(e.target.value)} aria-label="Day it happened" required />
+      <input
+        className="rec-field"
+        value={notes}
+        onChange={(e) => setNotes(e.target.value)}
+        placeholder="What you remember. Optional."
+        aria-label="Note"
+        maxLength={500}
+      />
+      <div className="flex flex-wrap gap-2">
+        <button type="submit" className="ox-btn ox-btn--primary ox-btn--sm" disabled={busy || title.trim().length < 2 || !day}>
+          {busy ? "Saving…" : "Save visit"}
+        </button>
+        <button type="button" className="rec-cancel" onClick={close} disabled={busy}>
+          Cancel
+        </button>
+      </div>
+      {error ? <p className="cb-error">{error}</p> : null}
+    </form>
   );
 }
 

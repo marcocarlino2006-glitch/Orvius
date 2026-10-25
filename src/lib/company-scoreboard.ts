@@ -7,6 +7,7 @@ import { company } from "@/lib/company";
 import { isEmailConfigured, sendOwnerEmail } from "@/lib/email";
 import { getAppUrl } from "@/lib/env";
 import { logInfo, logWarn } from "@/lib/logger";
+import { priorVisitExcluded } from "@/lib/job-outcome";
 import { prisma } from "@/lib/prisma";
 import { countChannels, signupChannelText } from "@/lib/acquisition";
 import { cancelReasonCounts, cancelReasonText } from "@/lib/cancel-signal";
@@ -142,10 +143,10 @@ async function week(start: Date, end: Date, now: Date): Promise<ScoreboardWeek> 
       }),
       prisma.lead.count({ where: { business: realShop, createdAt: inWindow } }),
       prisma.lead.count({ where: { business: realShop, createdAt: inWindow, job: { isNot: null } } }),
-      prisma.job.count({ where: { business: realShop, createdAt: inWindow } }),
+      prisma.job.count({ where: { business: realShop, createdAt: inWindow, ...priorVisitExcluded() } }),
       prisma.job.count({ where: { business: realShop, createdAt: inWindow, ...fromOrvius } }),
       prisma.job.count({ where: { business: realShop, customerConfirmedAt: inWindow } }),
-      prisma.job.count({ where: { business: realShop, completedAt: inWindow, status: "completed" } }),
+      prisma.job.count({ where: { business: realShop, completedAt: inWindow, status: "completed", ...priorVisitExcluded() } }),
       prisma.invoice.aggregate({
         where: { business: realShop, status: "paid", paidAt: inWindow },
         _sum: { applicationFeeCents: true },

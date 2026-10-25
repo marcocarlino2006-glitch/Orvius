@@ -1,4 +1,5 @@
 import { listAuditFor } from "@/lib/audit";
+import { isPriorVisit } from "@/lib/job-outcome";
 import { COLLECTED_STATUSES } from "@/lib/payment-math";
 import { prisma } from "@/lib/prisma";
 import { leadNextAction } from "@/lib/lead-next-action";
@@ -73,6 +74,7 @@ type Graph = {
     onSiteAt: Date | null;
     completedAt: Date | null;
     finalAmountCents: number | null;
+    resolutionCode: string | null;
     createdAt: Date;
     technician: { id: string; name: string } | null;
   } | null;
@@ -136,6 +138,7 @@ const JOB_SELECT = {
   onSiteAt: true,
   completedAt: true,
   finalAmountCents: true,
+  resolutionCode: true,
   createdAt: true,
   technician: { select: { id: true, name: true } },
 } as const;
@@ -346,7 +349,9 @@ function buildEvents(g: Graph): RecordEvent[] {
   if (g.customer && g.customer.interactionCount > 1) {
     push(g.customer.firstSeenAt, "First seen as a customer", "neutral", `${g.customer.interactionCount} touches total`);
   }
-  if (g.job) {
+  if (g.job && isPriorVisit(g.job)) {
+    push(g.job.completedAt ?? g.job.createdAt, "Earlier visit written down", "neutral", g.job.title);
+  } else if (g.job) {
     push(g.job.createdAt, "Job booked", "success", g.job.title);
     push(g.job.customerConfirmSentAt, "Confirmation text sent", "neutral");
     push(g.job.customerConfirmedAt, "Customer confirmed window", "success");
@@ -369,7 +374,7 @@ function buildDecisions(g: Graph): string[] {
   if (g.lead?.urgency) out.push(`Classified urgency as ${g.lead.urgency}`);
   if (g.lead?.serviceType) out.push(`Understood request as “${g.lead.serviceType}”`);
   if (g.call?.ownerNotifiedAt) out.push("Alerted the owner");
-  if (g.job) out.push(g.lead ? "Booked the lead into a job" : "Job created by the shop");
+  if (g.job) out.push(isPriorVisit(g.job) ? "Written from the shop's records" : g.lead ? "Booked the lead into a job" : "Job created by the shop");
   else if (g.lead?.status === "new") out.push("Held for the owner — not booked yet");
   if (g.lead?.status === "spam") out.push("Marked not a job");
   if (g.job?.technician) out.push(`Assigned to ${g.job.technician.name}`);
@@ -377,6 +382,7 @@ function buildDecisions(g: Graph): string[] {
 }
 
 function buildNext(g: Graph): RecordView["next"] {
+  if (g.job && isPriorVisit(g.job)) return null;
   if (g.job) {
     if (jobPastDue(g.job) && g.job.scheduledAt) {
       return { label: PAST_DUE_LABEL, href: recordHref("job", g.job.id), detail: pastDueDetail(g.job.scheduledAt) };

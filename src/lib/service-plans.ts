@@ -9,6 +9,7 @@ import { logWarn } from "@/lib/logger";
 import { enqueueOwnerAlert } from "@/lib/notifications";
 import { getPlatformFeeBps, isChargeableAmount } from "@/lib/platform-fee";
 import { isOwnerDemoWorkspace } from "@/lib/demo-fence";
+import { priorVisitExcluded } from "@/lib/job-outcome";
 import { prisma } from "@/lib/prisma";
 import { getAppBaseUrl, getStripe } from "@/lib/stripe";
 import { getConnectStatus } from "@/lib/stripe-connect";
@@ -366,7 +367,7 @@ export async function runVisitReminders(options: { now?: Date; budgetMs?: number
           businessId: member.businessId,
           customer: { phoneNormalized: member.phoneNormalized },
           OR: [
-            { status: "completed", completedAt: { gte: new Date(member.nextVisitDueAt.getTime() - cycle / 2) } },
+            { status: "completed", completedAt: { gte: new Date(member.nextVisitDueAt.getTime() - cycle / 2) }, ...priorVisitExcluded() },
             { status: { notIn: ["completed", "cancelled"] }, scheduledAt: { gte: now } },
           ],
         },

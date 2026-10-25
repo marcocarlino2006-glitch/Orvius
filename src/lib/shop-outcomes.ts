@@ -1,4 +1,5 @@
 import { shopDayBounds } from "@/lib/availability";
+import { priorVisitExcluded } from "@/lib/job-outcome";
 import { isAfterHours } from "@/lib/business";
 import { COLLECTED_STATUSES, addTotals, moneyTotals, type MoneyTotals } from "@/lib/payment-math";
 import { isMoneySchemaDrift } from "@/lib/command-degraded";
@@ -154,15 +155,20 @@ export async function getShopOutcomes(
       },
     }),
     prisma.job.count({
-      where: { businessId, createdAt: { gte: since } },
+      where: { businessId, createdAt: { gte: since }, ...priorVisitExcluded() },
     }),
     prisma.job.count({
       where: {
-        businessId,
-        status: "completed",
-        OR: [
-          { completedAt: { gte: since } },
-          { completedAt: null, updatedAt: { gte: since } },
+        AND: [
+          {
+            businessId,
+            status: "completed",
+            OR: [
+              { completedAt: { gte: since } },
+              { completedAt: null, updatedAt: { gte: since } },
+            ],
+          },
+          priorVisitExcluded(),
         ],
       },
     }),

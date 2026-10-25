@@ -99,6 +99,7 @@ test("which visits get one", () => {
   assert.equal(reviewBlock({ ...base, status: "scheduled" }, AFTERNOON), "not_completed");
   assert.equal(reviewBlock({ ...base, resolutionCode: "customer_declined" }, AFTERNOON), "no_work_done");
   assert.equal(reviewBlock({ ...base, resolutionCode: "no_access" }, AFTERNOON), "no_work_done");
+  assert.equal(reviewBlock({ ...base, resolutionCode: "prior_visit" }, AFTERNOON), "no_work_done");
   assert.equal(reviewBlock({ ...base, phone: null }, AFTERNOON), "no_phone");
   assert.equal(reviewBlock({ ...base, completedAt: hoursBefore(0.5) }, AFTERNOON), "too_soon");
   assert.equal(reviewBlock({ ...base, completedAt: hoursBefore(80) }, AFTERNOON), "too_old");

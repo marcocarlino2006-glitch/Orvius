@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { TimelineEvent } from "@/lib/customer";
 import { isEmergency, notableUrgency } from "@/lib/urgency";
-import { formatWhen, statusWord } from "@/lib/when";
+import { formatDay, formatWhen, statusWord } from "@/lib/when";
 
 /*
   Colour on this timeline means urgency or money arriving, not what kind of
@@ -56,7 +56,7 @@ export function CustomerTimeline({ events }: { events: TimelineEvent[] }) {
               {meta || summary ? <p className="wh-event-detail">{[meta, summary].filter(Boolean).join(" — ")}</p> : null}
             </div>
             <time className="wh-at" dateTime={event.at}>
-              {formatWhen(event.at)}
+              {event.day ? formatDay(event.at) : formatWhen(event.at)}
             </time>
           </li>
         );

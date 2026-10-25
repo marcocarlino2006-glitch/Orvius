@@ -1,3 +1,4 @@
+import { isPriorVisit } from "@/lib/job-outcome";
 import { jobPastDue } from "@/lib/job-status";
 import { formatCents } from "@/lib/money";
 import { claimedCents, collectedCents } from "@/lib/payment-math";
@@ -9,6 +10,7 @@ export type JobRowInput = {
   scheduledAt: string | null;
   customerConfirmedAt?: string | null;
   finalAmountCents?: number | null;
+  resolutionCode?: string | null;
   technician?: { name: string } | null;
   business?: { avgTicketCents: number | null; autopilot?: boolean } | null;
   /** The job's own bill, newest first. Wins over the estimate's invoice when both exist. */
@@ -79,6 +81,8 @@ export function jobRowFacts(job: JobRowInput, now = Date.now()): JobRowFacts {
   } else if (invoice) {
     const due = invoice.amountCents - paid;
     money = { label: `${formatCents(due)} due`, kind: "due", cents: due };
+  } else if (isPriorVisit(job)) {
+    money = { label: "From earlier records", kind: "none", cents: null };
   } else if (job.finalAmountCents) {
     money = { label: `${formatCents(job.finalAmountCents)} final`, kind: "final", cents: job.finalAmountCents };
   } else if (job.estimate) {
@@ -104,7 +108,7 @@ export function jobRowFacts(job: JobRowInput, now = Date.now()): JobRowFacts {
   else if (money.kind === "claimed") attention = { reason: "Customer says they paid. Confirm the money arrived.", weight: 2 };
   else if (money.kind === "unsent") attention = { reason: "Bill created but never sent to the customer.", weight: 2 };
   else if (money.kind === "due") attention = { reason: "Invoice is waiting on payment.", weight: 2 };
-  else if (job.status === "completed" && !job.finalAmountCents && !invoice) {
+  else if (job.status === "completed" && !isPriorVisit(job) && !job.finalAmountCents && !invoice) {
     attention = { reason: "Completed without a final amount.", weight: 1 };
   } else if (notStarted && at != null && !job.customerConfirmedAt && at - now < 2 * HOUR) {
     attention = { reason: "Starts within 2 hours and the customer has not confirmed. Call them.", weight: 3 };

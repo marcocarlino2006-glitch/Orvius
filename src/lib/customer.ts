@@ -1,3 +1,4 @@
+import { isPriorVisit } from "@/lib/job-outcome";
 import { isLiveCall } from "@/lib/live-call";
 import { prisma } from "@/lib/prisma";
 import { RECEIPT_STATUSES, collectedCents, refundedOf } from "@/lib/payment-math";
@@ -260,6 +261,8 @@ export type TimelineEvent = {
   jobId?: string | null;
   /** Inbox thread for a text. */
   href?: string | null;
+  /** The day is what was written down. The clock on it was not. */
+  day?: boolean;
 };
 
 function paymentTitle(payment: { status: string; amountCents: number; refundedCents?: number | null }): string {
@@ -363,10 +366,11 @@ export async function getCustomerTimeline(
       type: "job" as const,
       at: (job.scheduledAt ?? job.createdAt).toISOString(),
       title: job.title,
-      summary: job.address,
+      summary: isPriorVisit(job) ? job.notes?.trim() || "From the shop's records" : job.address,
       source: "job",
       urgency: job.urgency,
       status: job.status,
+      ...(isPriorVisit(job) ? { day: true } : {}),
     })),
     ...messages.map((message) => {
       const failed = message.deliveryStatus === "failed" || message.deliveryStatus === "undelivered";

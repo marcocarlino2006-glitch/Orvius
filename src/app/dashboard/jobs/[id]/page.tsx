@@ -19,7 +19,8 @@ import { PAST_DUE_LABEL, jobPastDue, nextJobStatus, pastDueDetail } from "@/lib/
 import { jobLifecycle, jobSteps, type TextDelivery } from "@/lib/job-lifecycle";
 import { StatusDot } from "@/components/status-dot";
 import { formatCentsTidy } from "@/lib/money";
-import { formatBeat, formatShopTime, shopWallInput } from "@/lib/when";
+import { isPriorVisit } from "@/lib/job-outcome";
+import { formatBeat, formatDay, formatShopTime, shopWallInput } from "@/lib/when";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
@@ -63,6 +64,7 @@ type JobDetail = {
   urgency: string | null;
   address: string | null;
   notes: string | null;
+  resolutionCode?: string | null;
   scheduledAt: string | null;
   confirmedAt: string | null;
   customerConfirmedAt: string | null;
@@ -249,6 +251,7 @@ export default function JobDetailPage() {
   const moneyLine = openBill ?? estimateLine;
   const refreshWork = () => load();
   const tz = job.business?.timezone ?? null;
+  const prior = isPriorVisit(job);
   const open = job.status !== "completed" && job.status !== "cancelled";
   const needsConfirm = open && Boolean(job.scheduledAt) && !job.customerConfirmedAt && job.status !== "confirmed";
   const lifecycle = jobLifecycle(job);
@@ -256,8 +259,9 @@ export default function JobDetailPage() {
   const techStep = steps.find((s) => s.key === "technician");
   const callTech = open && job.technician?.phone && techStep && techStep.state !== "done" ? job.technician.phone : null;
   const reasonBody = changeReason.trim() ? { reason: changeReason.trim() } : {};
-  const whenNote =
-    job.status === "completed"
+  const whenNote = prior
+    ? "From the shop's records. No text was sent."
+    : job.status === "completed"
       ? job.completedAt
         ? `Finished ${formatShopTime(job.completedAt, tz)}`
         : "Finished"
@@ -435,21 +439,23 @@ export default function JobDetailPage() {
                 <div>
                   <dt>When</dt>
                   <dd>
-                    {job.scheduledAt ? formatShopTime(job.scheduledAt, tz) : "Not scheduled"}
+                    {prior && job.scheduledAt ? formatDay(job.scheduledAt) : job.scheduledAt ? formatShopTime(job.scheduledAt, tz) : "Not scheduled"}
                     <span className="jv-sub">{whenNote}</span>
                   </dd>
                 </div>
+                {prior ? null : (
                 <div>
                   <dt>Technician</dt>
                   <dd>{job.technician?.name ?? "Nobody yet"}</dd>
                 </div>
+                )}
                 {job.address ? (
                   <div>
                     <dt>Address</dt>
                     <dd>{job.address}</dd>
                   </div>
                 ) : null}
-                {job.serviceType ? (
+                {job.serviceType && !(prior && job.serviceType === job.title) ? (
                   <div>
                     <dt>Service</dt>
                     <dd>{job.serviceType}</dd>
