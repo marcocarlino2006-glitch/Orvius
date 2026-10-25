@@ -32,7 +32,7 @@ const OWNER = "owner@example.test";
 
 const fake = {};
 function resetFake() {
-  Object.assign(fake, { seq: fake.seq ?? 0, jobberHits: 0, jobberRequests: [], jobberRequestCreate: "ok", hcpHits: 0, hcpLeads: [], qbReceipts: [], qbHits: 0 });
+  Object.assign(fake, { seq: fake.seq ?? 0, jobberHits: 0, jobberRequests: [], jobberRequestCreate: "ok", hcpHits: 0, hcpLeads: [], qbReceipts: [], qbInvoices: [], qbPayments: [], qbHits: 0 });
 }
 resetFake();
 const liveTokens = new Set();
@@ -88,6 +88,16 @@ const server = createServer(async (req, res) => {
       const r = { Id: `sr-${++fake.seq}`, ...body };
       fake.qbReceipts.push(r);
       return send(200, { SalesReceipt: r });
+    }
+    if (path === "invoice") {
+      const r = { Id: `inv-${++fake.seq}`, ...body };
+      fake.qbInvoices.push(r);
+      return send(200, { Invoice: r });
+    }
+    if (path === "payment") {
+      const r = { Id: `pay-${++fake.seq}`, ...body };
+      fake.qbPayments.push(r);
+      return send(200, { Payment: r });
     }
   }
   // Housecall Pro
@@ -256,17 +266,25 @@ test("QuickBooks receipts: skipped unless it is the record of truth or a listed 
     return prisma.invoice.create({ data: { businessId: shop.id, jobId: job.id, amountCents: 45000, status: "paid", paidAt: new Date() } });
   };
   const blocked = await pay();
-  assert.equal((await drainQuickBooksSyncs({ businessId: shop.id })).skipped, 1);
+  assert.equal((await drainQuickBooksSyncs({ businessId: shop.id })).skipped, 2, "the invoice and the payment are both refused");
   assert.equal(fake.qbHits, 0);
-  const row = await prisma.quickBooksSync.findFirstOrThrow({ where: { businessId: shop.id, sourceId: blocked.id } });
-  assert.match(row.lastError, /Stripe is the record of truth for payments and receipts/);
+  const rows = await prisma.quickBooksSync.findMany({ where: { businessId: shop.id, sourceId: blocked.id } });
+  assert.equal(rows.length, 2);
+  for (const row of rows) assert.match(row.lastError, /Stripe is the record of truth for payments and receipts/);
 
   await contract(shop.id, {}, { payment_receipt: ["quickbooks"] });
   const allowed = await pay();
-  assert.equal((await drainQuickBooksSyncs({ businessId: shop.id })).done, 1);
-  assert.equal(fake.qbReceipts.length, 1);
-  const [link] = await correlations(shop.id, allowed.id);
-  assert.deepEqual([link.system, link.externalId], ["quickbooks", fake.qbReceipts[0].Id]);
+  assert.equal((await drainQuickBooksSyncs({ businessId: shop.id })).done, 2, "the invoice and the payment against it");
+  assert.equal(fake.qbReceipts.length, 0, "a paid invoice is not also a sales receipt");
+  assert.equal(fake.qbInvoices.length, 1);
+  assert.equal(fake.qbPayments.length, 1);
+  assert.equal(fake.qbPayments[0].Line[0].LinkedTxn[0].TxnId, fake.qbInvoices[0].Id);
+  const links = await correlations(shop.id, allowed.id);
+  assert.deepEqual(
+    links.map((link) => link.externalId).sort(),
+    [fake.qbInvoices[0].Id, fake.qbPayments[0].Id].sort(),
+  );
+  assert.ok(links.every((link) => link.system === "quickbooks"));
 });
 
 test("schedule reads with two tools connected follow the contract's availability owner", async () => {

@@ -46,7 +46,8 @@ test("the busy line, the invite, and the saved area are wired where the owner me
   const held = hook.indexOf("holdLineBusyCaller({");
   assert.ok(ended > 0 && held > ended, "the number is kept after the caller is hung up");
   assert.match(read("src/lib/call-spend-guard.ts"), /source: "busy_line"/);
-  assert.match(read("src/app/api/account/route.ts"), /derived \?\? existing\.networkZip3/);
+  assert.match(read("src/app/api/account/route.ts"), /resolveNetworkSave\(/);
+  assert.match(read("src/lib/network-choice.ts"), /derived \?\? storedZip/);
   assert.match(read("src/lib/setup-sandbox.ts"), /networkZip3: invite\.zip3/);
   assert.match(read("src/app/api/setup/route.ts"), /inviteArea\(parseAcquisition/);
   assert.match(read("src/app/r/[code]/page.tsx"), /invitePageLine/);

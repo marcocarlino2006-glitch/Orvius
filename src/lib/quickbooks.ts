@@ -515,6 +515,11 @@ async function holdForInvoice(sync: { id: string; businessId: string; sourceId: 
 
 async function processSync(syncId: string, now: Date): Promise<SyncOutcome> {
   const sync = await prisma.quickBooksSync.findUniqueOrThrow({ where: { id: syncId } });
+  const authority = await mayWrite(sync.businessId, "quickbooks", "payment_receipt");
+  if (!authority.allowed) {
+    await prisma.quickBooksSync.update({ where: { id: sync.id }, data: { status: "skipped", claimedAt: null, lastError: authority.reason } });
+    return "skipped";
+  }
   if (sync.sourceType === "collection") {
     const held = await holdForInvoice(sync, now);
     if (held) return held;
@@ -530,11 +535,6 @@ async function processSync(syncId: string, now: Date): Promise<SyncOutcome> {
   if (!receipt) {
     const lastError = sync.sourceType === "receivable" ? "No longer an open invoice in Orvius" : "No longer a paid payment in Orvius";
     await prisma.quickBooksSync.update({ where: { id: sync.id }, data: { status: "skipped", claimedAt: null, lastError } });
-    return "skipped";
-  }
-  const authority = await mayWrite(sync.businessId, "quickbooks", "payment_receipt");
-  if (!authority.allowed) {
-    await prisma.quickBooksSync.update({ where: { id: sync.id }, data: { status: "skipped", claimedAt: null, lastError: authority.reason } });
     return "skipped";
   }
   const access = await quickbooksAccess(sync.businessId, now);
