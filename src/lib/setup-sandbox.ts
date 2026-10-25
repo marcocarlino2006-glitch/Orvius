@@ -168,7 +168,7 @@ export async function startSetup(
       autopilot: false,
       followUpMode: "auto",
       setupJson: JSON.stringify({ sandbox: true, step: "test", done: { business: new Date().toISOString() }, ...(imported ? { imported } : {}) } satisfies SetupState),
-      operatingPolicy: { create: { travelMode: "not_configured" } },
+      operatingPolicy: { create: { travelMode: "duration_only" } },
     },
   });
   await recordAudit({

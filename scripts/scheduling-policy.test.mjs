@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
  * One scheduling policy per shop, including travel. Disposable database, no
- * providers: legacy shops unchanged, new shops hold for the owner, an
+ * providers: legacy shops unchanged, a not-configured row still holds, an
  * owner-chosen gap is enforced on every booking path, and an override needs
  * authority and a reason and leaves a full record.
  */
@@ -249,9 +249,17 @@ test("moving a job over the gap: a dispatcher needs a grant, everyone needs a re
   signedInAs = null;
 });
 
-test("a new shop is provisioned as not_configured by the setup sandbox", async () => {
+test("a new shop books by job length, and a shop that never chose a gap is opened the same way", async () => {
   const { startSetup } = await import("../src/lib/setup-sandbox.ts");
   const shop = await startSetup(`sandbox-${uid()}@example.test`, { name: "Fresh Shop", trade: "HVAC" });
   made.push(shop.id);
-  assert.equal((await policyLib.getSchedulingPolicy(shop.id)).state, "not_configured");
+  assert.equal((await policyLib.getSchedulingPolicy(shop.id)).state, "duration_only");
+  assert.equal(holdsForApproval(await policyLib.getSchedulingPolicy(shop.id)), false);
+
+  const stuck = await makeShop({ travelMode: "not_configured" });
+  const chose = await makeShop({ travelMode: "min_gap", travelGapMin: 20 });
+  assert.equal(await policyLib.openUnchosenBooking() > 0, true);
+  assert.equal((await policyLib.getSchedulingPolicy(stuck.id)).state, "duration_only");
+  assert.equal((await policyLib.getSchedulingPolicy(chose.id)).state, "min_gap");
+  assert.equal((await policyLib.getSchedulingPolicy(chose.id)).gapMin, 20);
 });

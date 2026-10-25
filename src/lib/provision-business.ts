@@ -669,6 +669,10 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
     const business = promoting
       ? await prisma.$transaction(async (tx) => {
           await clearTestRecords(promoting.id, tx);
+          await tx.shopOperatingPolicy.updateMany({
+            where: { businessId: promoting.id, travelMode: "not_configured" },
+            data: { travelMode: "duration_only" },
+          });
           await recordSettledActivation(tx, promoting.id, settled);
           return tx.business.update({
             where: { id: promoting.id },
@@ -685,7 +689,7 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
           });
         })
       : await prisma.$transaction(async (tx) => {
-          const created = await tx.business.create({ data: { ...shop, slug, operatingPolicy: { create: { travelMode: "not_configured" } } } });
+          const created = await tx.business.create({ data: { ...shop, slug, operatingPolicy: { create: { travelMode: "duration_only" } } } });
           await recordSettledActivation(tx, created.id, settled);
           return created;
         });
