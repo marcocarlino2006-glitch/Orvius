@@ -6,8 +6,8 @@ import { ShellAlert, ShellLoading, ShellPanel } from "@/components/shell-primiti
 import { toast } from "@/components/toaster";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-type Item = { id: string; name: string; kind: string; unitCents: number; description: string | null };
-type Draft = { name: string; kind: string; price: string; description: string };
+type Item = { id: string; name: string; kind: string; unitCents: number; description: string | null; onTruck: number | null };
+type Draft = { name: string; kind: string; price: string; description: string; onTruck: string };
 
 const KINDS = [
   { value: "service", label: "Service" },
@@ -15,7 +15,7 @@ const KINDS = [
   { value: "part", label: "Part" },
   { value: "discount", label: "Discount" },
 ];
-const EMPTY: Draft = { name: "", kind: "service", price: "", description: "" };
+const EMPTY: Draft = { name: "", kind: "service", price: "", description: "", onTruck: "" };
 
 function usd(cents: number) {
   return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: cents % 100 ? 2 : 0 }).format(cents / 100);
@@ -25,7 +25,12 @@ function toBody(d: Draft) {
   const dollars = Number(d.price.replace(/[$,\s]/g, ""));
   if (!d.name.trim()) throw new Error("Name it first.");
   if (!d.price.trim() || !Number.isFinite(dollars) || dollars < 0) throw new Error("Give it a price in dollars.");
-  return { name: d.name.trim(), kind: d.kind, unitCents: Math.round(dollars * 100), description: d.description.trim() || null };
+  const counted = d.kind === "part" && d.onTruck.trim() !== "";
+  const onTruck = counted ? Number(d.onTruck.trim()) : null;
+  if (counted && (!Number.isInteger(onTruck) || onTruck! < 0 || onTruck! > 9999)) {
+    throw new Error("On the truck is a whole number, or leave it blank if you haven't counted.");
+  }
+  return { name: d.name.trim(), kind: d.kind, unitCents: Math.round(dollars * 100), description: d.description.trim() || null, onTruck };
 }
 
 function ItemForm({ draft, setDraft, busy, submitLabel, onCancel }: { draft: Draft; setDraft: (d: Draft) => void; busy: boolean; submitLabel: string; onCancel?: () => void }) {
@@ -41,6 +46,16 @@ function ItemForm({ draft, setDraft, busy, submitLabel, onCancel }: { draft: Dra
       </select>
       <input className="input pb-price" inputMode="decimal" placeholder="$ price" value={draft.price} onChange={(e) => setDraft({ ...draft, price: e.target.value })} aria-label="Price in dollars" />
       <input className="input pb-desc" placeholder="What it includes (optional)" value={draft.description} maxLength={300} onChange={(e) => setDraft({ ...draft, description: e.target.value })} aria-label="Description" />
+      {draft.kind === "part" ? (
+        <input
+          className="input pb-desc"
+          inputMode="numeric"
+          placeholder="On the truck — leave blank if you haven't counted"
+          value={draft.onTruck}
+          onChange={(e) => setDraft({ ...draft, onTruck: e.target.value })}
+          aria-label="On the truck"
+        />
+      ) : null}
       <div className="pb-form-actions">
         <button type="submit" className="ox-btn ox-btn--sm" disabled={busy}>
           {submitLabel}
@@ -79,8 +94,9 @@ export default function PriceBookPage() {
     setBusy(true);
     try {
       const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
-      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      const data = (await res.json().catch(() => ({}))) as { error?: string; stockError?: string };
       if (!res.ok) throw new Error(data.error ?? "That didn't save.");
+      if (data.stockError) toast({ title: data.stockError, tone: "error" });
       await load();
       return true;
     } catch (err) {
@@ -152,6 +168,7 @@ export default function PriceBookPage() {
                       <span className="jf-line-kind">
                         {KINDS.find((k) => k.value === item.kind)?.label ?? "Service"}
                         {item.description ? ` · ${item.description}` : ""}
+                        {item.kind === "part" ? (item.onTruck == null ? " · Not counted on the truck" : ` · ${item.onTruck} on the truck`) : ""}
                       </span>
                     </div>
                     <span className="pb-row-price">
@@ -162,7 +179,18 @@ export default function PriceBookPage() {
                       <button
                         type="button"
                         className="ox-btn ox-btn--quiet ox-btn--sm"
-                        onClick={() => setEditing({ id: item.id, draft: { name: item.name, kind: item.kind, price: (item.unitCents / 100).toFixed(2), description: item.description ?? "" } })}
+                        onClick={() =>
+                          setEditing({
+                            id: item.id,
+                            draft: {
+                              name: item.name,
+                              kind: item.kind,
+                              price: (item.unitCents / 100).toFixed(2),
+                              description: item.description ?? "",
+                              onTruck: item.onTruck == null ? "" : String(item.onTruck),
+                            },
+                          })
+                        }
                       >
                         Edit
                       </button>

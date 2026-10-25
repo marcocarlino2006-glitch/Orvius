@@ -10,7 +10,7 @@ import { formatWhen } from "@/lib/when";
 type Line = { id?: string; name: string; kind: string; quantity: number; unitCents: number; priceBookItemId: string | null };
 type Photo = { id: string; kind: "before" | "after" | "other"; takenBy: string | null; createdAt: string };
 type Note = { id: string; authorKind: "technician" | "person"; authorName: string; body: string; createdAt: string };
-type BookItem = { id: string; name: string; kind: string; unitCents: number; description: string | null };
+type BookItem = { id: string; name: string; kind: string; unitCents: number; description: string | null; onTruck?: number | null };
 type ChecklistItem = { id: string; label: string; reading?: string; done: boolean; value: string | null; at: string | null };
 type Checklist = { title: string; items: ChecklistItem[]; done: number; total: number };
 type Signature = { signerName: string; signedAt: string; agreedCents: number | null; statement: string };
@@ -205,6 +205,7 @@ export function JobFieldPanel({ jobId, locked, timezone, onChange }: { jobId: st
             {field.priceBook.map((b) => (
               <option key={b.id} value={b.id}>
                 {b.name} · {usd(b.unitCents)}
+                {b.kind === "part" ? (b.onTruck == null ? " · not counted" : ` · ${b.onTruck} on the truck`) : ""}
               </option>
             ))}
           </select>

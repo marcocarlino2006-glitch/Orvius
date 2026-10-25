@@ -129,6 +129,7 @@ function answer(shop: SimShop, call: ToolCall, now: Date, transferring: boolean,
   if (call.name === "tell_the_team") return urgentTeamReply({ queued: true });
   // The sandbox never offers the network, and production refuses a pass that wasn't offered.
   if (call.name === "pass_to_network") return NETWORK_NOT_OFFERED_REPLY;
+  if (call.name === "check_truck") return "This preview hasn't counted parts on a truck. Say the technician will confirm. Do not name a number.";
   return "Unknown tool. Continue the call without it.";
 }
 

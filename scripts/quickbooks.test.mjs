@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /*
  * QuickBooks: a shop connects once, and every payment it collects afterwards
- * lands in QuickBooks Online as a sales receipt against the right customer.
+ * lands in QuickBooks Online as an invoice and the payment against it.
+ * A deposit stays a sales receipt. A sales receipt already sent is not sent again.
  * Never twice, never for money from before the connection, never with tokens
  * readable from a database copy, and never by losing the connection to a race.
  */
@@ -50,6 +51,8 @@ function resetFake() {
     takenNames: [],
     items: [],
     receipts: [],
+    invoices: [],
+    payments: [],
     receiptRequestIds: new Map(),
     failReceipts: 0,
     incomeAccounts: [{ Id: "79", Name: "Sales of Product Income" }, { Id: "80", Name: "Services" }],
@@ -118,20 +121,22 @@ const server = createServer(async (req, res) => {
     fake.items.push(i);
     return send(200, { Item: i });
   }
-  if (path === "salesreceipt") {
+  const saved = (bucket, prefix, wrapper) => {
     const requestId = url.searchParams.get("requestid");
-    assert.ok(requestId, "every receipt carries a requestid");
-    if (fake.receiptRequestIds.has(requestId)) return send(200, { SalesReceipt: fake.receiptRequestIds.get(requestId) });
-    const r = { Id: `sr-${++fake.seq}`, ...body };
-    fake.receipts.push(r);
-    fake.receiptRequestIds.set(requestId, r);
-    // Intuit saved it, but the reply never makes it back.
+    assert.ok(requestId, "every document carries a requestid");
+    if (fake.receiptRequestIds.has(requestId)) return send(200, { [wrapper]: fake.receiptRequestIds.get(requestId) });
+    const row = { Id: `${prefix}-${++fake.seq}`, ...body };
+    fake[bucket].push(row);
+    fake.receiptRequestIds.set(requestId, row);
     if (fake.failReceipts > 0) {
       fake.failReceipts -= 1;
       return send(503, {});
     }
-    return send(200, { SalesReceipt: r });
-  }
+    return send(200, { [wrapper]: row });
+  };
+  if (path === "salesreceipt") return saved("receipts", "sr", "SalesReceipt");
+  if (path === "invoice") return saved("invoices", "inv", "Invoice");
+  if (path === "payment") return saved("payments", "pay", "Payment");
   send(404, {});
 });
 
@@ -191,7 +196,7 @@ test("connecting stores sealed tokens and the company name, never the tokens in 
   await assert.rejects(connectQuickBooks({ businessId: shop.id, code: "bad-code", realmId: "realm-1" }));
 });
 
-test("a paid invoice becomes one sales receipt, with its line items, the customer, and the shop's date", async () => {
+test("a paid invoice becomes one invoice and the payment against it, with its line items, the customer, and the shop's date", async () => {
   const shop = await connectedShop();
   const paidAt = new Date("2026-10-09T03:30:00Z");
   const { customer, invoice } = await paidInvoice(shop, {
@@ -204,9 +209,11 @@ test("a paid invoice becomes one sales receipt, with its line items, the custome
   });
 
   const first = await drainQuickBooksSyncs({ businessId: shop.id });
-  assert.equal(first.done, 1);
-  assert.equal(fake.receipts.length, 1);
-  const r = fake.receipts[0];
+  assert.equal(first.done, 2);
+  assert.equal(fake.receipts.length, 0);
+  assert.equal(fake.invoices.length, 1);
+  assert.equal(fake.payments.length, 1);
+  const r = fake.invoices[0];
   assert.deepEqual(
     r.Line.map((l) => [l.Description, l.Amount, l.SalesItemLineDetail.Qty, l.SalesItemLineDetail.UnitPrice]),
     [
@@ -224,9 +231,14 @@ test("a paid invoice becomes one sales receipt, with its line items, the custome
   assert.equal(fake.items[0].IncomeAccountRef.value, "80", "books to the services income account");
   assert.equal((await prisma.customer.findUnique({ where: { id: customer.id } })).quickbooksCustomerId, fake.customers[0].Id);
 
+  assert.equal(fake.payments[0].TotalAmt, 450);
+  assert.equal(fake.payments[0].Line[0].LinkedTxn[0].TxnId, r.Id);
+  assert.equal(fake.payments[0].Line[0].LinkedTxn[0].TxnType, "Invoice");
+
   const second = await drainQuickBooksSyncs({ businessId: shop.id });
   assert.equal(second.done, 0);
-  assert.equal(fake.receipts.length, 1, "never sent twice");
+  assert.equal(fake.invoices.length, 1, "never sent twice");
+  assert.equal(fake.payments.length, 1, "the payment is not sent twice");
 
   const status = await quickbooksStatus(shop.id);
   assert.equal(status.sentLast30Days, 1);
@@ -240,10 +252,41 @@ test("money from before the connection is not sent, deposits are, and a mismatch
   await prisma.deposit.create({ data: { businessId: shop.id, jobId: job.id, amountCents: 10000, status: "paid", paidAt: new Date() } });
 
   const tally = await drainQuickBooksSyncs({ businessId: shop.id });
-  assert.equal(tally.done, 2);
-  const lines = fake.receipts.map((r) => r.Line.map((l) => [l.Description, l.Amount]));
-  assert.deepEqual(lines.sort(), [[["AC repair", 300]], [["Deposit for AC repair", 100]]].sort());
-  assert.ok(fake.receipts.some((r) => /paid by cash, recorded in Orvius/.test(r.PrivateNote)));
+  assert.equal(tally.done, 3);
+  assert.deepEqual(fake.invoices.map((r) => r.Line.map((l) => [l.Description, l.Amount])), [[["AC repair", 300]]]);
+  assert.equal(fake.payments.length, 1);
+  assert.equal(fake.payments[0].TotalAmt, 300);
+  assert.deepEqual(fake.receipts.map((r) => r.Line.map((l) => [l.Description, l.Amount])), [[["Deposit for AC repair", 100]]]);
+  assert.ok(fake.invoices.some((r) => /paid by cash, recorded in Orvius/.test(r.PrivateNote)));
+});
+
+test("an open invoice is what is owed, and the payment waits until it is paid", async () => {
+  const shop = await connectedShop();
+  const { invoice } = await paidInvoice(shop, { amountCents: 12000 });
+  await prisma.invoice.update({ where: { id: invoice.id }, data: { status: "sent", paidAt: null, sentAt: new Date() } });
+  const open = await drainQuickBooksSyncs({ businessId: shop.id });
+  assert.equal(open.done, 1);
+  assert.equal(fake.invoices.length, 1);
+  assert.equal(fake.payments.length, 0);
+  assert.equal((await quickbooksStatus(shop.id)).sentLast30Days, 0);
+  await prisma.invoice.update({ where: { id: invoice.id }, data: { status: "paid", paidAt: new Date() } });
+  const paid = await drainQuickBooksSyncs({ businessId: shop.id });
+  assert.equal(paid.done, 1);
+  assert.equal(fake.invoices.length, 1);
+  assert.equal(fake.payments.length, 1);
+  assert.equal(fake.payments[0].Line[0].LinkedTxn[0].TxnId, fake.invoices[0].Id);
+});
+
+test("a sales receipt already sent for an invoice is not also invoiced", async () => {
+  const shop = await connectedShop();
+  const { invoice } = await paidInvoice(shop);
+  await prisma.quickBooksSync.create({
+    data: { businessId: shop.id, sourceType: "invoice", sourceId: invoice.id, amountCents: 45000, status: "done", qbReceiptId: "sr-old" },
+  });
+  const tally = await drainQuickBooksSyncs({ businessId: shop.id });
+  assert.equal(tally.done, 0);
+  assert.equal(fake.invoices.length, 0);
+  assert.equal(fake.payments.length, 0);
 });
 
 test("a lost reply is retried under the same requestid, so QuickBooks keeps one receipt", async () => {
@@ -252,11 +295,12 @@ test("a lost reply is retried under the same requestid, so QuickBooks keeps one 
   fake.failReceipts = 1;
   const first = await drainQuickBooksSyncs({ businessId: shop.id });
   assert.equal(first.retry, 1);
-  const row = await prisma.quickBooksSync.findFirst({ where: { businessId: shop.id } });
+  const row = await prisma.quickBooksSync.findFirst({ where: { businessId: shop.id, sourceType: "receivable" } });
   await prisma.quickBooksSync.update({ where: { id: row.id }, data: { nextAttemptAt: new Date(0) } });
   const second = await drainQuickBooksSyncs({ businessId: shop.id });
-  assert.equal(second.done, 1);
-  assert.equal(fake.receipts.length, 1);
+  assert.equal(second.done, 2);
+  assert.equal(fake.invoices.length, 1);
+  assert.equal(fake.payments.length, 1);
   assert.equal(fake.customers.length, 1, "the customer is not created twice either");
 });
 
@@ -268,7 +312,7 @@ test("after the last attempt a payment is marked failed and Settings counts it",
     await drainQuickBooksSyncs({ businessId: shop.id });
     await prisma.quickBooksSync.updateMany({ where: { businessId: shop.id }, data: { nextAttemptAt: new Date(0) } });
   }
-  const row = await prisma.quickBooksSync.findFirst({ where: { businessId: shop.id } });
+  const row = await prisma.quickBooksSync.findFirst({ where: { businessId: shop.id, sourceType: "receivable" } });
   assert.equal(row.status, "failed");
   assert.match(row.lastError, /no income account/);
   assert.equal((await quickbooksStatus(shop.id)).needsAttention, 1);
@@ -280,7 +324,8 @@ test("a name QuickBooks already uses for a vendor still gets a customer", async 
   await paidInvoice(shop);
   await drainQuickBooksSyncs({ businessId: shop.id });
   assert.equal(fake.customers[0].DisplayName, "Ann Cole (customer)");
-  assert.equal(fake.receipts.length, 1);
+  assert.equal(fake.invoices.length, 1);
+  assert.equal(fake.payments.length, 1);
 });
 
 test("tokens refresh and rotate; a refused refresh asks the owner to reconnect and forgets the tokens", async () => {

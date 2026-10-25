@@ -137,7 +137,7 @@ test("the assistant carries the booking tools, live control and the shop's voice
     inCallBooking: true,
   });
   const names = config.model.tools.map((t) => t.function?.name ?? t.type);
-  assert.deepEqual(names, ["check_availability", "hold_appointment", "hold_new_time", "alert_team_now", "tell_the_team", "pass_to_network"]);
+  assert.deepEqual(names, ["check_availability", "hold_appointment", "hold_new_time", "alert_team_now", "tell_the_team", "pass_to_network", "check_truck"]);
   for (const tool of config.model.tools) assert.equal(tool.server.url, "https://api.orvius.im/api/webhooks/vapi");
   assert.deepEqual(config.monitorPlan, { controlEnabled: true });
   assert.equal(config.voice.voiceId, RECEPTIONIST_VOICES[3].id);

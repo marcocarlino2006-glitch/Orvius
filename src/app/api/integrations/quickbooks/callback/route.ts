@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
       entityId: business.id,
       action: "quickbooks.connected",
       ...personActor(authResult),
-      summary: `${authResult.email} connected QuickBooks${connection.companyName ? ` (${connection.companyName})` : ""}. Payments collected from now on go there as sales receipts.`,
+      summary: `${authResult.email} connected QuickBooks${connection.companyName ? ` (${connection.companyName})` : ""}. Invoices and the payments against them go there from now on. Deposits go as sales receipts.`,
     });
     await afterResponse(() => drainQuickBooksSyncs({ businessId: business.id, limit: 10, budgetMs: 20_000 }));
     return done("connected");

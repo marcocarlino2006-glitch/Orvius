@@ -7,6 +7,7 @@ import {
   ensureDedicatedShopLine,
   DEFAULT_HOURS_JSON,
 } from "@/lib/provision-business";
+import { networkForNewShop } from "@/lib/network-choice";
 import { prisma } from "@/lib/prisma";
 import { syncBusinessAssistant } from "@/lib/sync-business-assistant";
 import {
@@ -150,6 +151,7 @@ export async function POST(request: NextRequest) {
         twilioPhone: null,
         vapiPhoneNumber: null,
         vapiAssistantId: assistant.id,
+        ...networkForNewShop(null),
       },
       });
       await recordSettledActivation(tx, created.id, settled);

@@ -265,6 +265,8 @@ model Business {
   /// First touch before signup (ref, utm, referring site, landing page), as JSON.
   acquisitionJson        String?
   /// Orvius Network: passes jobs it can't take to nearby shops in its trade and receives theirs.
+  /// The database default stays false so a shop that turned it off is distinct from one that never chose.
+  /// New shops are turned on in code. A shop that never chose is turned on once its ZIP is known.
   networkOn              Boolean                   @default(false)
   /// First three digits of the shop's ZIP; the network matches shops within the same region.
   networkZip3            String?
@@ -283,6 +285,7 @@ model Business {
   jobNotes               JobNote[]
   jobLineItems           JobLineItem[]
   priceBookItems         PriceBookItem[]
+  partStock              PartStock[]
   visitReviews           VisitReview[]
   areaClaims             AreaRequest[]
   /**
@@ -1196,9 +1199,25 @@ model PriceBookItem {
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  partStock   PartStock?
 
   @@unique([businessId, name])
   @@index([businessId, isActive])
+}
+
+/**
+ * How many of a price-book part are on the truck.
+ * No row means the shop has not counted that part.
+ */
+model PartStock {
+  priceBookItemId String        @id
+  priceBookItem   PriceBookItem @relation(fields: [priceBookItemId], references: [id], onDelete: Cascade)
+  businessId      String
+  business        Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  onTruck         Int
+  updatedAt       DateTime      @updatedAt
+
+  @@index([businessId])
 }
 
 /**
@@ -1830,13 +1849,14 @@ model QuickBooksConnection {
 }
 
 /**
- * One payment collected in Orvius on its way into QuickBooks as a sales receipt. At most one per payment.
+ * One QuickBooks document on its way over. A paid invoice is an invoice plus the payment against it.
+ * A deposit stays a sales receipt. A row already sent as sourceType invoice is that sales receipt and is not sent again.
  */
 model QuickBooksSync {
   id            String    @id @default(cuid())
   businessId    String
   /**
-   * invoice | deposit
+   * invoice (a sales receipt already sent) | deposit | receivable | collection
    */
   sourceType    String
   sourceId      String

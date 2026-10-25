@@ -285,7 +285,7 @@ export async function getCompanyScoreboard(now = new Date()): Promise<CompanySco
   const density = densityClusters(
     located.map((shop) => ({
       trade: shop.trade,
-      zip3: shop.networkZip3 ?? zip3FromAddress(shop.address),
+      zip3: (shop.networkZip3 && /^\d{3}$/.test(shop.networkZip3) ? shop.networkZip3 : null) ?? zip3FromAddress(shop.address),
       networkOn: shop.networkOn,
     })),
   );

@@ -15,7 +15,7 @@ type Note = { id: string; authorKind: "technician" | "person"; authorName: strin
 type CheckItem = { id: string; label: string; reading?: string; done: boolean; value: string | null; at: string | null };
 type Checklist = { templateId: string; title: string; items: CheckItem[]; done: number; total: number };
 type Signature = { signerName: string; signedAt: string; agreedCents: number | null; statement: string; pendingImage?: string };
-type BookItem = { id: string; name: string; kind: string; unitCents: number; description: string | null };
+type BookItem = { id: string; name: string; kind: string; unitCents: number; description: string | null; onTruck?: number | null };
 type Money = {
   totalCents: number | null;
   taxCents?: number;
@@ -602,7 +602,7 @@ function Work({ base, detail, onSaved }: { base: string; detail: Detail; onSaved
                 >
                   <span>
                     <span className="ta-line-name">{b.name}</span>
-                    <span className="ta-muted">{KIND_WORD[b.kind] ?? "Service"}{b.description ? ` · ${b.description}` : ""}</span>
+                    <span className="ta-muted">{KIND_WORD[b.kind] ?? "Service"}{b.description ? ` · ${b.description}` : ""}{b.kind === "part" ? (b.onTruck == null ? " · not counted on the truck" : ` · ${b.onTruck} on the truck`) : ""}</span>
                   </span>
                   <span className="ta-line-total">{money(b.unitCents)}</span>
                 </button>

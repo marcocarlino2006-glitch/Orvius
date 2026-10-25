@@ -1422,3 +1422,14 @@ CREATE TABLE IF NOT EXISTS "AreaRequest" (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "AreaRequest_leadId_key" ON "AreaRequest"("leadId");
 CREATE INDEX IF NOT EXISTS "AreaRequest_trade_zip3_claimedAt_idx" ON "AreaRequest"("trade", "zip3", "claimedAt");
+
+-- A counted part on the truck. No row means the shop has not counted it. The price book itself is unchanged.
+CREATE TABLE IF NOT EXISTS "PartStock" (
+    "priceBookItemId" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "onTruck" INTEGER NOT NULL,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "PartStock_priceBookItemId_fkey" FOREIGN KEY ("priceBookItemId") REFERENCES "PriceBookItem" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "PartStock_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE INDEX IF NOT EXISTS "PartStock_businessId_idx" ON "PartStock"("businessId");

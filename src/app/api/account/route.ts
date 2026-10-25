@@ -53,7 +53,7 @@ import {
 } from "@/lib/platform-fee";
 import { normalizePhone } from "@/lib/customer";
 import { z } from "zod";
-import { zip3From } from "@/lib/orvius-network";
+import { resolveNetworkSave } from "@/lib/network-choice";
 
 const patchSchema = z.object({
   name: z.string().min(2).max(120).optional(),
@@ -371,18 +371,6 @@ function settingsChanges(before: Record<string, unknown>, after: Record<string, 
     );
 }
 
-/** The shop's region for the Orvius Network: its address ZIP, else the first ZIP it serves. */
-function networkZip3For(address: string | null, serviceZipsJson: string | null) {
-  const fromAddress = zip3From(address);
-  if (fromAddress) return fromAddress;
-  try {
-    const zips = JSON.parse(serviceZipsJson ?? "[]") as unknown[];
-    return zip3From(zips.map(String).join(" "));
-  } catch {
-    return null;
-  }
-}
-
 const ASSISTANT_FIELDS = ["name", "trade", "greeting", "transferPhone", "voiceId", "hoursJson", "closedDatesJson", "timezone", "servicesJson", "bookingMode"] as const;
 
 export async function PATCH(request: Request) {
@@ -513,21 +501,12 @@ export async function PATCH(request: Request) {
       }
     }
 
-    const networkOn = body.networkOn ?? existing.networkOn;
-    const derived = networkOn
-      ? networkZip3For(
-          body.address !== undefined ? body.address : existing.address,
-          body.serviceZipsJson !== undefined ? body.serviceZipsJson : existing.serviceZipsJson,
-        )
-      : null;
-    // A save with no ZIP in the address must not wipe the area a referral already set.
-    const networkZip3 = networkOn ? (derived ?? existing.networkZip3) : existing.networkZip3;
-    if (body.networkOn === true && !networkZip3) {
-      return NextResponse.json(
-        { error: "Add your shop address with its ZIP code first, so nearby shops can be matched." },
-        { status: 400 },
-      );
-    }
+    const network = resolveNetworkSave(existing, {
+      networkOn: body.networkOn,
+      address: body.address !== undefined ? body.address?.trim() || null : existing.address,
+      serviceZipsJson: body.serviceZipsJson !== undefined ? body.serviceZipsJson : existing.serviceZipsJson,
+    });
+    if (network.error) return NextResponse.json({ error: network.error }, { status: 400 });
 
     const business = await prisma.business.update({
       where: { id: existing.id },
@@ -594,8 +573,8 @@ export async function PATCH(request: Request) {
         ...(body.reviewRequestsOn !== undefined ? { reviewRequestsOn: body.reviewRequestsOn } : {}),
         ...(body.bookingPageOn !== undefined ? { bookingPageOn: body.bookingPageOn } : {}),
         ...(body.webChatOn !== undefined ? { webChatOn: body.webChatOn } : {}),
-        ...(body.networkOn !== undefined ? { networkOn: body.networkOn } : {}),
-        ...(networkZip3 !== existing.networkZip3 ? { networkZip3 } : {}),
+        ...(network.networkOn !== existing.networkOn ? { networkOn: network.networkOn } : {}),
+        ...(network.networkZip3 !== existing.networkZip3 ? { networkZip3: network.networkZip3 } : {}),
         ...(body.depositAmountCents !== undefined
           ? { depositAmountCents: body.depositAmountCents }
           : {}),
