@@ -3,9 +3,9 @@ export type OwnerSetupStatus = {
   hasOwnerPhone: boolean;
   captureConfirmed: boolean;
   lineVerified: boolean;
-  /** Command opens: the line exists, alerts have a phone, and one call proved it. */
+  /** Command opens: the line exists and alerts have a phone. */
   ready: boolean;
-  /** Customers' calls reach Orvius: ready, and the main number forwards (or the owner publishes this one). */
+  /** The receptionist is answering the number we assigned. An older number is optional. */
   live: boolean;
   nextStep: "line" | "owner_phone" | "capture" | "verify" | "done";
   line: string | null;
@@ -32,16 +32,14 @@ export function getOwnerSetupStatus(business: {
   const hasOwnerPhone = Boolean(business.ownerPhone?.trim());
   const captureConfirmed = Boolean(business.overflowForwardConfirmedAt);
   const lineVerified = Boolean(business.lineVerifiedAt);
-  // Line proof unlocks Command. Capture (forward/publish) is the next shop
-  // move on the pulse — not a second door that forces a fake overflow stamp.
-  const ready = hasLine && hasOwnerPhone && lineVerified;
-  const live = ready && captureConfirmed;
+  // The number we assigned is the business line. A later call records proof.
+  // It is not a step the owner has to finish before the receptionist is on.
+  const ready = hasLine && hasOwnerPhone;
+  const live = ready;
 
   let nextStep: OwnerSetupStatus["nextStep"] = "done";
   if (!hasLine) nextStep = "line";
   else if (!hasOwnerPhone) nextStep = "owner_phone";
-  else if (!lineVerified) nextStep = "verify";
-  else if (!captureConfirmed) nextStep = "capture";
 
   return {
     hasLine,

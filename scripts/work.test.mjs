@@ -372,7 +372,7 @@ test("Command, the nav badge and the Work screen read the same count", async () 
   assert.equal(command.work.needsYou, 2);
   assert.equal(listed.needsYou, command.work.needsYou);
   assert.deepEqual(command.work.items.map((i) => i.key).sort(), listed.items.map((i) => i.key).sort());
-  assert.match(command.personalBrief?.headline ?? "", /2 things|2 need|One step left|line is live/);
+  assert.match(command.personalBrief?.headline ?? "", /2 things|2 need|One step left|line is live|receptionist is on|assigned when the line is on/);
 });
 
 test("a booked request opens as its job, and its history runs from the call to the technician's text", async () => {

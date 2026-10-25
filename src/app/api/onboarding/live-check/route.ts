@@ -43,6 +43,7 @@ export async function GET() {
 
   const items = activationChecklist({
     lineVerifiedAt: b.lineVerifiedAt,
+    lineAssigned: Boolean(getShopLine(b)),
     ownerPhone: b.ownerPhone,
     ownerEmail: b.ownerEmail,
     ownerSmsOptOutAt: b.ownerSmsOptOutAt,

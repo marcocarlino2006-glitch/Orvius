@@ -68,10 +68,11 @@ test("dashboard fetch failures name cause, impact, and recovery", () => {
   assert.match(inbox, /Recover:/);
 });
 
-test("onboarding verify offers an in-app test call", () => {
+test("onboarding opens the desk once the number exists", () => {
   const verify = read("src/components/onboarding-call-verify.tsx");
-  assert.match(verify, /Run a test call in-app/);
-  assert.match(verify, /\/api\/onboarding\/test-call/);
+  assert.match(verify, /Your receptionist is on/);
+  assert.doesNotMatch(verify, /Run a test call in-app/);
+  assert.doesNotMatch(verify, /\/api\/onboarding\/test-call/);
 });
 
 test("tradeForCapture prefers stored Business.trade", () => {

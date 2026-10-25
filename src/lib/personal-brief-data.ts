@@ -30,6 +30,7 @@ export async function loadPersonalBrief(input: {
   work: WorkBoard;
   totalCalls: number;
   lineVerified: boolean;
+  hasLine?: boolean;
   afterHoursNow: boolean;
 }): Promise<PersonalBrief> {
   const { business, since, now, todayStart } = input;
@@ -81,6 +82,7 @@ export async function loadPersonalBrief(input: {
     openNeedsYou: input.work.needsYou,
     totalCalls: input.totalCalls,
     lineVerified: input.lineVerified,
+    hasLine: input.hasLine,
     afterHoursNow: input.afterHoursNow,
     patterns: learnShopPatterns({
       calls: patternCalls,

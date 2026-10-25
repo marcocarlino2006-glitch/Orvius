@@ -20,14 +20,19 @@ const base = {
   lineVerifiedAt: null,
 };
 
-test("line proof unlocks Command — capture is next, not a fake door", () => {
-  assert.equal(getOwnerSetupStatus(base).nextStep, "verify");
+test("a line is live — the receptionist is on, with no call the owner has to place", () => {
+  const open = getOwnerSetupStatus(base);
+  assert.equal(open.nextStep, "done");
+  assert.equal(open.ready, true);
+  assert.equal(open.live, true);
+  assert.equal(open.lineVerified, false);
   const verified = getOwnerSetupStatus({
     ...base,
     lineVerifiedAt: new Date(),
   });
-  assert.equal(verified.nextStep, "capture");
+  assert.equal(verified.nextStep, "done");
   assert.equal(verified.ready, true);
+  assert.equal(verified.live, true);
   assert.equal(verified.captureConfirmed, false);
   assert.equal(
     getOwnerSetupStatus({
@@ -61,6 +66,7 @@ test("onboarding state survives refresh and existing-shop conflicts", () => {
   assert.match(wizard, /res\.status === 409 && \(await resumeExisting\(\)\.catch\(\(\) => false\)\)/);
   assert.match(wizard, /OnboardingCallVerify/);
   assert.match(wizard, /setProvisionedLine/);
-  assert.match(forwardGuide, /call your Orvius line once; then reply DONE/i);
+  assert.match(forwardGuide, /Your number is answering/);
+  assert.match(forwardGuide, /Then reply DONE/);
   assert.doesNotMatch(verify, /overflowForwardConfirmedAt:\s*true/);
 });

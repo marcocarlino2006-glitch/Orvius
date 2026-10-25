@@ -814,7 +814,7 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
 
                 <div className="onboarding-field font-sans">
                   <label className="onboarding-label" htmlFor="onboarding-area-code">
-                    Area code for the private line
+                    Area code for your number
                   </label>
                   <div className="onboarding-area-row">
                     <input
@@ -857,7 +857,7 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
                   ) : null}
                   <span className="onboarding-hint" aria-live="polite">
                     {numbers === null
-                      ? "Customers keep calling the number you already advertise. This number is only where your carrier sends those calls. You dial one code from the phone that owns it. Answering those calls does not take a carrier application."
+                      ? "This is the number your receptionist answers. It is on when you pay. Call it."
                       : !numbersSearchable
                         ? "We couldn't check numbers right now. We'll assign one in this area code when you create your line."
                         : numbers.length === 0
@@ -873,10 +873,10 @@ export function OnboardingWizard({ checkoutOpen = true }: { checkoutOpen?: boole
                 {paying ? (
                   <>
                     {plan.name} · ${planPrice}/mo{interval === "year" ? ", billed yearly" : ""} ·{" "}
-                    <Link href="/pricing">Change plan</Link>. Customers keep your existing number and hear your shop name when Orvius answers.
+                    <Link href="/pricing">Change plan</Link>. Callers hear your shop name on this number.
                   </>
                 ) : (
-                  "Paid subscription · verified. We assign a private local number your carrier forwards to. Callers hear your shop name."
+                  "Paid subscription · verified. We assign a local number. Your receptionist answers it. Callers hear your shop name."
                 )}
               </p>
 

@@ -1058,14 +1058,13 @@ function LiveStep({
                 onBlur={saveDraft}
                 placeholder="Area code"
                 inputMode="numeric"
-                aria-label="Area code for the private line your carrier forwards to"
+                aria-label="Area code for the number your receptionist answers"
               />
             </div>
             {draftNote ? <p className="ton-note" role="status">{draftNote}</p> : null}
             <p className="ton-note">
-              Alerts and safety calls go to this mobile. This area code is for a private Orvius line. Right after checkout,
-              you dial one code from the phone customers already call, and those calls come to Orvius. You
-              keep the number. Answering those calls does not take a carrier application.
+              Alerts and safety calls go to this mobile. This area code is the number your receptionist answers.
+              It is on when you pay. Call it.
             </p>
           </fieldset>
 
