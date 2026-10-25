@@ -69,4 +69,9 @@ test("a part is counted only when the shop counted it, and a job moves that coun
   assert.equal(book.find((item) => item.name === "Capacitor").onTruck, 0);
   assert.equal(book.find((item) => item.name === "Contactor").onTruck, null);
   assert.equal(book.find((item) => item.name === "Diagnostic").onTruck, null);
+
+  await setJobLines(shop.id, job.id, [{ name: "Capacitor", kind: "part", quantity: 1, unitCents: 1800, priceBookItemId: capacitor.id }]);
+  assert.equal((await prisma.partStock.findUnique({ where: { priceBookItemId: capacitor.id } })).onTruck, 2, "only the three that were counted come back");
+  await setJobLines(shop.id, job.id, []);
+  assert.equal((await prisma.partStock.findUnique({ where: { priceBookItemId: capacitor.id } })).onTruck, 3);
 });

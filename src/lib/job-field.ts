@@ -154,6 +154,7 @@ export async function setJobLines(businessId: string, jobId: string, input: unkn
   if (open && totalCents > 0) await upsertJobInvoice({ businessId, jobId, totalCents });
   await applyTruckUse(
     businessId,
+    jobId,
     previous,
     lines.map((line) => ({
       kind: line.kind,
