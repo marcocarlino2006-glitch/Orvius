@@ -79,6 +79,18 @@ test("the day lists parts the shop counted, and leaves uncounted parts off", asy
   assert.match(read("src/components/tech-app/day.tsx"), /On the truck/);
 });
 
+test("a finished visit stays on the day with what happened and the amount", async () => {
+  const { job, session } = await shopWithJob();
+  await prisma.job.update({
+    where: { id: job.id },
+    data: { status: "completed", completedAt: new Date(), resolutionCode: "repaired", finalAmountCents: 18000 },
+  });
+  const day = await techDay(session);
+  const row = [...day.now, ...day.late, ...day.days.flatMap((d) => d.jobs)].find((item) => item.id === job.id);
+  assert.equal(row.finished, "Repaired · $180");
+  assert.match(read("src/components/tech-app/day.tsx"), /job\.finished/);
+});
+
 test("the technician's yes is recorded once and never marks the customer as confirmed", async () => {
   const { shop, job, session } = await shopWithJob();
   const before = await techDay(session);
