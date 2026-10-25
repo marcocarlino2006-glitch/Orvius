@@ -10,9 +10,9 @@ import { balanceDueForJob, invoiceCompletedJob, invoicePayUrl, sendInvoiceLink, 
 import { JobTransitionError } from "@/lib/job";
 import { transitionJob } from "@/lib/job-transition";
 import { FieldError, jobField, priceBook } from "@/lib/job-field";
-import { isJobOutcomeCode } from "@/lib/job-outcome";
+import { isJobOutcomeCode, jobOutcomeLabel } from "@/lib/job-outcome";
 import { logWarn } from "@/lib/logger";
-import { formatCentsExact } from "@/lib/money";
+import { formatCentsExact, formatCentsTidy } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
 import { mintPublicToken } from "@/lib/public-tokens";
 import { withSmsOptOutFooter } from "@/lib/sms-keywords";
@@ -134,11 +134,22 @@ const JOB_SELECT = {
   durationMin: true,
   notes: true,
   etaText: true,
+  resolutionCode: true,
+  finalAmountCents: true,
   customer: { select: { name: true, phone: true, address: true } },
   lead: { select: { name: true, phone: true } },
 } as const;
 
 type JobRow = { customer: { name: string | null; phone: string; address: string | null } | null; lead: { name: string | null; phone: string | null } | null };
+
+/** What the technician finished, on the day list. Amounts of zero stay off; the status already says done. */
+function finishedLine(job: { status: string; resolutionCode: string | null; finalAmountCents: number | null }) {
+  if (job.status !== "completed") return null;
+  const outcome = jobOutcomeLabel(job.resolutionCode);
+  const amount = job.finalAmountCents && job.finalAmountCents > 0 ? formatCentsTidy(job.finalAmountCents) : null;
+  const line = [outcome, amount].filter(Boolean).join(" · ");
+  return line || null;
+}
 
 function customerOf(job: JobRow) {
   return {
@@ -203,6 +214,7 @@ export async function techDay(tech: TechSession, now = new Date()) {
     ...customerOf(j),
     hasNotes: Boolean(j.notes?.trim()),
     needsAnswer: !j.techAcceptedAt && (j.status === "scheduled" || j.status === "confirmed"),
+    finished: finishedLine(j),
     key: j.scheduledAt ? dayKey(j.scheduledAt, tz) : todayKey,
   }));
   const now_ = jobs.filter((j) => j.status === "en_route" || j.status === "on_site");

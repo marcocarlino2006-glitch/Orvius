@@ -18,6 +18,8 @@ type DayJob = {
   customerPhone: string | null;
   hasNotes: boolean;
   needsAnswer?: boolean;
+  /** Outcome and amount once the visit is finished. Absent on a day saved before this. */
+  finished?: string | null;
 };
 
 type TruckPart = { id: string; name: string; onTruck: number };
@@ -40,6 +42,7 @@ function JobRow({ token, job, tz, showDay }: { token: string; job: DayJob; tz: s
         <span className="ta-job-body">
           <span className="ta-job-title">{job.title}</span>
           <span className="ta-job-meta">{[spokenName(job.customerName), job.address?.split(",")[0]].filter(Boolean).join(" · ") || "No address yet"}</span>
+          {job.finished ? <span className="ta-job-meta">{job.finished}</span> : null}
           {job.needsAnswer ? <span className="ta-job-ask">Needs your answer</span> : null}
         </span>
         <StatusPill status={job.status} urgency={job.urgency} />
