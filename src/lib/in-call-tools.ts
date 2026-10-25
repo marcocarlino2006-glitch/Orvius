@@ -11,6 +11,7 @@ import { recordAudit } from "@/lib/audit";
 import { logError, logInfo } from "@/lib/logger";
 import { enqueueOwnerAlert, processNotificationQueue } from "@/lib/notification-queue";
 import { findNetworkPartners, zip3From } from "@/lib/orvius-network";
+import { checkTruck } from "@/lib/truck-stock";
 import { prisma } from "@/lib/prisma";
 import { classifyRequest } from "@/lib/trade-playbooks";
 import { outsideScope } from "@/lib/trade-scope";
@@ -159,7 +160,8 @@ function wasOffered(raw: string | null | undefined, at: Date, now = Date.now()) 
 /* A fully booked shop on the network can still get the caller help today. */
 async function networkCanHelp(shop: ShopForTools) {
   if (!shop.networkOn || !shop.trade) return false;
-  const zip3 = shop.networkZip3 ?? zip3From(shop.address);
+  const stored = shop.networkZip3 && /^\d{3}$/.test(shop.networkZip3) ? shop.networkZip3 : null;
+  const zip3 = stored ?? zip3From(shop.address);
   if (!zip3) return false;
   const partners = await findNetworkPartners({ trade: shop.trade, zip3, excludeBusinessId: shop.id });
   return partners.length > 0;
@@ -441,6 +443,17 @@ export async function handleInCallToolCalls(params: {
         }
         if (call.name === "pass_to_network") {
           return { toolCallId: call.id, result: await passToNetwork(params.shop, params.callId, call.args, params.callerWords) };
+        }
+        if (call.name === "check_truck") {
+          try {
+            return { toolCallId: call.id, result: await checkTruck(params.shop.id, String(call.args.part ?? "")) };
+          } catch (error) {
+            logError("in_call.truck_failed", { businessId: params.shop.id, error: error instanceof Error ? error.message : String(error) });
+            return {
+              toolCallId: call.id,
+              result: "You cannot see the truck right now. Say the technician will confirm whether that part is on the truck. Do not name a number.",
+            };
+          }
         }
         if (call.name === "hold_new_time") {
           return { toolCallId: call.id, result: await holdAppointment(params.shop, params.callId, call.args, "reschedule") };

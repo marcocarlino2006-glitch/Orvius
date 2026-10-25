@@ -238,7 +238,7 @@ export function tradePromptPack(trade: Trade): string {
 - Emergency signals: water flooding from a washer.
 - Danger: a gas smell from a range or dryer, sparks or burning from an appliance.
 - Ask: which appliance, the brand if they know, what it's doing, how old it is.
-- Never quote a price or promise a part is in stock.`;
+- Never quote a price. Never say a part is on the truck or how many. If a tool result gives a count, you may say that count. Otherwise say the technician will confirm.`;
     case "Auto repair":
       return `INDUSTRY — AUTO REPAIR
 - The customer brings the car in. Book a drop-off time; never ask for a home address unless they need a tow.

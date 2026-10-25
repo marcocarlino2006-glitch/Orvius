@@ -1,4 +1,5 @@
 import { recordAudit, type AuditActor } from "@/lib/audit";
+import { applyTruckUse, partStockFor } from "@/lib/truck-stock";
 import { upsertJobInvoice } from "@/lib/invoice-pay";
 import { applyChecklist, checklistTemplateFor, readChecklist } from "@/lib/job-checklist";
 import { prisma } from "@/lib/prisma";
@@ -118,6 +119,10 @@ async function ownJob(businessId: string, jobId: string) {
 export async function setJobLines(businessId: string, jobId: string, input: unknown) {
   await ownJob(businessId, jobId);
   const lines = cleanLines(input);
+  const previous = await prisma.jobLineItem.findMany({
+    where: { jobId, businessId },
+    select: { priceBookItemId: true, kind: true, quantity: true },
+  });
   const paid = await prisma.invoice.findFirst({ where: { businessId, jobId, status: "paid" }, select: { id: true } });
   if (paid) throw new FieldError("This job is already paid, so its lines are locked.", 409);
   const known = new Set(
@@ -147,6 +152,15 @@ export async function setJobLines(businessId: string, jobId: string, input: unkn
   ]);
   const open = await prisma.invoice.findFirst({ where: { businessId, jobId, status: { not: "paid" } }, select: { id: true } });
   if (open && totalCents > 0) await upsertJobInvoice({ businessId, jobId, totalCents });
+  await applyTruckUse(
+    businessId,
+    previous,
+    lines.map((line) => ({
+      kind: line.kind,
+      quantity: line.quantity,
+      priceBookItemId: line.priceBookItemId && known.has(line.priceBookItemId) ? line.priceBookItemId : null,
+    })),
+  );
   return jobLines(businessId, jobId);
 }
 
@@ -305,11 +319,22 @@ export async function setJobChecklist(businessId: string, jobId: string, changes
   throw new FieldError("Too many changes at once. Try that tick again.", 409);
 }
 
-export type PriceBookEntry = { id: string; name: string; kind: LineKind; unitCents: number; description: string | null };
+export type PriceBookEntry = { id: string; name: string; kind: LineKind; unitCents: number; description: string | null; onTruck: number | null };
 
 export async function priceBook(businessId: string): Promise<PriceBookEntry[]> {
   const rows = await prisma.priceBookItem.findMany({ where: { businessId, isActive: true }, orderBy: [{ kind: "asc" }, { name: "asc" }] });
-  return rows.map((r) => ({ id: r.id, name: r.name, kind: lineKind(r.kind), unitCents: r.unitCents, description: r.description }));
+  const stock = await partStockFor(
+    businessId,
+    rows.filter((row) => row.kind === "part").map((row) => row.id),
+  );
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    kind: lineKind(r.kind),
+    unitCents: r.unitCents,
+    description: r.description,
+    onTruck: r.kind === "part" ? (stock?.get(r.id) ?? null) : null,
+  }));
 }
 
 /** A price-book entry from a form, or a FieldError saying what to fix. */
@@ -320,7 +345,17 @@ export function cleanPriceBookEntry(body: Record<string, unknown>) {
   if (!Number.isInteger(unitCents) || unitCents < 0 || unitCents > 5_000_000) throw new FieldError("Price must be between $0 and $50,000.");
   const kind = (LINE_KINDS as readonly string[]).includes(String(body.kind)) ? String(body.kind) : "service";
   const description = typeof body.description === "string" ? body.description.trim().slice(0, 300) || null : null;
-  return { name, unitCents, kind, description };
+  return { name, unitCents, kind, description, onTruck: cleanOnTruck(kind, body.onTruck) };
+}
+
+/** Blank means the shop has not counted the part. Zero means they counted and the truck is empty. */
+export function cleanOnTruck(kind: string, value: unknown): number | null {
+  if (kind !== "part" || value == null || value === "") return null;
+  const n = typeof value === "number" ? value : Number(String(value).trim());
+  if (!Number.isInteger(n) || n < 0 || n > 9_999) {
+    throw new FieldError("On the truck is a whole number from 0 to 9,999, or leave it blank if you haven't counted.");
+  }
+  return n;
 }
 
 /**

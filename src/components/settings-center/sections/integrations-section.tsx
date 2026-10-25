@@ -51,7 +51,7 @@ export function IntegrationsSection({
   useEffect(() => {
     const outcome = new URLSearchParams(window.location.search).get("quickbooks");
     const notes: Record<string, string> = {
-      connected: "QuickBooks connected. Payments you collect from now on go there as sales receipts.",
+      connected: "QuickBooks connected. Invoices and the payments against them go there from now on. Deposits go as sales receipts.",
       cancelled: "QuickBooks was not connected.",
       expired: "That QuickBooks link expired. Connect again.",
       failed: "QuickBooks did not finish connecting. Try again.",
@@ -571,7 +571,7 @@ function quickbooksRow(qb: QuickBooksLink, note: string | null) {
       on: true,
       detail:
         note ??
-        `Paid invoices and deposits land in ${qb.companyName ?? "QuickBooks"} as sales receipts, usually within 30 minutes. Refunds aren't sent. ${sent} sent in 30 days.${attention}`,
+        `Invoices you send, and the payments against them, land in ${qb.companyName ?? "QuickBooks"}. Deposits land as sales receipts. Usually within 30 minutes. Refunds, supplier bills, payroll, and the tax return stay in QuickBooks. ${sent} sent in 30 days.${attention}`,
       disconnect: "quickbooks" as const,
     };
   }
@@ -584,7 +584,7 @@ function quickbooksRow(qb: QuickBooksLink, note: string | null) {
   return {
     ...base,
     on: false,
-    detail: note ?? "Send every payment you collect to QuickBooks Online as a sales receipt, matched to the customer. Only payments from after you connect.",
+    detail: note ?? "Send each invoice and the payment against it to QuickBooks Online, matched to the customer. Deposits go as sales receipts. Only money from after you connect. Payroll and the tax return stay in QuickBooks.",
     href: connect,
   };
 }

@@ -241,6 +241,11 @@ ${
 
 RULES
 - NEVER invent pricing, arrival times, or technician names.
+${
+    business.canBook
+      ? `- Name a part count only if check_truck just returned it. Otherwise the technician confirms.`
+      : `- NEVER name a part count. The technician confirms.`
+  }
 - You cannot see the shop's records. NEVER say you found, checked, confirmed or can see a request, appointment or account unless a private note or a tool result told you about it. If asked about an earlier request, say "I'll take the details now so the team has them."
 ${
     offersTimes
@@ -331,6 +336,11 @@ ${
 
 RULES
 - NEVER invent pricing, availability, or staff names.
+${
+    business.canBook
+      ? `- Name a part count only if check_truck just returned it.`
+      : `- NEVER name a part count.`
+  }
 - You cannot see the business's records. NEVER say you found, checked, confirmed or can see a request, appointment or account unless a private note or a tool result told you about it. If asked about an earlier request, say "I'll take the details now so the team has them."
 ${
     offersTimes

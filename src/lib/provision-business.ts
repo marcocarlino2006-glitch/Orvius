@@ -18,6 +18,7 @@ import {
   getShopLines,
   validateOwnerPhoneForAlerts,
 } from "@/lib/owner-alerts";
+import { networkForNewShop, shopKeptNetworkChoice } from "@/lib/network-choice";
 import { prisma } from "@/lib/prisma";
 import { syncBusinessAssistant } from "@/lib/sync-business-assistant";
 import {
@@ -643,13 +644,16 @@ export async function provisionBusiness(input: ProvisionInput): Promise<Provisio
       throw new Error(postProvisionCheck.reason);
     }
 
+    const address = input.address?.trim() || promoting?.address || null;
+    const network = promoting && shopKeptNetworkChoice(promoting) ? {} : networkForNewShop(address, promoting?.serviceZipsJson);
     const shop = {
       name,
       ownerEmail: email,
       ownerPhone: input.ownerPhone.trim(),
       trade: input.trade,
       timezone: input.timezone ?? promoting?.timezone ?? "America/New_York",
-      address: input.address?.trim() || promoting?.address || null,
+      address,
+      ...network,
       greeting,
       hoursJson,
       servicesJson,

@@ -203,6 +203,7 @@ test("the network is wired into owner texts, caller replies and Settings", () =>
   const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
   assert.match(read("src/app/api/webhooks/twilio/sms/route.ts"), /answerNetworkConsent\(\{ business, from, body \}\)/);
   assert.match(read("src/lib/owner-text-commands.ts"), /takeNetworkJob\(shop, now\)/);
-  assert.match(read("src/app/api/account/route.ts"), /networkZip3For\(/);
+  assert.match(read("src/app/api/account/route.ts"), /resolveNetworkSave\(/);
+  assert.match(read("src/lib/network-choice.ts"), /regionFrom\(/);
   assert.match(read("src/components/settings-center/sections/business-section.tsx"), /Orvius Network/);
 });

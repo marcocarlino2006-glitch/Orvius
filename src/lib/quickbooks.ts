@@ -8,15 +8,14 @@ import { correlate } from "@/lib/system-of-record";
 import { openSecret, sealSecret, secretBoxConfigured } from "@/lib/secret-box";
 
 /**
- * QuickBooks Online: every payment Orvius collects (a paid invoice, a paid
- * deposit, by card or recorded by hand) lands in the shop's QuickBooks as a
- * sales receipt against the matched or created customer. That is the half of
- * bookkeeping a shop does twice today: once in the field, once at night.
+ * QuickBooks Online. An invoice Orvius sends becomes a QuickBooks invoice, so
+ * the bookkeeper can see what is owed. The payment against it becomes a
+ * QuickBooks payment applied to that invoice. A booking deposit stays a sales
+ * receipt. Supplier bills, payroll, and the tax return stay in QuickBooks.
  *
- * Only payments collected after the shop connects are sent, so nothing the
- * bookkeeper already entered is duplicated. Each receipt is created with
- * Intuit's `requestid`, which Intuit dedupes, so a retry after a lost reply
- * returns the first receipt instead of making a second one.
+ * A payment already sent as a sales receipt (sourceType invoice) is not sent
+ * again. Only money from after the shop connects is sent. Each document uses
+ * Intuit's `requestid`, so a retry after a lost reply returns the first one.
  */
 
 export const QBO_MINOR_VERSION = "75";
@@ -242,31 +241,52 @@ export async function disconnectQuickBooks(businessId: string) {
 
 /* ── Payments into QuickBooks ──────────────────────────────────────────── */
 
+const OPEN_INVOICE = ["sent", "open", "partial", "overdue"];
+
 /**
- * Every payment collected since the shop connected that has no sync row yet.
- * Reading the payments rather than hooking each place that marks one paid
- * means a new payment path cannot be forgotten.
+ * Invoices the customer has been asked to pay, and payments collected since
+ * the shop connected. A sales receipt already sent for an invoice is left as
+ * that receipt. Reading the rows rather than hooking each payment path means
+ * a new path cannot be forgotten.
  */
 export async function enqueueQuickBooksPayments(businessId: string, since: Date, now = new Date()) {
   if (await isOwnerDemoWorkspaceId(businessId)) return 0;
-  const [invoices, deposits, existing] = await Promise.all([
-    prisma.invoice.findMany({ where: { businessId, status: "paid", paidAt: { gte: since } }, select: { id: true, amountCents: true }, take: 200 }),
-    prisma.deposit.findMany({ where: { businessId, status: "paid", paidAt: { gte: since } }, select: { id: true, amountCents: true }, take: 200 }),
-    prisma.quickBooksSync.findMany({ where: { businessId, createdAt: { gte: new Date(since.getTime() - 60_000) } }, select: { sourceType: true, sourceId: true } }),
+  const [paid, open, deposits] = await Promise.all([
+    prisma.invoice.findMany({ where: { businessId, status: "paid", paidAt: { gte: since }, amountCents: { gt: 0 } }, select: { id: true, amountCents: true }, take: 200 }),
+    prisma.invoice.findMany({
+      where: { businessId, status: { in: OPEN_INVOICE }, createdAt: { gte: since }, amountCents: { gt: 0 } },
+      select: { id: true, amountCents: true },
+      take: 200,
+    }),
+    prisma.deposit.findMany({ where: { businessId, status: "paid", paidAt: { gte: since }, amountCents: { gt: 0 } }, select: { id: true, amountCents: true }, take: 200 }),
   ]);
-  const have = new Set(existing.map((r) => `${r.sourceType}:${r.sourceId}`));
+  const ids = [...paid, ...open, ...deposits].map((row) => row.id);
+  const existing = ids.length
+    ? await prisma.quickBooksSync.findMany({ where: { businessId, sourceId: { in: ids } }, select: { sourceType: true, sourceId: true } })
+    : [];
+  const have = new Set(existing.map((row) => `${row.sourceType}:${row.sourceId}`));
+  const alreadyReceipt = new Set(existing.filter((row) => row.sourceType === "invoice").map((row) => row.sourceId));
   let added = 0;
-  for (const [sourceType, rows] of [["invoice", invoices], ["deposit", deposits]] as const) {
-    for (const row of rows) {
-      if (have.has(`${sourceType}:${row.id}`) || row.amountCents <= 0) continue;
-      try {
-        await prisma.quickBooksSync.create({ data: { businessId, sourceType, sourceId: row.id, amountCents: row.amountCents, nextAttemptAt: now } });
-        added += 1;
-      } catch {
-        /* Another sweep enqueued it first. */
-      }
+  const enqueue = async (sourceType: string, sourceId: string, amountCents: number) => {
+    if (have.has(`${sourceType}:${sourceId}`) || amountCents <= 0) return;
+    try {
+      await prisma.quickBooksSync.create({ data: { businessId, sourceType, sourceId, amountCents, nextAttemptAt: now } });
+      have.add(`${sourceType}:${sourceId}`);
+      added += 1;
+    } catch {
+      /* Another sweep enqueued it first. */
     }
+  };
+  for (const row of paid) {
+    if (alreadyReceipt.has(row.id)) continue;
+    await enqueue("receivable", row.id, row.amountCents);
+    await enqueue("collection", row.id, row.amountCents);
   }
+  for (const row of open) {
+    if (alreadyReceipt.has(row.id) || paid.some((invoice) => invoice.id === row.id)) continue;
+    await enqueue("receivable", row.id, row.amountCents);
+  }
+  for (const row of deposits) await enqueue("deposit", row.id, row.amountCents);
   return added;
 }
 
@@ -281,20 +301,39 @@ export function txnDate(at: Date, timezone: string) {
   return new Intl.DateTimeFormat("en-CA", { timeZone: timezone, year: "numeric", month: "2-digit", day: "2-digit" }).format(at);
 }
 
+function salesLines(receipt: Receipt, itemId: string) {
+  return receipt.lines.map((line) => ({
+    DetailType: "SalesItemLineDetail",
+    Amount: dollars(line.amountCents),
+    Description: line.description.slice(0, 4000),
+    SalesItemLineDetail: {
+      ItemRef: { value: itemId },
+      ...(line.quantity && line.unitCents != null ? { Qty: line.quantity, UnitPrice: dollars(line.unitCents) } : {}),
+    },
+  }));
+}
+
 export function salesReceiptBody(receipt: Receipt, refs: { customerId: string; itemId: string }, timezone: string) {
   return {
     CustomerRef: { value: refs.customerId },
     TxnDate: txnDate(receipt.paidAt, timezone),
     PrivateNote: receipt.note.slice(0, 4000),
-    Line: receipt.lines.map((line) => ({
-      DetailType: "SalesItemLineDetail",
-      Amount: dollars(line.amountCents),
-      Description: line.description.slice(0, 4000),
-      SalesItemLineDetail: {
-        ItemRef: { value: refs.itemId },
-        ...(line.quantity && line.unitCents != null ? { Qty: line.quantity, UnitPrice: dollars(line.unitCents) } : {}),
-      },
-    })),
+    Line: salesLines(receipt, refs.itemId),
+  };
+}
+
+export function invoiceBody(receipt: Receipt, refs: { customerId: string; itemId: string }, timezone: string) {
+  return salesReceiptBody(receipt, refs, timezone);
+}
+
+export function paymentBody(receipt: Receipt, customerId: string, invoiceId: string, timezone: string) {
+  const amount = dollars(receipt.lines.reduce((sum, line) => sum + line.amountCents, 0));
+  return {
+    CustomerRef: { value: customerId },
+    TotalAmt: amount,
+    TxnDate: txnDate(receipt.paidAt, timezone),
+    PrivateNote: receipt.note.slice(0, 4000),
+    Line: [{ Amount: amount, LinkedTxn: [{ TxnId: invoiceId, TxnType: "Invoice" }] }],
   };
 }
 
@@ -315,15 +354,20 @@ export function receiptLines(
   return lines.length && total === paidCents ? lines : [{ description: fallback, amountCents: paidCents }];
 }
 
+const DEAD_INVOICE = new Set(["void", "refunded", "draft"]);
+
 async function loadReceipt(sync: { sourceType: string; sourceId: string; amountCents: number }): Promise<Receipt | null> {
   const customerSelect = { id: true, name: true, phone: true, email: true, address: true, quickbooksCustomerId: true } as const;
-  if (sync.sourceType === "invoice") {
+  if (sync.sourceType === "invoice" || sync.sourceType === "receivable" || sync.sourceType === "collection") {
     const invoice = await prisma.invoice.findUnique({
       where: { id: sync.sourceId },
       select: {
         id: true,
         status: true,
+        amountCents: true,
         paidAt: true,
+        sentAt: true,
+        createdAt: true,
         payments: { select: { method: true }, orderBy: { createdAt: "desc" }, take: 1 },
         job: {
           select: {
@@ -334,13 +378,15 @@ async function loadReceipt(sync: { sourceType: string; sourceId: string; amountC
         },
       },
     });
-    if (!invoice || invoice.status !== "paid") return null;
+    const requirePaid = sync.sourceType !== "receivable";
+    if (!invoice || invoice.amountCents <= 0 || DEAD_INVOICE.has(invoice.status) || (requirePaid && invoice.status !== "paid")) return null;
     const title = invoice.job?.title?.trim() || "Service";
+    const paid = invoice.status === "paid";
     return {
       payer: invoice.job?.customer ?? { id: null, name: null, phone: null, email: null, address: null, quickbooksCustomerId: null },
       lines: receiptLines(invoice.job?.lineItems ?? [], sync.amountCents, title),
-      paidAt: invoice.paidAt ?? new Date(),
-      note: `Orvius invoice ${invoice.id}, ${methodLabel(invoice.payments[0]?.method)}.`,
+      paidAt: invoice.paidAt ?? invoice.sentAt ?? invoice.createdAt,
+      note: paid ? `Orvius invoice ${invoice.id}, ${methodLabel(invoice.payments[0]?.method)}.` : `Orvius invoice ${invoice.id}.`,
     };
   }
   const deposit = await prisma.deposit.findUnique({
@@ -442,39 +488,107 @@ async function serviceItemId(access: { token: string; realmId: string; connectio
 
 const backoff = (attempts: number) => Math.min(6 * 60 * 60_000, 60_000 * 2 ** attempts);
 
-async function processSync(syncId: string, now: Date) {
-  const sync = await prisma.quickBooksSync.findUniqueOrThrow({ where: { id: syncId } });
-  const receipt = await loadReceipt(sync);
-  if (!receipt) {
-    await prisma.quickBooksSync.update({ where: { id: sync.id }, data: { status: "skipped", claimedAt: null, lastError: "No longer a paid payment in Orvius" } });
-    return "skipped" as const;
+type SyncOutcome = "done" | "skipped" | "wait";
+
+/** A payment waits until its invoice exists in QuickBooks, and does not burn a retry while it waits. */
+async function holdForInvoice(sync: { id: string; businessId: string; sourceId: string; attempts: number }, now: Date): Promise<SyncOutcome | null> {
+  const bill = await prisma.quickBooksSync.findFirst({
+    where: { businessId: sync.businessId, sourceType: "receivable", sourceId: sync.sourceId },
+    select: { status: true, qbReceiptId: true },
+  });
+  if (!bill || bill.status === "failed" || bill.status === "skipped") {
+    await prisma.quickBooksSync.update({
+      where: { id: sync.id },
+      data: { status: "skipped", claimedAt: null, lastError: "The invoice was not created in QuickBooks" },
+    });
+    return "skipped";
   }
+  if (bill.status !== "done" || !bill.qbReceiptId) {
+    await prisma.quickBooksSync.update({
+      where: { id: sync.id },
+      data: { claimedAt: null, attempts: { decrement: 1 }, nextAttemptAt: now, lastError: null },
+    });
+    return "wait";
+  }
+  return null;
+}
+
+async function processSync(syncId: string, now: Date): Promise<SyncOutcome> {
+  const sync = await prisma.quickBooksSync.findUniqueOrThrow({ where: { id: syncId } });
   const authority = await mayWrite(sync.businessId, "quickbooks", "payment_receipt");
   if (!authority.allowed) {
     await prisma.quickBooksSync.update({ where: { id: sync.id }, data: { status: "skipped", claimedAt: null, lastError: authority.reason } });
-    return "skipped" as const;
+    return "skipped";
+  }
+  if (sync.sourceType === "collection") {
+    const held = await holdForInvoice(sync, now);
+    if (held) return held;
+  }
+  if (sync.sourceType === "receivable") {
+    const live = await prisma.invoice.findUnique({ where: { id: sync.sourceId }, select: { amountCents: true } });
+    if (live && live.amountCents > 0 && live.amountCents !== sync.amountCents) {
+      sync.amountCents = live.amountCents;
+      await prisma.quickBooksSync.update({ where: { id: sync.id }, data: { amountCents: live.amountCents } });
+    }
+  }
+  const receipt = await loadReceipt(sync);
+  if (!receipt) {
+    const lastError = sync.sourceType === "receivable" ? "No longer an open invoice in Orvius" : "No longer a paid payment in Orvius";
+    await prisma.quickBooksSync.update({ where: { id: sync.id }, data: { status: "skipped", claimedAt: null, lastError } });
+    return "skipped";
   }
   const access = await quickbooksAccess(sync.businessId, now);
   if (!access) {
     await prisma.quickBooksSync.update({ where: { id: sync.id }, data: { status: "skipped", claimedAt: null, lastError: "QuickBooks is not connected" } });
-    return "skipped" as const;
+    return "skipped";
   }
   const shop = await prisma.business.findUnique({ where: { id: sync.businessId }, select: { timezone: true } });
+  const timezone = shop?.timezone ?? "America/New_York";
   const customerId = sync.qbCustomerId ?? (await findOrCreateCustomer(access, receipt.payer));
   if (!sync.qbCustomerId) await prisma.quickBooksSync.update({ where: { id: sync.id }, data: { qbCustomerId: customerId } });
-  const itemId = await serviceItemId(access);
-  const created = await qboRequest<{ SalesReceipt: { Id: string } }>(access.token, access.realmId, "salesreceipt", {
-    method: "POST",
-    body: salesReceiptBody(receipt, { customerId, itemId }, shop?.timezone ?? "America/New_York"),
-    query: { requestid: sync.id },
-  });
+  const itemId = sync.sourceType === "collection" ? null : await serviceItemId(access);
+  let externalId: string;
+  if (sync.sourceType === "receivable") {
+    const created = await qboRequest<{ Invoice: { Id: string } }>(access.token, access.realmId, "invoice", {
+      method: "POST",
+      body: invoiceBody(receipt, { customerId, itemId: itemId! }, timezone),
+      query: { requestid: sync.id },
+    });
+    externalId = created.Invoice.Id;
+  } else if (sync.sourceType === "collection") {
+    const bill = await prisma.quickBooksSync.findFirst({
+      where: { businessId: sync.businessId, sourceType: "receivable", sourceId: sync.sourceId, status: "done" },
+      select: { qbReceiptId: true, amountCents: true },
+    });
+    if (!bill?.qbReceiptId) {
+      await prisma.quickBooksSync.update({ where: { id: sync.id }, data: { claimedAt: null, attempts: { decrement: 1 }, nextAttemptAt: now } });
+      return "wait";
+    }
+    if (bill.amountCents !== sync.amountCents) {
+      sync.amountCents = bill.amountCents;
+      receipt.lines = [{ description: receipt.lines[0]?.description ?? "Service", amountCents: bill.amountCents }];
+    }
+    const created = await qboRequest<{ Payment: { Id: string } }>(access.token, access.realmId, "payment", {
+      method: "POST",
+      body: paymentBody(receipt, customerId, bill.qbReceiptId, timezone),
+      query: { requestid: sync.id },
+    });
+    externalId = created.Payment.Id;
+  } else {
+    const created = await qboRequest<{ SalesReceipt: { Id: string } }>(access.token, access.realmId, "salesreceipt", {
+      method: "POST",
+      body: salesReceiptBody(receipt, { customerId, itemId: itemId! }, timezone),
+      query: { requestid: sync.id },
+    });
+    externalId = created.SalesReceipt.Id;
+  }
   await prisma.quickBooksSync.update({
     where: { id: sync.id },
-    data: { status: "done", claimedAt: null, qbReceiptId: created.SalesReceipt.Id, lastError: null },
+    data: { status: "done", claimedAt: null, qbReceiptId: externalId, lastError: null },
   });
-  await correlate({ businessId: sync.businessId, entityType: sync.sourceType, entityId: sync.sourceId, system: "quickbooks", externalId: created.SalesReceipt.Id }).catch((error: unknown) => logWarn("quickbooks.correlation_failed", { syncId: sync.id, error: error instanceof Error ? error.message : String(error) }));
+  await correlate({ businessId: sync.businessId, entityType: sync.sourceType, entityId: sync.sourceId, system: "quickbooks", externalId }).catch((error: unknown) => logWarn("quickbooks.correlation_failed", { syncId: sync.id, error: error instanceof Error ? error.message : String(error) }));
   logInfo("quickbooks.receipt_created", { businessId: sync.businessId, sourceType: sync.sourceType, basis: authority.basis });
-  return "done" as const;
+  return "done";
 }
 
 /** Enqueue new payments for every connected shop, then send what is due. Rows are claimed first, so overlapping runs never send one twice. */
@@ -492,39 +606,46 @@ export async function drainQuickBooksSyncs(options: { limit?: number; now?: Date
       logWarn("quickbooks.enqueue_failed", { businessId: conn.businessId, error: error instanceof Error ? error.message : String(error) }),
     );
   }
-  const due = await prisma.quickBooksSync.findMany({
-    where: {
-      status: "pending",
-      nextAttemptAt: { lte: now },
-      ...(options.businessId ? { businessId: options.businessId } : {}),
-      OR: [{ claimedAt: null }, { claimedAt: { lt: new Date(now.getTime() - CLAIM_STALE_MS) } }],
-    },
-    orderBy: { nextAttemptAt: "asc" },
-    take: options.limit ?? 25,
-    select: { id: true, claimedAt: true, attempts: true, businessId: true },
-  });
-  const tally = { done: 0, skipped: 0, retry: 0, failed: 0 };
-  for (const row of due) {
-    if (Date.now() > stopAt) break;
-    const claimed = await prisma.quickBooksSync.updateMany({
-      where: { id: row.id, status: "pending", claimedAt: row.claimedAt },
-      data: { claimedAt: now, attempts: { increment: 1 } },
+  const tally = { done: 0, skipped: 0, retry: 0, failed: 0, wait: 0 };
+  const settle = async () => {
+    const due = await prisma.quickBooksSync.findMany({
+      where: {
+        status: "pending",
+        nextAttemptAt: { lte: now },
+        ...(options.businessId ? { businessId: options.businessId } : {}),
+        OR: [{ claimedAt: null }, { claimedAt: { lt: new Date(now.getTime() - CLAIM_STALE_MS) } }],
+      },
+      orderBy: { nextAttemptAt: "asc" },
+      take: options.limit ?? 25,
+      select: { id: true, claimedAt: true, attempts: true, businessId: true, sourceType: true },
     });
-    if (!claimed.count) continue;
-    try {
-      tally[await processSync(row.id, now)] += 1;
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      const attempts = row.attempts + 1;
-      const giveUp = attempts >= MAX_QB_SYNC_ATTEMPTS;
-      await prisma.quickBooksSync.update({
-        where: { id: row.id },
-        data: { status: giveUp ? "failed" : "pending", claimedAt: null, lastError: message.slice(0, 300), nextAttemptAt: new Date(now.getTime() + backoff(attempts)) },
+    const ordered = [...due.filter((row) => row.sourceType !== "collection"), ...due.filter((row) => row.sourceType === "collection")];
+    for (const row of ordered) {
+      if (Date.now() > stopAt) break;
+      const claimed = await prisma.quickBooksSync.updateMany({
+        where: { id: row.id, status: "pending", claimedAt: row.claimedAt },
+        data: { claimedAt: now, attempts: { increment: 1 } },
       });
-      tally[giveUp ? "failed" : "retry"] += 1;
-      (giveUp ? logError : logWarn)("quickbooks.sync_failed", { businessId: row.businessId, syncId: row.id, attempts, error: message });
+      if (!claimed.count) continue;
+      try {
+        const outcome = await processSync(row.id, now);
+        if (outcome === "wait") tally.wait += 1;
+        else tally[outcome] += 1;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        const attempts = row.attempts + 1;
+        const giveUp = attempts >= MAX_QB_SYNC_ATTEMPTS;
+        await prisma.quickBooksSync.update({
+          where: { id: row.id },
+          data: { status: giveUp ? "failed" : "pending", claimedAt: null, lastError: message.slice(0, 300), nextAttemptAt: new Date(now.getTime() + backoff(attempts)) },
+        });
+        tally[giveUp ? "failed" : "retry"] += 1;
+        (giveUp ? logError : logWarn)("quickbooks.sync_failed", { businessId: row.businessId, syncId: row.id, attempts, error: message });
+      }
     }
-  }
+  };
+  await settle();
+  if (tally.wait) await settle();
   return tally;
 }
 
@@ -532,7 +653,9 @@ export async function drainQuickBooksSyncs(options: { limit?: number; now?: Date
 export async function quickbooksStatus(businessId: string) {
   const [conn, recent, failing] = await Promise.all([
     prisma.quickBooksConnection.findUnique({ where: { businessId }, select: { status: true, companyName: true, connectedAt: true, lastError: true } }),
-    prisma.quickBooksSync.count({ where: { businessId, status: "done", createdAt: { gte: new Date(Date.now() - 30 * 86_400_000) } } }),
+    prisma.quickBooksSync.count({
+      where: { businessId, status: "done", sourceType: { in: ["invoice", "deposit", "collection"] }, createdAt: { gte: new Date(Date.now() - 30 * 86_400_000) } },
+    }),
     prisma.quickBooksSync.count({ where: { businessId, status: "failed" } }),
   ]);
   return {

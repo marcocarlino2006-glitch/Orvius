@@ -6,7 +6,7 @@ import type { SlotPreference } from "@/lib/availability";
  * assistant config can be built and tested anywhere.
  */
 
-export const IN_CALL_TOOL_NAMES = ["check_availability", "hold_appointment", "hold_new_time", "alert_team_now", "tell_the_team", "pass_to_network"] as const;
+export const IN_CALL_TOOL_NAMES = ["check_availability", "hold_appointment", "hold_new_time", "alert_team_now", "tell_the_team", "pass_to_network", "check_truck"] as const;
 export type InCallToolName = (typeof IN_CALL_TOOL_NAMES)[number];
 
 const URGENCY = ["emergency", "same-day", "this-week", "flexible"] as const;
@@ -128,6 +128,23 @@ export function buildInCallTools(params: { webhookUrl: string; webhookSecret?: s
         },
       },
       messages: [{ type: "request-start", content: "One moment." }],
+      server,
+    },
+    {
+      type: "function",
+      function: {
+        name: "check_truck",
+        description:
+          "Look up how many of a part are counted on this shop's truck. Call it before saying a part is on the truck. If it says the shop hasn't counted that part, say the technician will confirm. Never name a count this tool did not return.",
+        parameters: {
+          type: "object",
+          properties: {
+            part: { type: "string", description: "The part the caller asked about, in their words" },
+          },
+          required: ["part"],
+        },
+      },
+      messages: [{ type: "request-start", content: "Let me check the truck." }],
       server,
     },
   ];
