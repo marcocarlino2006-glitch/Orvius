@@ -24,7 +24,6 @@ import { depositMoneyPathBroken } from "@/lib/deposit-money-path";
 import { estimateNeedsOwnerFollowUp } from "@/lib/estimate-fail";
 import { ownerAlertsAreMuted } from "@/lib/owner-alerts-muted";
 import { leadWantsHuman } from "@/lib/lead-wants-human";
-import { ownerSetupHref } from "@/lib/owner-setup-state";
 import { liveCallSince } from "@/lib/live-call";
 import { prisma } from "@/lib/prisma";
 import type {
@@ -433,44 +432,6 @@ export async function collectAttention(businessId: string, now = new Date()): Pr
         "Deposits are on, but Stripe hasn't cleared your shop to take cards yet, so customers can't pay them. Finish payment setup or turn deposits off.",
       recommendedAction: "Finish payment setup",
       href: "/dashboard/billing#payouts",
-      entityType: "shop",
-      entityId: businessId,
-      createdAt: now.toISOString(),
-    });
-  }
-
-  const hasLine = Boolean(
-    business?.vapiPhoneNumber?.trim() || business?.twilioPhone?.trim(),
-  );
-  // Prove before capture — never ask owners to confirm theater first.
-  if (hasLine && !business?.lineVerifiedAt) {
-    items.push({
-      id: `needs_capture:${businessId}`,
-      kind: "needs_capture",
-      rank: kindRank("needs_capture", null, afterHours),
-      impact: "critical",
-      title: "Prove your line",
-      detail: "Place one test call so we know Orvius answers end-to-end.",
-      recommendedAction: "Call your Orvius line",
-      href: ownerSetupHref("verify"),
-      entityType: "shop",
-      entityId: businessId,
-      createdAt: now.toISOString(),
-    });
-  } else if (
-    hasLine &&
-    business?.ownerPhone?.trim() &&
-    !business.overflowForwardConfirmedAt
-  ) {
-    items.push({
-      id: `needs_capture:${businessId}`,
-      kind: "needs_capture",
-      rank: kindRank("needs_capture", null, afterHours),
-      impact: "critical",
-      title: "Your calls aren't proven to reach Orvius",
-      detail: "Having an Orvius line doesn't mean your business calls reach it. Connect your number and run the test call.",
-      recommendedAction: "Connect and test your number",
-      href: "/dashboard?settings=phone",
       entityType: "shop",
       entityId: businessId,
       createdAt: now.toISOString(),

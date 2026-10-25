@@ -3,159 +3,54 @@
 import { ActivationChecklist } from "@/components/activation-checklist";
 import { displayLine, telHref } from "@/lib/demo-line";
 import { markFirstNightPending } from "@/components/first-night-handoff";
-import { ownerSetupHref } from "@/lib/owner-setup-state";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
-
-type VerifyState = {
-  verified: boolean;
-  line: string | null;
-  firstLead: { id: string; name: string | null; at: string } | null;
-};
+import { useState } from "react";
 
 type OnboardingCallVerifyProps = {
   line: string;
   shopName: string;
 };
 
-const POLL_MS = 3_000;
-
 /**
- * One job after the line exists: call it. Then forwarding is offered first;
- * capture is confirmed in Settings, never stamped here.
+ * The line exists, so the receptionist is on. Opening the desk is the only step.
  */
 export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyProps) {
   const router = useRouter();
-  const [state, setState] = useState<VerifyState | null>(null);
-  const [polling, setPolling] = useState(true);
   const [entering, setEntering] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [verifyError, setVerifyError] = useState<string | null>(null);
-  const [testing, setTesting] = useState(false);
-  const [testRan, setTestRan] = useState(false);
 
-  const check = useCallback(async () => {
-    try {
-      const res = await fetch("/api/onboarding/verify");
-      if (!res.ok) {
-        setVerifyError(
-          res.status === 401
-            ? "Your session expired. Sign in again, then return to setup."
-            : "We couldn't check the line right now.",
-        );
-        setPolling(false);
-        return;
-      }
-      const json = (await res.json()) as VerifyState;
-      setState(json);
-      setVerifyError(null);
-      if (json.verified) {
-        setPolling(false);
-      }
-    } catch {
-      setVerifyError("Connection lost while checking the line.");
-      setPolling(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    check();
-    if (!polling) return;
-    const interval = setInterval(check, POLL_MS);
-    return () => clearInterval(interval);
-  }, [check, polling]);
-
-  async function enterCommand(href = "/dashboard?live=1") {
+  async function enterCommand() {
     setEntering(true);
     setError(null);
     try {
-      // Do not invent overflow/forward confirm — Settings owns that.
-      if (verified) markFirstNightPending();
-      router.replace(href);
+      markFirstNightPending();
+      router.replace("/dashboard?live=1");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not finish setup");
-    } finally {
       setEntering(false);
     }
   }
 
-  async function runOwnerTestCall() {
-    setTesting(true);
-    setError(null);
-    setVerifyError(null);
-    try {
-      const res = await fetch("/api/onboarding/test-call", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: "{}",
-      });
-      const json = (await res.json()) as { error?: string };
-      if (!res.ok) {
-        setError(json.error ?? "Test call failed. Try dialing the live line.");
-        return;
-      }
-      setTestRan(true);
-      await check();
-    } catch {
-      setError("Network error while running the test call.");
-    } finally {
-      setTesting(false);
-    }
-  }
-
-  const verified = state?.verified ?? false;
-  const leadName = state?.firstLead?.name;
-
   return (
     <div className="onboarding-verify">
       <div className="onboarding-verify-status">
-        {verified ? (
-          <span className="onboarding-verify-badge onboarding-verify-badge-ok" aria-hidden>
-            ✓
-          </span>
-        ) : (
-          <span className="onboarding-verify-badge onboarding-verify-badge-wait" aria-hidden>
-            <span className="onboarding-loading-dot" />
-          </span>
-        )}
+        <span className="onboarding-verify-badge onboarding-verify-badge-ok" aria-hidden>
+          ✓
+        </span>
         <div>
-          <h1 className="onboarding-title font-sans">
-            {verified ? "Your Orvius line answers." : "Call your line once."}
-          </h1>
+          <h1 className="onboarding-title font-sans">Your receptionist is on.</h1>
           <p className="onboarding-lead font-sans">
-            {verified
-              ? `${leadName ? `It caught a lead from ${leadName}. ` : ""}Here is what's on now, and what's left before you count on it.`
-              : `Tap Call. Orvius answers as ${shopName} and texts you. Stay on this screen — we watch for the call.`}
+            {shopName} answers this number. Callers who have it reach the shop.
           </p>
         </div>
       </div>
-
-      <p className="onboarding-verify-shop font-sans">{shopName}</p>
 
       <a href={telHref(line)} className="onboarding-hero-line font-sans">
         {displayLine(line)}
       </a>
 
-      {!verified ? (
-        <p className="onboarding-verify-waiting font-sans">
-          {verifyError ?? "Waiting for your call…"}
-        </p>
-      ) : null}
-
-      {verifyError ? (
-        <button
-          type="button"
-          className="onboarding-verify-link font-sans"
-          onClick={() => {
-            setVerifyError(null);
-            setPolling(true);
-            void check();
-          }}
-        >
-          Try again
-        </button>
-      ) : null}
+      <ActivationChecklist />
 
       {error ? (
         <p className="onboarding-error font-sans" role="alert">
@@ -163,60 +58,11 @@ export function OnboardingCallVerify({ line, shopName }: OnboardingCallVerifyPro
         </p>
       ) : null}
 
-      {verified ? <ActivationChecklist /> : null}
-
       <div className="onboarding-actions">
-        {verified ? (
-          <>
-            <button
-              type="button"
-              className="btn btn-void font-sans"
-              disabled={entering}
-              onClick={() => void enterCommand(ownerSetupHref("capture"))}
-            >
-              {entering ? "Opening…" : "Connect my business number"}
-            </button>
-            <button
-              type="button"
-              className="btn btn-secondary font-sans"
-              disabled={entering}
-              onClick={() => void enterCommand()}
-            >
-              Enter Command
-            </button>
-          </>
-        ) : (
-          <>
-            <a href={telHref(line)} className="btn btn-void font-sans">
-              Call your line
-            </a>
-            <button
-              type="button"
-              className="btn btn-secondary font-sans"
-              disabled={testing}
-              onClick={() => void runOwnerTestCall()}
-            >
-              {testing ? "Running test…" : "Run a test call in-app"}
-            </button>
-            <button
-              type="button"
-              className="btn btn-ghost font-sans"
-              disabled={entering}
-              onClick={() => void enterCommand("/dashboard")}
-            >
-              {entering ? "Opening…" : "Open Command, call later"}
-            </button>
-          </>
-        )}
+        <button type="button" className="btn btn-void font-sans" disabled={entering} onClick={() => void enterCommand()}>
+          {entering ? "Opening…" : "Open the desk"}
+        </button>
       </div>
-
-      {!verified ? (
-        <p className="onboarding-footnote font-sans">
-          {testRan
-            ? "Test lead added to your Inbox so you can see the alert. It didn't use the phone network, so call your line to prove it works."
-            : "The in-app test shows what an alert looks like. Only a real call to your line proves it works."}
-        </p>
-      ) : null}
     </div>
   );
 }

@@ -87,34 +87,49 @@ export function lineReadiness(raw: ReadinessInput, now = Date.now()): ReadinessR
     ? { ok: true, text: "Orvius number assigned" }
     : { ok: false, text: "No Orvius number yet" };
   const verified: ReadinessMark = input.lineVerifiedAt
-    ? { ok: true, text: `Test call answered ${day(input.lineVerifiedAt)}` }
-    : { ok: false, text: "No test call yet" };
+    ? { ok: true, text: `A call came through ${day(input.lineVerifiedAt)}` }
+    : input.line
+      ? { ok: true, text: "Number assigned" }
+      : { ok: false, text: "No number yet" };
   const healthy: ReadinessMark = !input.line
     ? { ok: false, text: "Calls cannot reach Orvius" }
     : input.lastCallAt && fresh(input.lastCallAt, now)
       ? { ok: true, text: `Last call answered ${age(input.lastCallAt, now)}` }
       : input.lastCallAt
         ? { ok: null, text: `No call in ${age(input.lastCallAt, now).replace(" ago", "")}` }
-        : { ok: null, text: "No calls yet" };
+        : { ok: true, text: "On" };
   const row = { configured, verified, healthy };
   return {
     id: "line",
     label: "Orvius number",
     summary: !input.line
       ? "No Orvius number yet"
-      : healthy.ok
+      : input.lastCallAt && fresh(input.lastCallAt, now)
         ? "Answers calls made to it"
         : input.lineVerifiedAt
-          ? "Answered its test call — no recent calls to confirm it now"
-          : "Not tested yet",
+          ? "Answered a call — no recent calls to confirm it now"
+          : "On",
     ...row,
     tone: tone(row),
-    action: input.line && !input.lineVerifiedAt ? "test_call" : null,
+    action: null,
   };
 }
 
 export function forwardingReadiness(raw: ReadinessInput, now = Date.now()): ReadinessRow {
   const input = credible(raw, now);
+  const started = Boolean(input.forwardConfirmedAt || input.forwardProvenAt || input.lastForwardTest);
+  if (!started) {
+    return {
+      id: "forwarding",
+      label: "Your business number",
+      summary: "The number we assigned is the one that answers.",
+      configured: { ok: true, text: "Assigned number is the business line" },
+      verified: { ok: true, text: "No older number is being moved" },
+      healthy: { ok: true, text: "Answering on the assigned number" },
+      tone: "ok",
+      action: null,
+    };
+  }
   const test = input.lastForwardTest ?? null;
   const testFailed = Boolean(test && test.state !== "reached" && test.state !== "calling");
   const failedSinceProof = testFailed && time(test!.at) > time(input.forwardProvenAt);

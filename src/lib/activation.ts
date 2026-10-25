@@ -42,6 +42,8 @@ function lastFour(phone: string | null | undefined) {
 
 export function activationChecklist(input: {
   lineVerifiedAt: Date | string | null;
+  /** The number exists. The receptionist is on it whether or not a call has arrived. */
+  lineAssigned?: boolean;
   ownerPhone: string | null;
   ownerEmail: string | null;
   ownerSmsOptOutAt: Date | string | null;
@@ -139,17 +141,32 @@ export function activationChecklist(input: {
   const number: ActivationItem =
     input.connection.state === "proven"
       ? { id: "number", label: "Your business number", state: "live", detail: input.connection.detail }
-      : {
-          id: "number",
-          label: "Your business number",
-          state: "todo",
-          waitingOn: "owner",
-          detail:
-            input.connection.state === "test_failed"
-              ? `${input.connection.detail} Your customers' calls don't reach Orvius yet.`
-              : "Your customers still call your business number. Dial one code from that phone so those calls come to Orvius. You keep the number.",
-          action: { kind: "link", label: "Connect your number", href: "/dashboard?settings=phone" },
-        };
+      : input.connection.state === "test_failed"
+        ? {
+            id: "number",
+            label: "Your business number",
+            state: "todo",
+            waitingOn: "owner",
+            detail: `${input.connection.detail} Your Orvius number still answers.`,
+            action: { kind: "link", label: "See your number", href: "/dashboard?settings=phone" },
+          }
+        : input.lineVerifiedAt || input.lineAssigned
+          ? {
+              id: "number",
+              label: "Your business number",
+              state: "live",
+              detail: input.lineVerifiedAt
+                ? "Your receptionist answers your Orvius number."
+                : "Your receptionist answers the number we assigned.",
+            }
+          : {
+              id: "number",
+              label: "Your business number",
+              state: "todo",
+              waitingOn: "owner",
+              detail: "Your number is assigned when the line is on.",
+              action: { kind: "link", label: "See your number", href: "/dashboard?settings=phone" },
+            };
 
   const level = PERMISSION_LEVELS.find((l) => l.id === input.level) ?? PERMISSION_LEVELS[0];
 
@@ -189,13 +206,18 @@ export function activationChecklist(input: {
               },
         ];
 
+  const lineOn = Boolean(input.lineVerifiedAt || input.lineAssigned);
   return [
     {
       id: "line",
       label: "Your Orvius line",
-      state: input.lineVerifiedAt ? "live" : "todo",
-      ...(input.lineVerifiedAt ? {} : { waitingOn: "owner" as const }),
-      detail: input.lineVerifiedAt ? "Answering. A real call came through." : "Call it once to prove it answers.",
+      state: lineOn ? "live" : "todo",
+      ...(lineOn ? {} : { waitingOn: "owner" as const }),
+      detail: input.lineVerifiedAt
+        ? "Answering. A real call came through."
+        : lineOn
+          ? "Your receptionist answers the number we assigned."
+          : "Your number is assigned when the line is on.",
     },
     alerts,
     handoff,

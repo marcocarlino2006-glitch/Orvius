@@ -27,17 +27,16 @@ const base = {
   stuckPendingAlerts: 0,
 };
 
-test("the Orvius number answering and the shop's own number forwarding are separate rows", () => {
+test("an assigned number is the business line until someone starts a move", () => {
   const [line, forwarding] = shopReadiness(base, NOW);
   assert.equal(line.label, "Orvius number");
   assert.equal(line.summary, "Answers calls made to it");
   assert.equal(line.tone, "ok");
+  assert.equal(line.action, null);
   assert.equal(forwarding.label, "Your business number");
-  assert.match(forwarding.summary, /not proven yet — calls to your number may not reach Orvius/);
-  assert.equal(forwarding.verified.ok, false);
-  assert.equal(forwarding.healthy.ok, null, "unknown, not healthy and not failing");
-  assert.notEqual(forwarding.tone, "ok");
-  assert.equal(forwarding.action, "forward_test");
+  assert.equal(forwarding.summary, "The number we assigned is the one that answers.");
+  assert.equal(forwarding.tone, "ok");
+  assert.equal(forwarding.action, null);
 });
 
 test("an owner saying forwarding is on is configured, not verified", () => {
@@ -108,20 +107,18 @@ test("Command renders all three states per row, and no bare 'Delivering' or 'Ans
   assert.match(health, /forwardConfirmedAt:/);
 });
 
-test("future-dated or unreadable evidence never makes anything read ready now", () => {
+test("future-dated evidence is discarded; an assigned number still reads as on", () => {
   const ahead = (days) => new Date(NOW + days * 86_400_000).toISOString();
   const future = { ...base, lineVerifiedAt: ahead(3), lastCallAt: ahead(2), forwardProvenAt: ahead(1), lastAlertAt: ahead(1) };
   const [line, forwarding, alerts] = shopReadiness(future, NOW);
-  assert.notEqual(line.healthy.ok, true);
-  assert.equal(line.verified.ok, false, "a test call dated next week did not happen");
-  assert.notEqual(line.tone, "ok");
-  assert.notEqual(forwarding.healthy.ok, true);
-  assert.equal(forwarding.verified.ok, false);
+  assert.equal(line.verified.text, "Number assigned", "a call dated next week did not happen");
+  assert.equal(line.summary, "On");
+  assert.equal(forwarding.summary, "The number we assigned is the one that answers.");
   assert.notEqual(alerts.healthy.ok, true);
   assert.notEqual(alerts.summary, "Alerts are reaching you");
 
   const garbled = shopReadiness({ ...base, lastCallAt: "not a date", lastAlertAt: "soon" }, NOW);
-  assert.notEqual(garbled[0].healthy.ok, true);
+  assert.match(garbled[0].summary, /Answered a call/);
   assert.notEqual(garbled[2].healthy.ok, true);
 
   const futureSuccessHidesFailure = alertReadiness({ ...base, lastAlertAt: ahead(1), lastFailedAlertAt: ago(0.5) }, NOW);

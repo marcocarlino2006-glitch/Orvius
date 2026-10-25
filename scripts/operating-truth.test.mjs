@@ -1208,11 +1208,13 @@ test("after go-live: every unfinished item says who it waits on, there is one ne
     for (const item of first.body.items) {
       if (item.state !== "live") assert.ok(["owner", "provider", "proof"].includes(item.waitingOn), `${item.id} says who it waits on`);
     }
-    assert.equal(byId.line.waitingOn, "owner", "a saved number is not a working line");
+    assert.equal(byId.line.state, "live", "the number we assigned is the working line");
+    assert.equal(byId.line.waitingOn, undefined);
+    assert.equal(byId.number.state, "live");
     assert.equal(byId.texting.state, "todo");
     assert.equal(byId.texting.waitingOn, "provider", "a configured sender isn't carrier approval");
     assert.equal(byId.first_outcome.waitingOn, "proof");
-    assert.equal(first.body.summary.next.id, "line", "one next step, the first thing only the owner can do");
+    assert.equal(first.body.summary.next.id, "alerts", "one next step, the first thing only the owner can do");
 
     await prisma.business.update({ where: { id: s.id }, data: { lineVerifiedAt: new Date() } });
     const lead = await prisma.lead.create({ data: { businessId: s.id, name: "Rosa Diaz", phone: "+13125550147", status: "booked" } });

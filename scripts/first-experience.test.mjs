@@ -26,9 +26,9 @@ test("nothing is called on until a real event proves it", () => {
   assert.equal(items.line.state, "live");
   assert.equal(items.alerts.state, "todo", "a saved mobile is not a delivered alert");
   assert.equal(items.alerts.action.kind, "test_alert");
-  assert.equal(items.number.state, "todo");
-  assert.equal(items.number.action.href, "/dashboard?settings=phone");
-  assert.match(items.number.detail, /keep the number/);
+  assert.equal(items.number.state, "live");
+  assert.equal(items.number.action, undefined);
+  assert.match(items.number.detail, /receptionist answers/);
 });
 
 test("alerts are on only once the carrier confirms delivery", () => {
@@ -67,7 +67,7 @@ test("the summary counts what is left in plain words", () => {
     connection: proven,
   });
   assert.equal(activationSummary(all).headline, "Everything is on and proven.");
-  assert.match(activationSummary(activationChecklist(base)).headline, /2 things left/);
+  assert.match(activationSummary(activationChecklist(base)).headline, /One thing left/);
 });
 
 test("the owner chooses the work they take; it's never empty", () => {
@@ -86,7 +86,8 @@ test("the owner chooses the work they take; it's never empty", () => {
 test("after the first real call the owner sees what is live, not a bare 'done'", () => {
   const verify = read("src/components/onboarding-call-verify.tsx");
   assert.match(verify, /<ActivationChecklist \/>/);
-  assert.match(verify, /Connect my business number/);
+  assert.match(verify, /Your receptionist is on/);
+  assert.doesNotMatch(verify, /Connect my business number/);
   const route = read("src/app/api/onboarding/live-check/route.ts");
   assert.match(route, /requireEntitledSession/);
   assert.match(route, /assistant-forwarded-call/);
