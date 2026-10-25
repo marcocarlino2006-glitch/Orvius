@@ -286,6 +286,7 @@ model Business {
   jobLineItems           JobLineItem[]
   priceBookItems         PriceBookItem[]
   partStock              PartStock[]
+  partDraws              PartDraw[]
   visitReviews           VisitReview[]
   areaClaims             AreaRequest[]
   /**
@@ -908,6 +909,7 @@ model Job {
   photos     JobPhoto[]
   fieldNotes JobNote[]
   lineItems  JobLineItem[]
+  partDraws  PartDraw[]
   visitReview VisitReview?
 
   @@index([businessId, scheduledAt])
@@ -1200,6 +1202,7 @@ model PriceBookItem {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   partStock   PartStock?
+  partDraws   PartDraw[]
 
   @@unique([businessId, name])
   @@index([businessId, isActive])
@@ -1217,6 +1220,24 @@ model PartStock {
   onTruck         Int
   updatedAt       DateTime      @updatedAt
 
+  @@index([businessId])
+}
+
+/**
+ * How many of a counted part this job actually took off the truck.
+ * The bill can name a larger quantity. Removing the line puts back only this draw.
+ */
+model PartDraw {
+  id              String        @id @default(cuid())
+  businessId      String
+  business        Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  jobId           String
+  job             Job           @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  priceBookItemId String
+  priceBookItem   PriceBookItem @relation(fields: [priceBookItemId], references: [id], onDelete: Cascade)
+  drawn           Int
+
+  @@unique([jobId, priceBookItemId])
   @@index([businessId])
 }
 

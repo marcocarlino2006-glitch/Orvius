@@ -277,6 +277,30 @@ test("an open invoice is what is owed, and the payment waits until it is paid", 
   assert.equal(fake.payments[0].Line[0].LinkedTxn[0].TxnId, fake.invoices[0].Id);
 });
 
+test("a partial payment is the amount collected, and the rest follows when it arrives", async () => {
+  const shop = await connectedShop();
+  const { invoice } = await paidInvoice(shop, { amountCents: 10000 });
+  const payment = await prisma.payment.findFirstOrThrow({ where: { invoiceId: invoice.id } });
+  await prisma.payment.update({ where: { id: payment.id }, data: { amountCents: 4000 } });
+  await prisma.invoice.update({ where: { id: invoice.id }, data: { status: "partial", paidAt: null } });
+
+  const first = await drainQuickBooksSyncs({ businessId: shop.id });
+  assert.equal(first.done, 2);
+  assert.equal(fake.invoices.length, 1);
+  assert.equal(fake.invoices[0].TotalAmt ?? fake.invoices[0].Line.reduce((sum, line) => sum + line.Amount, 0), 100);
+  assert.equal(fake.payments.length, 1);
+  assert.equal(fake.payments[0].TotalAmt, 40);
+  assert.equal(fake.payments[0].Line[0].LinkedTxn[0].TxnId, fake.invoices[0].Id);
+
+  await prisma.payment.create({ data: { businessId: shop.id, invoiceId: invoice.id, amountCents: 6000, status: "recorded", method: "cash" } });
+  await prisma.invoice.update({ where: { id: invoice.id }, data: { status: "paid", paidAt: new Date() } });
+  const second = await drainQuickBooksSyncs({ businessId: shop.id });
+  assert.equal(second.done, 1);
+  assert.equal(fake.invoices.length, 1, "the invoice is not sent again");
+  assert.equal(fake.payments.length, 2);
+  assert.equal(fake.payments[1].TotalAmt, 60);
+});
+
 test("a sales receipt already sent for an invoice is not also invoiced", async () => {
   const shop = await connectedShop();
   const { invoice } = await paidInvoice(shop);

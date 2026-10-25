@@ -3,6 +3,7 @@ import { getAppUrl } from "@/lib/env";
 import { logError, logInfo, logWarn } from "@/lib/logger";
 import { assertLiveActionAllowed, isOwnerDemoWorkspaceId } from "@/lib/demo-fence";
 import { prisma } from "@/lib/prisma";
+import { COLLECTED_STATUSES } from "@/lib/payment-math";
 import { mayWrite } from "@/lib/record-authority";
 import { correlate } from "@/lib/system-of-record";
 import { openSecret, sealSecret, secretBoxConfigured } from "@/lib/secret-box";
@@ -14,7 +15,8 @@ import { openSecret, sealSecret, secretBoxConfigured } from "@/lib/secret-box";
  * receipt. Supplier bills, payroll, and the tax return stay in QuickBooks.
  *
  * A payment already sent as a sales receipt (sourceType invoice) is not sent
- * again. Only money from after the shop connects is sent. Each document uses
+ * again. A partial payment is sent for the amount collected, and the rest when
+ * it arrives. Only money from after the shop connects is sent. Each document uses
  * Intuit's `requestid`, so a retry after a lost reply returns the first one.
  */
 
@@ -251,7 +253,7 @@ const OPEN_INVOICE = ["sent", "open", "partial", "overdue"];
  */
 export async function enqueueQuickBooksPayments(businessId: string, since: Date, now = new Date()) {
   if (await isOwnerDemoWorkspaceId(businessId)) return 0;
-  const [paid, open, deposits] = await Promise.all([
+  const [paid, open, deposits, collected] = await Promise.all([
     prisma.invoice.findMany({ where: { businessId, status: "paid", paidAt: { gte: since }, amountCents: { gt: 0 } }, select: { id: true, amountCents: true }, take: 200 }),
     prisma.invoice.findMany({
       where: { businessId, status: { in: OPEN_INVOICE }, createdAt: { gte: since }, amountCents: { gt: 0 } },
@@ -259,8 +261,22 @@ export async function enqueueQuickBooksPayments(businessId: string, since: Date,
       take: 200,
     }),
     prisma.deposit.findMany({ where: { businessId, status: "paid", paidAt: { gte: since }, amountCents: { gt: 0 } }, select: { id: true, amountCents: true }, take: 200 }),
+    prisma.payment.findMany({
+      where: {
+        businessId,
+        status: { in: [...COLLECTED_STATUSES] },
+        createdAt: { gte: since },
+        amountCents: { gt: 0 },
+        invoice: {
+          amountCents: { gt: 0 },
+          OR: [{ status: "partial" }, { status: "paid", paidAt: { gte: since } }],
+        },
+      },
+      select: { id: true, invoiceId: true, amountCents: true, refundedCents: true, invoice: { select: { amountCents: true } } },
+      take: 200,
+    }),
   ]);
-  const ids = [...paid, ...open, ...deposits].map((row) => row.id);
+  const ids = [...paid, ...open, ...deposits, ...collected.map((row) => ({ id: row.invoiceId })), ...collected].map((row) => row.id);
   const existing = ids.length
     ? await prisma.quickBooksSync.findMany({ where: { businessId, sourceId: { in: ids } }, select: { sourceType: true, sourceId: true } })
     : [];
@@ -277,14 +293,28 @@ export async function enqueueQuickBooksPayments(businessId: string, since: Date,
       /* Another sweep enqueued it first. */
     }
   };
+  const collectedByInvoice = new Map<string, { amountCents: number; parts: Array<{ id: string; net: number }> }>();
+  for (const row of collected) {
+    const net = row.amountCents - row.refundedCents;
+    if (net <= 0) continue;
+    const entry = collectedByInvoice.get(row.invoiceId) ?? { amountCents: row.invoice.amountCents, parts: [] };
+    entry.parts.push({ id: row.id, net });
+    collectedByInvoice.set(row.invoiceId, entry);
+  }
   for (const row of paid) {
     if (alreadyReceipt.has(row.id)) continue;
     await enqueue("receivable", row.id, row.amountCents);
-    await enqueue("collection", row.id, row.amountCents);
+    const parts = collectedByInvoice.get(row.id)?.parts ?? [];
+    if (!parts.length && !have.has(`collection:${row.id}`)) await enqueue("collection", row.id, row.amountCents);
   }
   for (const row of open) {
     if (alreadyReceipt.has(row.id) || paid.some((invoice) => invoice.id === row.id)) continue;
     await enqueue("receivable", row.id, row.amountCents);
+  }
+  for (const [invoiceId, entry] of collectedByInvoice) {
+    if (alreadyReceipt.has(invoiceId) || have.has(`collection:${invoiceId}`)) continue;
+    if (!have.has(`receivable:${invoiceId}`)) await enqueue("receivable", invoiceId, entry.amountCents);
+    for (const part of entry.parts) await enqueue("collection", part.id, part.net);
   }
   for (const row of deposits) await enqueue("deposit", row.id, row.amountCents);
   return added;
@@ -359,8 +389,14 @@ const DEAD_INVOICE = new Set(["void", "refunded", "draft"]);
 async function loadReceipt(sync: { sourceType: string; sourceId: string; amountCents: number }): Promise<Receipt | null> {
   const customerSelect = { id: true, name: true, phone: true, email: true, address: true, quickbooksCustomerId: true } as const;
   if (sync.sourceType === "invoice" || sync.sourceType === "receivable" || sync.sourceType === "collection") {
+    const payment = sync.sourceType === "collection"
+      ? await prisma.payment.findUnique({
+          where: { id: sync.sourceId },
+          select: { invoiceId: true, amountCents: true, refundedCents: true, createdAt: true, method: true, status: true },
+        })
+      : null;
     const invoice = await prisma.invoice.findUnique({
-      where: { id: sync.sourceId },
+      where: { id: payment?.invoiceId ?? sync.sourceId },
       select: {
         id: true,
         status: true,
@@ -378,15 +414,18 @@ async function loadReceipt(sync: { sourceType: string; sourceId: string; amountC
         },
       },
     });
-    const requirePaid = sync.sourceType !== "receivable";
-    if (!invoice || invoice.amountCents <= 0 || DEAD_INVOICE.has(invoice.status) || (requirePaid && invoice.status !== "paid")) return null;
+    const requirePaid = sync.sourceType !== "receivable" && !payment;
+    const partialPayment = Boolean(payment) && (invoice?.status === "partial" || invoice?.status === "paid");
+    if (!invoice || invoice.amountCents <= 0 || DEAD_INVOICE.has(invoice.status) || (requirePaid && invoice.status !== "paid") || (payment && !partialPayment)) return null;
+    if (payment && (!COLLECTED_STATUSES.includes(payment.status) || payment.amountCents - payment.refundedCents <= 0)) return null;
     const title = invoice.job?.title?.trim() || "Service";
-    const paid = invoice.status === "paid";
+    const paid = invoice.status === "paid" || Boolean(payment);
+    const amountCents = payment ? payment.amountCents - payment.refundedCents : sync.amountCents;
     return {
       payer: invoice.job?.customer ?? { id: null, name: null, phone: null, email: null, address: null, quickbooksCustomerId: null },
-      lines: receiptLines(invoice.job?.lineItems ?? [], sync.amountCents, title),
-      paidAt: invoice.paidAt ?? invoice.sentAt ?? invoice.createdAt,
-      note: paid ? `Orvius invoice ${invoice.id}, ${methodLabel(invoice.payments[0]?.method)}.` : `Orvius invoice ${invoice.id}.`,
+      lines: receiptLines(invoice.job?.lineItems ?? [], amountCents, title),
+      paidAt: payment?.createdAt ?? invoice.paidAt ?? invoice.sentAt ?? invoice.createdAt,
+      note: paid ? `Orvius invoice ${invoice.id}, ${methodLabel(payment?.method ?? invoice.payments[0]?.method)}.` : `Orvius invoice ${invoice.id}.`,
     };
   }
   const deposit = await prisma.deposit.findUnique({
@@ -491,9 +530,13 @@ const backoff = (attempts: number) => Math.min(6 * 60 * 60_000, 60_000 * 2 ** at
 type SyncOutcome = "done" | "skipped" | "wait";
 
 /** A payment waits until its invoice exists in QuickBooks, and does not burn a retry while it waits. */
-async function holdForInvoice(sync: { id: string; businessId: string; sourceId: string; attempts: number }, now: Date): Promise<SyncOutcome | null> {
+async function holdForInvoice(
+  sync: { id: string; businessId: string; sourceId: string; attempts: number },
+  now: Date,
+  invoiceId = sync.sourceId,
+): Promise<SyncOutcome | null> {
   const bill = await prisma.quickBooksSync.findFirst({
-    where: { businessId: sync.businessId, sourceType: "receivable", sourceId: sync.sourceId },
+    where: { businessId: sync.businessId, sourceType: "receivable", sourceId: invoiceId },
     select: { status: true, qbReceiptId: true },
   });
   if (!bill || bill.status === "failed" || bill.status === "skipped") {
@@ -520,8 +563,11 @@ async function processSync(syncId: string, now: Date): Promise<SyncOutcome> {
     await prisma.quickBooksSync.update({ where: { id: sync.id }, data: { status: "skipped", claimedAt: null, lastError: authority.reason } });
     return "skipped";
   }
+  const collected = sync.sourceType === "collection"
+    ? await prisma.payment.findUnique({ where: { id: sync.sourceId }, select: { invoiceId: true } })
+    : null;
   if (sync.sourceType === "collection") {
-    const held = await holdForInvoice(sync, now);
+    const held = await holdForInvoice(sync, now, collected?.invoiceId ?? sync.sourceId);
     if (held) return held;
   }
   if (sync.sourceType === "receivable") {
@@ -556,15 +602,16 @@ async function processSync(syncId: string, now: Date): Promise<SyncOutcome> {
     });
     externalId = created.Invoice.Id;
   } else if (sync.sourceType === "collection") {
+    const invoiceId = collected?.invoiceId ?? sync.sourceId;
     const bill = await prisma.quickBooksSync.findFirst({
-      where: { businessId: sync.businessId, sourceType: "receivable", sourceId: sync.sourceId, status: "done" },
+      where: { businessId: sync.businessId, sourceType: "receivable", sourceId: invoiceId, status: "done" },
       select: { qbReceiptId: true, amountCents: true },
     });
     if (!bill?.qbReceiptId) {
       await prisma.quickBooksSync.update({ where: { id: sync.id }, data: { claimedAt: null, attempts: { decrement: 1 }, nextAttemptAt: now } });
       return "wait";
     }
-    if (bill.amountCents !== sync.amountCents) {
+    if (!collected && bill.amountCents !== sync.amountCents) {
       sync.amountCents = bill.amountCents;
       receipt.lines = [{ description: receipt.lines[0]?.description ?? "Service", amountCents: bill.amountCents }];
     }

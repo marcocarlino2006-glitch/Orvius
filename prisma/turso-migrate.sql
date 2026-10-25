@@ -1433,3 +1433,17 @@ CREATE TABLE IF NOT EXISTS "PartStock" (
     CONSTRAINT "PartStock_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 CREATE INDEX IF NOT EXISTS "PartStock_businessId_idx" ON "PartStock"("businessId");
+
+-- What a job actually took off a counted truck. The bill quantity can be higher. Removing the line restores only this draw.
+CREATE TABLE IF NOT EXISTS "PartDraw" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "jobId" TEXT NOT NULL,
+    "priceBookItemId" TEXT NOT NULL,
+    "drawn" INTEGER NOT NULL,
+    CONSTRAINT "PartDraw_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "PartDraw_jobId_fkey" FOREIGN KEY ("jobId") REFERENCES "Job" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "PartDraw_priceBookItemId_fkey" FOREIGN KEY ("priceBookItemId") REFERENCES "PriceBookItem" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "PartDraw_jobId_priceBookItemId_key" ON "PartDraw"("jobId", "priceBookItemId");
+CREATE INDEX IF NOT EXISTS "PartDraw_businessId_idx" ON "PartDraw"("businessId");

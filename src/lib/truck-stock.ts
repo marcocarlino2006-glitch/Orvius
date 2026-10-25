@@ -62,12 +62,67 @@ export async function writePartStock(businessId: string, priceBookItemId: string
 }
 
 /**
- * A job's lines changed. Counted parts move on or off the truck by the difference.
- * Using more than the count leaves zero. A part the shop has not counted is left alone.
+ * A job's lines changed. Counted parts move on or off the truck by what this job
+ * actually held, not by a bill quantity that was larger than the count.
+ * Using more than the count leaves zero and remembers only what was there.
+ * Removing that line puts that count back. A part the shop has not counted is left alone.
  */
-export async function applyTruckUse(businessId: string, before: StockLine[], after: StockLine[]) {
+export async function applyTruckUse(businessId: string, jobId: string, before: StockLine[], after: StockLine[]) {
   const previous = partQuantities(before);
   const next = partQuantities(after);
+  const ids = [...new Set([...previous.keys(), ...next.keys()])];
+  if (!ids.length) return;
+
+  let draws: Map<string, number> | null = null;
+  try {
+    const rows = await prisma.partDraw.findMany({
+      where: { jobId, businessId, priceBookItemId: { in: ids } },
+      select: { priceBookItemId: true, drawn: true },
+    });
+    draws = new Map(rows.map((row) => [row.priceBookItemId, row.drawn]));
+  } catch (error) {
+    if (!relationMissing(error, "PartDraw")) throw error;
+  }
+  if (!draws) {
+    await applyTruckUseLegacy(businessId, previous, next);
+    return;
+  }
+
+  for (const id of ids) {
+    try {
+      const stock = await prisma.partStock.findUnique({ where: { priceBookItemId: id }, select: { businessId: true, onTruck: true } });
+      if (!stock || stock.businessId !== businessId) {
+        if (draws.has(id)) await prisma.partDraw.deleteMany({ where: { jobId, priceBookItemId: id } });
+        continue;
+      }
+      const recorded = draws.has(id) ? draws.get(id)! : (previous.get(id) ?? 0);
+      const nextBill = next.get(id) ?? 0;
+      const actual = Math.max(0, Math.min(nextBill, recorded + Math.max(0, stock.onTruck)));
+      const delta = actual - recorded;
+      if (delta !== 0) {
+        await prisma.partStock.updateMany({
+          where: { priceBookItemId: id, businessId },
+          data: { onTruck: stock.onTruck - delta },
+        });
+      }
+      if (actual === 0) {
+        await prisma.partDraw.deleteMany({ where: { jobId, priceBookItemId: id } });
+      } else {
+        await prisma.partDraw.upsert({
+          where: { jobId_priceBookItemId: { jobId, priceBookItemId: id } },
+          create: { businessId, jobId, priceBookItemId: id, drawn: actual },
+          update: { businessId, drawn: actual },
+        });
+      }
+    } catch (error) {
+      if (relationMissing(error, "PartStock") || relationMissing(error, "PartDraw")) return;
+      throw error;
+    }
+  }
+}
+
+/** Before PartDraw exists, a larger bill quantity is what comes back. */
+async function applyTruckUseLegacy(businessId: string, previous: Map<string, number>, next: Map<string, number>) {
   const ids = new Set([...previous.keys(), ...next.keys()]);
   for (const id of ids) {
     const delta = (next.get(id) ?? 0) - (previous.get(id) ?? 0);
