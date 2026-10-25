@@ -146,7 +146,7 @@ export function ReceptionistSection({
         <ScRow
           stack
           label="Review link"
-          hint="Your Google, Yelp, or Facebook review page. Paste it once and every customer whose visit is marked done gets one short text asking for a review, an hour or more after the visit, 9am to 8pm. Once per customer every 90 days, never after a STOP."
+          hint="Optional. Finished customers already get one text asking how the visit went. Paste a Google, Yelp, or Facebook page and that link is included too. An hour or more after the visit, 9am to 8pm. Once per customer every 90 days, never after a STOP."
         >
           <ScField
             ariaLabel="Review link"
@@ -156,7 +156,7 @@ export function ReceptionistSection({
             onCommit={(v) => patch({ reviewUrl: v.trim() || null })}
           />
         </ScRow>
-        <ScRow label="Ask finished customers for a review" hint="Everyone gets the same link. Asking only happy customers breaks Google's rules.">
+        <ScRow label="Ask finished customers for a review" hint="Everyone gets the same ask. A 1 is kept the same as a 5. Asking only happy customers breaks the rules.">
           <ScSwitch
             label="Ask for reviews"
             checked={b.reviewRequestsOn ?? true}
