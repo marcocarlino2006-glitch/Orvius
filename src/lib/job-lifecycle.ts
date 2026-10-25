@@ -1,3 +1,5 @@
+import { isPriorVisit } from "@/lib/job-outcome";
+
 /**
  * The six states a job moves through, in the owner's words.
  *
@@ -55,6 +57,7 @@ export function jobLifecycle(job: JobLifecycleInput): JobLifecycle {
   });
 
   if (job.status === "cancelled") return make("closed", "Cancelled", "muted");
+  if (isPriorVisit(job)) return make("closed", "Written from the shop's records", "good");
   if (job.status === "completed") {
     return job.outcomeCapturedAt || job.resolutionCode
       ? make("closed", "Outcome recorded", "good")
@@ -165,6 +168,18 @@ const iso = (at: string | Date | null | undefined) => (at ? new Date(at).toISOSt
  * tapping accept shows as having started, not as having accepted.
  */
 export function jobSteps(job: JobStepsInput, now = new Date()): JobStep[] {
+  if (isPriorVisit(job)) {
+    return [
+      {
+        key: "booked",
+        label: "Written down",
+        state: "done",
+        detail: "From the shop's records. No text was sent.",
+        at: iso(job.completedAt ?? job.scheduledAt ?? job.createdAt),
+      },
+      { key: "done", label: "Done", state: "done", detail: "No review was added", at: iso(job.completedAt) },
+    ];
+  }
   const tech = job.technician?.name ?? null;
   const started = Boolean(job.dispatchedAt || job.onSiteAt || job.completedAt) || ["en_route", "on_site", "completed"].includes(job.status);
   const steps: JobStep[] = [

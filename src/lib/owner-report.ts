@@ -1,3 +1,4 @@
+import { priorVisitExcluded } from "@/lib/job-outcome";
 import { prisma } from "@/lib/prisma";
 import { isMoneySchemaDrift } from "@/lib/command-degraded";
 import { COLLECTED_STATUSES, RECEIPT_STATUSES, isTestModeReceipt, moneyTotals, refundedOf } from "@/lib/payment-math";
@@ -233,7 +234,7 @@ export async function buildOwnerReport(businessId: string, period: ReportPeriodI
       select: { amountCents: true, status: true, job: { select: { technicianId: true } } },
       take: ROW_CAP + 1,
     }).then((rows) => capped(rows, "estimates", hit)),
-    prisma.job.findMany({ where: { businessId, status: "completed", completedAt: inWindow }, select: { technicianId: true }, take: ROW_CAP + 1 }).then((rows) => capped(rows, "jobs", hit)),
+    prisma.job.findMany({ where: { businessId, status: "completed", completedAt: inWindow, ...priorVisitExcluded() }, select: { technicianId: true }, take: ROW_CAP + 1 }).then((rows) => capped(rows, "jobs", hit)),
     prisma.lead.findMany({ where: { businessId, source: "call", createdAt: inWindow }, select: { job: { select: { id: true } } }, take: ROW_CAP + 1 }).then((rows) => capped(rows, "calls", hit)),
     prisma.technician.findMany({ where: { businessId }, select: { id: true, name: true } }),
     prisma.invoice.findMany({

@@ -20,7 +20,7 @@ export const REVIEW_UNTIL_MS = 3 * 24 * 60 * 60_000;
 export const REVIEW_PER_PHONE_GAP_MS = 90 * 24 * 60 * 60_000;
 
 /** Visits that ended without work done are not something to review. */
-const NO_REVIEW_OUTCOMES = new Set(["customer_declined", "no_access", "referred"]);
+const NO_REVIEW_OUTCOMES = new Set(["customer_declined", "no_access", "referred", "prior_visit"]);
 
 const REVIEW_HOSTS = [
   /(^|\.)google\.(com|[a-z]{2}|com?\.[a-z]{2})$/,

@@ -2,6 +2,7 @@ import type { Business } from "@prisma/client";
 import { formatShopTime } from "@/lib/availability";
 import { openWindows, windowLabel } from "@/lib/copilot-propose";
 import { classifyRequest } from "@/lib/trade-playbooks";
+import { isPriorVisit } from "@/lib/job-outcome";
 import { formatCentsExact } from "@/lib/money";
 import { normalizePhone } from "@/lib/customer";
 import { collectedCents, moneyTotals } from "@/lib/payment-math";
@@ -357,7 +358,9 @@ export async function buildOutcome(businessId: string, target: { jobId?: string 
     stages.push(
       stage("completion", {
         state: "done",
-        evidence: `Marked done${job.resolutionCode ? ` (${job.resolutionCode.replace(/_/g, " ")})` : ""}${amount}`,
+        evidence: isPriorVisit(job)
+          ? "Written from the shop's records. No bill and no text."
+          : `Marked done${job.resolutionCode ? ` (${job.resolutionCode.replace(/_/g, " ")})` : ""}${amount}`,
         nextActor: null,
         nextAction: null,
         at: (job.completedAt ?? job.updatedAt).toISOString(),

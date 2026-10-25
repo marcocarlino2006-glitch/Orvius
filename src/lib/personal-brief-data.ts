@@ -1,5 +1,6 @@
 import type { Business } from "@prisma/client";
 import type { WorkBoard } from "@/lib/work";
+import { priorVisitExcluded } from "@/lib/job-outcome";
 import { prisma } from "@/lib/prisma";
 import {
   composePersonalBrief,
@@ -41,9 +42,9 @@ export async function loadPersonalBrief(input: {
   const [sinceCalls, sinceBooked, completedToday, bookedToday, patternCalls, patternLeads] =
     await Promise.all([
       since ? prisma.call.count({ where: { businessId, createdAt: { gte: since } } }) : 0,
-      since ? prisma.job.count({ where: { businessId, createdAt: { gte: since } } }) : 0,
-      prisma.job.count({ where: { businessId, status: "completed", completedAt: { gte: todayStart } } }),
-      prisma.job.count({ where: { businessId, createdAt: { gte: todayStart } } }),
+      since ? prisma.job.count({ where: { businessId, createdAt: { gte: since }, ...priorVisitExcluded() } }) : 0,
+      prisma.job.count({ where: { businessId, status: "completed", completedAt: { gte: todayStart }, ...priorVisitExcluded() } }),
+      prisma.job.count({ where: { businessId, createdAt: { gte: todayStart }, ...priorVisitExcluded() } }),
       prisma.call.findMany({
         where: { businessId, createdAt: { gte: patternStart } },
         select: { createdAt: true },

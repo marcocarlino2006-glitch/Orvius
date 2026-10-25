@@ -14522,6 +14522,12 @@ a.cmd-feed-text:hover {
   gap: 0.625rem 0.75rem;
 }
 
+.rec-stack {
+  display: grid;
+  gap: 0.625rem;
+  margin-top: 0.75rem;
+}
+
 .rec-field {
   flex: 1 1 12rem;
   min-width: 8rem;

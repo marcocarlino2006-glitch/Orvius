@@ -20,6 +20,21 @@ export const JOB_OUTCOMES = [
 
 export type JobOutcomeCode = (typeof JOB_OUTCOMES)[number]["code"];
 
+/**
+ * A visit the shop typed from its own records. It is not one of the truck
+ * choices above, and it is not work Orvius booked.
+ */
+export const PRIOR_VISIT_CODE = "prior_visit";
+
+export function isPriorVisit(job: { resolutionCode?: string | null } | null | undefined): boolean {
+  return job?.resolutionCode === PRIOR_VISIT_CODE;
+}
+
+/** Counts of booked or completed work leave typed history out. Null stays in: a job with no outcome yet is still a booking. */
+export function priorVisitExcluded() {
+  return { OR: [{ resolutionCode: null }, { resolutionCode: { not: PRIOR_VISIT_CODE } }] };
+}
+
 const OUTCOME_LABELS = new Map<string, string>(
   JOB_OUTCOMES.map((outcome) => [outcome.code, outcome.label]),
 );
