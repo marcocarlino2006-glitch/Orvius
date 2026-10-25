@@ -64,7 +64,6 @@ type JobDetail = {
   urgency: string | null;
   address: string | null;
   notes: string | null;
-  resolutionCode?: string | null;
   scheduledAt: string | null;
   confirmedAt: string | null;
   customerConfirmedAt: string | null;
