@@ -222,12 +222,18 @@ export async function techDay(tech: TechSession, now = new Date()) {
   if (!groups.has(todayKey)) groups.set(todayKey, []);
   const days = [...groups.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([key, list]) => ({ key, label: label(key), jobs: list }));
   const strip = ({ key: _key, ...job }: (typeof jobs)[number]) => job;
+  const book = await priceBook(tech.businessId);
+  const truck = book
+    .filter((item) => item.kind === "part" && item.onTruck != null)
+    .map((item) => ({ id: item.id, name: item.name, onTruck: item.onTruck as number }))
+    .sort((a, b) => a.name.localeCompare(b.name));
   return {
     technician: { name: tech.name },
     shop: { name: tech.business.name, timezone: tz },
     now: now_.map(strip),
     late: late.map(strip),
     days,
+    truck,
   };
 }
 

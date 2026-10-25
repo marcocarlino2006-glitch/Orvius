@@ -20,12 +20,16 @@ type DayJob = {
   needsAnswer?: boolean;
 };
 
+type TruckPart = { id: string; name: string; onTruck: number };
+
 type Day = {
   technician: { name: string };
   shop: { name: string; timezone: string };
   now: DayJob[];
   late: DayJob[];
   days: Array<{ key: string; label: string; jobs: DayJob[] }>;
+  /** Counted parts. Absent on a day saved before the truck was on this screen. */
+  truck?: TruckPart[];
 };
 
 function JobRow({ token, job, tz, showDay }: { token: string; job: DayJob; tz: string; showDay?: boolean }) {
@@ -139,6 +143,20 @@ export function TechDay({ token }: { token: string }) {
       </header>
 
       <SyncBar online={sync.online} savedAt={savedAt} queued={sync.queued.length} failed={sync.failed} timeZone={tz} onDismiss={sync.dismissFailed} />
+
+      {day.truck?.length ? (
+        <section aria-label="On the truck">
+          <h2 className="ta-h2">On the truck</h2>
+          <ul className="ta-list">
+            {day.truck.map((part) => (
+              <li key={part.id} className="ta-truck">
+                <span>{part.name}</span>
+                <span>{part.onTruck}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       {error && !savedAt ? (
         <p className="ta-error" role="alert">

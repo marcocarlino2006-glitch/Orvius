@@ -61,6 +61,24 @@ async function shopWithJob(job = {}) {
   return { shop, tech, token, job: row, session: await techForToken(token) };
 }
 
+test("the day lists parts the shop counted, and leaves uncounted parts off", async () => {
+  const { shop, session } = await shopWithJob();
+  const capacitor = await prisma.priceBookItem.create({
+    data: { businessId: shop.id, name: "Capacitor", kind: "part", unitCents: 1800 },
+  });
+  await prisma.priceBookItem.create({
+    data: { businessId: shop.id, name: "Diagnostic", kind: "service", unitCents: 8900 },
+  });
+  await prisma.priceBookItem.create({
+    data: { businessId: shop.id, name: "Filter", kind: "part", unitCents: 1200 },
+  });
+  await prisma.partStock.create({ data: { priceBookItemId: capacitor.id, businessId: shop.id, onTruck: 3 } });
+
+  const day = await techDay(session);
+  assert.deepEqual(day.truck, [{ id: capacitor.id, name: "Capacitor", onTruck: 3 }]);
+  assert.match(read("src/components/tech-app/day.tsx"), /On the truck/);
+});
+
 test("the technician's yes is recorded once and never marks the customer as confirmed", async () => {
   const { shop, job, session } = await shopWithJob();
   const before = await techDay(session);

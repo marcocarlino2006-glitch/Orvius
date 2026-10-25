@@ -87,7 +87,18 @@ export function JobTable({ rows, timeZone }: { rows: JobTableRow[]; timeZone?: s
                 <>
                   <span>{facts.money.label.replace(/\s.*$/, "")}</span>
                   <span className={`dt-sub${facts.money.kind === "due" || facts.money.kind === "claimed" || facts.money.kind === "unsent" ? " is-attention" : ""}`}>
-                    {facts.money.kind === "paid" ? "Collected" : facts.money.kind === "due" ? "Due" : facts.money.kind === "claimed" ? "Says paid" : facts.money.kind === "unsent" ? "Not sent" : facts.money.kind === "final" ? "Final" : "Estimate"}
+                    {facts.money.detail ??
+                      (facts.money.kind === "paid"
+                        ? "Collected"
+                        : facts.money.kind === "due"
+                          ? "Due"
+                          : facts.money.kind === "claimed"
+                            ? "Says paid"
+                            : facts.money.kind === "unsent"
+                              ? "Not sent"
+                              : facts.money.kind === "final"
+                                ? "Final"
+                                : "Estimate")}
                   </span>
                 </>
               )}
