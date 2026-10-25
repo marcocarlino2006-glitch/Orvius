@@ -53,6 +53,7 @@ export function HomeLineHero({ signupOpen = false }: { signupOpen?: boolean }) {
       </div>
       <div className="ov-hero-inner ov-hero-inner--product">
         <div className="ov-hero-copy">
+          <p className="ov-hero-who">I built this.</p>
           <h1 id="home-hero-heading" className="ov-hero-title" data-i18n="hero.title">
             The night shift for shops that run on the phone.
           </h1>
