@@ -49,12 +49,25 @@ export async function getSchedulingPolicy(businessId: string, db: PolicyDb = pri
 }
 
 /**
- * A shop that has not chosen how travel works yet cannot have an exact time
- * promised by anyone but the owner: callers and the booking page take details
- * and the owner sets the time.
+ * A row still marked not configured has not chosen how travel works, so callers
+ * and the booking page take details and the owner sets the time. New shops are
+ * not created in that state: they book the job length and invent no drive time.
  */
 export function holdsForApproval(policy: SchedulingPolicy): boolean {
   return policy.state === "not_configured";
+}
+
+/**
+ * Shops created before a travel choice existed were stored as not configured,
+ * which stopped the receptionist from booking. Duration only books the job
+ * length. A shop that already picked a gap is left alone.
+ */
+export async function openUnchosenBooking() {
+  const result = await prisma.shopOperatingPolicy.updateMany({
+    where: { travelMode: "not_configured" },
+    data: { travelMode: "duration_only" },
+  });
+  return result.count;
 }
 
 /** Owner input for the policy, or the reason it is refused. */

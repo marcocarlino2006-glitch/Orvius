@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { markCronRan } from "@/lib/cron-runs";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { getBearerToken, secretsMatch, verifyAdminRequest } from "@/lib/env";
+import { logWarn } from "@/lib/logger";
 import { isUnauthenticatedAccessAllowed } from "@/lib/runtime";
+import { openUnchosenBooking } from "@/lib/scheduling-policy";
 import { scheduledTargetRefusal } from "@/lib/scheduled-target";
 
 /*
@@ -27,7 +29,13 @@ export async function GET(request: NextRequest) {
   }
   await markCronRan("alert-drain");
   await drainOwnerAlerts({ at: "cron.alert_drain" });
-  return NextResponse.json({ ok: true });
+  let bookingOpened = 0;
+  try {
+    bookingOpened = await openUnchosenBooking();
+  } catch (error) {
+    logWarn("alert_drain.booking_open_failed", { error: error instanceof Error ? error.message : String(error) });
+  }
+  return NextResponse.json({ ok: true, bookingOpened });
 }
 
 export async function POST(request: NextRequest) {
