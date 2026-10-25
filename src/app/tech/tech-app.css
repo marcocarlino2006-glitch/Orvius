@@ -218,9 +218,6 @@
   grid-column: 1 / -1;
   grid-row: 1;
 }
-.ta-job.is-done {
-  opacity: 0.62;
-}
 .ta-job-time {
   font-size: 0.875rem;
   font-weight: 500;
@@ -244,6 +241,13 @@
   font-size: 0.8125rem;
   line-height: 1.35;
   color: var(--ta-mute);
+  overflow-wrap: anywhere;
+}
+.ta-job-finished {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--ta-text);
   overflow-wrap: anywhere;
 }
 .ta-job-ask {

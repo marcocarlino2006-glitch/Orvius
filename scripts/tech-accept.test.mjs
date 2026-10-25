@@ -88,7 +88,10 @@ test("a finished visit stays on the day with what happened and the amount", asyn
   const day = await techDay(session);
   const row = [...day.now, ...day.late, ...day.days.flatMap((d) => d.jobs)].find((item) => item.id === job.id);
   assert.equal(row.finished, "Repaired · $180");
-  assert.match(read("src/components/tech-app/day.tsx"), /job\.finished/);
+  const dayPage = read("src/components/tech-app/day.tsx");
+  assert.match(dayPage, /job\.finished/);
+  assert.match(dayPage, /visit finished/);
+  assert.doesNotMatch(read("src/app/tech/tech-app.css"), /\.ta-job\.is-done\s*\{[^}]*opacity/);
 });
 
 test("the technician's yes is recorded once and never marks the customer as confirmed", async () => {

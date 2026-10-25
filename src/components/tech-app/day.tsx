@@ -42,7 +42,7 @@ function JobRow({ token, job, tz, showDay }: { token: string; job: DayJob; tz: s
         <span className="ta-job-body">
           <span className="ta-job-title">{job.title}</span>
           <span className="ta-job-meta">{[spokenName(job.customerName), job.address?.split(",")[0]].filter(Boolean).join(" · ") || "No address yet"}</span>
-          {job.finished ? <span className="ta-job-meta">{job.finished}</span> : null}
+          {job.finished ? <span className="ta-job-finished">{job.finished}</span> : null}
           {job.needsAnswer ? <span className="ta-job-ask">Needs your answer</span> : null}
         </span>
         <StatusPill status={job.status} urgency={job.urgency} />
@@ -122,6 +122,10 @@ export function TechDay({ token }: { token: string }) {
   const first = day.technician.name.split(/\s+/)[0];
   const today = day.days.find((d) => d.label === "Today");
   const left = today?.jobs.filter((j) => j.status !== "completed").length ?? 0;
+  const finished = today?.jobs.filter((j) => j.status === "completed").length ?? 0;
+  const leftWords = left === 1 ? "1 job left today" : `${left} jobs left today`;
+  const doneWords = finished === 1 ? "1 visit finished" : `${finished} visits finished`;
+  const dayWords = left && finished ? `${left === 1 ? "1 job left" : `${left} jobs left`} · ${doneWords}` : left ? leftWords : finished ? doneWords : "Nothing left today";
   const dateLine = new Date().toLocaleDateString("en-US", { timeZone: tz, weekday: "long", month: "long", day: "numeric" });
   const next = day.now[0] ?? day.late[0] ?? today?.jobs.find((job) => job.status !== "completed" && job.status !== "cancelled") ?? null;
   const rest = (jobs: DayJob[]) => (next ? jobs.filter((job) => job.id !== next.id) : jobs);
@@ -141,7 +145,7 @@ export function TechDay({ token }: { token: string }) {
           <h1 className="ta-title">{first}&apos;s day</h1>
         )}
         <p className="ta-sub">
-          {dateLine} · {left ? `${left} job${left === 1 ? "" : "s"} left today` : "Nothing left today"}
+          {dateLine} · {dayWords}
         </p>
       </header>
 
