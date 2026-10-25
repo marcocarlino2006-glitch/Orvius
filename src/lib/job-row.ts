@@ -30,7 +30,13 @@ export type JobRowInput = {
 export type JobRowFacts = {
   owner: { label: string; missing: boolean };
   timing: { label: string; tone: "neutral" | "attention" | "risk" };
-  money: { label: string; kind: "paid" | "due" | "claimed" | "unsent" | "estimate" | "final" | "expected" | "none"; cents: number | null };
+  money: {
+    label: string;
+    kind: "paid" | "due" | "claimed" | "unsent" | "estimate" | "final" | "expected" | "none";
+    cents: number | null;
+    /** Money already in, when the bill is still open. Null until a partial payment exists. */
+    detail: string | null;
+  };
   /** Why this row needs the owner, if it does. Drives ordering. */
   attention: { reason: string; weight: number } | null;
 };
@@ -70,31 +76,34 @@ export function jobRowFacts(job: JobRowInput, now = Date.now()): JobRowFacts {
   const paid = collectedCents(invoice?.payments);
   const claimed = claimedCents(invoice?.payments);
   let money: JobRowFacts["money"];
+  const openBill = (due: number) => (paid > 0 && due > 0 ? `${formatCents(paid)} collected` : null);
   if (invoice && (invoice.status === "paid" || (paid >= invoice.amountCents && invoice.amountCents > 0))) {
-    money = { label: `${formatCents(Math.max(paid, invoice.amountCents))} collected`, kind: "paid", cents: Math.max(paid, invoice.amountCents) };
+    money = { label: `${formatCents(Math.max(paid, invoice.amountCents))} collected`, kind: "paid", cents: Math.max(paid, invoice.amountCents), detail: null };
   } else if (invoice && claimed > 0) {
     const due = invoice.amountCents - paid;
-    money = { label: `${formatCents(due)} · customer says paid`, kind: "claimed", cents: due };
+    money = { label: `${formatCents(due)} · customer says paid`, kind: "claimed", cents: due, detail: openBill(due) };
   } else if (invoice && invoice.sentAt === null) {
     const due = invoice.amountCents - paid;
-    money = { label: `${formatCents(due)} billed · not sent`, kind: "unsent", cents: due };
+    money = { label: `${formatCents(due)} billed · not sent`, kind: "unsent", cents: due, detail: openBill(due) };
   } else if (invoice) {
     const due = invoice.amountCents - paid;
-    money = { label: `${formatCents(due)} due`, kind: "due", cents: due };
+    const detail = openBill(due);
+    money = { label: detail ? `${formatCents(due)} still due` : `${formatCents(due)} due`, kind: "due", cents: due, detail };
   } else if (isPriorVisit(job)) {
-    money = { label: "From earlier records", kind: "none", cents: null };
+    money = { label: "From earlier records", kind: "none", cents: null, detail: null };
   } else if (job.finalAmountCents) {
-    money = { label: `${formatCents(job.finalAmountCents)} final`, kind: "final", cents: job.finalAmountCents };
+    money = { label: `${formatCents(job.finalAmountCents)} final`, kind: "final", cents: job.finalAmountCents, detail: null };
   } else if (job.estimate) {
     money = {
       label: `${formatCents(job.estimate.amountCents)} estimate${job.estimate.status === "accepted" ? " · accepted" : ""}`,
       kind: "estimate",
       cents: job.estimate.amountCents,
+      detail: null,
     };
   } else if (open && job.business?.avgTicketCents) {
-    money = { label: `~${formatCents(job.business.avgTicketCents)} expected`, kind: "expected", cents: job.business.avgTicketCents };
+    money = { label: `~${formatCents(job.business.avgTicketCents)} expected`, kind: "expected", cents: job.business.avgTicketCents, detail: null };
   } else {
-    money = { label: "No amount yet", kind: "none", cents: null };
+    money = { label: "No amount yet", kind: "none", cents: null, detail: null };
   }
 
   let attention: JobRowFacts["attention"] = null;

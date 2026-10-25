@@ -56,7 +56,9 @@ test("overdue, unassigned and unpaid work is flagged and weighted", () => {
     }),
     now,
   );
-  assert.equal(due.money.label, "$300 due");
+  assert.equal(due.money.label, "$300 still due");
+  assert.equal(due.money.detail, "$200 collected");
+  assert.equal(due.money.cents, 30000);
   assert.match(due.attention.reason, /payment/);
 
   const paid = jobRowFacts(
