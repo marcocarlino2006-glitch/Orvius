@@ -197,7 +197,7 @@ export default function CustomersPage() {
               ) : null}
             </div>
             <div className="cp-side">
-              {activeId ? <CustomerPanel customerId={activeId} /> : null}
+              {activeId ? <CustomerPanel customerId={activeId} name={customers.find((row) => row.id === activeId)?.name ?? "Customer"} /> : null}
             </div>
             </div>
           )}

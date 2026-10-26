@@ -20,7 +20,7 @@ import { inboxBrief } from "@/lib/list-brief";
 import { isEmergency, notableUrgency } from "@/lib/urgency";
 import { useBusiness } from "@/lib/use-business";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 
 type LeadRow = {
   id: string;
@@ -93,12 +93,36 @@ function detailsText(name: string | null, missing: string[], shop: string) {
 
 function InboxRow({ lead, shop, onChanged }: { lead: LeadRow; shop: string; onChanged: () => void }) {
   const [closing, setClosing] = useState(false);
+  const [address, setAddress] = useState("");
+  const [savingAddress, setSavingAddress] = useState(false);
   const { inbox } = lead;
   const phone = lead.phone ? normalizePhone(lead.phone) ?? lead.phone : null;
   const notable = notableUrgency(lead.urgency);
   const needsDetails = inbox.missing.filter((m) => m !== "callback number");
-  const ask = askForMissing(inbox.missing);
+  const ask = askForMissing(needsDetails.filter((item) => item !== "address"));
   const open = inbox.view !== "resolved";
+  const addressGap = open && !lead.address?.trim();
+
+  async function saveAddress(event: FormEvent) {
+    event.preventDefault();
+    const line = address.trim();
+    if (line.length < 5) return;
+    setSavingAddress(true);
+    try {
+      const res = await fetch(`/api/leads/${lead.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address: line }),
+      });
+      if (!res.ok) throw new Error();
+      toast({ title: "Address saved" });
+      onChanged();
+    } catch {
+      toast({ title: "That address didn't save. The request is still open.", tone: "error" });
+    } finally {
+      setSavingAddress(false);
+    }
+  }
 
   async function close() {
     if (!(await askConfirm({ title: "Close this request without booking?", body: "It moves to Resolved.", confirmLabel: "Close request" }))) return;
@@ -135,6 +159,21 @@ function InboxRow({ lead, shop, onChanged }: { lead: LeadRow; shop: string; onCh
             .join(", ")}
         </span>
         {open && ask && inbox.reason !== ask ? <span className="dt-attention">{ask}</span> : null}
+        {addressGap ? (
+          <form className="dt-address" onSubmit={(event) => void saveAddress(event)}>
+            <input
+              className="dt-address-input"
+              value={address}
+              onChange={(event) => setAddress(event.target.value)}
+              placeholder="Street address"
+              aria-label={`Address for ${lead.name ?? "this caller"}`}
+              maxLength={240}
+            />
+            <button type="submit" className="lead-quick-btn lead-quick-btn-primary" disabled={savingAddress || address.trim().length < 5}>
+              {savingAddress ? "Saving…" : "Save address"}
+            </button>
+          </form>
+        ) : null}
       </span>
       <span role="cell">
         <StatusDot tone={VIEW_TONE[inbox.view]}>{INBOX_VIEW_LABEL[inbox.view]}</StatusDot>

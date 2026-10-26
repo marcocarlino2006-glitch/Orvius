@@ -77,3 +77,18 @@ test("an empty schedule day points at the open jobs, at booking, and at the call
   assert.match(work, /need you\./);
   assert.doesNotMatch(work, /first\.nextAction/, "Work is the filtered list, so it does not lead with the morning sentence");
 });
+
+test("a request without an address can be completed on the row, and a late job is one word", () => {
+  const inbox = read("src/app/dashboard/inbox/page.tsx");
+  assert.match(inbox, /Save address/);
+  assert.match(inbox, /BookJobQuickButton/);
+  assert.match(inbox, /Text for details/);
+  const jobs = read("src/components/job-card.tsx");
+  assert.match(jobs, /const statusWord = late/);
+  assert.match(jobs, /\? "Late"/);
+  assert.doesNotMatch(jobs, /\{state\.detail\}/);
+  const customer = read("src/app/dashboard/customers/[id]/page.tsx");
+  assert.ok(customer.indexOf("Machine") < customer.indexOf("Profile"), "the machine is the first read");
+  assert.ok(customer.indexOf("Next visit") < customer.indexOf("Profile"), "the next visit is the first read");
+  assert.match(read("src/components/customer-panel.tsx"), /aria-label="Machine"/);
+});

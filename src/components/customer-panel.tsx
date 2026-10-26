@@ -15,6 +15,7 @@ type Detail = {
     firstSeenAt: string;
     callCount: number;
     jobCount: number;
+    equipment?: Array<{ name: string; brand: string; model: string; notes: string }>;
   };
   timeline: TimelineEvent[];
   properties: PropertyHistory[];
@@ -35,7 +36,7 @@ function when(iso: string) {
 }
 
 /** Timeline and property history for one customer, beside the list. */
-export function CustomerPanel({ customerId }: { customerId: string }) {
+export function CustomerPanel({ customerId, name }: { customerId: string; name: string }) {
   const [detail, setDetail] = useState<Detail | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -71,10 +72,18 @@ export function CustomerPanel({ customerId }: { customerId: string }) {
 
   if (!detail || detail.customer.id !== customerId) {
     return (
-      <aside className="cp-panel" aria-label="Customer history" aria-busy="true">
-        <span className="skeleton cp-skel" />
-        <span className="skeleton cp-skel" />
-        <span className="skeleton cp-skel cp-skel--tall" />
+      <aside className="cp-panel" aria-label={`${name} history`} aria-busy="true">
+        <header className="cp-head">
+          <h2 className="cp-name">{name}</h2>
+        </header>
+        <section className="cp-section" aria-label="Machine">
+          <p className="cp-label">Machine</p>
+          <span className="skeleton cp-skel" />
+        </section>
+        <section className="cp-section" aria-label="Next visit">
+          <p className="cp-label">Next visit</p>
+          <span className="skeleton cp-skel" />
+        </section>
       </aside>
     );
   }
@@ -82,6 +91,12 @@ export function CustomerPanel({ customerId }: { customerId: string }) {
   const { customer, timeline, properties } = detail;
   const paid = properties.reduce((sum, p) => sum + p.paidCents, 0);
   const events = [...timeline].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 12);
+  const machines = (customer.equipment ?? [])
+    .map((row) => [row.brand, row.name, row.model].filter(Boolean).join(" "))
+    .filter(Boolean);
+  const next = [...timeline]
+    .filter((event) => event.type === "job" && Date.parse(event.at) > Date.now() && !["cancelled", "completed", "done"].includes((event.status ?? "").toLowerCase()))
+    .sort((a, b) => a.at.localeCompare(b.at))[0];
 
   return (
     <aside className="cp-panel" aria-label={`${customer.displayName} history`}>
@@ -98,6 +113,15 @@ export function CustomerPanel({ customerId }: { customerId: string }) {
           Open record
         </RecordLink>
       </header>
+
+      <section className="cp-section" aria-label="Machine">
+        <p className="cp-label">Machine</p>
+        <p className="cp-meta">{machines.length ? machines.join(" · ") : "No machine on file."}</p>
+      </section>
+      <section className="cp-section" aria-label="Next visit">
+        <p className="cp-label">Next visit</p>
+        <p className="cp-meta">{next ? `${when(next.at)}. ${next.title.replace(/[.!?]+$/, "")}.` : "No visit booked."}</p>
+      </section>
 
       <section className="cp-section" aria-label="Properties">
         <p className="cp-label">Properties</p>

@@ -4,7 +4,7 @@ import { CustomerTimeline } from "@/components/customer-timeline";
 import { RecordFetchError, recordFailureFrom } from "@/lib/dashboard-fetch";
 import { RecordLoadFailure } from "@/components/record-load-failure";
 import { OsShell } from "@/components/os-shell";
-import { ShellAlert, ShellLoading } from "@/components/shell-primitives";
+import { ShellAlert } from "@/components/shell-primitives";
 import { customerOpening } from "@/lib/customer-opening";
 import { displayPhone } from "@/lib/customer";
 import Link from "next/link";
@@ -80,8 +80,19 @@ export default function CustomerDetailPage() {
 
   if (loading) {
     return (
-      <OsShell title="Customer" subtitle="Loading record…">
-        <ShellLoading />
+      <OsShell title="Customer">
+        <div className="os-detail-grid rec-page" aria-busy="true">
+          <section className="rec">
+            <header className="rec-head">
+              <h2 className="rec-title">Machine</h2>
+            </header>
+            <span className="skeleton cp-skel" />
+            <header className="rec-head">
+              <h2 className="rec-title">Next visit</h2>
+            </header>
+            <span className="skeleton cp-skel" />
+          </section>
+        </div>
       </OsShell>
     );
   }
@@ -114,6 +125,12 @@ export default function CustomerDetailPage() {
     .filter(Boolean)
     .join(" · ");
   const opening = customerOpening(timeline, usd);
+  const machines = (customer.equipment ?? [])
+    .map((row) => [row.brand, row.name, row.model].filter(Boolean).join(" "))
+    .filter(Boolean);
+  const next = timeline
+    .filter((event) => event.type === "job" && Date.parse(event.at) > Date.now() && !["cancelled", "completed", "done"].includes((event.status ?? "").toLowerCase()))
+    .sort((a, b) => a.at.localeCompare(b.at))[0];
 
   return (
     <OsShell
@@ -147,6 +164,30 @@ export default function CustomerDetailPage() {
     >
       <div className="os-detail-grid rec-page">
         <div className="os-detail-primary">
+          <section className="rec" aria-label="On file">
+            <header className="rec-head">
+              <h2 className="rec-title">Machine</h2>
+            </header>
+            {machines.length ? (
+              machines.map((line) => (
+                <p key={line} className="jv-sub font-sans" style={{ margin: "0 0 0.35rem" }}>
+                  {line}
+                </p>
+              ))
+            ) : (
+              <p className="jv-missing font-sans">No machine on file.</p>
+            )}
+            <header className="rec-head">
+              <h2 className="rec-title">Next visit</h2>
+            </header>
+            {next ? (
+              <p className="jv-sub font-sans" style={{ margin: 0 }}>
+                {formatWhen(next.at)}. {next.title.replace(/[.!?]+$/, "")}.
+              </p>
+            ) : (
+              <p className="jv-missing font-sans">No visit booked.</p>
+            )}
+          </section>
           <section className="rec">
             <header className="rec-head">
               <h2 className="rec-title">Profile</h2>

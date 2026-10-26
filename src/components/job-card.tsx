@@ -47,6 +47,22 @@ export function JobTable({ rows, timeZone }: { rows: JobTableRow[]; timeZone?: s
         const when = whenParts(row.scheduledAt, row.durationMin, timeZone);
         const phone = row.phone ? displayPhone(normalizePhone(row.phone) ?? row.phone) : null;
         const { facts } = row;
+        const late = facts.timing.tone === "risk" && (row.status === "scheduled" || row.status === "confirmed");
+        const statusWord = late
+          ? "Late"
+          : row.status === "cancelled"
+            ? "Closed"
+            : row.status === "completed"
+              ? "Done"
+              : row.status === "en_route"
+                ? "On the way"
+                : row.status === "on_site"
+                  ? "On site"
+                  : row.status === "confirmed" || state.state === "confirmed"
+                    ? "Confirmed"
+                    : state.state === "assigned"
+                      ? "Assigned"
+                      : "Booked";
         return (
           <div key={row.id} className="dt-row dt-row--link" role="row">
             <span role="cell" className="dt-primary">
@@ -58,11 +74,10 @@ export function JobTable({ rows, timeZone }: { rows: JobTableRow[]; timeZone?: s
                 {[row.customerName, phone, row.address].filter(Boolean).join(", ") || "No customer details yet"}
               </span>
               {row.workType && row.workType !== row.title ? <span className="dt-sub">{row.workType}</span> : null}
-              {facts.attention ? <span className="dt-attention">{facts.attention.reason}</span> : null}
+              {facts.attention && !late ? <span className="dt-attention">{facts.attention.reason}</span> : null}
             </span>
             <span role="cell">
-              <StatusDot tone={state.tone}>{state.label}</StatusDot>
-              <span className="dt-sub">{state.detail}</span>
+              <StatusDot tone={late ? "attention" : state.tone}>{statusWord}</StatusDot>
             </span>
             <span role="cell" className={facts.owner.missing ? "dt-risk" : ""}>
               {facts.owner.missing ? "Unassigned" : facts.owner.label}

@@ -1136,6 +1136,26 @@
   border-top: 1px solid color-mix(in srgb, var(--void) 8%, var(--rule));
 }
 
+.dt-address {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.4rem;
+}
+
+.dt-address-input {
+  min-width: 12rem;
+  flex: 1;
+  min-height: 2.25rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--ox-line);
+  border-radius: 0.5rem;
+  background: var(--ox-s1);
+  color: var(--ox-text);
+  font: inherit;
+  font-size: 0.8125rem;
+}
+
 .lead-quick-btn {
   display: inline-flex;
   align-items: center;
