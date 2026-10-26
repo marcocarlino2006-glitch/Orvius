@@ -84,9 +84,13 @@ function fakeTwilio() {
 }
 
 test("details the carriers would reject are caught before anything is sent", () => {
-  const bad = validateTextingDetails({ ...good, ein: "12-34", region: "Texas", repPhone: "555", website: "nope" });
+  const bad = validateTextingDetails({ ...good, ein: "12-34", region: "Nope", repPhone: "555", website: "nope" });
   assert.equal(bad.ok, false);
   assert.deepEqual(Object.keys(bad.errors).sort(), ["ein", "region", "repPhone", "website"]);
+
+  const named = validateTextingDetails({ ...good, region: "New York" });
+  assert.equal(named.ok, true);
+  assert.equal(named.details.region, "NY");
 
   const ok = validateTextingDetails(good);
   assert.equal(ok.ok, true);

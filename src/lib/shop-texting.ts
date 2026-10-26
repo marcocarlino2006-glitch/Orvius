@@ -3,6 +3,7 @@ import { logInfo, logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { BUSINESS_TYPES, type TextingDetails } from "@/lib/shop-texting-copy";
 import { getTwilioClient } from "@/lib/twilio-client";
+import { usStateCode } from "@/lib/us-state";
 
 /*
   Every shop already has its own number and its own receptionist. This makes
@@ -59,8 +60,8 @@ export function validateTextingDetails(input: Partial<Record<keyof TextingDetail
   if (street.length < 3) errors.street = "Street address.";
   const city = s("city");
   if (city.length < 2) errors.city = "City.";
-  const region = s("region").toUpperCase();
-  if (!/^[A-Z]{2}$/.test(region)) errors.region = "Two-letter state.";
+  const region = usStateCode(s("region")) ?? "";
+  if (!region) errors.region = "Two-letter state, like NY.";
   const postalCode = digits(s("postalCode")).slice(0, 5);
   if (postalCode.length !== 5) errors.postalCode = "Five-digit ZIP.";
   const repFirstName = s("repFirstName");
