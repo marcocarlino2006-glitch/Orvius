@@ -19986,3 +19986,28 @@ html .os-shell .dsp-block[draggable="true"] {
     min-height: 0;
   }
 }
+
+/* Settings is its own panel. The desk scale names .sc-title and .sc-plan-name,
+   which made the page title the same size as a row and left the person's name
+   larger than the title. The dialog's scale is 20 the page, 18 the plan,
+   16 the person, 14 the row. */
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .sc-dialog .sc-title {
+  font-size: 20px !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.02em !important;
+  line-height: 28px !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .sc-dialog .sc-plan-name {
+  font-size: 18px !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.02em !important;
+  line-height: 24px !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .sc-dialog .sc-profile-name {
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.011em !important;
+  line-height: 22px !important;
+}
