@@ -335,27 +335,24 @@ export function HomeLiveCall() {
               })}
             </div>
 
+            {FIELDS.some((field) => view.captured[field.key]) ? (
             <aside className="ov-console-capture">
               <p className="ov-capture-label">Captured</p>
               <dl className="ov-capture-list">
-                {FIELDS.map((field) => {
-                  const value = view.captured[field.key];
+                {FIELDS.filter((field) => view.captured[field.key]).map((field) => {
+                  const value = view.captured[field.key] as string;
                   return (
                     // Keying on the value remounts the row the moment intake fills
                     // it, which replays the capture animation exactly once.
-                    <div
-                      key={`${field.key}-${value ?? "empty"}`}
-                      className={["ov-capture-row", value ? "is-set" : ""]
-                        .filter(Boolean)
-                        .join(" ")}
-                    >
+                    <div key={`${field.key}-${value}`} className="ov-capture-row is-set">
                       <dt>{field.label}</dt>
-                      <dd>{value ?? "—"}</dd>
+                      <dd>{value}</dd>
                     </div>
                   );
                 })}
               </dl>
             </aside>
+            ) : null}
           </div>
 
           <div className="ov-console-player">

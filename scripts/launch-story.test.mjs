@@ -70,7 +70,7 @@ test("the homepage tells the whole loop, through getting paid", () => {
 });
 
 test("examples are labelled and nothing public overclaims", () => {
-  assert.match(read("src/components/home-demos.tsx"), /Example business, not a customer/);
+  assert.match(read("src/components/home-demos.tsx"), /Sample shop, not a customer/);
   const banned = /fully autonomous|never miss(es)? a|guaranteed? (more|results|jobs|revenue|bookings)|100% (of calls|answer|uptime)|trusted by \d|thousands of (shops|businesses)|\breplaces? your (office|staff|team)\b/i;
   /* The pilot's "what we won't promise" list names these claims in order to refuse them. */
   const refuses = new Set(["src/app/pilot/forward/page.tsx"]);

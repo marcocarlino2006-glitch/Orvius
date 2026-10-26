@@ -234,7 +234,7 @@ function Shell({
           );
         })}
       </div>
-      <p className="hd-example">Example business, not a customer. This is how Orvius looks with sample calls.</p>
+      <p className="hd-example">Sample shop, not a customer.</p>
       <Pills index={ctl.index} pick={ctl.pick} />
     </div>
   );
