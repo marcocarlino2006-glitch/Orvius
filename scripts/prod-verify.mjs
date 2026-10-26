@@ -190,6 +190,7 @@ const MUST_BE_CLOSED = [
   "/api/cron/find-schema",
   "/api/cron/part-stock-schema",
   "/api/cron/part-draw-schema",
+  "/api/cron/equipment-schema",
   "/api/waitlist/import",
   "/api/leads",
   "/api/calls",
@@ -243,7 +244,7 @@ for (const path of MUST_BE_CLOSED) {
 */
 section("Background work runs");
 
-for (const path of ["/api/cron/notifications", "/api/cron/line-watch", "/api/cron/alert-drain", "/api/cron/assistants", "/api/cron/job-billing-schema", "/api/cron/find-schema", "/api/cron/part-stock-schema", "/api/cron/part-draw-schema"]) {
+for (const path of ["/api/cron/notifications", "/api/cron/line-watch", "/api/cron/alert-drain", "/api/cron/assistants", "/api/cron/job-billing-schema", "/api/cron/find-schema", "/api/cron/part-stock-schema", "/api/cron/part-draw-schema", "/api/cron/equipment-schema"]) {
   try {
     const { status, json } = await get(path);
     if (status === 503 && /CRON_SECRET/.test(json?.error ?? "")) {
