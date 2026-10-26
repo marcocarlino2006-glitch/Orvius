@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { BoardDemo, CallsDemo, PhonesDemo, ReceptionistDemo } from "@/components/home-demos";
-import { CHANGELOG } from "@/lib/changelog";
 
 type Feature = {
   id: string;
@@ -20,7 +19,7 @@ const features: Feature[] = [
     id: "receptionist",
     scene: { time: "11:48 PM", label: "A furnace quits after hours" },
     title: "The receptionist brings in the work.",
-    body: "Calls answered in your name, with your opening line, voice and hours. Gas, smoke, a burning smell, a shock, and water on electrical equipment get safety steps first, then you. Sewage gets its own.",
+    body: "Calls answered in your name, with your opening line. Gas, smoke, a shock, and sewage go to you first.",
     link: { href: "/product", label: "See how the receptionist works" },
     art: "/marketing/art/after-hours.webp",
     demo: <ReceptionistDemo />,
@@ -29,7 +28,7 @@ const features: Feature[] = [
     id: "command",
     scene: { time: "6:40 AM", label: "Before the first van rolls" },
     title: "Command schedules it.",
-    body: "Each job lands on your real calendar with someone free who has the skill. What still needs you is a short list, each with the dollar value at stake and the one thing to do next.",
+    body: "Who called, what they need, and when. What still needs you is the short list.",
     link: { href: "/product", label: "Explore the board" },
     art: "/marketing/art/first-light.webp",
     demo: <BoardDemo />,
@@ -38,7 +37,7 @@ const features: Feature[] = [
     id: "field",
     scene: { time: "9:15 AM", label: "Out on the job" },
     title: "Your people and customers, coordinated.",
-    body: "Whoever is going gets the address and one tap to call. When the caller picks a time, they hear it and the job is booked. A window that was only proposed still needs one tap to confirm. Callers nobody reached get a follow-up. When the work is done the bill goes out by text, and it counts as paid only once the money arrives. No app to install. Coordinating a crew across jobs is a Pro and Fleet feature.",
+    body: "Whoever is going gets the address. The bill goes out by text, and it counts as paid only once the money arrives.",
     link: { href: "/help", label: "Read the help center" },
     art: "/marketing/art/on-the-job.webp",
     demo: <PhonesDemo />,
@@ -48,7 +47,7 @@ const features: Feature[] = [
     id: "calls",
     scene: { time: "6:05 PM", label: "Heading home" },
     title: "What actually happened, on the record.",
-    body: "Every call recorded, transcribed and graded. Every booking, text and change is in the activity log, and each week shows calls answered, jobs booked and money collected.",
+    body: "Every call recorded, transcribed and graded.",
     link: { href: "/pilot", label: "Get a free call audit" },
     art: "/marketing/art/heading-home.webp",
     demo: <CallsDemo />,
@@ -56,9 +55,9 @@ const features: Feature[] = [
 ];
 
 const industries = [
-  { name: "Heating & cooling", detail: "No heat and no cooling stay urgent. Gas, carbon monoxide, and a burning smell are handed to you and never booked" },
-  { name: "Plumbing", detail: "Leaks and water heaters. Gas, sewage, and water on electrical equipment are handed to you and never booked" },
-  { name: "Electrical", detail: "Outages and repairs. Sparking, burning smells, and shocks are handed to you and never booked" },
+  { name: "Heating & cooling", detail: "No heat and no cooling stay urgent." },
+  { name: "Plumbing", detail: "Leaks and water heaters." },
+  { name: "Electrical", detail: "Outages and repairs." },
 ];
 
 function Arrow() {
@@ -108,8 +107,7 @@ export function HomeFeatures() {
               Built for heating &amp; cooling, plumbing and electrical.
             </h2>
             <p className="hf-body font-sans">
-              Each trade has its own questions, services and emergency rules, tested before launch. Other kinds of
-              business can <Link href="/pilot#waitlist">join the waitlist</Link>.
+              Other kinds of business can <Link href="/pilot#waitlist">join the waitlist</Link>.
             </p>
           </header>
           <ul className="hf-grid" data-reveal>
@@ -123,31 +121,6 @@ export function HomeFeatures() {
         </div>
       </section>
 
-      <section className="hf-section hf-updates" aria-labelledby="home-updates-heading">
-        <div className="hf-wrap">
-          <header className="hf-updates-head" data-reveal>
-            <h2 id="home-updates-heading" className="hf-title">
-              Shipping every week.
-            </h2>
-            <Link href="/changelog" className="hf-link font-sans">
-              Full changelog <Arrow />
-            </Link>
-          </header>
-          <ul className="hf-cards" data-reveal>
-            {CHANGELOG.slice(0, 3).map((entry) => (
-              <li key={entry.date + entry.title}>
-                <Link href="/changelog">
-                  <time dateTime={entry.date} className="font-sans">
-                    {new Date(`${entry.date}T12:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" })}
-                  </time>
-                  <span className="hf-card-title">{entry.title}</span>
-                  <span className="hf-card-body font-sans">{entry.items[0]}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
     </>
   );
 }
