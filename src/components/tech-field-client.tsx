@@ -202,7 +202,7 @@ export function TechFieldClient({ token }: { token: string }) {
               rel="noreferrer"
             >
               <span className="pf-action-label">Directions</span>
-              <span className="pf-action-detail">{job.address.split(",")[0]}</span>
+              <span className="pf-action-detail">{job.address}</span>
             </a>
           ) : null}
         </div>

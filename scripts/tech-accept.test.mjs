@@ -91,6 +91,9 @@ test("a finished visit stays on the day with what happened and the amount", asyn
   const dayPage = read("src/components/tech-app/day.tsx");
   assert.match(dayPage, /job\.finished/);
   assert.match(dayPage, /visit finished/);
+  assert.doesNotMatch(dayPage, /address\?\.split/, "the technician sees the city, not only the street");
+  assert.match(dayPage, /job\.machine/);
+  assert.match(read("src/components/tech-app/job.tsx"), /No machine on file\./);
   assert.doesNotMatch(read("src/app/tech/tech-app.css"), /\.ta-job\.is-done\s*\{[^}]*opacity/);
 });
 

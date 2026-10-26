@@ -217,10 +217,13 @@ export function WorkCard({
               ) : null}
             </>
           ) : inList ? (
-            <Link href={item.href} className="wc-title">
-              {spokenText(item.title)}
-              <span className="wc-who"> · {who}</span>
-            </Link>
+            <>
+              <Link href={item.href} className="wc-title">
+                {spokenText(item.title)}
+                <span className="wc-who"> · {who}</span>
+              </Link>
+              {item.address ? <p className="wc-where">{item.address}</p> : null}
+            </>
           ) : null}
           {now || row ? null : (
           <p className="wc-detail">

@@ -98,6 +98,7 @@ test("a request without an address can be completed on the row, and a late job i
   assert.match(read("src/components/customer-panel.tsx"), /aria-label="Machine"/);
   assert.match(read("src/components/customer-panel.tsx"), /AbortController/, "a slower record for the previous person cannot replace the one just opened");
   assert.match(read("src/components/work-card.tsx"), /formatWhen\(item\.scheduledAt, new Date\(\), timezone\)/, "a visit time uses the shop clock");
+  assert.match(read("src/components/work-card.tsx"), /item\.address \? <p className="wc-where">\{item\.address\}<\/p>/, "the morning row shows the street");
   assert.match(read("src/components/record-drawer.tsx"), /formatWhen\(record\.source\.at, record\.timezone\)/, "a record opens on the shop clock");
   assert.match(read("src/app/dashboard/inbox/[id]/page.tsx"), /formatWhen\(lead\.call\.createdAt, new Date\(\), lead\.business\?\.timezone\)/);
   assert.match(read("src/components/job-bill-section.tsx"), /formatWhen\(invoice\.sentAt, new Date\(\), timezone\)/);
