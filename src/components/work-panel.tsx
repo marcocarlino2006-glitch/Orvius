@@ -196,10 +196,11 @@ export function WorkPanel({
           </ul>
         )}
       </section>
-      {outcome && !movedOn ? (
+      {decisions && outcome && !movedOn ? (
         <section className="wp" aria-label="From booking to payment">
           <OutcomeCard
             outcome={outcome}
+            timezone={data.timezone}
             onChange={(next) => {
               setOutcome(next);
               changed();

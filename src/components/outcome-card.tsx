@@ -41,7 +41,15 @@ const STALE_VIEW = "This view didn't refresh, so it may be behind. Reload the pa
  * here becomes a plan to approve, marking done records what happened, and a
  * bill is sent only when the owner says so.
  */
-export function OutcomeCard({ outcome, onChange }: { outcome: Outcome; onChange: (next: Outcome | null) => void }) {
+export function OutcomeCard({
+  outcome,
+  onChange,
+  timezone = null,
+}: {
+  outcome: Outcome;
+  onChange: (next: Outcome | null) => void;
+  timezone?: string | null;
+}) {
   const [plan, setPlan] = useState<Proposal | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -174,7 +182,7 @@ export function OutcomeCard({ outcome, onChange }: { outcome: Outcome; onChange:
             ) : null}
             {s.at && s.state !== "not_yet" ? (
               <span className="cb-oc-meta">
-                {formatWhen(s.at)} · {s.source}
+                {formatWhen(s.at, new Date(), timezone)} · {s.source}
                 {s.execution ? ` · ${EXECUTION_WORD[s.execution]}` : ""}
               </span>
             ) : null}
