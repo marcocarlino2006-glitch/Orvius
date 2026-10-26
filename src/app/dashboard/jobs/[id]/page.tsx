@@ -418,7 +418,7 @@ export default function JobDetailPage() {
 
       <div className="os-detail-grid">
         <div className="os-detail-primary">
-          <WorkPanel kind="job" id={job.id} onChange={refreshWork} refreshKey={workVersion} beforeHistory={wide ? null : side}>
+          <WorkPanel kind="job" id={job.id} onChange={refreshWork} refreshKey={workVersion} beforeHistory={wide ? null : side} decisions={!pastDue}>
             <ShellPanel
               title="Visit"
               dense
