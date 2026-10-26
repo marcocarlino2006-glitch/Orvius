@@ -96,4 +96,5 @@ test("a request without an address can be completed on the row, and a late job i
   assert.ok(customer.indexOf("Machine") < customer.indexOf("Profile"), "the machine is the first read");
   assert.ok(customer.indexOf("Next visit") < customer.indexOf("Profile"), "the next visit is the first read");
   assert.match(read("src/components/customer-panel.tsx"), /aria-label="Machine"/);
+  assert.match(read("src/components/customer-panel.tsx"), /AbortController/, "a slower record for the previous person cannot replace the one just opened");
 });

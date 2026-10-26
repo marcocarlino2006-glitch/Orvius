@@ -48,20 +48,28 @@ export function CustomerPanel({ customerId, name }: { customerId: string; name: 
   const [detail, setDetail] = useState<Detail | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(() => {
+  const load = useCallback((signal?: AbortSignal) => {
     setError(null);
-    fetch(`/api/customers/${customerId}`)
+    fetch(`/api/customers/${customerId}`, signal ? { signal } : undefined)
       .then(async (res) => {
         if (!res.ok) throw new Error(res.status === 404 ? "This customer is no longer on file." : "Customer history did not load.");
         return res.json();
       })
-      .then(setDetail)
-      .catch((err) => setError(err instanceof Error ? err.message : "Customer history did not load."));
+      .then((data: Detail) => {
+        if (signal?.aborted || data?.customer?.id !== customerId) return;
+        setDetail(data);
+      })
+      .catch((err) => {
+        if (err instanceof DOMException && err.name === "AbortError") return;
+        setError(err instanceof Error ? err.message : "Customer history did not load.");
+      });
   }, [customerId]);
 
   useEffect(() => {
+    const controller = new AbortController();
     setDetail(null);
-    load();
+    load(controller.signal);
+    return () => controller.abort();
   }, [load]);
 
   if (error) {
@@ -70,7 +78,7 @@ export function CustomerPanel({ customerId, name }: { customerId: string; name: 
         <div className="ox-state ox-state--failure ox-state--inline" role="alert">
           <p className="ox-state-title">History unavailable</p>
           <p className="ox-state-copy">{error}</p>
-          <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" onClick={load}>
+          <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" onClick={() => load()}>
             Retry
           </button>
         </div>
