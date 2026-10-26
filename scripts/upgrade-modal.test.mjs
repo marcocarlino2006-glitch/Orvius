@@ -70,4 +70,10 @@ test("an empty schedule day points at the open jobs, at booking, and at the call
   assert.match(page, /Nothing on this day[\s\S]{0,1100}?\/dashboard\/jobs"/, "open jobs that missed this day are one tap away");
   assert.match(page, /Nothing on this day[\s\S]{0,1100}?\/dashboard\/jobs\/new/, "booking a job is still on the empty day");
   assert.match(page, /Nothing on this day[\s\S]{0,1100}?\/dashboard\/calls/, "today's answered calls are one tap away");
+  assert.match(page, /id="dsp-late"/, "late visits sit on the day, labeled Late");
+  assert.match(page, /jobPastDue\(\{ status: item\.stage, scheduledAt: item\.scheduledAt \}\)/);
+  assert.match(read("src/components/desk-board.tsx"), /variant="row"/, "the morning list carries the buttons");
+  const work = read("src/app/dashboard/work/page.tsx");
+  assert.match(work, /need you\./);
+  assert.doesNotMatch(work, /first\.nextAction/, "Work is the filtered list, so it does not lead with the morning sentence");
 });

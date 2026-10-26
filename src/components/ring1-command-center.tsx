@@ -321,7 +321,9 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
               : undefined
           }
           items={items}
-          asideKey={liveItem?.key ?? null}
+          asideKey={pictured ? null : (liveItem?.key ?? null)}
+          technicians={data.technicians ?? []}
+          onWorkChange={() => void refresh()}
           timezone={data.coverage?.timezone}
           tomorrow={data.tomorrow ? { jobCount: data.tomorrow.jobCount, unassigned: data.tomorrow.unassigned } : null}
           conflicts={scheduleConflicts(data.crewBoard)}

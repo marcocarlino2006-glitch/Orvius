@@ -13,9 +13,12 @@ import { toast } from "@/components/toaster";
 import type { TechTimeOff } from "@/components/tech-schedule-editor";
 import { previewMove, type MovePreview } from "@/lib/schedule-move";
 import { DispatchWeek } from "@/components/dispatch-week";
+import { WorkCard } from "@/components/work-card";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { patchJob } from "@/lib/job-patch-client";
+import { jobPastDue } from "@/lib/job-status";
+import type { WorkItem } from "@/lib/work";
 
 type Tech = {
   id: string;
@@ -228,18 +231,29 @@ export default function DispatchPage() {
   const [picked, setPicked] = useState<string | null>(null);
   const [view, setView] = useState<"day" | "week">("day");
   const [board, setBoard] = useState<Board | null>(null);
+  const [late, setLate] = useState<WorkItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(() => {
     setLoading(true);
     setError(null);
-    fetch(picked ? `/api/dispatch?day=${picked}` : "/api/dispatch")
-      .then(async (res) => {
-        if (!res.ok) throw new Error(res.status === 401 ? SESSION_EXPIRED : "The schedule didn't load. Nothing changed; try again.");
-        return res.json();
+    const boardReq = fetch(picked ? `/api/dispatch?day=${picked}` : "/api/dispatch").then(async (res) => {
+      if (!res.ok) throw new Error(res.status === 401 ? SESSION_EXPIRED : "The schedule didn't load. Nothing changed; try again.");
+      return res.json() as Promise<Board>;
+    });
+    const lateReq = fetch("/api/work?view=open")
+      .then(async (res) => (res.ok ? res.json() : null))
+      .then((body: { items?: WorkItem[] } | null) => {
+        const items = Array.isArray(body?.items) ? body.items : [];
+        return items.filter((item) => item.kind === "job" && jobPastDue({ status: item.stage, scheduledAt: item.scheduledAt }));
       })
-      .then(setBoard)
+      .catch(() => [] as WorkItem[]);
+    Promise.all([boardReq, lateReq])
+      .then(([next, lateItems]) => {
+        setBoard(next);
+        setLate(lateItems);
+      })
       .catch((err) => {
         const offline = typeof navigator !== "undefined" && !navigator.onLine;
         setError(offline ? "You are offline. The last schedule is still shown." : err.message);
@@ -323,6 +337,7 @@ export default function DispatchPage() {
     day: "numeric",
   });
   const terms = industryTerms(board?.trade);
+  const lateOnThisDay = day >= today && late.length > 0;
   const decisions = schedule?.unassigned.length ?? 0;
   const conflicts = schedule?.conflicts ?? [];
   const bookedMin = schedule?.lanes.reduce((sum, lane) => sum + lane.bookedMin, 0) ?? 0;
@@ -474,10 +489,34 @@ export default function DispatchPage() {
               </section>
             ) : null}
 
+            {lateOnThisDay ? (
+              <section className="dsp-section" aria-labelledby="dsp-late">
+                <h2 id="dsp-late" className="dsp-h">
+                  Late
+                </h2>
+                <ul className="wc-list">
+                  {late.map((item) => (
+                    <WorkCard
+                      key={item.key}
+                      item={item}
+                      technicians={crew.map((tech) => ({ id: tech.id, name: tech.name }))}
+                      onChange={load}
+                      variant="row"
+                      timezone={board.timezone}
+                    />
+                  ))}
+                </ul>
+              </section>
+            ) : null}
+
             {!board.jobCount ? (
               <ProEmptyState
                 title="Nothing on this day"
-                body={`Open ${terms.jobs} that missed their window are on ${terms.Jobs}. A call Orvius books lands here with a ${terms.worker} already picked.`}
+                body={
+                  lateOnThisDay
+                    ? `Nothing is booked on this day. The late ${terms.jobs} are above, so you can call, move, or close them here. A call Orvius books lands here with a ${terms.worker} already picked.`
+                    : `Open ${terms.jobs} that missed their window are on ${terms.Jobs}. A call Orvius books lands here with a ${terms.worker} already picked.`
+                }
                 action={
                   <span className="flex flex-wrap justify-center gap-2">
                     <Link href="/dashboard/jobs" className="ox-btn ox-btn--primary ox-btn--sm">

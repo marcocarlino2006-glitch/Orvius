@@ -7,7 +7,6 @@ import { WorkCard } from "@/components/work-card";
 import { ProEmptyState } from "@/components/pro-page-chrome";
 import { ShellAlert } from "@/components/shell-primitives";
 import { DashboardSkeleton } from "@/components/shell-skeleton";
-import { spokenName, spokenText } from "@/lib/spoken-name";
 import type { WorkItem } from "@/lib/work";
 
 type Assignee = { email: string; role: string };
@@ -65,18 +64,25 @@ export default function WorkPage() {
     return items.filter(FILTERS.find((f) => f.id === filter)!.match);
   }, [data, filter, view]);
 
-  const first = rows[0];
   const headline = !data
     ? "Reading the shop…"
-    : !first
-      ? view === "closed"
+    : view === "closed"
+      ? rows.length === 0
         ? "Nothing closed in the last 30 days."
-        : filter === "you"
+        : rows.length === 1
+          ? "1 closed in the last 30 days."
+          : `${rows.length} closed in the last 30 days.`
+      : filter === "you"
+        ? rows.length === 0
           ? "Nothing needs you."
-          : "Nothing in this view."
-      : spokenName(first.customer)
-        ? `${spokenName(first.customer)}. ${spokenText(first.nextAction || first.title)}`
-        : spokenText(first.nextAction || first.title);
+          : rows.length === 1
+            ? "1 needs you."
+            : `${rows.length} need you.`
+        : rows.length === 0
+          ? "Nothing in this view."
+          : rows.length === 1
+            ? "1 open."
+            : `${rows.length} open.`;
 
   return (
     <OsShell
