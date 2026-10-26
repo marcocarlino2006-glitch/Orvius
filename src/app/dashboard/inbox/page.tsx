@@ -177,7 +177,7 @@ function InboxRow({ lead, shop, onChanged }: { lead: LeadRow; shop: string; onCh
       </span>
       <span role="cell">
         <StatusDot tone={VIEW_TONE[inbox.view]}>{INBOX_VIEW_LABEL[inbox.view]}</StatusDot>
-        <span className="dt-sub">{inbox.reason}</span>
+        {addressGap ? null : <span className="dt-sub">{inbox.reason}</span>}
         {notable && !isEmergency(lead.urgency) ? <span className="dt-sub">{notable.charAt(0).toUpperCase() + notable.slice(1)}</span> : null}
       </span>
       <span role="cell" className="dt-when">

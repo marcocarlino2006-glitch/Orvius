@@ -11208,6 +11208,12 @@ a.dt-row:focus-visible,
   text-overflow: ellipsis;
 }
 
+.dt--jobs .dt-primary .dt-sub {
+  overflow: visible;
+  white-space: normal;
+  text-overflow: unset;
+}
+
 .dt-sub.is-attention,
 .dt-attention {
   color: var(--ox-yellow);
