@@ -22,6 +22,7 @@ import { prisma } from "@/lib/prisma";
 import { inventedNumbers, trustedCallbackNumber } from "@/lib/callback-number";
 import { callerWords } from "@/lib/transcript";
 import { withCallerSpelling } from "@/lib/spelled-name";
+import { rememberEquipment, resolveEquipment } from "@/lib/equipment-fact";
 import { extractLeadFromStructuredData, type VapiWebhookMessage } from "@/lib/vapi";
 import { claimWebhookEvent, completeWebhookEvent } from "@/lib/webhook-events";
 import type { Business, Call, Lead } from "@prisma/client";
@@ -116,7 +117,8 @@ export async function captureEndOfCallReport(params: {
     const successEvaluation =
       message.analysis?.successEvaluation == null ? null : String(message.analysis.successEvaluation);
     const latency = { ...latencyColumns(latencyFromReport(message)), ...costColumns(message) };
-    const extracted = extractLeadFromStructuredData(message.analysis?.structuredData);
+    const trade = tradeForCapture(business);
+    const extracted = extractLeadFromStructuredData(message.analysis?.structuredData, trade);
     const spelled = withCallerSpelling(extracted, message.transcript);
     const callerIdNumber = message.call?.customer?.number ?? null;
     const callback = trustedCallbackNumber({ extracted: extracted.phone, callerId: callerIdNumber, transcript: message.transcript });
@@ -139,7 +141,7 @@ export async function captureEndOfCallReport(params: {
       address: structured.address,
       categoryHint: structured.jobCategory,
       callerWords: callerWords(transcript),
-      trade: tradeForCapture(business),
+      trade,
     });
 
     const { call, lead } = await prisma.$transaction(async (tx) => {
@@ -324,6 +326,20 @@ export async function finishCallReport(input: Omit<Captured, "duplicate">): Prom
       notes: lead.notes,
     });
     const customerId = link?.customer.id ?? null;
+    if (link && lead.systemType) {
+      const nextEquipment = rememberEquipment(link.customer.equipmentJson, resolveEquipment(lead, tradeForCapture(business)));
+      if (nextEquipment) {
+        await prisma.customer
+          .update({ where: { id: link.customer.id }, data: { equipmentJson: nextEquipment } })
+          .catch((error: unknown) => {
+            logError("call.equipment_not_saved", {
+              businessId: business.id,
+              customerId: link.customer.id,
+              error: error instanceof Error ? error.message : "unknown",
+            });
+          });
+      }
+    }
     if (link) {
       audit.add({
         businessId: business.id,

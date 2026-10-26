@@ -4,6 +4,7 @@ import { holdDecisionsByLead } from "@/lib/booking-decision";
 import { gradeCall, summarizeCallQuality } from "@/lib/call-quality";
 import { callOutcome } from "@/lib/call-outcome";
 import { prisma } from "@/lib/prisma";
+import { modelOnFile } from "@/lib/equipment-fact";
 import { requireEntitledSession } from "@/lib/tenant";
 
 const DEFAULT_LIMIT = 50;
@@ -60,7 +61,7 @@ export async function GET(request: NextRequest) {
     orderBy: { createdAt: "desc" },
     include: {
       business: { select: { name: true } },
-      customer: { select: { id: true, name: true, interactionCount: true, address: true } },
+      customer: { select: { id: true, name: true, interactionCount: true, address: true, equipmentJson: true } },
       lead: {
         select: {
           id: true,
@@ -140,6 +141,7 @@ export async function GET(request: NextRequest) {
             systemType: call.lead.systemType,
             equipmentBrand: call.lead.equipmentBrand,
             equipmentModel: call.lead.equipmentModel,
+            onFileModel: call.lead.equipmentModel ? null : modelOnFile(call.customer?.equipmentJson, call.lead.systemType),
             jobId: call.lead.job?.id ?? null,
           }
         : null,

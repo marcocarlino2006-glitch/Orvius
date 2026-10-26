@@ -3,6 +3,7 @@ import { buildOutcome } from "@/lib/outcome";
 import { recordWorkflowProgress } from "@/lib/workflow-events";
 import { COLLECTED_STATUSES } from "@/lib/payment-math";
 import { safeTimezone, shopDayBounds, formatShopTime } from "@/lib/availability";
+import { equipmentFacts, modelOnFile } from "@/lib/equipment-fact";
 import { firstName } from "@/lib/customer-confirm";
 import { sendCustomerSms } from "@/lib/customer-sms";
 import { techLinkExpired } from "@/lib/ensure-tech-token";
@@ -136,8 +137,8 @@ const JOB_SELECT = {
   etaText: true,
   resolutionCode: true,
   finalAmountCents: true,
-  customer: { select: { name: true, phone: true, address: true } },
-  lead: { select: { name: true, phone: true } },
+  customer: { select: { name: true, phone: true, address: true, equipmentJson: true } },
+  lead: { select: { name: true, phone: true, systemType: true, equipmentBrand: true, equipmentModel: true } },
 } as const;
 
 type JobRow = { customer: { name: string | null; phone: string; address: string | null } | null; lead: { name: string | null; phone: string | null } | null };
@@ -308,6 +309,12 @@ export async function techJobDetail(tech: TechSession, jobId: string) {
       officeConfirmed: !job.customerConfirmedAt && job.status === "confirmed",
       resolutionCode: job.resolutionCode,
       resolutionSummary: job.resolutionSummary,
+      equipment: equipmentFacts({
+        systemType: job.lead?.systemType,
+        equipmentBrand: job.lead?.equipmentBrand,
+        equipmentModel: job.lead?.equipmentModel,
+        onFileModel: job.lead?.equipmentModel ? null : modelOnFile(job.customer?.equipmentJson, job.lead?.systemType),
+      }),
       ...customerOf(job),
     },
     shop: { name: tech.business.name, timezone: safeTimezone(tech.business.timezone ?? "America/New_York") },

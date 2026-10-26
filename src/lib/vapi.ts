@@ -1,7 +1,8 @@
 import { createHash } from "node:crypto";
 import { buildInCallTools } from "@/lib/in-call-tool-defs";
 import { DEFAULT_VOICE_ID, VOICE_MODEL, VOICE_PROVIDER } from "@/lib/voices";
-import { spokenEquipmentFact } from "@/lib/equipment-fact";
+import { resolveEquipment } from "@/lib/equipment-fact";
+import type { Trade } from "@/lib/trades";
 import { DEMAND_CATEGORY_CODES } from "@/lib/job-taxonomy";
 import {
   getAiModelPolicy,
@@ -407,15 +408,17 @@ export function buildVapiAssistantConfig(params: {
             systemType: {
               type: "string",
               description:
-                "The system the caller named, such as central AC, heat pump, furnace, tank water heater, or panel. Omit when they did not say. Never a price.",
+                "The machine they named, in their words: central air, heat pump, furnace, boiler, mini-split, tank water heater, tankless water heater, or panel. Omit when they did not say which machine. Never a price and never a guess.",
             },
             equipmentBrand: {
               type: "string",
-              description: "Brand the caller named. Omit when they did not say. Never a price.",
+              description:
+                "Manufacturer they named, such as Carrier, Trane, Lennox, Rheem, A. O. Smith, Bradford White, Square D, Siemens, Eaton, or Federal Pacific. Omit when they did not say. Never a price.",
             },
             equipmentModel: {
               type: "string",
-              description: "Model the caller named. Omit when they did not say. Never a price.",
+              description:
+                "Model number they read off the sticker, letters and digits. Omit when they did not read one. Never a price, a size, or a guess.",
             },
           },
         },
@@ -479,8 +482,17 @@ export type VapiWebhookMessage = {
 
 export function extractLeadFromStructuredData(
   data: Record<string, unknown> | undefined,
+  trade: Trade | null = null,
 ) {
   if (!data) return {};
+  const equipment = resolveEquipment(
+    {
+      systemType: data.systemType,
+      equipmentBrand: data.equipmentBrand,
+      equipmentModel: data.equipmentModel,
+    },
+    trade,
+  );
 
   return {
     name: typeof data.name === "string" ? data.name : undefined,
@@ -493,8 +505,8 @@ export function extractLeadFromStructuredData(
     urgency: typeof data.urgency === "string" ? data.urgency : undefined,
     address: typeof data.address === "string" ? data.address : undefined,
     notes: typeof data.notes === "string" ? data.notes : undefined,
-    systemType: spokenEquipmentFact(data.systemType),
-    equipmentBrand: spokenEquipmentFact(data.equipmentBrand),
-    equipmentModel: spokenEquipmentFact(data.equipmentModel),
+    systemType: equipment.systemType,
+    equipmentBrand: equipment.equipmentBrand,
+    equipmentModel: equipment.equipmentModel,
   };
 }
