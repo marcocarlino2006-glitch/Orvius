@@ -63,10 +63,10 @@ test("equipment the caller named is kept, and a price is not", () => {
     equipmentBrand: "Carrier",
     equipmentModel: "$4,500",
   });
-  assert.equal(extracted.systemType, "central AC");
+  assert.equal(extracted.systemType, "Central air");
   assert.equal(extracted.equipmentBrand, "Carrier");
   assert.equal(extracted.equipmentModel, undefined);
-  assert.equal(equipmentLine(extracted), "central AC · Carrier");
+  assert.equal(equipmentLine(extracted), "Central air · Carrier");
   const schema = read("src/lib/vapi.ts");
   assert.match(schema, /systemType:/);
   assert.doesNotMatch(schema, /price:/);

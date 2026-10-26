@@ -43,6 +43,7 @@ type Detail = {
     resolutionSummary: string | null;
     customerName: string | null;
     customerPhone: string | null;
+    equipment?: { system: string | null; parts: string | null; lookup: string | null };
   };
   shop: { name: string; timezone: string };
   technician: { name: string };
@@ -938,6 +939,24 @@ export function TechJob({ token, jobId }: { token: string; jobId: string }) {
             <div>
               <dt>Request</dt>
               <dd>{job.serviceType}</dd>
+            </div>
+          ) : null}
+          {job.equipment?.system ? (
+            <div>
+              <dt>System</dt>
+              <dd>{job.equipment.system}</dd>
+            </div>
+          ) : null}
+          {job.equipment?.parts ? (
+            <div>
+              <dt>Parts</dt>
+              <dd>{job.equipment.parts}</dd>
+            </div>
+          ) : null}
+          {job.equipment?.lookup ? (
+            <div>
+              <dt>Model</dt>
+              <dd>{job.equipment.lookup}</dd>
             </div>
           ) : null}
         </dl>

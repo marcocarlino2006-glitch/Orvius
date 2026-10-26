@@ -31,6 +31,7 @@ type CallRow = {
     systemType?: string | null;
     equipmentBrand?: string | null;
     equipmentModel?: string | null;
+    onFileModel?: string | null;
     urgency: string | null;
   } | null;
   quality: { score: number; verdict: CallVerdict; headline: string };
@@ -182,6 +183,7 @@ export default function CallsPage() {
                   systemType={call.lead?.systemType}
                   equipmentBrand={call.lead?.equipmentBrand}
                   equipmentModel={call.lead?.equipmentModel}
+                  onFileModel={call.lead?.onFileModel}
                   urgency={call.lead?.urgency}
                   returning={(call.customer?.interactionCount ?? 0) > 1}
                   quality={call.quality}
