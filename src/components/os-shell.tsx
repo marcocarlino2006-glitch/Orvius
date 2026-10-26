@@ -13,6 +13,7 @@ import { OsSidebarFooter } from "@/components/os-sidebar-footer";
 import { PayPromptModal } from "@/components/pay-prompt-modal";
 import { Toaster } from "@/components/toaster";
 import { osNavCurrent, osProductNav, osWideNav } from "@/lib/os-nav";
+import { SIGNUP_HREF } from "@/lib/signup-href";
 import { DARK_QUERY, applyResolvedTheme, readThemeChoice, resolveTheme } from "@/lib/theme";
 
 type OsShellProps = {
@@ -82,6 +83,14 @@ export function OsShell({
 
   const line = businessLoading ? (
     "Checking line…"
+  ) : business?.guest ? (
+    <>
+      Sample shop ·{" "}
+      <Link href={SIGNUP_HREF} className="os-sidebar-inline-link">
+        Sign up
+      </Link>{" "}
+      and this desk is yours
+    </>
   ) : business?.line ? (
     <>
       <span className="os-ring-status-dot" aria-hidden />

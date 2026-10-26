@@ -43,7 +43,7 @@ export async function GET(request: Request) {
     if (authResult.error?.status === 404) return NextResponse.json({ noShop: true });
     return authResult.error;
   }
-  const { business, session, role, email } = authResult;
+  const { business, session, role, email, guest } = authResult;
   // A shop whose access ended still reads its own shop; Command says how to reopen it.
   const locked = isBillingEntitled(business) ? null : billingLock(business);
   const now = new Date();
@@ -51,7 +51,8 @@ export async function GET(request: Request) {
   const sinceParam = new URL(request.url).searchParams.get("since");
   const previousLook = sinceParam ?? business.ownerLastSeenAt?.toISOString() ?? null;
   const since = parseSince(previousLook, now);
-  if (role !== "owner") {
+  /* A visitor reading the sample must not stamp the shop or send anything. */
+  if (!guest && role !== "owner") {
     after(() =>
       prisma.membership
         .updateMany({
@@ -60,7 +61,7 @@ export async function GET(request: Request) {
         })
         .catch(() => null),
     );
-  } else if (!business.ownerLastSeenAt || now.getTime() - business.ownerLastSeenAt.getTime() > LAST_SEEN_WRITE_MS) {
+  } else if (!guest && (!business.ownerLastSeenAt || now.getTime() - business.ownerLastSeenAt.getTime() > LAST_SEEN_WRITE_MS)) {
     after(() =>
       prisma.business
         .update({ where: { id: business.id }, data: { ownerLastSeenAt: now } })
@@ -68,7 +69,7 @@ export async function GET(request: Request) {
     );
   }
 
-  if (!locked) after(() => runAutopilot(business.id).catch(() => null));
+  if (!locked && !guest) after(() => runAutopilot(business.id).catch(() => null));
 
   // The 30s poll mostly finds nothing new; answer that from four indexed reads.
   const versionP = shopVersion(business.id).then((data) => commandVersion(data, now, since));
@@ -235,7 +236,7 @@ export async function GET(request: Request) {
     hasLine: Boolean(line),
     afterHoursNow,
   }).catch(() => null);
-  if (health.stuckPendingAlerts > 0) {
+  if (!guest && health.stuckPendingAlerts > 0) {
     after(() =>
       drainOwnerAlerts({ at: "ring1.health", businessId: business.id }),
     );
@@ -316,7 +317,8 @@ export async function GET(request: Request) {
       name: business.name,
       trade: business.trade,
       line,
-      ownerPhone: business.ownerPhone,
+      ownerPhone: guest ? null : business.ownerPhone,
+      guest,
       billingStatus: business.billingStatus,
       pilotEndsAt: business.pilotEndsAt?.toISOString() ?? null,
       depositEnabled: business.depositEnabled,

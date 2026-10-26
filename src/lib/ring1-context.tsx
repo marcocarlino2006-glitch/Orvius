@@ -72,6 +72,8 @@ export type Ring1Data = {
     billingStatus?: string | null;
     depositEnabled?: boolean;
     referenceImplementation?: boolean;
+    /** Signed-out read of the public sample. A signed-in shop is never this. */
+    guest?: boolean;
     /** The signed-in person's own disposable demo shop. */
     demoWorkspace?: boolean;
     /** When the demo's sample week was dated from. */
@@ -209,6 +211,7 @@ function toBusiness(data: Ring1Data | null): BusinessSnapshot | null {
     line: data.business.line ?? null,
     ownerPhone: data.business.ownerPhone ?? null,
     sample: Boolean(data.business.referenceImplementation),
+    guest: Boolean(data.business.guest),
     testMode: Boolean(data.business.testMode),
     metrics: data.metrics,
     signals: {

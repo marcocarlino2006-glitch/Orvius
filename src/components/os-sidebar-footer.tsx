@@ -11,6 +11,7 @@ import { supportMailto, supportPhone } from "@/lib/support";
 import { fetchAccount, invalidateAccount } from "@/lib/account-client";
 import { callUsageLine, type CallUsage } from "@/lib/call-usage";
 import { UpgradeModal } from "@/components/upgrade-modal";
+import { SIGNUP_HREF } from "@/lib/signup-href";
 import { ROLE_LABELS, type ShopRole, type ShopSummary } from "@/lib/workspace-access-labels";
 
 type AccountData = {
@@ -126,7 +127,7 @@ function clearWorkspaceSessionState() {
 }
 
 export function OsSidebarFooter() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<"menu" | "locations">("menu");
@@ -184,7 +185,16 @@ export function OsSidebarFooter() {
     };
   }, [open]);
 
-  if (!session?.user) return null;
+  if (status === "loading") return null;
+  if (!session?.user) {
+    return (
+      <div className="os-sidebar-footer mx-footer font-sans">
+        <Link href={SIGNUP_HREF} className="mx-chip">
+          Sign up
+        </Link>
+      </div>
+    );
+  }
 
   const name = session.user.name ?? "User";
   const email = session.user.email ?? "";
