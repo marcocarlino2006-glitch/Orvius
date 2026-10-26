@@ -114,8 +114,9 @@ function InboxRow({ lead, shop, onChanged }: { lead: LeadRow; shop: string; onCh
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ address: line }),
       });
+      const data = (await res.json().catch(() => null)) as { autoBook?: { created?: boolean; jobId?: string | null } } | null;
       if (!res.ok) throw new Error();
-      toast({ title: "Address saved" });
+      toast({ title: data?.autoBook?.created ? "Booked. It's on the schedule." : "Address saved" });
       onChanged();
     } catch {
       toast({ title: "That address didn't save. The request is still open.", tone: "error" });
@@ -170,7 +171,7 @@ function InboxRow({ lead, shop, onChanged }: { lead: LeadRow; shop: string; onCh
               maxLength={240}
             />
             <button type="submit" className="lead-quick-btn lead-quick-btn-primary" disabled={savingAddress || address.trim().length < 5}>
-              {savingAddress ? "Saving…" : "Save address"}
+              {savingAddress ? "Saving…" : lead.serviceType ? "Save and book" : "Save address"}
             </button>
           </form>
         ) : null}

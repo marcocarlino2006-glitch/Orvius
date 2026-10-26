@@ -1,9 +1,11 @@
 "use client";
 
 import { RecordLink } from "@/components/record-drawer";
+import { customerVisit } from "@/lib/customer-opening";
 import type { PropertyHistory, TimelineEvent } from "@/lib/customer";
 import { formatCents } from "@/lib/money";
 import { isRecordType } from "@/lib/record-types";
+import { formatWhen } from "@/lib/when";
 import { useCallback, useEffect, useState } from "react";
 
 type Detail = {
@@ -94,9 +96,7 @@ export function CustomerPanel({ customerId, name }: { customerId: string; name: 
   const machines = (customer.equipment ?? [])
     .map((row) => [row.brand, row.name, row.model].filter(Boolean).join(" "))
     .filter(Boolean);
-  const next = [...timeline]
-    .filter((event) => event.type === "job" && Date.parse(event.at) > Date.now() && !["cancelled", "completed", "done"].includes((event.status ?? "").toLowerCase()))
-    .sort((a, b) => a.at.localeCompare(b.at))[0];
+  const visit = customerVisit(timeline);
 
   return (
     <aside className="cp-panel" aria-label={`${customer.displayName} history`}>
@@ -120,7 +120,9 @@ export function CustomerPanel({ customerId, name }: { customerId: string; name: 
       </section>
       <section className="cp-section" aria-label="Next visit">
         <p className="cp-label">Next visit</p>
-        <p className="cp-meta">{next ? `${when(next.at)}. ${next.title.replace(/[.!?]+$/, "")}.` : "No visit booked."}</p>
+        <p className="cp-meta">
+          {visit ? `${visit.late ? "Late. " : ""}${formatWhen(visit.at)}. ${visit.title.replace(/[.!?]+$/, "")}.` : "No visit booked."}
+        </p>
       </section>
 
       <section className="cp-section" aria-label="Properties">

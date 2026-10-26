@@ -15,6 +15,7 @@ import { useEffect, useMemo, useState } from "react";
 import { industryTerms } from "@/lib/industry-terms";
 import { useBusiness } from "@/lib/use-business";
 import { JOB_STATE_LABEL, jobLifecycle, type JobState } from "@/lib/job-lifecycle";
+import { jobPastDue } from "@/lib/job-status";
 
 type JobRow = JobRowInput & {
   id: string;
@@ -32,10 +33,11 @@ type JobRow = JobRowInput & {
   }) | null;
 };
 
-type Tab = { id: "open" | JobState; label: string; empty: string };
+type Tab = { id: "open" | "late" | JobState; label: string; empty: string };
 
 const TABS: Tab[] = [
   { id: "open", label: "All open", empty: "No open work right now" },
+  { id: "late", label: "Late", empty: "Nothing is late" },
   { id: "awaiting_confirmation", label: JOB_STATE_LABEL.awaiting_confirmation, empty: "Nobody is waiting to confirm" },
   { id: "confirmed", label: JOB_STATE_LABEL.confirmed, empty: "Every confirmed job has someone going" },
   { id: "assigned", label: JOB_STATE_LABEL.assigned, empty: "Nothing assigned and waiting" },
@@ -44,8 +46,8 @@ const TABS: Tab[] = [
   { id: "closed", label: JOB_STATE_LABEL.closed, empty: "Nothing closed yet" },
 ];
 
-const matchesTab = (tab: Tab["id"], state: JobState) =>
-  tab === "open" ? state !== "closed" : state === tab;
+const matchesTab = (tab: Tab["id"], state: JobState, job: { status: string; scheduledAt: string | null }) =>
+  tab === "late" ? jobPastDue(job) : tab === "open" ? state !== "closed" : state === tab;
 
 function emptyJobs(
   tabId: Tab["id"],
@@ -116,7 +118,7 @@ export default function JobsPage() {
     const now = Date.now();
     const q = query.trim().toLowerCase();
     return withState
-      .filter(({ state }) => matchesTab(tabId, state))
+      .filter(({ job, state }) => matchesTab(tabId, state, job))
       .filter(({ job }) =>
         !q ||
         [job.title, job.serviceType, job.address, job.customer?.name, job.customer?.phone, job.lead?.name, job.lead?.phone, job.technician?.name]
@@ -133,7 +135,7 @@ export default function JobsPage() {
 
   const tabCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    for (const tab of TABS) counts[tab.id] = withState.filter(({ state }) => matchesTab(tab.id, state)).length;
+    for (const tab of TABS) counts[tab.id] = withState.filter(({ job, state }) => matchesTab(tab.id, state, job)).length;
     return counts;
   }, [withState]);
 
@@ -160,7 +162,7 @@ export default function JobsPage() {
     const todayKey = new Date().toLocaleDateString("en-CA", { timeZone });
     const today = timeZone ? rows.filter(({ job }) => job.scheduledAt && new Date(job.scheduledAt).toLocaleDateString("en-CA", { timeZone }) === todayKey).length : 0;
     return { open: rows.length, needsYou, unassigned, due, today };
-  }, [withState, timeZone]);
+  }, [withState, timeZone, unassigned]);
   const grouped = useMemo(() => {
     const yours = filtered.filter(({ job }) => jobRowFacts(job, Date.now()).attention);
     const rest = filtered.filter(({ job }) => !jobRowFacts(job, Date.now()).attention);

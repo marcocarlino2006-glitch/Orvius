@@ -1,7 +1,9 @@
 /**
- * The one line a customer record opens on. Money waiting leads. A future
- * visit is next. Otherwise the last thing that happened with them.
+ * The one line a customer record opens on. Money waiting leads. An open
+ * visit is next, including one that is already late. Otherwise the last
+ * thing that happened with them.
  */
+import { jobPastDue } from "@/lib/job-status";
 import { formatBeat } from "@/lib/when";
 
 type OpeningEvent = {
@@ -25,19 +27,26 @@ const KIND: Record<string, string> = {
 const CLOSED_MONEY = new Set(["paid", "void", "refunded"]);
 const CLOSED_JOB = new Set(["cancelled", "completed", "done"]);
 
+/** The visit still on the books. A future one wins. A late one is still the visit. */
+export function customerVisit<T extends OpeningEvent>(events: T[], now = Date.now()): (T & { late: boolean }) | null {
+  const open = events.filter((event) => event.type === "job" && !CLOSED_JOB.has((event.status ?? "").toLowerCase()));
+  const future = open.filter((event) => Date.parse(event.at) > now).sort((a, b) => a.at.localeCompare(b.at))[0];
+  const chosen = future ?? [...open].filter((event) => Date.parse(event.at) <= now).sort((a, b) => b.at.localeCompare(a.at))[0];
+  if (!chosen) return null;
+  return { ...chosen, late: jobPastDue({ status: chosen.status ?? "", scheduledAt: chosen.at }, now) };
+}
+
 export function customerOpening(events: OpeningEvent[], money: (cents: number) => string): string | null {
   const unpaid = events.find((event) => event.type === "invoice" && event.amountCents && !CLOSED_MONEY.has((event.status ?? "").toLowerCase()));
   if (unpaid?.amountCents) {
     const figure = money(unpaid.amountCents);
     return (unpaid.status ?? "").toLowerCase() === "draft" ? `Send the ${figure} invoice.` : `${figure} waiting.`;
   }
-  const now = Date.now();
-  const next = events
-    .filter((event) => event.type === "job" && Date.parse(event.at) > now && !CLOSED_JOB.has((event.status ?? "").toLowerCase()))
-    .sort((a, b) => a.at.localeCompare(b.at))[0];
-  if (next) {
-    const when = formatBeat(next.at);
-    const title = next.title.replace(/[.!?]+$/, "").trim();
+  const visit = customerVisit(events);
+  if (visit) {
+    const title = visit.title.replace(/[.!?]+$/, "").trim();
+    if (visit.late) return `Late. ${title}.`;
+    const when = formatBeat(visit.at);
     return when ? `${when}. ${title}.` : `${title}.`;
   }
   const last = [...events].sort((a, b) => b.at.localeCompare(a.at))[0];

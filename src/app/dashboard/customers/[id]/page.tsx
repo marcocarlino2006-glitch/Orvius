@@ -5,7 +5,7 @@ import { RecordFetchError, recordFailureFrom } from "@/lib/dashboard-fetch";
 import { RecordLoadFailure } from "@/components/record-load-failure";
 import { OsShell } from "@/components/os-shell";
 import { ShellAlert } from "@/components/shell-primitives";
-import { customerOpening } from "@/lib/customer-opening";
+import { customerOpening, customerVisit } from "@/lib/customer-opening";
 import { displayPhone } from "@/lib/customer";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -128,9 +128,7 @@ export default function CustomerDetailPage() {
   const machines = (customer.equipment ?? [])
     .map((row) => [row.brand, row.name, row.model].filter(Boolean).join(" "))
     .filter(Boolean);
-  const next = timeline
-    .filter((event) => event.type === "job" && Date.parse(event.at) > Date.now() && !["cancelled", "completed", "done"].includes((event.status ?? "").toLowerCase()))
-    .sort((a, b) => a.at.localeCompare(b.at))[0];
+  const visit = customerVisit(timeline);
 
   return (
     <OsShell
@@ -180,9 +178,10 @@ export default function CustomerDetailPage() {
             <header className="rec-head">
               <h2 className="rec-title">Next visit</h2>
             </header>
-            {next ? (
+            {visit ? (
               <p className="jv-sub font-sans" style={{ margin: 0 }}>
-                {formatWhen(next.at)}. {next.title.replace(/[.!?]+$/, "")}.
+                {visit.late ? "Late. " : ""}
+                {formatWhen(visit.at)}. {visit.title.replace(/[.!?]+$/, "")}.
               </p>
             ) : (
               <p className="jv-missing font-sans">No visit booked.</p>

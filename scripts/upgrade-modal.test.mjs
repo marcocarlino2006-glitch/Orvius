@@ -81,12 +81,17 @@ test("an empty schedule day points at the open jobs, at booking, and at the call
 test("a request without an address can be completed on the row, and a late job is one word", () => {
   const inbox = read("src/app/dashboard/inbox/page.tsx");
   assert.match(inbox, /Save address/);
+  assert.match(inbox, /Save and book/);
+  assert.match(inbox, /Booked\. It's on the schedule\./);
   assert.match(inbox, /BookJobQuickButton/);
   assert.match(inbox, /Text for details/);
   const jobs = read("src/components/job-card.tsx");
   assert.match(jobs, /const statusWord = late/);
   assert.match(jobs, /\? "Late"/);
   assert.doesNotMatch(jobs, /\{state\.detail\}/);
+  assert.match(read("src/app/dashboard/jobs/page.tsx"), /id: "late", label: "Late"/);
+  assert.match(read("src/app/dashboard/jobs/[id]/page.tsx"), /pastDue \? "Late"/);
+  assert.match(read("src/lib/customer-opening.ts"), /Late\. \$\{title\}\./);
   const customer = read("src/app/dashboard/customers/[id]/page.tsx");
   assert.ok(customer.indexOf("Machine") < customer.indexOf("Profile"), "the machine is the first read");
   assert.ok(customer.indexOf("Next visit") < customer.indexOf("Profile"), "the next visit is the first read");

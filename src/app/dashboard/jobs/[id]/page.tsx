@@ -267,7 +267,9 @@ export default function JobDetailPage() {
         : "Finished"
       : job.status === "cancelled"
         ? "Cancelled"
-        : job.customerConfirmedAt
+        : pastDue
+          ? ""
+          : job.customerConfirmedAt
           ? "Customer confirmed"
           : job.status === "confirmed"
             ? "Marked confirmed by your team"
@@ -388,7 +390,7 @@ export default function JobDetailPage() {
   return (
     <OsShell
       title={job.title}
-      subtitle={[job.scheduledAt ? formatBeat(job.scheduledAt, tz) : null, who, moneyLine].filter(Boolean).join(" · ") || "Job"}
+      subtitle={[pastDue ? "Late" : null, job.scheduledAt ? formatBeat(job.scheduledAt, tz) : null, who, moneyLine].filter(Boolean).join(" · ") || "Job"}
       businessName={job.business?.name ?? undefined}
       actions={
         <div className="flex flex-wrap gap-2">
@@ -432,15 +434,15 @@ export default function JobDetailPage() {
                 <div>
                   <dt>Status</dt>
                   <dd>
-                    <StatusDot tone={lifecycle.tone}>{lifecycle.label}</StatusDot>
-                    <span className="jv-sub">{lifecycle.detail}</span>
+                    <StatusDot tone={pastDue ? "attention" : lifecycle.tone}>{pastDue ? "Late" : lifecycle.label}</StatusDot>
+                    {pastDue ? null : <span className="jv-sub">{lifecycle.detail}</span>}
                   </dd>
                 </div>
                 <div>
                   <dt>When</dt>
                   <dd>
                     {prior && job.scheduledAt ? formatDay(job.scheduledAt) : job.scheduledAt ? formatShopTime(job.scheduledAt, tz) : "Not scheduled"}
-                    <span className="jv-sub">{whenNote}</span>
+                    {whenNote ? <span className="jv-sub">{whenNote}</span> : null}
                   </dd>
                 </div>
                 {job.visitReview ? (
