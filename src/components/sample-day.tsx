@@ -15,7 +15,7 @@ export function SampleDay() {
           <span>Sign up and your shop gets its own number and its own customers.</span>
         </p>
       </header>
-      <ol className="cmd-queue">
+      <ol className="sample-rows">
         {SAMPLE_ROWS.map((row) => (
           <li key={row.who} className="wc wc--row">
             <div className="wc-head">
