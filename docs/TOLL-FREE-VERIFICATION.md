@@ -24,13 +24,9 @@ The founder launch card at `/admin` shows the live status once it's submitted.
 
 ## Use case summary
 
-> Orvius is an AI phone receptionist for home-service businesses such as HVAC and plumbing shops. It sends transactional texts only, never marketing.
->
-> (1) Owner alerts go to the business owner or staff when their line captures a customer's service request. Owners opt in by entering their mobile number and enabling alerts during onboarding.
->
-> (2) Service texts go to the business's own customers about a service request that customer made. The customer calls or texts the business, asks for service and gives their number for it. Texts cover that request only: request received, a proposed appointment and a link to confirm it, a reminder, one follow-up if nobody has reached them, and a link to pay a deposit or invoice.
->
-> Every customer text names the business and ends with "Reply STOP to opt out." STOP, HELP and START are handled automatically, and STOP stops all further texts from that business to that number.
+> Orvius sends transactional texts only, never marketing, for HVAC, plumbing and electrical shops. Account notifications: the owner enters a mobile number during setup and is texted when a caller requests service. Customer care: the customer calls or texts the shop first and gives a number for that job. Messages cover that job only: received, a proposed time and confirm link, one reminder, one follow-up, and a pay link. Each customer text names the shop and says Reply STOP to opt out.
+
+Twilio's form rejects this field above 500 characters. The sentence above is the one the admin button files.
 
 ## How opt-in works
 
