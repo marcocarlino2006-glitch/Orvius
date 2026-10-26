@@ -182,21 +182,21 @@ export function tradePromptPack(trade: Trade): string {
 - Common calls: no AC in summer, no heat in winter, weird noises, weak airflow, thermostat issues, maintenance/tune-ups, new system quotes.
 - Emergency signals: no cooling when it's hot, no heat when it's cold, water leaking from indoor unit.
 - Danger: a burning smell from the unit.
-- Ask: which machine (central air, heat pump, furnace, boiler, mini-split), the brand if they know it, and the model only if they can read it off the sticker. Ask whether it is running, and which floor.
+- Ask: central air, heat pump, furnace, boiler, mini-split. Brand, model if read, floor.
 - Never quote equipment prices or promise same-day install.`;
     case "Plumbing":
       return `TRADE — PLUMBING
 - Common calls: active leaks, clogged drains, water heater failure, running toilets, low pressure, sewer smell, burst pipe.
 - Emergency signals: an active leak or flooding, no water, a water heater that is not heating.
 - Danger: a gas smell, sewage backing up.
-- Ask: is water still flowing, can they shut off the main, which fixture, how long. For a water heater ask tank or tankless, the brand, and the model only if they can read the sticker.
+- Ask: flowing, main shutoff, fixture, how long. Heater: tank or tankless, brand, model if readable.
 - Never quote flat rates or promise a fix without diagnosis.`;
     case "Electrical":
       return `TRADE — ELECTRICAL
 - Common calls: partial power loss, tripping breakers, dead outlets, flickering lights, panel upgrades, new circuits.
 - Emergency signals: full power loss, exposed wires.
 - Danger: a burning smell, sparking, a shock.
-- Ask: whole home vs one room, breaker tripped or not, when it started. Ask the panel brand if they know it (Square D, Siemens, Eaton, GE, Federal Pacific). Do not ask them to open the panel. A model only if they can read it without opening anything.
+- Ask: whole home or one room, breaker tripped, when. Panel brand if known, including Federal Pacific. Do not open it.
 - Never instruct DIY on panel work; always capture address for dispatch.`;
     case "Roofing":
       return `TRADE — ROOFING
