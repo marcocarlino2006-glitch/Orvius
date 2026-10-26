@@ -212,7 +212,6 @@ export default function CustomerDetailPage() {
               onSaved={(next) => setCustomer((c) => (c ? { ...c, ...next } : c))}
             />
           </section>
-          {canForget ? <ForgetCustomerPanel customerId={customer.id} name={customer.displayName} /> : null}
         </div>
 
         <div className="os-detail-side">
@@ -225,6 +224,7 @@ export default function CustomerDetailPage() {
           </section>
         </div>
       </div>
+      {canForget ? <ForgetCustomerPanel customerId={customer.id} name={customer.displayName} /> : null}
     </OsShell>
   );
 }

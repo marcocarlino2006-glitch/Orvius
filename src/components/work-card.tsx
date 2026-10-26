@@ -226,7 +226,7 @@ export function WorkCard({
             {spokenText(top?.detail ?? item.nextAction) || (item.waitingOn === "customer" || item.waitingOn === "technician" ? WAITING_LABEL[item.waitingOn] : CLOSED_DETAIL[item.stage] ?? "On track. Nothing for you to do right now.")}
           </p>
           )}
-          {top && item.nextAction && !now ? <p className="wc-next">Next: {spokenText(item.nextAction)}</p> : null}
+          {top && !top.detail && item.nextAction && !now ? <p className="wc-next">Next: {spokenText(item.nextAction)}</p> : null}
         </div>
         <div className="wc-meta" hidden={!inList || now}>
           {item.scheduledAt ? <span className="wc-when">{formatWhen(item.scheduledAt)}</span> : <span className="wc-when">{formatWhen(item.createdAt)}</span>}
@@ -293,6 +293,18 @@ export function WorkCard({
             <button type="button" className="ox-btn ox-btn--primary ox-btn--sm" disabled={busy} onClick={() => (open === "slots" ? setOpen(null) : void loadSlots())}>
               {isJob ? (late ? "Move it" : "Change the time") : "Offer a time"}
             </button>
+          ) : null}
+          {pastDue && primaryCall && item.phone ? (
+            <>
+              {canMove ? (
+                <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => (open === "slots" ? setOpen(null) : void loadSlots())}>
+                  Move it
+                </button>
+              ) : null}
+              <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={closeJob}>
+                Close the job
+              </button>
+            </>
           ) : null}
         </div>
       ) : (

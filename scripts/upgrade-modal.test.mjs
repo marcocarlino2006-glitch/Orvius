@@ -65,8 +65,9 @@ test("the account popover and the picker follow the day theme like the settings 
   assert.match(css, /\.os-shell\.os-shell-night \.upg-cta \{/);
 });
 
-test("an empty schedule day points at booking work and at the calls behind it", () => {
+test("an empty schedule day points at the open jobs, at booking, and at the calls behind it", () => {
   const page = read("src/app/dashboard/schedule/page.tsx");
-  assert.match(page, /Nothing scheduled this day[\s\S]{0,900}?ox-btn--primary/, "booking a job is the primary next step");
-  assert.match(page, /Nothing scheduled this day[\s\S]{0,900}?\/dashboard\/calls/, "today's answered calls are one tap away");
+  assert.match(page, /Nothing on this day[\s\S]{0,1100}?\/dashboard\/jobs"/, "open jobs that missed this day are one tap away");
+  assert.match(page, /Nothing on this day[\s\S]{0,1100}?\/dashboard\/jobs\/new/, "booking a job is still on the empty day");
+  assert.match(page, /Nothing on this day[\s\S]{0,1100}?\/dashboard\/calls/, "today's answered calls are one tap away");
 });

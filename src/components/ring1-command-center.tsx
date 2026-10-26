@@ -291,11 +291,6 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
             <time dateTime={lastDone.at}>{formatWhen(lastDone.at)}</time>
           </p>
         ) : null}
-        {pictured ? (
-          <a className="cmd-day-step ox-btn ox-btn--quiet ox-btn--sm" href="#the-day">
-            The day
-          </a>
-        ) : null}
       </section>
       </div>
 

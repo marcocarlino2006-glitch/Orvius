@@ -1,7 +1,6 @@
 "use client";
 
 import { RecordLink } from "@/components/record-drawer";
-import { RecordAvatar } from "@/components/record-avatar";
 import { customerDisplayName, displayPhone } from "@/lib/customer";
 import { formatCents } from "@/lib/money";
 
@@ -22,7 +21,14 @@ type CustomerRecordCardProps = {
   selected?: boolean;
 };
 
-/** Cursor-grade customer row — no avatar soft card. */
+function moneyLine(collected: number, owed: number, refunded: number): string | null {
+  if (owed > 0) return `${formatCents(owed)} owed`;
+  if (collected > 0) return `${formatCents(collected)} paid`;
+  if (refunded > 0) return `${formatCents(refunded)} refunded`;
+  return null;
+}
+
+/** One customer, in the same columns as Calls and Jobs. */
 export function CustomerRecordCard({
   id,
   name,
@@ -43,10 +49,12 @@ export function CustomerRecordCard({
     month: "short",
     day: "numeric",
   });
+  const money = moneyLine(collectedCents, owedCents, refundedCents);
 
   return (
     <div
-      className={`cp-row${selected ? " is-selected" : ""}`}
+      className={`dt-row dt-row--link${selected ? " is-selected" : ""}`}
+      role="row"
       onClickCapture={(event) => {
         if (!onSelect || event.metaKey || event.ctrlKey || event.shiftKey) return;
         if (!window.matchMedia("(min-width: 1100px)").matches) return;
@@ -55,32 +63,31 @@ export function CustomerRecordCard({
         onSelect();
       }}
     >
-    <RecordLink type="customer" id={id} href={`/dashboard/customers/${id}`} className="lead-rail-row">
-      <RecordAvatar name={label} />
-      <div className="lead-rail-main">
-        <div className="lead-rail-meta">
-          {returning ? (
-            <p className="lead-rail-count is-live">{interactionCount} interaction{interactionCount === 1 ? "" : "s"}</p>
-          ) : null}
-          <time dateTime={lastSeenAt} className="lead-rail-time">
-            {when}
-          </time>
-        </div>
-        <div className="lead-rail-title-row">
-          <span className="lead-rail-name">{label}</span>
-        </div>
-        <p className="lead-rail-sub">
-          {[displayPhone(phone), address, email].filter(Boolean).join(" · ")}
-        </p>
-        {collectedCents > 0 || owedCents > 0 ? (
-          <p className="lead-rail-money">
-            {collectedCents > 0 ? <span>{formatCents(collectedCents)} paid</span> : null}
-            {refundedCents > 0 ? <span>{formatCents(refundedCents)} refunded</span> : null}
-            {owedCents > 0 ? <span className="is-owed">{formatCents(owedCents)} owed</span> : null}
-          </p>
-        ) : null}
-      </div>
-    </RecordLink>
+      <span role="cell" className="dt-primary">
+        <RecordLink type="customer" id={id} href={`/dashboard/customers/${id}`} className="dt-title dt-row-link">
+          {label}
+          {returning ? <span className="dt-tag">Returning</span> : null}
+        </RecordLink>
+        {email ? <span className="dt-sub">{email}</span> : null}
+      </span>
+      <span role="cell" className="dt-mono">{displayPhone(phone)}</span>
+      <span role="cell" className="dt-address">{address?.trim() || <span className="dt-muted">—</span>}</span>
+      <span role="cell" className={owedCents > 0 ? "is-owed" : undefined}>{money ?? <span className="dt-muted">—</span>}</span>
+      <span role="cell" className="dt-when">
+        <time dateTime={lastSeenAt}>{when}</time>
+      </span>
+    </div>
+  );
+}
+
+export function CustomerTableHead() {
+  return (
+    <div className="dt-head" role="row">
+      <span role="columnheader">Customer</span>
+      <span role="columnheader">Phone</span>
+      <span role="columnheader">Address</span>
+      <span role="columnheader">Money</span>
+      <span role="columnheader">Last</span>
     </div>
   );
 }

@@ -11416,10 +11416,37 @@ a.dt-row:focus-visible,
   grid-template-columns: minmax(0, 2.8fr) minmax(6.5rem, 0.8fr) minmax(8.5rem, 0.9fr) minmax(7.5rem, 0.8fr) 4rem;
 }
 
+.dt--customers .dt-head,
+.dt--customers .dt-row {
+  grid-template-columns: minmax(0, 1.3fr) minmax(8.5rem, 0.9fr) minmax(0, 1.8fr) minmax(6.5rem, 0.7fr) 4.5rem;
+}
+
+.dt--customers .dt-row.is-selected {
+  background: var(--ox-s3);
+  box-shadow: inset 2px 0 0 var(--ox-amber);
+}
+
+.dt--customers .is-owed {
+  color: var(--ox-amber);
+}
+
 @media (max-width: 720px) {
   .dt--calls .dt-row {
     grid-template-columns: minmax(0, 1fr) auto;
     row-gap: 0.375rem;
+  }
+
+  .dt--customers .dt-head {
+    display: none;
+  }
+
+  .dt--customers .dt-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: 0.25rem;
+  }
+
+  .dt--customers .dt-address {
+    display: none;
   }
 }
 
@@ -19760,7 +19787,7 @@ html .os-shell .dsp-block[draggable="true"] {
 }
 
 .cmd-stage {
-  min-height: calc(100dvh - 7rem);
+  min-height: 0;
 }
 
 .cmd-stage .cmd-live {
@@ -19845,6 +19872,6 @@ html .os-shell .dsp-block[draggable="true"] {
 
 @media (max-width: 767px) {
   .cmd-stage {
-    min-height: calc(100dvh - 16.25rem);
+    min-height: 0;
   }
 }

@@ -328,7 +328,7 @@ export default function DispatchPage() {
   const bookedMin = schedule?.lanes.reduce((sum, lane) => sum + lane.bookedMin, 0) ?? 0;
 
   return (
-    <OsShell title="Schedule" subtitle="Can we actually do this work?">
+    <OsShell title="Schedule" subtitle="Who is going where today.">
       <PlanUpgradeGate module="dispatch">
         {view === "day" ? (
         <ProLead
@@ -476,11 +476,14 @@ export default function DispatchPage() {
 
             {!board.jobCount ? (
               <ProEmptyState
-                title="Nothing scheduled this day"
-                body={`Calls Orvius books land here with a ${terms.worker} already picked. Pick another day, or book one yourself.`}
+                title="Nothing on this day"
+                body={`Open ${terms.jobs} that missed their window are on ${terms.Jobs}. A call Orvius books lands here with a ${terms.worker} already picked.`}
                 action={
                   <span className="flex flex-wrap justify-center gap-2">
-                    <Link href="/dashboard/jobs/new" className="ox-btn ox-btn--primary ox-btn--sm">
+                    <Link href="/dashboard/jobs" className="ox-btn ox-btn--primary ox-btn--sm">
+                      Open {terms.Jobs}
+                    </Link>
+                    <Link href="/dashboard/jobs/new" className="ox-btn ox-btn--quiet ox-btn--sm">
                       New {terms.job}
                     </Link>
                     {day === today ? (
