@@ -285,6 +285,18 @@ function formatMoney(cents: number): string {
 /** A long-standing commercial customer can have hundreds of calls; the page shows the most recent of each kind. */
 const TIMELINE_LIMIT = 100;
 
+/** A text on the person: the words, without the link or the legal footer. */
+function textOnTheRecord(body: string): string {
+  const plain = body
+    .replace(/https?:\/\/\S+/g, " ")
+    .replace(/\bReply STOP\b[\s\S]*$/i, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!plain) return "A text, with a link.";
+  if (plain.length <= 110) return plain;
+  return `${plain.slice(0, 107).trimEnd()}…`;
+}
+
 export async function getCustomerTimeline(
   customerId: string,
 ): Promise<TimelineEvent[]> {
@@ -385,7 +397,7 @@ export async function getCustomerTimeline(
         type: "text" as const,
         at: message.createdAt.toISOString(),
         title: failed ? `${who} — didn't arrive` : who,
-        summary: message.body,
+        summary: textOnTheRecord(message.body),
         source: message.author,
         urgency: null,
         status: failed ? "failed" : message.deliveryStatus,

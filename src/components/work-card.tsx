@@ -56,12 +56,13 @@ export function WorkCard({
   approval?: Pick<BoardItem, "proposalId"> & { preview?: string | null; title?: string } | null;
   technicians: Array<{ id: string; name: string }>;
   onChange: () => void;
-  /** On the work's own page the title, owner and history are already on screen. Command's one object drops the queue chrome. */
-  variant?: "list" | "page" | "now";
+  /** On the work's own page the title, owner and history are already on screen. Command's one object drops the queue chrome. A row is the morning list: the job and the buttons, without repeating the sentence above it. */
+  variant?: "list" | "page" | "now" | "row";
   /** Shop clock, so the fact and the path match the sentence. */
   timezone?: string | null;
 }) {
   const now = variant === "now";
+  const row = variant === "row";
   const inList = variant !== "page";
   const [open, setOpen] = useState<"history" | "slots" | null>(null);
   const [slots, setSlots] = useState<{ action: string; windows: { at: string; label: string }[] } | null>(null);
@@ -172,7 +173,7 @@ export function WorkCard({
   const notAJob = !isJob && item.open && kinds.has("not_a_job") ? (item.leadId ?? item.id) : null;
 
   return (
-    <li className={`wc${now ? " wc--now" : ""}${inList ? "" : " wc--page"}${settled ? " wc--settled" : ""}${top ? ` wc--${top.severity}` : item.urgent ? " wc--high" : ""}`}>
+    <li className={`wc${now ? " wc--now" : ""}${row ? " wc--row" : ""}${inList ? "" : " wc--page"}${settled ? " wc--settled" : ""}${top ? ` wc--${top.severity}` : item.urgent ? " wc--high" : ""}`}>
       <div className="wc-head">
         <div className="wc-main">
           {now ? null : (
@@ -221,12 +222,12 @@ export function WorkCard({
               <span className="wc-who"> · {who}</span>
             </Link>
           ) : null}
-          {now ? null : (
+          {now || row ? null : (
           <p className="wc-detail">
             {spokenText(top?.detail ?? item.nextAction) || (item.waitingOn === "customer" || item.waitingOn === "technician" ? WAITING_LABEL[item.waitingOn] : CLOSED_DETAIL[item.stage] ?? "On track. Nothing for you to do right now.")}
           </p>
           )}
-          {top && item.nextAction && !now ? <p className="wc-next">Next: {spokenText(item.nextAction)}</p> : null}
+          {top && !top.detail && item.nextAction && !now && !row ? <p className="wc-next">Next: {spokenText(item.nextAction)}</p> : null}
         </div>
         <div className="wc-meta" hidden={!inList || now}>
           {item.scheduledAt ? <span className="wc-when">{formatWhen(item.scheduledAt)}</span> : <span className="wc-when">{formatWhen(item.createdAt)}</span>}
@@ -293,6 +294,18 @@ export function WorkCard({
             <button type="button" className="ox-btn ox-btn--primary ox-btn--sm" disabled={busy} onClick={() => (open === "slots" ? setOpen(null) : void loadSlots())}>
               {isJob ? (late ? "Move it" : "Change the time") : "Offer a time"}
             </button>
+          ) : null}
+          {pastDue && primaryCall && item.phone ? (
+            <>
+              {canMove ? (
+                <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={() => (open === "slots" ? setOpen(null) : void loadSlots())}>
+                  Move it
+                </button>
+              ) : null}
+              <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" disabled={busy} onClick={closeJob}>
+                Close the job
+              </button>
+            </>
           ) : null}
         </div>
       ) : (

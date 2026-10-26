@@ -4,8 +4,8 @@ import { CustomerTimeline } from "@/components/customer-timeline";
 import { RecordFetchError, recordFailureFrom } from "@/lib/dashboard-fetch";
 import { RecordLoadFailure } from "@/components/record-load-failure";
 import { OsShell } from "@/components/os-shell";
-import { ShellAlert, ShellLoading } from "@/components/shell-primitives";
-import { customerOpening } from "@/lib/customer-opening";
+import { ShellAlert } from "@/components/shell-primitives";
+import { customerOpening, customerVisit } from "@/lib/customer-opening";
 import { displayPhone } from "@/lib/customer";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -59,6 +59,7 @@ export default function CustomerDetailPage() {
   const [loading, setLoading] = useState(true);
   const [attempt, setAttempt] = useState(0);
   const [canForget, setCanForget] = useState(false);
+  const [timeZone, setTimeZone] = useState<string | null>(null);
 
   useEffect(() => {
     if (!customerId) return;
@@ -72,6 +73,7 @@ export default function CustomerDetailPage() {
         setCustomer(data.customer);
         setTimeline(data.timeline ?? []);
         setCanForget(Boolean(data.canForget));
+        setTimeZone(typeof data.timezone === "string" ? data.timezone : null);
         setFailure(null);
       })
       .catch((err) => setFailure(recordFailureFrom("customer", err)))
@@ -80,8 +82,19 @@ export default function CustomerDetailPage() {
 
   if (loading) {
     return (
-      <OsShell title="Customer" subtitle="Loading record…">
-        <ShellLoading />
+      <OsShell title="Customer">
+        <div className="os-detail-grid rec-page" aria-busy="true">
+          <section className="rec">
+            <header className="rec-head">
+              <h2 className="rec-title">Machine</h2>
+            </header>
+            <span className="skeleton cp-skel" />
+            <header className="rec-head">
+              <h2 className="rec-title">Next visit</h2>
+            </header>
+            <span className="skeleton cp-skel" />
+          </section>
+        </div>
       </OsShell>
     );
   }
@@ -105,7 +118,7 @@ export default function CustomerDetailPage() {
   const paidCents = timeline.filter((e) => e.type === "payment" && !["failed", "claimed", "refunded"].includes((e.status ?? "").toLowerCase())).reduce((sum, e) => sum + (e.amountCents ?? 0), 0);
   const refundedCents = timeline.filter((e) => e.type === "payment").reduce((sum, e) => sum + (e.refundedCents ?? 0), 0);
   const summary = [
-    `Customer since ${formatDay(customer.firstSeenAt)}`,
+    `Customer since ${formatDay(customer.firstSeenAt, new Date(), timeZone)}`,
     `${customer.callCount} call${customer.callCount === 1 ? "" : "s"}`,
     `${customer.jobCount ?? 0} job${customer.jobCount === 1 ? "" : "s"}`,
     paidCents ? `${usd(paidCents)} paid` : null,
@@ -114,6 +127,10 @@ export default function CustomerDetailPage() {
     .filter(Boolean)
     .join(" · ");
   const opening = customerOpening(timeline, usd);
+  const machines = (customer.equipment ?? [])
+    .map((row) => [row.brand, row.name, row.model].filter(Boolean).join(" "))
+    .filter(Boolean);
+  const visit = customerVisit(timeline);
 
   return (
     <OsShell
@@ -147,6 +164,31 @@ export default function CustomerDetailPage() {
     >
       <div className="os-detail-grid rec-page">
         <div className="os-detail-primary">
+          <section className="rec" aria-label="On file">
+            <header className="rec-head">
+              <h2 className="rec-title">Machine</h2>
+            </header>
+            {machines.length ? (
+              machines.map((line) => (
+                <p key={line} className="jv-sub font-sans" style={{ margin: "0 0 0.35rem" }}>
+                  {line}
+                </p>
+              ))
+            ) : (
+              <p className="jv-missing font-sans">No machine on file.</p>
+            )}
+            <header className="rec-head">
+              <h2 className="rec-title">Next visit</h2>
+            </header>
+            {visit ? (
+              <p className="jv-sub font-sans" style={{ margin: 0 }}>
+                {visit.late ? "Late. " : ""}
+                {formatWhen(visit.at, new Date(), timeZone)}. {visit.title.replace(/[.!?]+$/, "")}.
+              </p>
+            ) : (
+              <p className="jv-missing font-sans">No visit booked.</p>
+            )}
+          </section>
           <section className="rec">
             <header className="rec-head">
               <h2 className="rec-title">Profile</h2>
@@ -196,7 +238,7 @@ export default function CustomerDetailPage() {
               ) : null}
               <div>
                 <dt>Last heard from</dt>
-                <dd>{formatWhen(customer.lastSeenAt)}</dd>
+                <dd>{formatWhen(customer.lastSeenAt, new Date(), timeZone)}</dd>
               </div>
               {customer.notes ? (
                 <div>
@@ -212,7 +254,6 @@ export default function CustomerDetailPage() {
               onSaved={(next) => setCustomer((c) => (c ? { ...c, ...next } : c))}
             />
           </section>
-          {canForget ? <ForgetCustomerPanel customerId={customer.id} name={customer.displayName} /> : null}
         </div>
 
         <div className="os-detail-side">
@@ -221,10 +262,11 @@ export default function CustomerDetailPage() {
               <h2 className="rec-title">History</h2>
             </header>
             <PastVisitForm customerId={customer.id} onSaved={() => setAttempt((n) => n + 1)} />
-            <CustomerTimeline events={timeline} />
+            <CustomerTimeline events={timeline} timezone={timeZone} />
           </section>
         </div>
       </div>
+      {canForget ? <ForgetCustomerPanel customerId={customer.id} name={customer.displayName} /> : null}
     </OsShell>
   );
 }

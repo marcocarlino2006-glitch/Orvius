@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { WorkCard } from "@/components/work-card";
 import { lanesForToday, openGroups, type CommandMoney, type DeskItem, type DeskJob } from "@/lib/command-depth";
 import { moneyBrief } from "@/lib/desk-status";
 import { personLabel, spokenText } from "@/lib/spoken-name";
 import { formatWhen } from "@/lib/when";
+import type { WorkItem } from "@/lib/work";
 
 /** Rows on the first view. The rest stay grouped behind one control. */
 const FIRST_ROWS = 6;
@@ -19,18 +21,7 @@ type TodayJob = DeskJob & {
   lead?: { name: string | null; phone?: string | null } | null;
 };
 
-type OpenItem = DeskItem & {
-  href: string;
-  title: string;
-  customer: string | null;
-  phone?: string | null;
-  amountLabel: string | null;
-  nextAction?: string | null;
-  needsYou?: boolean;
-  scheduledAt: string | null;
-  createdAt: string;
-  updatedAt?: string;
-};
+type OpenItem = WorkItem & DeskItem;
 
 type ActivityEvent = {
   id: string;
@@ -111,9 +102,13 @@ function Money({
 function OpenWork({
   groups,
   timezone,
+  technicians,
+  onChange,
 }: {
   groups: Array<{ stage: string; label: string; items: OpenItem[] }>;
   timezone?: string | null;
+  technicians: Array<{ id: string; name: string }>;
+  onChange: () => void;
 }) {
   const [showAll, setShowAll] = useState(false);
   const ranked = groups.map((group) => ({ ...group, items: rank(group.items) }));
@@ -146,26 +141,10 @@ function OpenWork({
             <span className="cmd-count">{group.items.length}</span>
           </h4>
           {group.take ? (
-            <ul>
-              {group.items.slice(0, group.take).map((item) => {
-                const at = item.scheduledAt ?? item.updatedAt ?? item.createdAt;
-                return (
-                  <li key={item.key}>
-                    <Link href={item.href} className="cmd-open-row">
-                      <span className="cmd-open-main">
-                        <span className="cmd-open-who">{personLabel(item.customer, item.phone)}</span>
-                        <span className="cmd-open-what">{spokenText(item.title)}</span>
-                        {item.nextAction ? <span className="cmd-open-next">{item.nextAction}</span> : null}
-                      </span>
-                      <span className="cmd-open-side">
-                        <span>{item.stageLabel}</span>
-                        {item.amountLabel ? <span>{item.amountLabel}</span> : null}
-                        <time dateTime={at}>{formatWhen(at, new Date(), timezone) || "No time"}</time>
-                      </span>
-                    </Link>
-                  </li>
-                );
-              })}
+            <ul className="wc-list">
+              {group.items.slice(0, group.take).map((item) => (
+                <WorkCard key={item.key} item={item} technicians={technicians} onChange={onChange} variant="row" timezone={timezone} />
+              ))}
             </ul>
           ) : null}
         </div>
@@ -228,6 +207,8 @@ export function DeskBoard({
   week,
   items,
   asideKey,
+  technicians,
+  onWorkChange,
   timezone,
   tomorrow,
   conflicts,
@@ -239,6 +220,8 @@ export function DeskBoard({
   week?: { jobsBooked: number; avgTicketCents: number | null; closed?: string | null };
   items: OpenItem[];
   asideKey: string | null;
+  technicians: Array<{ id: string; name: string }>;
+  onWorkChange: () => void;
   timezone?: string | null;
   tomorrow?: { jobCount: number; unassigned: number } | null;
   conflicts?: string[];
@@ -252,7 +235,7 @@ export function DeskBoard({
 
   return (
     <div className="cmd-desk">
-      {openCount ? <OpenWork groups={groups} timezone={timezone} /> : null}
+      {openCount ? <OpenWork groups={groups} timezone={timezone} technicians={technicians} onChange={onWorkChange} /> : null}
 
       <div className="cmd-desk-split">
         <section className="cmd-section" aria-labelledby="desk-today">

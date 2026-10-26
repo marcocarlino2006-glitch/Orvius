@@ -40,13 +40,17 @@ test("the customer history includes texts, and a failed one says it didn't arriv
         { businessId: shop.id, phoneNormalized: "+13125550153", direction: "out", author: "orvius", body: "Confirming tomorrow at 10.", deliveryStatus: "delivered", sid: `SM-ok-${customer.id}` },
         { businessId: shop.id, phoneNormalized: "+13125550153", direction: "out", author: "orvius", body: "On my way.", deliveryStatus: "failed", sid: `SM-fail-${customer.id}` },
         { businessId: shop.id, phoneNormalized: "+13125550153", direction: "in", author: "customer", body: "Gate code 4411", sid: `SM-in-${customer.id}` },
+        { businessId: shop.id, phoneNormalized: "+13125550153", direction: "out", author: "orvius", body: "Please confirm your window https://app.orvius.im/c/abc Reply STOP to opt out. Message and data rates may apply.", deliveryStatus: "delivered", sid: `SM-link-${customer.id}` },
       ],
     });
     const timeline = await getCustomerTimeline(customer.id);
     const texts = timeline.filter((e) => e.type === "text");
-    assert.equal(texts.length, 3);
+    assert.equal(texts.length, 4);
     assert.ok(texts.some((e) => e.title.includes("didn't arrive") && e.status === "failed"));
     assert.ok(texts.some((e) => e.title === "They texted" && e.summary?.includes("Gate code")));
+    const confirm = texts.find((e) => e.summary?.includes("Please confirm"));
+    assert.equal(confirm?.summary?.includes("https://"), false);
+    assert.equal(confirm?.summary?.includes("Reply STOP"), false);
     assert.ok(texts.every((e) => e.href?.includes("messages")));
   } finally {
     await prisma.business.delete({ where: { id: shop.id } }).catch(() => {});

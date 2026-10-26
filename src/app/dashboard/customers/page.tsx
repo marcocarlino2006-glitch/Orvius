@@ -2,7 +2,7 @@
 
 import { LoadFailure, SESSION_EXPIRED } from "@/components/load-failure";
 import { CustomerPanel } from "@/components/customer-panel";
-import { CustomerRecordCard } from "@/components/customer-record-card";
+import { CustomerRecordCard, CustomerTableHead } from "@/components/customer-record-card";
 import { ProLead } from "@/components/pro-lead";
 import {
   ProSearchBar,
@@ -43,6 +43,7 @@ export default function CustomersPage() {
   const [forgotten, setForgotten] = useState<"done" | "pending" | null>(null);
   const [attempt, setAttempt] = useState(0);
   const [more, setMore] = useState({ hasMore: false, moneyPartial: false, moneyPaused: false });
+  const [timeZone, setTimeZone] = useState<string | null>(null);
 
   useEffect(() => {
     const state = new URLSearchParams(window.location.search).get("forgotten");
@@ -68,6 +69,7 @@ export default function CustomersPage() {
         .then((data) => {
           setCustomers(Array.isArray(data?.customers) ? data.customers : []);
           setMore({ hasMore: data?.hasMore === true, moneyPartial: data?.moneyPartial === true, moneyPaused: data?.moneyPaused === true });
+          setTimeZone(typeof data?.timezone === "string" ? data.timezone : null);
         })
         .catch((err) => {
           if (err instanceof DOMException && err.name === "AbortError") return;
@@ -164,10 +166,11 @@ export default function CustomersPage() {
             />
           ) : (
             <div className="cp-layout">
-            <ul className="os-lead-rail">
+            <div className="dt dt--customers" role="table">
+              <CustomerTableHead />
               {customers.map((customer) => (
-                <li key={customer.id}>
                   <CustomerRecordCard
+                    key={customer.id}
                     onSelect={() => setSelectedId(customer.id)}
                     selected={customer.id === activeId}
                     id={customer.id}
@@ -181,11 +184,11 @@ export default function CustomersPage() {
                     collectedCents={customer.collectedCents ?? undefined}
                     owedCents={customer.owedCents ?? undefined}
                     refundedCents={customer.refundedCents ?? 0}
+                    timezone={timeZone}
                   />
-                </li>
               ))}
               {more.hasMore || more.moneyPartial || more.moneyPaused ? (
-                <li className="cp-list-note" role="note">
+                <p className="cp-list-note" role="note">
                   {[
                     more.hasMore ? `Showing the ${customers.length} most recent. Search to find anyone else.` : null,
                     more.moneyPartial ? "Paid and owed amounts here leave out older jobs. Open a customer for their full record." : null,
@@ -193,11 +196,11 @@ export default function CustomersPage() {
                   ]
                     .filter(Boolean)
                     .join(" ")}
-                </li>
+                </p>
               ) : null}
-            </ul>
+            </div>
             <div className="cp-side">
-              {activeId ? <CustomerPanel customerId={activeId} /> : null}
+              {activeId ? <CustomerPanel customerId={activeId} name={customers.find((row) => row.id === activeId)?.name ?? "Customer"} /> : null}
             </div>
             </div>
           )}

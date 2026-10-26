@@ -119,6 +119,11 @@ test("a customer opens on the money, the visit, or the last thing", () => {
   const future = new Date(Date.now() + 86_400_000).toISOString();
   const visit = customerOpening([{ type: "job", at: future, title: "Water heater", status: "scheduled" }], usd);
   assert.match(visit, /Water heater\.$/);
+  const past = new Date(Date.now() - 2 * 86_400_000).toISOString();
+  assert.equal(
+    customerOpening([{ type: "job", at: past, title: "Furnace quote", status: "scheduled" }], usd),
+    "Late. Furnace quote.",
+  );
   assert.equal(
     customerOpening([{ type: "call", at: "2026-10-01T12:00:00Z", title: "Inbound call", status: "ended" }], usd),
     "Last call: Inbound call.",

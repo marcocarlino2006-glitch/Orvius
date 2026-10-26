@@ -291,11 +291,6 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
             <time dateTime={lastDone.at}>{formatWhen(lastDone.at)}</time>
           </p>
         ) : null}
-        {pictured ? (
-          <a className="cmd-day-step ox-btn ox-btn--quiet ox-btn--sm" href="#the-day">
-            The day
-          </a>
-        ) : null}
       </section>
       </div>
 
@@ -326,7 +321,9 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
               : undefined
           }
           items={items}
-          asideKey={liveItem?.key ?? null}
+          asideKey={pictured ? null : (liveItem?.key ?? null)}
+          technicians={data.technicians ?? []}
+          onWorkChange={() => void refresh()}
           timezone={data.coverage?.timezone}
           tomorrow={data.tomorrow ? { jobCount: data.tomorrow.jobCount, unassigned: data.tomorrow.unassigned } : null}
           conflicts={scheduleConflicts(data.crewBoard)}

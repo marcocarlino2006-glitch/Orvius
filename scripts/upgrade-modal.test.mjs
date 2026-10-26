@@ -65,8 +65,36 @@ test("the account popover and the picker follow the day theme like the settings 
   assert.match(css, /\.os-shell\.os-shell-night \.upg-cta \{/);
 });
 
-test("an empty schedule day points at booking work and at the calls behind it", () => {
+test("an empty schedule day points at the open jobs, at booking, and at the calls behind it", () => {
   const page = read("src/app/dashboard/schedule/page.tsx");
-  assert.match(page, /Nothing scheduled this day[\s\S]{0,900}?ox-btn--primary/, "booking a job is the primary next step");
-  assert.match(page, /Nothing scheduled this day[\s\S]{0,900}?\/dashboard\/calls/, "today's answered calls are one tap away");
+  assert.match(page, /Nothing on this day[\s\S]{0,1100}?\/dashboard\/jobs"/, "open jobs that missed this day are one tap away");
+  assert.match(page, /Nothing on this day[\s\S]{0,1100}?\/dashboard\/jobs\/new/, "booking a job is still on the empty day");
+  assert.match(page, /Nothing on this day[\s\S]{0,1100}?\/dashboard\/calls/, "today's answered calls are one tap away");
+  assert.match(page, /id="dsp-late"/, "late visits sit on the day, labeled Late");
+  assert.match(page, /jobPastDue\(\{ status: item\.stage, scheduledAt: item\.scheduledAt \}\)/);
+  assert.match(read("src/components/desk-board.tsx"), /variant="row"/, "the morning list carries the buttons");
+  const work = read("src/app/dashboard/work/page.tsx");
+  assert.match(work, /need you\./);
+  assert.doesNotMatch(work, /first\.nextAction/, "Work is the filtered list, so it does not lead with the morning sentence");
+});
+
+test("a request without an address can be completed on the row, and a late job is one word", () => {
+  const inbox = read("src/app/dashboard/inbox/page.tsx");
+  assert.match(inbox, /Save address/);
+  assert.match(inbox, /Save and book/);
+  assert.match(inbox, /Booked\. It's on the schedule\./);
+  assert.match(inbox, /BookJobQuickButton/);
+  assert.match(inbox, /Text for details/);
+  const jobs = read("src/components/job-card.tsx");
+  assert.match(jobs, /const statusWord = late/);
+  assert.match(jobs, /\? "Late"/);
+  assert.doesNotMatch(jobs, /\{state\.detail\}/);
+  assert.match(read("src/app/dashboard/jobs/page.tsx"), /id: "late", label: "Late"/);
+  assert.match(read("src/app/dashboard/jobs/[id]/page.tsx"), /pastDue \? "Late"/);
+  assert.match(read("src/lib/customer-opening.ts"), /Late\. \$\{title\}\./);
+  const customer = read("src/app/dashboard/customers/[id]/page.tsx");
+  assert.ok(customer.indexOf("Machine") < customer.indexOf("Profile"), "the machine is the first read");
+  assert.ok(customer.indexOf("Next visit") < customer.indexOf("Profile"), "the next visit is the first read");
+  assert.match(read("src/components/customer-panel.tsx"), /aria-label="Machine"/);
+  assert.match(read("src/components/customer-panel.tsx"), /AbortController/, "a slower record for the previous person cannot replace the one just opened");
 });

@@ -78,6 +78,7 @@ export function WorkPanel({
   refreshKey = 0,
   children,
   beforeHistory,
+  decisions = true,
 }: {
   kind: "request" | "job";
   id: string;
@@ -88,6 +89,8 @@ export function WorkPanel({
   children?: ReactNode;
   /** Shown just above the history, e.g. money on a phone where there is no side column. */
   beforeHistory?: ReactNode;
+  /** False when the page already shows the one decision, so the card does not repeat it. */
+  decisions?: boolean;
 }) {
   const [data, setData] = useState<Payload | null>(null);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
@@ -187,16 +190,17 @@ export function WorkPanel({
               ))}
           </select>
         </div>
-        {kind === "job" && !item.problems.length && !item.urgent ? null : (
+        {!decisions || (kind === "job" && !item.problems.length && !item.urgent) ? null : (
           <ul className="wc-list">
             <WorkCard item={item} approval={data.approval ?? null} technicians={data.technicians} onChange={changed} variant="page" />
           </ul>
         )}
       </section>
-      {outcome && !movedOn ? (
+      {decisions && outcome && !movedOn ? (
         <section className="wp" aria-label="From booking to payment">
           <OutcomeCard
             outcome={outcome}
+            timezone={data.timezone}
             onChange={(next) => {
               setOutcome(next);
               changed();

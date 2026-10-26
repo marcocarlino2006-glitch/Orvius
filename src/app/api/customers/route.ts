@@ -107,6 +107,7 @@ export async function GET(request: Request) {
       };
     }),
     total: customers.length,
+    timezone: business.timezone,
     hasMore,
     moneyPartial,
     moneyPaused,
