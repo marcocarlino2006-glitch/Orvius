@@ -60,6 +60,9 @@ test("only the owner's facts are typed; everything else is filed the same way ev
   assert.deepEqual(form.getAll("OptInImageUrls"), ["https://orvius.im/sms-terms"]);
   assert.match(form.get("ProductionMessageSample"), /Reply STOP to opt out/);
   assert.match(form.get("UseCaseSummary"), /never marketing/);
+  assert.ok(form.get("UseCaseSummary").length <= 500, "Twilio rejects a longer use case summary");
+  assert.match(form.get("UseCaseSummary"), /Account notifications/);
+  assert.match(form.get("UseCaseSummary"), /Customer care/);
   assert.match(form.get("HelpMessageSample"), /support@orvius\.im/);
 });
 
