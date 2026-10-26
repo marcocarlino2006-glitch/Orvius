@@ -1,6 +1,7 @@
 "use client";
 
 import type { Handled } from "@/lib/autopilot";
+import { useSession } from "next-auth/react";
 import {
   createContext,
   useCallback,
@@ -11,6 +12,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { sampleDeskPreview } from "@/lib/sample-preview";
 import type { CoverageState } from "@/lib/coverage-state";
 import type { AttentionItem } from "@/lib/attention-types";
 import type { CommandCounts } from "@/lib/command-model";
@@ -236,6 +238,7 @@ export function Ring1Provider({
   children: ReactNode;
   refreshMs?: number;
 }) {
+  const { status } = useSession();
   const [data, setData] = useState<Ring1Data | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -302,6 +305,15 @@ export function Ring1Provider({
   const refresh = useCallback(() => load(false).then(() => undefined), [load]);
 
   useEffect(() => {
+    if (status === "loading") return;
+    /* A visitor sees the labeled sample. Their browser does not read a shop. */
+    if (status === "unauthenticated") {
+      setData(sampleDeskPreview());
+      setLoading(false);
+      setLoadError(null);
+      return;
+    }
+
     let stopped = false;
     let interval: ReturnType<typeof setInterval> | null = null;
     let stream: EventSource | null = null;
@@ -357,7 +369,7 @@ export function Ring1Provider({
     });
 
     return stop;
-  }, [load, refreshMs]);
+  }, [status, load, refreshMs]);
 
   const value = useMemo<Ring1ContextValue>(
     () => ({
