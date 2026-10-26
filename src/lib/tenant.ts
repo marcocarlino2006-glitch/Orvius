@@ -1,11 +1,14 @@
 import { auth } from "@/auth";
 import { allowLockedRead, requireActiveBilling } from "@/lib/plan-gate";
 import { LOCKED_READ_HEADER } from "@/lib/locked-read";
+import { isSampleDeskRead } from "@/lib/sample-desk";
+import { findPublicSampleShop } from "@/lib/sample-shop";
 import { headers } from "next/headers";
 import { getShopAccessWithAutoLine } from "@/lib/provision-business";
 import { can, type Permission } from "@/lib/workspace-access";
 import { verifyAdminRequest } from "@/lib/env";
 import { NextResponse } from "next/server";
+import type { Session } from "next-auth";
 import type { Business } from "@prisma/client";
 
 async function isReadRequest() {
@@ -17,7 +20,7 @@ async function isReadRequest() {
 }
 
 export function unauthorizedResponse() {
-  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  return NextResponse.json({ error: "Sign in to do that on your shop." }, { status: 401 });
 }
 
 export function noBusinessResponse() {
@@ -38,11 +41,33 @@ export async function requireAdmin(request: Request) {
   return { ok: true as const };
 }
 
+/**
+ * A signed-out GET of the desk reads the public sample shop.
+ * A signed-in person with no shop does not: they already signed up, so they get their own setup.
+ * Writes never take this path. The pathname header is set by middleware, not by the browser.
+ */
+async function sampleDeskAccess() {
+  if (!(await isReadRequest())) return null;
+  let path = "";
+  try {
+    path = (await headers()).get("x-orvius-pathname") ?? "";
+  } catch {
+    return null;
+  }
+  if (!isSampleDeskRead(path)) return null;
+  const business = await findPublicSampleShop();
+  if (!business) return null;
+  const session = { user: { name: null, email: null }, expires: "" } as Session;
+  return { session, email: "", business, role: "dispatcher" as const, guest: true as const };
+}
+
 export async function requireBusinessSession() {
   const session = await auth();
   const email = session?.user?.email?.toLowerCase();
 
   if (!email || !session?.user) {
+    const sample = await sampleDeskAccess();
+    if (sample) return sample;
     return { error: unauthorizedResponse() };
   }
 
@@ -52,7 +77,7 @@ export async function requireBusinessSession() {
     return { error: noBusinessResponse() };
   }
 
-  return { session, email, business: access.business, role: access.role };
+  return { session, email, business: access.business, role: access.role, guest: false as const };
 }
 
 export function roleForbiddenResponse(permission: Permission) {

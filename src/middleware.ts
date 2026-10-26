@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import { authConfig, isProtectedPath } from "@/auth.config";
 import { getDomainConfig } from "@/lib/domains";
 import { ACQUISITION_COOKIE, ACQUISITION_MAX_AGE, nextAcquisition, parseAcquisition } from "@/lib/acquisition";
+import { isSampleDeskPage } from "@/lib/sample-desk";
 import { NextResponse } from "next/server";
 import { LOCKED_READ_HEADER } from "@/lib/locked-read";
 
@@ -33,15 +34,17 @@ export default auth((request) => {
     }
   }
 
-  if (isProtectedPath(pathname) && !request.auth?.user) {
+  if (isProtectedPath(pathname) && !request.auth?.user && !isSampleDeskPage(pathname)) {
     const signin = new URL("/signin", request.url);
     signin.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(signin);
   }
 
   // Set here on every request, so a browser cannot claim a read it is not making.
+  // The pathname is overwritten too: a client header cannot point a billing read at the sample desk.
   const forwarded = new Headers(request.headers);
   forwarded.delete(LOCKED_READ_HEADER);
+  forwarded.set("x-orvius-pathname", pathname);
   if ((request.method === "GET" || request.method === "HEAD") && pathname.startsWith("/api/")) {
     forwarded.set(LOCKED_READ_HEADER, "1");
   }

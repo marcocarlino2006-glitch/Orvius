@@ -1,8 +1,10 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { SIGNUP_HREF } from "@/lib/signup-href";
 import {
   isSettingsSection,
   SETTINGS_EVENT,
@@ -29,6 +31,8 @@ function writeParam(section: SettingsSectionId | null) {
 export function SettingsCenterHost() {
   const [section, setSection] = useState<SettingsSectionId | null>(null);
   const pathname = usePathname();
+  const { status } = useSession();
+  const guest = status === "unauthenticated";
 
   const open = useCallback((next: SettingsSectionId) => {
     setSection(next);
@@ -42,11 +46,20 @@ export function SettingsCenterHost() {
 
   useEffect(() => {
     const fromUrl = new URLSearchParams(window.location.search).get(SETTINGS_PARAM);
-    if (isSettingsSection(fromUrl)) setSection(fromUrl);
-  }, [pathname]);
+    if (!isSettingsSection(fromUrl)) return;
+    if (guest) {
+      window.location.assign(SIGNUP_HREF);
+      return;
+    }
+    setSection(fromUrl);
+  }, [pathname, guest]);
 
   useEffect(() => {
     function onOpen(event: Event) {
+      if (guest) {
+        window.location.assign(SIGNUP_HREF);
+        return;
+      }
       const detail = (event as CustomEvent<SettingsSectionId>).detail;
       open(isSettingsSection(detail) ? detail : "account");
     }
@@ -60,6 +73,10 @@ export function SettingsCenterHost() {
       const next = settingsSectionForHref(anchor.getAttribute("href") ?? "");
       if (!next) return;
       event.preventDefault();
+      if (guest) {
+        window.location.assign(SIGNUP_HREF);
+        return;
+      }
       open(next);
     }
 
@@ -69,7 +86,7 @@ export function SettingsCenterHost() {
       window.removeEventListener(SETTINGS_EVENT, onOpen);
       document.removeEventListener("click", onClick, true);
     };
-  }, [open]);
+  }, [open, guest]);
 
   if (!section) return null;
   return <SettingsCenter section={section} onSection={open} onClose={close} />;
