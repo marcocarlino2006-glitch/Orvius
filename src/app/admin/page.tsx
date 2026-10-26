@@ -113,6 +113,7 @@ export default function AdminPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [health, setHealth] = useState<HealthStatus | null>(null);
   const [gate, setGate] = useState<LaunchGate | null>(null);
+  const [gateNote, setGateNote] = useState<string | null>(null);
   const [board, setBoard] = useState<CompanyScoreboard | null>(null);
   const [funnel, setFunnel] = useState<LaunchFunnel | null>(null);
   const [density, setDensity] = useState<Density | null>(null);
@@ -160,7 +161,14 @@ export default function AdminPage() {
     setLoading(true);
     try {
       const res = await fetch("/api/businesses");
-      const data = await res.json();
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !Array.isArray(data)) {
+        setBusinesses([]);
+        setError(
+          typeof data?.error === "string" ? data.error : "Failed to load businesses",
+        );
+        return;
+      }
       setBusinesses(data);
       setOwnerEdits(
         Object.fromEntries(
@@ -168,6 +176,7 @@ export default function AdminPage() {
         ),
       );
     } catch {
+      setBusinesses([]);
       setError("Failed to load businesses");
     } finally {
       setLoading(false);
@@ -182,9 +191,20 @@ export default function AdminPage() {
       .then(setHealth)
       .catch(() => null);
     fetch("/api/admin/launch-gate")
-      .then((res) => (res.ok ? res.json() : null))
-      .then(setGate)
-      .catch(() => null);
+      .then(async (res) => {
+        if (!res.ok) {
+          setGate(null);
+          setGateNote(
+            res.status === 401
+              ? "Sign in with the founder email to file texting approval."
+              : "The launch card didn't load. Try again in a moment.",
+          );
+          return;
+        }
+        setGateNote(null);
+        setGate(await res.json());
+      })
+      .catch(() => setGateNote("The launch card didn't load. Try again in a moment."));
     fetch("/api/admin/scoreboard")
       .then((res) => (res.ok ? res.json() : null))
       .then(setBoard)
@@ -350,7 +370,7 @@ export default function AdminPage() {
     },
     {
       label: "Business provisioned",
-      done: (health?.stats.businessCount ?? 0) > 0,
+      done: (health?.stats?.businessCount ?? 0) > 0,
     },
     {
       label: "Owner SMS reachable",
@@ -360,7 +380,7 @@ export default function AdminPage() {
     },
     {
       label: "At least one lead captured",
-      done: (health?.stats.leadCount ?? 0) > 0,
+      done: (health?.stats?.leadCount ?? 0) > 0,
     },
   ];
 
@@ -399,7 +419,17 @@ export default function AdminPage() {
         shopId={kitShopId}
         onPick={(id) => void loadProofKit(id)}
       />
-      {gate ? <LaunchGateCard gate={gate} /> : null}
+      {gate ? (
+        <LaunchGateCard gate={gate} />
+      ) : gateNote ? (
+        <section className="card mb-8 p-6" aria-label="Launch gate">
+          <p className="home-os-kicker">Launch</p>
+          <h2 className="mt-2 font-serif text-xl tracking-[-0.03em] text-void">
+            Texts reach phones
+          </h2>
+          <p className="mt-2 font-sans text-sm text-ash">{gateNote}</p>
+        </section>
+      ) : null}
 
       <section className="card mb-8 p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1182,13 +1212,13 @@ function LaunchGateCard({ gate }: { gate: LaunchGate }) {
         </div>
       ) : null}
       <ul className="mt-4 space-y-3">
-        {gate.items.map((item) => (
+        {(gate.items ?? []).map((item) => (
           <li key={item.key} className="font-sans text-sm">
             <p className={item.ready ? "text-live" : "text-void"}>
               {item.ready ? "✓" : "○"} {item.label}
               {!item.ready && !item.blocksSignup ? " · does not block signup, but alerts may not arrive" : ""}
             </p>
-            {item.fix.map((step) => (
+            {(item.fix ?? []).map((step) => (
               <p key={step} className="ml-5 mt-1 text-xs text-ash">
                 {step}
               </p>
