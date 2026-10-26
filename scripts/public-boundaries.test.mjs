@@ -48,6 +48,20 @@ test("deployment wiring requires both an entitled session and founder identity",
   assert.ok(payload > founder, "deployment details must be built only after both checks");
 });
 
+test("the admin screen survives a health answer that omits shop counts", () => {
+  const admin = read("src/app/admin/page.tsx");
+  assert.match(admin, /health\?\.stats\?\.businessCount/);
+  assert.match(admin, /health\?\.stats\?\.leadCount/);
+  assert.doesNotMatch(admin, /health\?\.stats\.(businessCount|leadCount)/);
+  assert.match(admin, /Array\.isArray\(data\)/);
+});
+
+test("the shop list on the admin screen accepts the founder session", () => {
+  const route = read("src/app/api/businesses/route.ts");
+  assert.match(route, /isPrivilegedRequest/);
+  assert.doesNotMatch(route, /if \(!verifyAdminRequest\(request\)\)/);
+});
+
 test("anonymous checkout exposes availability without secret diagnostics", () => {
   const source = read("src/app/api/billing/checkout/route.ts");
   const getHandler = source.slice(source.indexOf("export async function GET"));

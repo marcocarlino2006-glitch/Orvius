@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { releaseShopLine } from "@/lib/line-lifecycle";
 import { buildAssistantSystemPrompt, slugify } from "@/lib/business";
 import { assertCustomerShopLine } from "@/lib/demo-business";
-import { getWebhookUrl, verifyAdminRequest } from "@/lib/env";
+import { isPrivilegedRequest } from "@/lib/admin-access";
+import { getWebhookUrl } from "@/lib/env";
 import {
   ensureDedicatedShopLine,
   DEFAULT_HOURS_JSON,
@@ -48,10 +49,15 @@ const createBusinessSchema = z.object({
 
 const staffReceptionistKey = (slug: string) => `staff-receptionist:${slug}`;
 
+/** The admin key covers scripts. The founder session covers this page in the browser. */
+async function denyUnlessPrivileged(request: NextRequest) {
+  if (await isPrivilegedRequest(request)) return null;
+  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+}
+
 export async function GET(request: NextRequest) {
-  if (!verifyAdminRequest(request)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const denied = await denyUnlessPrivileged(request);
+  if (denied) return denied;
 
   const businesses = await prisma.business.findMany({
     orderBy: { createdAt: "desc" },
@@ -66,9 +72,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  if (!verifyAdminRequest(request)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const denied = await denyUnlessPrivileged(request);
+  if (denied) return denied;
 
   try {
     const body = createBusinessSchema.parse(await request.json());
@@ -176,9 +181,8 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  if (!verifyAdminRequest(request)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const denied = await denyUnlessPrivileged(request);
+  if (denied) return denied;
 
   const id = request.nextUrl.searchParams.get("id");
   if (!id) {
@@ -198,9 +202,8 @@ export async function DELETE(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  if (!verifyAdminRequest(request)) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const denied = await denyUnlessPrivileged(request);
+  if (denied) return denied;
 
   try {
     const body = createBusinessSchema
