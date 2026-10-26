@@ -11727,6 +11727,39 @@ a.dt-row:focus-visible,
     display: none;
   }
 
+  /* Name and money share the first line. Phone, street, and last contact each get their own. */
+  .dt--customers .dt-row > .dt-primary {
+    order: 1;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .dt--customers .dt-row > :nth-child(4) {
+    order: 2;
+    flex: 0 0 auto;
+    margin-left: auto;
+  }
+
+  .dt--customers .dt-row > .dt-mono {
+    order: 3;
+    flex: 1 1 100%;
+  }
+
+  .dt--customers .dt-row > .dt-address {
+    order: 4;
+    flex: 1 1 100%;
+    white-space: normal;
+  }
+
+  .dt--customers .dt-row > .dt-when {
+    order: 5;
+    flex: 1 1 100%;
+  }
+
+  .dt--customers .dt-row > .dt-address.is-empty {
+    display: none;
+  }
+
   .os-shell.os-shell-night .cp-row .lead-rail-sub {
     white-space: nowrap;
     overflow: hidden;
