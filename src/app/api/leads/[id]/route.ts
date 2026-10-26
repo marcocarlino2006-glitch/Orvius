@@ -26,7 +26,7 @@ const leadPatchSchema = z
   .refine((body) => Object.keys(body).length > 0, "No changes supplied");
 
 const LEAD_INCLUDE = {
-  business: { select: { id: true, name: true } },
+  business: { select: { id: true, name: true, timezone: true } },
   customer: {
     select: {
       id: true,

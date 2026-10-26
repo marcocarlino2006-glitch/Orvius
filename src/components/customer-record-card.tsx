@@ -71,7 +71,7 @@ export function CustomerRecordCard({
         {email ? <span className="dt-sub">{email}</span> : null}
       </span>
       <span role="cell" className="dt-mono">{displayPhone(phone)}</span>
-      <span role="cell" className="dt-address">{address?.trim() || <span className="dt-muted">—</span>}</span>
+      <span role="cell" className={`dt-address${address?.trim() ? "" : " is-empty"}`}>{address?.trim() || <span className="dt-muted">—</span>}</span>
       <span role="cell" className={owedCents > 0 ? "is-owed" : undefined}>{money ?? <span className="dt-muted">—</span>}</span>
       <span role="cell" className="dt-when">
         <time dateTime={lastSeenAt}>{when}</time>

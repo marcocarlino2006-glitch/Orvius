@@ -97,4 +97,12 @@ test("a request without an address can be completed on the row, and a late job i
   assert.ok(customer.indexOf("Next visit") < customer.indexOf("Profile"), "the next visit is the first read");
   assert.match(read("src/components/customer-panel.tsx"), /aria-label="Machine"/);
   assert.match(read("src/components/customer-panel.tsx"), /AbortController/, "a slower record for the previous person cannot replace the one just opened");
+  assert.match(read("src/components/work-card.tsx"), /formatWhen\(item\.scheduledAt, new Date\(\), timezone\)/, "a visit time uses the shop clock");
+  assert.match(read("src/components/record-drawer.tsx"), /formatWhen\(record\.source\.at, record\.timezone\)/, "a record opens on the shop clock");
+  assert.match(read("src/app/dashboard/inbox/[id]/page.tsx"), /formatWhen\(lead\.call\.createdAt, new Date\(\), lead\.business\?\.timezone\)/);
+  assert.match(read("src/components/job-bill-section.tsx"), /formatWhen\(invoice\.sentAt, new Date\(\), timezone\)/);
+  assert.match(read("src/app/dashboard/team/page.tsx"), /formatWhen\(tech\.nextJob\.scheduledAt, new Date\(\), timezone\)/);
+  assert.match(inbox, /formatDay\(iso, new Date\(\), timezone\)/, "an inbox day is the shop's day");
+  assert.match(read("src/components/customer-record-card.tsx"), /is-empty/, "a customer with no street does not print a second dash");
+  assert.match(read("src/app/dashboard/orvius.css"), /\.dt--customers \.dt-address\.is-empty/, "the phone list keeps a real street");
 });

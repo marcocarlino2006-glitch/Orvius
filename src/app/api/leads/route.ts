@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
     if (view && !INBOX_VIEWS.includes(view as InboxView)) {
       return NextResponse.json({ error: "Invalid view" }, { status: 400 });
     }
-    return inboxView(business.id, (view || null) as InboxView | null);
+    return inboxView(business.id, (view || null) as InboxView | null, business.timezone);
   }
   const where = status ? { ...tenant, status } : tenant;
 
@@ -68,6 +68,7 @@ export async function GET(request: NextRequest) {
     })),
     nextCursor: hasMore ? items[items.length - 1]?.id ?? null : null,
     counts: await leadCounts(tenant),
+    timezone: business.timezone,
   });
 }
 
@@ -102,7 +103,7 @@ const RESOLVED_LIMIT = 60;
   text thread, not from one status column, so they are computed here over
   every open request (and the latest resolved ones) and counted together.
 */
-async function inboxView(businessId: string, view: InboxView | null) {
+async function inboxView(businessId: string, view: InboxView | null, timezone: string | null) {
   const include = {
     customer: { select: { id: true, name: true, interactionCount: true } },
     job: { select: { id: true, status: true } },
@@ -182,5 +183,6 @@ async function inboxView(businessId: string, view: InboxView | null) {
     views: counts,
     truncated: open.length >= OPEN_LIMIT,
     generatedAt: new Date().toISOString(),
+    timezone,
   });
 }

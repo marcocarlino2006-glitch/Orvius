@@ -38,7 +38,7 @@ type CallDetail = {
   ownerNotifiedAt: string | null;
   successEvaluation: string | null;
   createdAt: string;
-  business: { id: string; name: string } | null;
+  business: { id: string; name: string; timezone?: string | null } | null;
   customer: {
     id: string;
     name: string | null;
@@ -151,7 +151,7 @@ export default function CallDetailPage() {
   return (
     <OsShell
       title={who}
-      subtitle={[spanish ? "In Spanish" : null, service, formatWhen(call.createdAt)].filter(Boolean).join(" · ")}
+      subtitle={[spanish ? "In Spanish" : null, service, formatWhen(call.createdAt, new Date(), call.business?.timezone)].filter(Boolean).join(" · ")}
       businessName={call.business?.name ?? "Your shop"}
       actions={
         <div className="flex flex-wrap gap-2">
@@ -269,7 +269,7 @@ export default function CallDetailPage() {
                 <span className="cl-outcome-label">Booked</span>
                 <span className="cl-outcome-title">{call.lead.job.title}</span>
                 <span className="jv-sub">
-                  {[jobStatusTitle(call.lead.job.status), call.lead.job.scheduledAt ? formatWhen(call.lead.job.scheduledAt) : null].filter(Boolean).join(" · ")}
+                  {[jobStatusTitle(call.lead.job.status), call.lead.job.scheduledAt ? formatWhen(call.lead.job.scheduledAt, new Date(), call.business?.timezone) : null].filter(Boolean).join(" · ")}
                 </span>
               </Link>
             ) : call.lead ? (

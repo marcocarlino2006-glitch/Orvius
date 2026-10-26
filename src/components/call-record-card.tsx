@@ -7,6 +7,7 @@ import { CALL_OUTCOME_LABEL, type CallOutcome } from "@/lib/call-outcome";
 import { isEmergency } from "@/lib/urgency";
 import { isLiveCall } from "@/lib/live-call";
 import { equipmentFacts } from "@/lib/equipment-fact";
+import { formatWhen } from "@/lib/when";
 
 type CallRecordCardProps = {
   id: string;
@@ -26,6 +27,7 @@ type CallRecordCardProps = {
   returning?: boolean;
   quality?: { verdict: "clean" | "listen" | "fix"; headline: string };
   outcome?: CallOutcome;
+  timezone?: string | null;
 };
 
 const OUTCOME_TONE: Record<CallOutcome, StatusTone> = {
@@ -71,14 +73,10 @@ export function CallRecordCard({
   returning,
   quality,
   outcome: outcomeKind,
+  timezone = null,
 }: CallRecordCardProps) {
   const emergency = isEmergency(urgency);
-  const when = new Date(createdAt).toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  const when = formatWhen(createdAt, new Date(), timezone);
   const phone = callerPhone ? displayPhone(normalizePhone(callerPhone) ?? callerPhone) : null;
   const need = [serviceType, summaryAddsSomething(summary, serviceType, leadName) ? summary : null]
     .filter(Boolean)

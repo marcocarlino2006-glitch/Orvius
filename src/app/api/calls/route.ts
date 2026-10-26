@@ -151,6 +151,7 @@ export async function GET(request: NextRequest) {
         headline: grades[index].headline,
       },
     })),
+    timezone,
     quality: summarizeCallQuality(grades),
     nextCursor: hasMore ? items[items.length - 1]?.id ?? null : null,
     total: await prisma.call.count({ where }),

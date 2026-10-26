@@ -264,7 +264,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
         {liveCall && onTheLine ? (
           <DeskCall call={liveCall} live who={onTheLine} when={minutesOnTheLine(liveCall.createdAt)} reply={replyLine} timezone={data?.coverage?.timezone} />
         ) : latestCall && latestWho ? (
-          <DeskCall call={latestCall} live={false} who={latestWho} when={formatWhen(latestCall.createdAt)} reply={replyLine} timezone={data?.coverage?.timezone} />
+          <DeskCall call={latestCall} live={false} who={latestWho} when={formatWhen(latestCall.createdAt, new Date(), data?.coverage?.timezone)} reply={replyLine} timezone={data?.coverage?.timezone} />
         ) : null}
         {!pictured && liveApproval ? (
           <ul className="wc-list cmd-queue">
@@ -288,7 +288,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
             ) : (
               <span>{lastDone.summary}</span>
             )}
-            <time dateTime={lastDone.at}>{formatWhen(lastDone.at)}</time>
+            <time dateTime={lastDone.at}>{formatWhen(lastDone.at, new Date(), data?.coverage?.timezone)}</time>
           </p>
         ) : null}
       </section>
@@ -302,7 +302,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
           ) : (
             <span>{orviusDid.summary}</span>
           )}
-          <time dateTime={orviusDid.at}>{formatWhen(orviusDid.at)}</time>
+          <time dateTime={orviusDid.at}>{formatWhen(orviusDid.at, new Date(), data?.coverage?.timezone)}</time>
         </p>
       ) : null}
 

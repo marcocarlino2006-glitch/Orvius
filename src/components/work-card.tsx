@@ -230,7 +230,7 @@ export function WorkCard({
           {top && !top.detail && item.nextAction && !now && !row ? <p className="wc-next">Next: {spokenText(item.nextAction)}</p> : null}
         </div>
         <div className="wc-meta" hidden={!inList || now}>
-          {item.scheduledAt ? <span className="wc-when">{formatWhen(item.scheduledAt)}</span> : <span className="wc-when">{formatWhen(item.createdAt)}</span>}
+          {item.scheduledAt ? <span className="wc-when">{formatWhen(item.scheduledAt, new Date(), timezone)}</span> : <span className="wc-when">{formatWhen(item.createdAt, new Date(), timezone)}</span>}
           <span className="wc-owner">
             {item.responsible.kind === "owner" ? "Yours" : `With ${item.responsible.label}`}
           </span>

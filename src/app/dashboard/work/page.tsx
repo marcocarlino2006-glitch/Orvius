@@ -10,7 +10,7 @@ import { DashboardSkeleton } from "@/components/shell-skeleton";
 import type { WorkItem } from "@/lib/work";
 
 type Assignee = { email: string; role: string };
-type Payload = { items: WorkItem[]; truncated: boolean; assignees: Assignee[]; needsYou: number };
+type Payload = { items: WorkItem[]; truncated: boolean; assignees: Assignee[]; needsYou: number; timezone?: string | null };
 
 const FILTERS: Array<{ id: string; label: string; match: (i: WorkItem) => boolean }> = [
   { id: "you", label: "Needs you", match: (i) => i.needsYou },
@@ -160,7 +160,7 @@ export default function WorkPage() {
         ) : (
           <ul className="wc-list" aria-label="Work">
             {rows.map((item) => (
-              <WorkCard key={item.key} item={item} technicians={techs} onChange={() => void load(view).catch((e: Error) => setError(e.message))} />
+              <WorkCard key={item.key} item={item} technicians={techs} timezone={data?.timezone} onChange={() => void load(view).catch((e: Error) => setError(e.message))} />
             ))}
           </ul>
         )}

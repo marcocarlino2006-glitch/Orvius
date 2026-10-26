@@ -41,6 +41,7 @@ type Filter = "" | CallOutcome | "review";
 
 export default function CallsPage() {
   const [calls, setCalls] = useState<CallRow[]>([]);
+  const [timeZone, setTimeZone] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<Filter>("");
@@ -58,6 +59,7 @@ export default function CallsPage() {
       })
       .then((data) => {
         setCalls(data.calls ?? []);
+        setTimeZone(typeof data.timezone === "string" ? data.timezone : null);
         setSearched(q);
         setLoadedAt(Date.now());
       })
@@ -93,7 +95,7 @@ export default function CallsPage() {
   return (
     <OsShell
       title="Calls"
-      subtitle={loadedAt ? `What happened on the phone · updated ${new Date(loadedAt).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}` : "What happened on the phone"}
+      subtitle={loadedAt ? `What happened on the phone · updated ${new Date(loadedAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", ...(timeZone ? { timeZone } : {}) })}` : "What happened on the phone"}
     >
       <ProLead
         loading={loading && !calls.length}
@@ -188,6 +190,7 @@ export default function CallsPage() {
                   returning={(call.customer?.interactionCount ?? 0) > 1}
                   quality={call.quality}
                   outcome={call.outcome}
+                  timezone={timeZone}
                 />
               ))}
             </div>

@@ -66,7 +66,7 @@ function CrewOverview({ tech, timezone }: { tech: TeamTech; timezone: string }) 
             <>
               {" · next "}
               <Link href={`/dashboard/jobs/${tech.nextJob.id}`}>{tech.nextJob.title}</Link>
-              {tech.nextJob.scheduledAt ? ` ${formatWhen(tech.nextJob.scheduledAt)}` : ""}
+              {tech.nextJob.scheduledAt ? ` ${formatWhen(tech.nextJob.scheduledAt, new Date(), timezone)}` : ""}
             </>
           ) : null}
         </span>
