@@ -1670,11 +1670,9 @@
 
 @media (max-width: 640px) {
   .jobs-pipeline {
-    flex-wrap: nowrap;
-    gap: 0 1rem;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    scrollbar-width: thin;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    overflow: visible;
   }
 
   .jobs-pipeline-stage {
@@ -11766,12 +11764,12 @@ a.dt-row:focus-visible,
     text-overflow: ellipsis;
   }
 
-  /* Tabs that run past the edge fade out there, so the rest reads as a swipe away. */
+  /* Every filter name stays whole. A fade was leaving the last chip as one letter. */
   .os-shell.os-shell-night .pro-filter-bar {
-    padding-right: 2rem;
-    scrollbar-width: none;
-    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
-    mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
+    flex-wrap: wrap;
+    overflow: visible;
+    -webkit-mask-image: none;
+    mask-image: none;
   }
 
   .os-shell.os-shell-night .pro-filter-bar::-webkit-scrollbar {
@@ -12245,13 +12243,8 @@ a.dt-row:focus-visible,
 
   .ms-row {
     display: flex;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-
-  .ms-row::-webkit-scrollbar {
-    display: none;
+    flex-wrap: wrap;
+    overflow: visible;
   }
 
   /* Four cells share a phone's width; only a fifth makes the strip swipe. */
@@ -12268,7 +12261,9 @@ a.dt-row:focus-visible,
   }
 
   .ms-action {
-    flex: 0 0 auto;
+    flex: 1 1 100%;
+    justify-content: flex-start;
+    margin-left: 0;
     padding: 0.5rem 0.75rem;
   }
 }
@@ -12701,9 +12696,9 @@ a.dt-row:focus-visible,
 @media (max-width: 640px) {
   .os-shell.os-shell-night .pro-filter-bar {
     max-width: 100%;
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    scrollbar-width: none;
+    width: 100%;
+    overflow: visible;
+    flex-wrap: wrap;
   }
 }
 
@@ -13966,6 +13961,15 @@ a.cmd-feed-text:hover {
 .wc-who {
   font-weight: 400;
   color: var(--ox-text-2);
+}
+
+.wc-where {
+  margin: 0.15rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--ox-text-2);
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .wc-detail,
@@ -19287,12 +19291,11 @@ html body .os-shell .os-topbar-shop-phone {
   html body .os-shell.os-shell-night.os-shell-pro .pro-filter-bar {
     width: 100% !important;
     max-width: 100%;
-    flex-wrap: nowrap !important;
-    overflow-x: auto;
+    flex-wrap: wrap !important;
+    overflow: visible;
     padding-right: 0 !important;
     -webkit-mask-image: none !important;
     mask-image: none !important;
-    scrollbar-width: none;
   }
 
   html body .os-shell.os-shell-night.os-shell-pro .pro-filter-tab {

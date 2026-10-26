@@ -3,7 +3,7 @@ import { buildOutcome } from "@/lib/outcome";
 import { recordWorkflowProgress } from "@/lib/workflow-events";
 import { COLLECTED_STATUSES } from "@/lib/payment-math";
 import { safeTimezone, shopDayBounds, formatShopTime } from "@/lib/availability";
-import { equipmentFacts, modelOnFile } from "@/lib/equipment-fact";
+import { equipmentFacts, equipmentLine, modelOnFile } from "@/lib/equipment-fact";
 import { firstName } from "@/lib/customer-confirm";
 import { sendCustomerSms } from "@/lib/customer-sms";
 import { techLinkExpired } from "@/lib/ensure-tech-token";
@@ -215,6 +215,11 @@ export async function techDay(tech: TechSession, now = new Date()) {
     ...customerOf(j),
     hasNotes: Boolean(j.notes?.trim()),
     needsAnswer: !j.techAcceptedAt && (j.status === "scheduled" || j.status === "confirmed"),
+    machine: equipmentLine({
+      systemType: j.lead?.systemType,
+      equipmentBrand: j.lead?.equipmentBrand,
+      equipmentModel: j.lead?.equipmentModel,
+    }),
     finished: finishedLine(j),
     key: j.scheduledAt ? dayKey(j.scheduledAt, tz) : todayKey,
   }));

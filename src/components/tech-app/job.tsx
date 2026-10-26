@@ -959,6 +959,12 @@ export function TechJob({ token, jobId }: { token: string; jobId: string }) {
               <dd>{job.equipment.lookup}</dd>
             </div>
           ) : null}
+          {!job.equipment?.system && !job.equipment?.parts && !job.equipment?.lookup ? (
+            <div>
+              <dt>Machine</dt>
+              <dd>No machine on file.</dd>
+            </div>
+          ) : null}
         </dl>
       </section>
 

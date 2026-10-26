@@ -18,6 +18,8 @@ type DayJob = {
   customerPhone: string | null;
   hasNotes: boolean;
   needsAnswer?: boolean;
+  /** Furnace · Carrier · model, when the call or the customer record has one. */
+  machine?: string | null;
   /** Outcome and amount once the visit is finished. Absent on a day saved before this. */
   finished?: string | null;
 };
@@ -34,6 +36,10 @@ type Day = {
   truck?: TruckPart[];
 };
 
+function whereLine(name: string | null, address: string | null) {
+  return [spokenName(name), address?.trim()].filter(Boolean).join(" · ") || "No address yet";
+}
+
 function JobRow({ token, job, tz, showDay }: { token: string; job: DayJob; tz: string; showDay?: boolean }) {
   return (
     <li>
@@ -41,7 +47,8 @@ function JobRow({ token, job, tz, showDay }: { token: string; job: DayJob; tz: s
         <span className="ta-job-time">{showDay ? whenLabel(job.scheduledAt, tz) : timeLabel(job.scheduledAt, tz)}</span>
         <span className="ta-job-body">
           <span className="ta-job-title">{job.title}</span>
-          <span className="ta-job-meta">{[spokenName(job.customerName), job.address?.split(",")[0]].filter(Boolean).join(" · ") || "No address yet"}</span>
+          <span className="ta-job-meta">{whereLine(job.customerName, job.address)}</span>
+          {job.machine ? <span className="ta-job-meta">{job.machine}</span> : null}
           {job.finished ? <span className="ta-job-finished">{job.finished}</span> : null}
           {job.needsAnswer ? <span className="ta-job-ask">Needs your answer</span> : null}
         </span>
@@ -130,7 +137,7 @@ export function TechDay({ token }: { token: string }) {
   const next = day.now[0] ?? day.late[0] ?? today?.jobs.find((job) => job.status !== "completed" && job.status !== "cancelled") ?? null;
   const rest = (jobs: DayJob[]) => (next ? jobs.filter((job) => job.id !== next.id) : jobs);
   const nextWhen = next ? whenLabel(next.scheduledAt, tz) : "";
-  const nextWhere = next ? [spokenName(next.customerName), next.address?.split(",")[0]].filter(Boolean).join(" · ") : "";
+  const nextWhere = next ? whereLine(next.customerName, next.address) : "";
 
   return (
     <main className="ta">
@@ -140,6 +147,7 @@ export function TechDay({ token }: { token: string }) {
           <Link href={`/tech/${token}/jobs/${next.id}`} className="ta-next">
             <h1 className="ta-title">{nextWhen}. {next.title}</h1>
             {nextWhere ? <p className="ta-sub">{nextWhere}</p> : null}
+            {next.machine ? <p className="ta-sub">{next.machine}</p> : null}
           </Link>
         ) : (
           <h1 className="ta-title">{first}&apos;s day</h1>
