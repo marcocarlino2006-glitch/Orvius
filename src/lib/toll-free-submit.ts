@@ -1,6 +1,7 @@
 import { company } from "@/lib/company";
 import { logInfo, logWarn } from "@/lib/logger";
 import { smsHelpReply } from "@/lib/sms-keywords";
+import { usStateCode } from "@/lib/us-state";
 
 /*
   Toll-free verification for the shared Orvius sender, filed through Twilio's
@@ -46,7 +47,7 @@ const digits = (v: string) => v.replace(/\D/g, "");
 export function tollFreeFactsProblem(f: TollFreeOwnerFacts): string | null {
   if (digits(f.ein).length !== 9) return "The EIN is 9 digits, like 12-3456789.";
   if (!f.street.trim() || !f.city.trim()) return "Add the street and city exactly as they appear on the EIN record.";
-  if (!/^[A-Za-z]{2}$/.test(f.state.trim())) return "Use the two-letter state, like TX.";
+  if (!usStateCode(f.state)) return "Use the two-letter state, like NY.";
   if (!/^\d{5}(-\d{4})?$/.test(f.postalCode.trim())) return "The ZIP code is 5 digits.";
   if (!f.firstName.trim() || !f.lastName.trim()) return "Add your first and last name.";
   const phone = digits(f.phone);
@@ -68,7 +69,7 @@ export function buildTollFreeForm(f: TollFreeOwnerFacts, numberSid: string): URL
     BusinessWebsite: `https://${company.domain}`,
     BusinessStreetAddress: f.street.trim(),
     BusinessCity: f.city.trim(),
-    BusinessStateProvinceRegion: f.state.trim().toUpperCase(),
+    BusinessStateProvinceRegion: usStateCode(f.state) ?? f.state.trim().toUpperCase(),
     BusinessPostalCode: f.postalCode.trim(),
     BusinessCountry: "US",
     BusinessContactFirstName: f.firstName.trim(),
@@ -103,6 +104,8 @@ function twilioBase(host: "api" | "messaging") {
 export type SubmitResult = { ok: true; status: string; updated: boolean } | { ok: false; error: string };
 
 export async function submitTollFreeVerification(facts: TollFreeOwnerFacts): Promise<SubmitResult> {
+  const state = usStateCode(facts.state);
+  if (state) facts = { ...facts, state };
   const problem = tollFreeFactsProblem(facts);
   if (problem) return { ok: false, error: problem };
   const number = process.env.TWILIO_PHONE_NUMBER?.trim();

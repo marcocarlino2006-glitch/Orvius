@@ -54,6 +54,9 @@ test("only the owner's facts are typed; everything else is filed the same way ev
   assert.equal(form.get("DoingBusinessAs"), "Orvius");
   assert.equal(form.get("BusinessRegistrationNumber"), "12-3456789");
   assert.equal(form.get("BusinessStateProvinceRegion"), "TX");
+  const named = await submitTollFreeVerification({ ...facts, state: "New York" });
+  assert.equal(named.ok, true);
+  assert.equal(twilio.posts.at(-1).form.get("BusinessStateProvinceRegion"), "NY");
   assert.equal(form.get("BusinessContactPhone"), "+15125550101");
   assert.equal(form.get("NotificationEmail"), "support@orvius.im");
   assert.deepEqual(form.getAll("UseCaseCategories"), ["ACCOUNT_NOTIFICATIONS", "CUSTOMER_CARE"]);
@@ -83,7 +86,8 @@ test("a rejected verification is corrected in place, and one in review is never 
 
 test("typed facts are checked before anything is sent", () => {
   assert.match(tollFreeFactsProblem({ ...facts, ein: "123" }), /9 digits/);
-  assert.match(tollFreeFactsProblem({ ...facts, state: "Texas" }), /two-letter/);
+  assert.equal(tollFreeFactsProblem({ ...facts, state: "New York" }), null);
+  assert.match(tollFreeFactsProblem({ ...facts, state: "Nope" }), /two-letter/);
   assert.match(tollFreeFactsProblem({ ...facts, postalCode: "7870" }), /ZIP/);
   assert.match(tollFreeFactsProblem({ ...facts, phone: "555" }), /10-digit/);
   assert.equal(tollFreeFactsProblem(facts), null);

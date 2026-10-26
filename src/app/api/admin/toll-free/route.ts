@@ -9,7 +9,7 @@ const bodySchema = z.object({
   street: z.string().max(120),
   street2: z.string().max(120).optional(),
   city: z.string().max(80),
-  state: z.string().max(4),
+  state: z.string().max(40),
   postalCode: z.string().max(12),
   firstName: z.string().max(60),
   lastName: z.string().max(60),
