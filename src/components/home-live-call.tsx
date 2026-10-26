@@ -99,10 +99,10 @@ const TIMELINE = SCRIPT.reduce<
 const DURATION = TIMELINE[TIMELINE.length - 1].end + SCRIPT[SCRIPT.length - 1].gap;
 
 /*
-  First paint must look used — Cursor never shows an empty product.
-  Open mid-call: service + urgency already captured, address line live.
+  First paint is the booked call: address, callback, and window are already
+  on the card. The story replays from the top after that hold.
 */
-const START_AT = TIMELINE[3]?.start ?? 0;
+const OPEN_AT = TIMELINE[TIMELINE.length - 1]?.end ?? 0;
 
 const BAR_SECONDS = 0.16;
 const BAR_COUNT = Math.round(DURATION / BAR_SECONDS);
@@ -159,7 +159,7 @@ function stateAt(time: number) {
 
 export function HomeLiveCall() {
   const [reduced, setReduced] = useState(false);
-  const [time, setTime] = useState(START_AT);
+  const [time, setTime] = useState(OPEN_AT);
   const [playing, setPlaying] = useState(true);
   const [scrubbing, setScrubbing] = useState(false);
   const trackRef = useRef<HTMLDivElement>(null);
@@ -188,8 +188,7 @@ export function HomeLiveCall() {
     const tick = () => {
       const next = from + (performance.now() - started) / 1000;
       if (next >= DURATION) {
-        // Replay from the dense mid-call beat — never flash empty captures.
-        setTime(START_AT);
+        setTime(0);
       } else {
         setTime(next);
       }

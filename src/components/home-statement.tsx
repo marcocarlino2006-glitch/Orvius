@@ -3,10 +3,10 @@
   something a visitor can check by dialing the live line.
 */
 const facts = [
-  { title: "Answers in your business's name", body: "After hours and overflow, with your opening line." },
-  { title: "English and Spanish", body: "It switches when the caller does. Records stay in English." },
-  { title: "Safety first", body: "Gas, smoke, a burning smell, a shock, water on electrical equipment, and medical emergencies get safety instructions first. Sewage uses its own." },
-  { title: "Every call on the record", body: "Recorded, transcribed and graded, with the rough ones flagged." },
+  { title: "Answers in your business's name", body: "After hours and overflow, in your opening line." },
+  { title: "English and Spanish", body: "It switches when the caller does." },
+  { title: "Safety first", body: "Gas, smoke, a shock, and sewage go to you first." },
+  { title: "Every call on the record", body: "Recorded, transcribed, and graded." },
 ] as const;
 
 export function HomeStatement() {

@@ -12,8 +12,8 @@ import "./home-sections.css";
 
 
 /**
- * Hero (category line beside the live call) → what every call gets → one row per idea
- * with the real screen → industries → compare → call close.
+ * Hero (the night-shift line beside the booked call) → what every call gets →
+ * the day, one idea and one screen at a time → claim → compare → the number.
  */
 
 export const metadata: Metadata = { alternates: { canonical: "/" } };
@@ -22,23 +22,21 @@ export default function HomePage() {
   return (
     <MarketingShell premium>
       <HomeLineHero signupOpen={getPublicLaunchReadiness().ready} />
+      <HomeStatement />
+      <HomeFeatures />
       <section className="tier1-story ov-claim-band" aria-labelledby="home-claim-heading">
         <div className="editorial-wrap">
-          <p className="tier1-eyebrow type-eyebrow">Start here</p>
           <h2 id="home-claim-heading" className="tier1-section-title type-headline">
             Claim your front door.
           </h2>
           <p className="tier1-section-lead font-sans">
-            Put your shop&apos;s name on the line that answers when you can&apos;t. Hear it answer as your business,
-            share the call, and turn the same name into your live line when you&apos;re ready.
+            Hear it answer as your shop. Then turn that name into your line.
           </p>
           <div style={{ marginTop: "1.5rem", maxWidth: "36rem" }}>
             <ClaimFrontDoor compact />
           </div>
         </div>
       </section>
-      <HomeStatement />
-      <HomeFeatures />
       <HomeCompare />
       <HomeCallStory />
       <HomeReveal />
