@@ -37,7 +37,6 @@ export function PasswordResetForm({ token }: { token: string }) {
 
   return (
     <div className="ov-signin-card">
-      <p className="ov-signin-eyebrow">Shop workspace</p>
       <h1 className="ov-signin-title">Choose a new password.</h1>
       <form className="ov-signin-form" onSubmit={submit}>
         <label className="ov-signin-label" htmlFor="reset-password">

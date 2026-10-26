@@ -338,7 +338,7 @@ export function TalkInBrowser({
           </button>
           <p className="tib-note font-sans">
             {personal
-              ? "Pressing this asks your browser for the microphone, used for this demo call only. It's an illustration built from the name you typed, not that shop's real line, and nothing you say books work. No account. Calls end after 3 minutes."
+              ? "This asks your browser for the microphone, used for this demo call only. The voice uses the name you typed, not that shop's real line. Nothing you say books work."
               : "Pressing this asks your browser for the microphone, used for this demo call only. You talk to a sample HVAC shop, so nothing you say books real work. Calls end after 3 minutes."}
           </p>
         </form>

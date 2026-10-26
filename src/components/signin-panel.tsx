@@ -106,7 +106,6 @@ export function SignInPanel({
 
   return (
     <div className="ov-signin-card">
-      <p className="ov-signin-eyebrow">Shop workspace</p>
       <h1 className="ov-signin-title">{copy.title}</h1>
       {!selfServeEnabled && mode !== "forgot" ? (
         <p className="ov-signin-sub">
