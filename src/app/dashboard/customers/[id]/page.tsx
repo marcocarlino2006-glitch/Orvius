@@ -59,6 +59,7 @@ export default function CustomerDetailPage() {
   const [loading, setLoading] = useState(true);
   const [attempt, setAttempt] = useState(0);
   const [canForget, setCanForget] = useState(false);
+  const [timeZone, setTimeZone] = useState<string | null>(null);
 
   useEffect(() => {
     if (!customerId) return;
@@ -72,6 +73,7 @@ export default function CustomerDetailPage() {
         setCustomer(data.customer);
         setTimeline(data.timeline ?? []);
         setCanForget(Boolean(data.canForget));
+        setTimeZone(typeof data.timezone === "string" ? data.timezone : null);
         setFailure(null);
       })
       .catch((err) => setFailure(recordFailureFrom("customer", err)))
@@ -116,7 +118,7 @@ export default function CustomerDetailPage() {
   const paidCents = timeline.filter((e) => e.type === "payment" && !["failed", "claimed", "refunded"].includes((e.status ?? "").toLowerCase())).reduce((sum, e) => sum + (e.amountCents ?? 0), 0);
   const refundedCents = timeline.filter((e) => e.type === "payment").reduce((sum, e) => sum + (e.refundedCents ?? 0), 0);
   const summary = [
-    `Customer since ${formatDay(customer.firstSeenAt)}`,
+    `Customer since ${formatDay(customer.firstSeenAt, new Date(), timeZone)}`,
     `${customer.callCount} call${customer.callCount === 1 ? "" : "s"}`,
     `${customer.jobCount ?? 0} job${customer.jobCount === 1 ? "" : "s"}`,
     paidCents ? `${usd(paidCents)} paid` : null,
@@ -181,7 +183,7 @@ export default function CustomerDetailPage() {
             {visit ? (
               <p className="jv-sub font-sans" style={{ margin: 0 }}>
                 {visit.late ? "Late. " : ""}
-                {formatWhen(visit.at)}. {visit.title.replace(/[.!?]+$/, "")}.
+                {formatWhen(visit.at, new Date(), timeZone)}. {visit.title.replace(/[.!?]+$/, "")}.
               </p>
             ) : (
               <p className="jv-missing font-sans">No visit booked.</p>
@@ -236,7 +238,7 @@ export default function CustomerDetailPage() {
               ) : null}
               <div>
                 <dt>Last heard from</dt>
-                <dd>{formatWhen(customer.lastSeenAt)}</dd>
+                <dd>{formatWhen(customer.lastSeenAt, new Date(), timeZone)}</dd>
               </div>
               {customer.notes ? (
                 <div>
@@ -260,7 +262,7 @@ export default function CustomerDetailPage() {
               <h2 className="rec-title">History</h2>
             </header>
             <PastVisitForm customerId={customer.id} onSaved={() => setAttempt((n) => n + 1)} />
-            <CustomerTimeline events={timeline} />
+            <CustomerTimeline events={timeline} timezone={timeZone} />
           </section>
         </div>
       </div>

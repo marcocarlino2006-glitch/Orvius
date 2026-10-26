@@ -65,15 +65,18 @@ export function shopWallInput(value: Date | string | null | undefined, timezone:
   return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}`;
 }
 
-/** "Sep 25" or "Sep 25, 2025" — for days, not moments. */
-export function formatDay(value: Date | string | number | null | undefined, now = new Date()): string {
+/** "Sep 25" or "Sep 25, 2025" — for days, not moments. Pass the shop's timezone so the day matches the shop's clock. */
+export function formatDay(value: Date | string | number | null | undefined, now = new Date(), timezone?: string | null): string {
   if (value == null) return "";
   const at = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(at.getTime())) return "";
+  const zone = timezone ? { timeZone: timezone } : {};
+  const yearOf = (d: Date) => (timezone ? new Intl.DateTimeFormat("en-US", { year: "numeric", timeZone: timezone }).format(d) : String(d.getFullYear()));
   return at.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
-    ...(at.getFullYear() === now.getFullYear() ? {} : { year: "numeric" }),
+    ...(yearOf(at) === yearOf(now) ? {} : { year: "numeric" }),
+    ...zone,
   });
 }
 

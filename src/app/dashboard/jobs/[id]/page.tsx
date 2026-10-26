@@ -480,7 +480,7 @@ export default function JobDetailPage() {
                 ) : null}
               </dl>
 
-              {steps.length ? (
+              {steps.length && !pastDue ? (
                 <ol className="jv-steps font-sans" aria-label="Where this job stands">
                   {steps.map((step) => (
                     <li key={step.key} className={`jv-step is-${step.state}`}>

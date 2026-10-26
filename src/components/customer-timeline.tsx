@@ -34,7 +34,7 @@ function freshSummary(event: TimelineEvent): string | null {
   return summary.toLowerCase().includes(title) ? null : summary;
 }
 
-export function CustomerTimeline({ events }: { events: TimelineEvent[] }) {
+export function CustomerTimeline({ events, timezone }: { events: TimelineEvent[]; timezone?: string | null }) {
   if (!events.length) {
     return <p className="cmd-empty">Nothing yet. Calls, texts, jobs, estimates and payments show up here.</p>;
   }
@@ -56,7 +56,7 @@ export function CustomerTimeline({ events }: { events: TimelineEvent[] }) {
               {meta || summary ? <p className="wh-event-detail">{[meta, summary].filter(Boolean).join(" — ")}</p> : null}
             </div>
             <time className="wh-at" dateTime={event.at}>
-              {event.day ? formatDay(event.at) : formatWhen(event.at)}
+              {event.day ? formatDay(event.at, new Date(), timezone) : formatWhen(event.at, new Date(), timezone)}
             </time>
           </li>
         );

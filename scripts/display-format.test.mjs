@@ -12,6 +12,8 @@ test("moments never print seconds, and the year only when it is not this one", (
   assert.equal(formatWhen(null, now), "");
   assert.equal(formatWhen("not a date", now), "");
   assert.equal(formatDay(new Date("2026-09-25T05:53:29"), now), "Sep 25");
+  assert.equal(formatWhen("2026-10-24T22:11:00Z", now, "America/Chicago"), "Oct 24, 5:11 PM");
+  assert.equal(formatDay("2026-10-25T03:00:00Z", now, "America/Chicago"), "Oct 24");
 });
 
 test("record states read as words", () => {

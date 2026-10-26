@@ -21,6 +21,7 @@ type Detail = {
   };
   timeline: TimelineEvent[];
   properties: PropertyHistory[];
+  timezone?: string | null;
 };
 
 const KIND: Record<TimelineEvent["type"], string> = {
@@ -33,8 +34,13 @@ const KIND: Record<TimelineEvent["type"], string> = {
   text: "Text",
 };
 
-function when(iso: string) {
-  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+function when(iso: string, timezone?: string | null) {
+  return new Date(iso).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    ...(timezone ? { timeZone: timezone } : {}),
+  });
 }
 
 /** Timeline and property history for one customer, beside the list. */
@@ -90,7 +96,7 @@ export function CustomerPanel({ customerId, name }: { customerId: string; name: 
     );
   }
 
-  const { customer, timeline, properties } = detail;
+  const { customer, timeline, properties, timezone } = detail;
   const paid = properties.reduce((sum, p) => sum + p.paidCents, 0);
   const events = [...timeline].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 12);
   const machines = (customer.equipment ?? [])
@@ -104,7 +110,7 @@ export function CustomerPanel({ customerId, name }: { customerId: string; name: 
         <div>
           <h2 className="cp-name">{customer.displayName}</h2>
           <p className="cp-meta">
-            Customer since {when(customer.firstSeenAt)} · {customer.callCount} call{customer.callCount === 1 ? "" : "s"} ·{" "}
+            Customer since {when(customer.firstSeenAt, timezone)} · {customer.callCount} call{customer.callCount === 1 ? "" : "s"} ·{" "}
             {customer.jobCount} job{customer.jobCount === 1 ? "" : "s"}
             {paid ? ` · ${formatCents(paid)} paid` : ""}
           </p>
@@ -121,7 +127,7 @@ export function CustomerPanel({ customerId, name }: { customerId: string; name: 
       <section className="cp-section" aria-label="Next visit">
         <p className="cp-label">Next visit</p>
         <p className="cp-meta">
-          {visit ? `${visit.late ? "Late. " : ""}${formatWhen(visit.at)}. ${visit.title.replace(/[.!?]+$/, "")}.` : "No visit booked."}
+          {visit ? `${visit.late ? "Late. " : ""}${formatWhen(visit.at, new Date(), timezone)}. ${visit.title.replace(/[.!?]+$/, "")}.` : "No visit booked."}
         </p>
       </section>
 
@@ -134,8 +140,8 @@ export function CustomerPanel({ customerId, name }: { customerId: string; name: 
                 <p className="cp-prop-addr">{p.address}</p>
                 <p className="cp-meta">
                   {p.jobCount ? `${p.jobCount} job${p.jobCount === 1 ? "" : "s"}` : "No jobs yet"}
-                  {p.lastService && p.lastAt ? ` · last: ${p.lastService}, ${when(p.lastAt)}` : ""}
-                  {p.nextAt ? ` · next visit ${when(p.nextAt)}` : ""}
+                  {p.lastService && p.lastAt ? ` · last: ${p.lastService}, ${when(p.lastAt, timezone)}` : ""}
+                  {p.nextAt ? ` · next visit ${when(p.nextAt, timezone)}` : ""}
                   {p.paidCents ? ` · ${formatCents(p.paidCents)} paid` : ""}
                 </p>
               </li>
@@ -156,7 +162,7 @@ export function CustomerPanel({ customerId, name }: { customerId: string; name: 
                   <span className="cp-ev-kind">{KIND[e.type]}</span>
                   <span className="cp-ev-title">{e.title}</span>
                   <span className="cp-meta">
-                    {when(e.at)}
+                    {when(e.at, timezone)}
                     {e.status ? ` · ${e.status.replace(/_/g, " ")}` : ""}
                     {e.summary ? ` · ${e.summary}` : ""}
                   </span>
