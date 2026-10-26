@@ -18,7 +18,7 @@ export async function GET(_request: Request, { params }: Params) {
   const call = await prisma.call.findFirst({
     where: { id, businessId: business.id },
     include: {
-      business: { select: { id: true, name: true, trade: true, servicesJson: true, jobLengthsJson: true } },
+      business: { select: { id: true, name: true, trade: true, timezone: true, servicesJson: true, jobLengthsJson: true } },
       customer: {
         select: {
           id: true,
@@ -101,7 +101,7 @@ export async function GET(_request: Request, { params }: Params) {
   return NextResponse.json({
     call: {
       ...call,
-      business: call.business ? { id: call.business.id, name: call.business.name } : null,
+      business: call.business ? { id: call.business.id, name: call.business.name, timezone: call.business.timezone } : null,
       createdAt: call.createdAt.toISOString(),
       updatedAt: call.updatedAt.toISOString(),
       ownerNotifiedAt: call.ownerNotifiedAt?.toISOString() ?? null,

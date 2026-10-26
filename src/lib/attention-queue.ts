@@ -32,11 +32,15 @@ import type {
   AttentionKind,
 } from "@/lib/attention-types";
 
-/** "45 min ago", "3 hr ago". */
+/** "45 min ago", "3 hours ago", "4 days ago". */
 function sinceWords(at: Date | null, now: Date): string {
   if (!at) return "a while ago";
   const min = Math.max(1, Math.round((now.getTime() - at.getTime()) / 60_000));
-  return min < 90 ? `${min} min ago` : `${Math.round(min / 60)} hr ago`;
+  if (min < 90) return `${min} min ago`;
+  const hours = Math.round(min / 60);
+  if (hours < 48) return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+  const days = Math.round(hours / 24);
+  return `${days} day${days === 1 ? "" : "s"} ago`;
 }
 
 export type {

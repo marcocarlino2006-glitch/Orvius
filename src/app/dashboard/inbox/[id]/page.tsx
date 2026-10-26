@@ -30,7 +30,7 @@ type LeadDetail = {
   status: string;
   source: string;
   createdAt: string;
-  business: { id: string; name: string } | null;
+  business: { id: string; name: string; timezone?: string | null } | null;
   customer: { id: string; name: string | null; phone: string; interactionCount: number } | null;
   call: {
     id: string;
@@ -243,7 +243,7 @@ export default function LeadDetailPage() {
               <p className="jv-sub font-sans">
                 {[
                   lead.customer ? `${lead.customer.interactionCount} interaction${lead.customer.interactionCount === 1 ? "" : "s"}` : null,
-                  lead.call ? `called ${formatWhen(lead.call.createdAt)}${callLength ? ` for ${callLength}` : ""}` : null,
+                  lead.call ? `called ${formatWhen(lead.call.createdAt, new Date(), lead.business?.timezone)}${callLength ? ` for ${callLength}` : ""}` : null,
                 ]
                   .filter(Boolean)
                   .join(" · ")}

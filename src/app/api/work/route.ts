@@ -10,7 +10,7 @@ export async function GET(request: Request) {
   const { business } = authResult;
   const view = new URL(request.url).searchParams.get("view") === "closed" ? "closed" : "open";
   const [work, assignees] = await Promise.all([listWork(business.id, view), workAssignees(business)]);
-  return NextResponse.json({ view, ...work, assignees });
+  return NextResponse.json({ view, ...work, assignees, timezone: business.timezone ?? null });
 }
 
 const assignSchema = z.object({

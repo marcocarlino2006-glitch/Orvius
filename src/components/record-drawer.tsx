@@ -16,6 +16,7 @@ import {
 } from "react";
 import { askForMissing } from "@/lib/inbox-state";
 import type { RecordType, RecordView } from "@/lib/record-types";
+import { formatWhen as formatShopWhen } from "@/lib/when";
 import { CHECKING, runCheckedWrite } from "@/lib/checked-write";
 import { sendWrite } from "@/lib/client-write";
 
@@ -38,13 +39,8 @@ type LoadState =
   | { kind: "ready"; record: RecordView }
   | { kind: "error"; message: string; status: number };
 
-function formatWhen(iso: string) {
-  return new Date(iso).toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+function formatWhen(iso: string, timezone?: string | null) {
+  return formatShopWhen(iso, new Date(), timezone);
 }
 
 const TYPE_LABEL: Record<RecordType, string> = {
@@ -282,7 +278,7 @@ function RecordBody({
             {record.source.from ? ` · ${record.source.from}` : ""}
           </p>
           <p className="rd-meta">
-            <time dateTime={record.source.at}>{formatWhen(record.source.at)}</time>
+            <time dateTime={record.source.at}>{formatWhen(record.source.at, record.timezone)}</time>
           </p>
           {record.summary ? <p className="rd-summary">{record.summary}</p> : null}
           {record.transcript ? (
@@ -303,7 +299,7 @@ function RecordBody({
             {captured.map((field) => (
               <div key={field.label}>
                 <dt>{field.label}</dt>
-                <dd>{field.label === "Scheduled" && field.value ? formatWhen(field.value) : field.value}</dd>
+                <dd>{field.label === "Scheduled" && field.value ? formatWhen(field.value, record.timezone) : field.value}</dd>
               </div>
             ))}
           </dl>
@@ -335,7 +331,7 @@ function RecordBody({
                 <button type="button" className="rd-history-btn" onClick={() => onOpen({ type: h.type, id: h.id })}>
                   <span>{h.title}</span>
                   <span className="rd-meta">
-                    {TYPE_LABEL[h.type]} · {h.status ?? "—"} · {formatWhen(h.at)}
+                    {TYPE_LABEL[h.type]} · {h.status ?? "—"} · {formatWhen(h.at, record.timezone)}
                   </span>
                 </button>
               </li>
@@ -354,7 +350,7 @@ function RecordBody({
                 <div>
                   <p className="rd-event-label">{event.label}</p>
                   <p className="rd-meta">
-                    <time dateTime={event.at}>{formatWhen(event.at)}</time>
+                    <time dateTime={event.at}>{formatWhen(event.at, record.timezone)}</time>
                     {event.detail ? ` · ${event.detail}` : ""}
                   </p>
                 </div>
@@ -398,7 +394,7 @@ function LeadMoreActions({ record }: { record: RecordView }) {
   if (!phone && status !== "new") return null;
   return (
     <>
-    {phone && status === "new" ? <FollowUpText leadId={record.id} /> : null}
+    {phone && status === "new" ? <FollowUpText leadId={record.id} timezone={record.timezone} /> : null}
     <section className="rd-section" aria-label="More actions">
       <p className="rd-section-label">More actions</p>
       <div className="rd-actions">
@@ -431,7 +427,7 @@ function LeadMoreActions({ record }: { record: RecordView }) {
 type FollowUpPreview = { mode: "off" | "ask" | "auto"; message: string; sentAt: string | null; canSend: boolean; reason: string | null; uncertain?: boolean };
 
 /** The one follow-up text Orvius drafts for a caller nobody has reached. */
-function FollowUpText({ leadId }: { leadId: string }) {
+function FollowUpText({ leadId, timezone }: { leadId: string; timezone?: string | null }) {
   const [preview, setPreview] = useState<FollowUpPreview | null>(null);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
@@ -498,11 +494,11 @@ function FollowUpText({ leadId }: { leadId: string }) {
       <p className="rd-meta">{preview.message}</p>
       {preview.sentAt && preview.uncertain ? (
         <p className="rd-meta">
-          Tried <time dateTime={preview.sentAt}>{formatWhen(preview.sentAt)}</time>, but the carrier never said whether it left. Orvius won&apos;t send it again; check the conversation before texting.
+          Tried <time dateTime={preview.sentAt}>{formatWhen(preview.sentAt, timezone)}</time>, but the carrier never said whether it left. Orvius won&apos;t send it again; check the conversation before texting.
         </p>
       ) : preview.sentAt ? (
         <p className="rd-meta">
-          Sent <time dateTime={preview.sentAt}>{formatWhen(preview.sentAt)}</time>. Replies come to you.
+          Sent <time dateTime={preview.sentAt}>{formatWhen(preview.sentAt, timezone)}</time>. Replies come to you.
         </p>
       ) : preview.canSend ? (
         <div className="rd-actions">

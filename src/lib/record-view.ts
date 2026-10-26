@@ -455,7 +455,10 @@ export async function getRecordView(
   type: RecordType,
   id: string,
 ): Promise<RecordView | null> {
-  const g = await resolveGraph(businessId, type, id);
+  const [g, shop] = await Promise.all([
+    resolveGraph(businessId, type, id),
+    prisma.business.findUnique({ where: { id: businessId }, select: { timezone: true } }),
+  ]);
   if (!g) return null;
 
   const person = g.lead?.name ?? g.customer?.name ?? null;
@@ -512,6 +515,7 @@ export async function getRecordView(
     path: buildPath(g),
     next: buildNext(g),
     fullHref: recordHref(type, id),
+    timezone: shop?.timezone ?? null,
   };
 
   const audit = await listAuditFor({

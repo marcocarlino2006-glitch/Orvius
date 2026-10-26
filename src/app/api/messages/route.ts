@@ -12,5 +12,6 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     threads,
     unread: threads.reduce((sum, thread) => sum + thread.unread, 0),
+    timezone: business.timezone,
   });
 }

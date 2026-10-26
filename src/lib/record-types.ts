@@ -48,6 +48,8 @@ export type RecordView = {
   path: PathNode[];
   next: { label: string; href: string; detail: string } | null;
   fullHref: string;
+  /** Shop clock. Times on this record are read in this zone. */
+  timezone?: string | null;
   history?: Array<{
     type: RecordType;
     id: string;

@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
   const thread = await getThread(business.id, phone);
   if (!thread) return NextResponse.json({ error: "Enter a valid phone number." }, { status: 400 });
   await markThreadRead(business.id, thread.phone);
-  return NextResponse.json(thread);
+  return NextResponse.json({ ...thread, timezone: business.timezone });
 }
 
 const SendBody = z.object({

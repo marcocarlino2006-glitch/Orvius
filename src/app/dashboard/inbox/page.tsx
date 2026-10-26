@@ -10,6 +10,7 @@ import { DashboardSkeleton } from "@/components/shell-skeleton";
 import { StatusDot, type StatusTone } from "@/components/status-dot";
 import { toast } from "@/components/toaster";
 import { displayPhone, normalizePhone } from "@/lib/customer";
+import { formatDay } from "@/lib/when";
 import {
   describeDashboardFailure,
   readDashboardError,
@@ -74,12 +75,12 @@ function emptyInbox(filter: Filter, counts: Record<InboxView, number> | null): {
   return { body: "A new call or text lands here. The work it becomes is in Jobs.", go: "jobs" };
 }
 
-function ago(iso: string) {
+function ago(iso: string, timezone?: string | null) {
   const minutes = Math.round((Date.now() - new Date(iso).getTime()) / 60_000);
   if (minutes < 1) return "just now";
   if (minutes < 60) return `${minutes} min ago`;
   if (minutes < 60 * 24) return `${Math.round(minutes / 60)} h ago`;
-  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  return formatDay(iso, new Date(), timezone);
 }
 
 function channel(source: string) {
@@ -91,7 +92,7 @@ function detailsText(name: string | null, missing: string[], shop: string) {
   return `Hi${name ? ` ${name.split(/\s+/)[0]}` : ""}, this is ${shop}. To get you booked, could you send your ${ask}?`;
 }
 
-function InboxRow({ lead, shop, onChanged }: { lead: LeadRow; shop: string; onChanged: () => void }) {
+function InboxRow({ lead, shop, timezone, onChanged }: { lead: LeadRow; shop: string; timezone?: string | null; onChanged: () => void }) {
   const [closing, setClosing] = useState(false);
   const [address, setAddress] = useState("");
   const [savingAddress, setSavingAddress] = useState(false);
@@ -184,7 +185,7 @@ function InboxRow({ lead, shop, onChanged }: { lead: LeadRow; shop: string; onCh
       <span role="cell" className="dt-when">
         <span>{inbox.lastContact.label}</span>
         <time className="dt-sub" dateTime={inbox.lastContact.at}>
-          {ago(inbox.lastContact.at)}
+          {ago(inbox.lastContact.at, timezone)}
         </time>
       </span>
       <span role="cell" className="dt-actions">
@@ -232,6 +233,7 @@ export default function InboxPage() {
   const [loading, setLoading] = useState(true);
   const [loadedAt, setLoadedAt] = useState<string | null>(null);
   const [truncated, setTruncated] = useState(false);
+  const [timeZone, setTimeZone] = useState<string | null>(null);
 
   const load = useCallback(async (view: Filter) => {
     setLoading(true);
@@ -242,11 +244,12 @@ export default function InboxPage() {
         setFailure(await readDashboardError("Inbox", res));
         return;
       }
-      const data = (await res.json()) as { leads: LeadRow[]; views: Record<InboxView, number>; truncated: boolean; generatedAt: string };
+      const data = (await res.json()) as { leads: LeadRow[]; views: Record<InboxView, number>; truncated: boolean; generatedAt: string; timezone?: string | null };
       setLeads(data.leads ?? []);
       setCounts(data.views ?? null);
       setTruncated(Boolean(data.truncated));
       setLoadedAt(data.generatedAt);
+      setTimeZone(data.timezone ?? null);
     } catch {
       setFailure(describeDashboardFailure("Inbox", null, "Network error"));
     } finally {
@@ -264,7 +267,7 @@ export default function InboxPage() {
   return (
     <OsShell
       title="Inbox"
-      subtitle={loadedAt ? `Updated ${ago(loadedAt)}` : undefined}
+      subtitle={loadedAt ? `Updated ${ago(loadedAt, timeZone)}` : undefined}
       actions={
         <Link href="/dashboard/inbox/messages" className="btn btn-secondary text-sm">
           Messages
@@ -325,7 +328,7 @@ export default function InboxPage() {
               </span>
             </div>
             {leads.map((lead) => (
-              <InboxRow key={lead.id} lead={lead} shop={business?.name ?? "us"} onChanged={() => void load(filter)} />
+              <InboxRow key={lead.id} lead={lead} shop={business?.name ?? "us"} timezone={timeZone} onChanged={() => void load(filter)} />
             ))}
           </div>
           {truncated ? <p className="dt-foot">Showing the 300 newest open requests.</p> : null}

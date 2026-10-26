@@ -357,6 +357,7 @@ export default function JobDetailPage() {
             defaultCents={job.estimate?.amountCents ?? null}
             depositPaidCents={deposit?.status === "paid" ? deposit.amountCents : 0}
             customerPhone={job.lead?.phone ?? job.customer?.phone ?? null}
+            timezone={tz}
             onRefresh={load}
           />
         ) : null}
@@ -380,6 +381,7 @@ export default function JobDetailPage() {
             defaultCents={job.estimate?.amountCents ?? null}
             depositPaidCents={deposit?.status === "paid" ? deposit.amountCents : 0}
             customerPhone={job.lead?.phone ?? job.customer?.phone ?? null}
+            timezone={tz}
             onRefresh={load}
           />
         ) : null}

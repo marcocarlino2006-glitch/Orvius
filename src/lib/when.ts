@@ -21,13 +21,15 @@ export function formatWhen(value: Date | string | number | null | undefined, now
   if (value == null) return "";
   const at = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(at.getTime())) return "";
+  const zone = timezone ? { timeZone: timezone } : {};
+  const yearOf = (d: Date) => (timezone ? new Intl.DateTimeFormat("en-US", { year: "numeric", timeZone: timezone }).format(d) : String(d.getFullYear()));
   return at.toLocaleString("en-US", {
     month: "short",
     day: "numeric",
-    ...(at.getFullYear() === now.getFullYear() ? {} : { year: "numeric" }),
+    ...(yearOf(at) === yearOf(now) ? {} : { year: "numeric" }),
     hour: "numeric",
     minute: "2-digit",
-    ...(timezone ? { timeZone: timezone } : {}),
+    ...zone,
   });
 }
 

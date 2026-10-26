@@ -6,6 +6,7 @@ import { DashboardSkeleton } from "@/components/shell-skeleton";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { formatDay, formatWhen } from "@/lib/when";
 import "./messages.css";
 
 type Thread = {
@@ -47,6 +48,7 @@ type ThreadDetail = {
   optedOut: boolean;
   takenOver: { by: string; since: string } | null;
   entries: Entry[];
+  timezone?: string | null;
 };
 
 const SMS_SEGMENT = 160;
@@ -59,7 +61,7 @@ function formatPhone(phone: string) {
   return phone;
 }
 
-function relativeTime(iso: string, now = Date.now()) {
+function relativeTime(iso: string, now = Date.now(), timezone?: string | null) {
   const diff = Math.max(0, now - new Date(iso).getTime());
   const min = Math.round(diff / 60000);
   if (min < 1) return "now";
@@ -68,16 +70,11 @@ function relativeTime(iso: string, now = Date.now()) {
   if (hr < 24) return `${hr}h`;
   const day = Math.round(hr / 24);
   if (day < 7) return `${day}d`;
-  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  return formatDay(iso, new Date(now), timezone);
 }
 
-function stamp(iso: string) {
-  return new Date(iso).toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+function stamp(iso: string, timezone?: string | null) {
+  return formatWhen(iso, new Date(), timezone);
 }
 
 function MessagesInner() {
@@ -92,6 +89,7 @@ function MessagesInner() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [listError, setListError] = useState<string | null>(null);
+  const [timeZone, setTimeZone] = useState<string | null>(null);
   const [newPhone, setNewPhone] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const sendKey = useRef<{ key: string; phone: string; body: string } | null>(null);
@@ -105,6 +103,7 @@ function MessagesInner() {
       }
       const data = await res.json();
       setThreads(data.threads ?? []);
+      if (typeof data.timezone === "string") setTimeZone(data.timezone);
       setListError(null);
     } catch {
       setListError("Network error. Check your connection and retry.");
@@ -118,6 +117,7 @@ function MessagesInner() {
       if (res.ok) {
         const data: ThreadDetail = await res.json();
         setDetail(data);
+        if (typeof data.timezone === "string") setTimeZone(data.timezone);
         setThreads((prev) =>
           prev?.map((t) => (t.phone === data.phone ? { ...t, unread: 0 } : t)) ?? prev,
         );
@@ -301,7 +301,7 @@ function MessagesInner() {
                 >
                   <span className="msg-thread-top">
                     <span className="msg-thread-name">{thread.name || formatPhone(thread.phone)}</span>
-                    <span className="msg-thread-time">{relativeTime(thread.lastAt)}</span>
+                    <span className="msg-thread-time">{relativeTime(thread.lastAt, Date.now(), timeZone)}</span>
                   </span>
                   <span className="msg-thread-preview">
                     {thread.lastDirection === "out"
@@ -367,7 +367,7 @@ function MessagesInner() {
                         {entry.direction === "outbound" ? "Outgoing call" : "Call"}
                         {entry.durationSec ? ` · ${Math.max(1, Math.round(entry.durationSec / 60))} min` : ""}
                         {" · "}
-                        {stamp(entry.at)}
+                        {stamp(entry.at, timeZone)}
                       </span>
                       {entry.summary ? <span className="msg-call-summary">{entry.summary}</span> : null}
                       <Link href={`/dashboard/calls/${entry.id}`} className="msg-call-link">
@@ -394,7 +394,7 @@ function MessagesInner() {
                       )}
                       <span className="msg-meta">
                         {entry.direction === "out" ? `${entry.author === "owner" ? "You" : "Orvius"} · ` : ""}
-                        {stamp(entry.at)}
+                        {stamp(entry.at, timeZone)}
                         {entry.direction === "out" ? <DeliveryNote status={entry.deliveryStatus ?? null} /> : null}
                       </span>
                     </div>

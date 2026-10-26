@@ -605,7 +605,7 @@ export function SettingsCenter({
               </p>
             ) : null}
             {notice ? <p className="sc-banner">{notice}</p> : null}
-            {apply ? <ReceptionistApplyBanner apply={apply} section={section} applying={applying} onApply={() => void applyNow()} /> : null}
+            {apply ? <ReceptionistApplyBanner apply={apply} section={section} applying={applying} timezone={account?.business?.timezone} onApply={() => void applyNow()} /> : null}
             {loadError ? (
               <div className="sc-banner sc-banner--error">
                 {loadError}{" "}
@@ -652,14 +652,14 @@ export function SettingsCenter({
  * confirming this exact version stays visible, with the one step that helps;
  * a confirmation is shown as when it happened, not as the line being healthy.
  */
-function ReceptionistApplyBanner({ apply, section, applying, onApply }: { apply: ReceptionistApply; section: SettingsSectionId; applying: boolean; onApply: () => void }) {
+function ReceptionistApplyBanner({ apply, section, applying, timezone, onApply }: { apply: ReceptionistApply; section: SettingsSectionId; applying: boolean; timezone?: string | null; onApply: () => void }) {
   const aboutTheLine = section === "business" || section === "hours" || section === "receptionist";
   if (!aboutTheLine) return null;
   const receptionistPane = section === "receptionist" || section === "hours";
   if (apply.state === "applied") {
     return receptionistPane && apply.appliedAt ? (
       <p className="sc-banner" role="status">
-        Saved and applied: the receptionist confirmed these settings {formatWhen(apply.appliedAt)}. That was the last confirmation, not a live check of your line.
+        Saved and applied: the receptionist confirmed these settings {formatWhen(apply.appliedAt, new Date(), timezone)}. That was the last confirmation, not a live check of your line.
       </p>
     ) : null;
   }

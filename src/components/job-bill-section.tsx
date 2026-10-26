@@ -40,6 +40,7 @@ export function JobBillSection({
   defaultCents,
   depositPaidCents,
   customerPhone,
+  timezone,
   onRefresh,
 }: {
   jobId: string;
@@ -47,6 +48,7 @@ export function JobBillSection({
   defaultCents: number | null;
   depositPaidCents: number;
   customerPhone: string | null;
+  timezone?: string | null;
   onRefresh: () => void;
 }) {
   const invoice = bill.invoice;
@@ -283,7 +285,7 @@ export function JobBillSection({
       ) : null}
       {note ? <p className="job-money-lead">{note}</p> : null}
       {invoice?.sentAt && !note ? (
-        <p className="job-money-lead">Texted {formatWhen(invoice.sentAt)} — not paid yet.</p>
+        <p className="job-money-lead">Texted {formatWhen(invoice.sentAt, new Date(), timezone)} — not paid yet.</p>
       ) : invoice && !note ? (
         <p className="job-money-lead">Not sent to the customer yet — the bill exists, but nobody has asked for the money.</p>
       ) : null}

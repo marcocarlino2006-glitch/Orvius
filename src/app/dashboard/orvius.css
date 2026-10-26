@@ -11467,11 +11467,45 @@ a.dt-row:focus-visible,
   }
 
   .dt--customers .dt-row {
-    grid-template-columns: minmax(0, 1fr) auto;
-    row-gap: 0.25rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 0.75rem;
+    row-gap: 0.15rem;
+  }
+
+  .dt--customers .dt-primary {
+    order: 1;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .dt--customers .dt-row > :nth-child(4) {
+    order: 2;
+    flex: 0 0 auto;
+    margin-left: auto;
+  }
+
+  .dt--customers .dt-mono {
+    order: 3;
   }
 
   .dt--customers .dt-address {
+    order: 4;
+    white-space: normal;
+  }
+
+  .dt--customers .dt-when {
+    order: 5;
+  }
+
+  .dt--customers .dt-mono,
+  .dt--customers .dt-when,
+  .dt--customers .dt-address {
+    flex: 1 1 100%;
+  }
+
+  .dt--customers .dt-address.is-empty {
     display: none;
   }
 }
@@ -12928,6 +12962,21 @@ a.dt-row:focus-visible,
   color: var(--ox-text-2);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+  .cmd-live-call {
+    flex-wrap: wrap;
+    row-gap: 0.15rem;
+    overflow: visible;
+  }
+
+  .cmd-live-call a,
+  .cmd-live-about {
+    overflow: visible;
+    white-space: normal;
+    text-overflow: unset;
+  }
 }
 
 .cmd-live-trace {
