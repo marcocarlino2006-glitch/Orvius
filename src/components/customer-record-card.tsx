@@ -3,6 +3,7 @@
 import { RecordLink } from "@/components/record-drawer";
 import { customerDisplayName, displayPhone } from "@/lib/customer";
 import { formatCents } from "@/lib/money";
+import { formatDay } from "@/lib/when";
 
 type CustomerRecordCardProps = {
   id: string;
@@ -19,6 +20,7 @@ type CustomerRecordCardProps = {
   /** Wide layouts show history beside the list; the drawer stays for narrow ones. */
   onSelect?: () => void;
   selected?: boolean;
+  timezone?: string | null;
 };
 
 function moneyLine(collected: number, owed: number, refunded: number): string | null {
@@ -43,12 +45,10 @@ export function CustomerRecordCard({
   refundedCents = 0,
   onSelect,
   selected = false,
+  timezone = null,
 }: CustomerRecordCardProps) {
   const label = customerDisplayName(name, phone);
-  const when = new Date(lastSeenAt).toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-  });
+  const when = formatDay(lastSeenAt, new Date(), timezone);
   const money = moneyLine(collectedCents, owedCents, refundedCents);
 
   return (

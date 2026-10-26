@@ -43,6 +43,7 @@ export default function CustomersPage() {
   const [forgotten, setForgotten] = useState<"done" | "pending" | null>(null);
   const [attempt, setAttempt] = useState(0);
   const [more, setMore] = useState({ hasMore: false, moneyPartial: false, moneyPaused: false });
+  const [timeZone, setTimeZone] = useState<string | null>(null);
 
   useEffect(() => {
     const state = new URLSearchParams(window.location.search).get("forgotten");
@@ -68,6 +69,7 @@ export default function CustomersPage() {
         .then((data) => {
           setCustomers(Array.isArray(data?.customers) ? data.customers : []);
           setMore({ hasMore: data?.hasMore === true, moneyPartial: data?.moneyPartial === true, moneyPaused: data?.moneyPaused === true });
+          setTimeZone(typeof data?.timezone === "string" ? data.timezone : null);
         })
         .catch((err) => {
           if (err instanceof DOMException && err.name === "AbortError") return;
@@ -182,6 +184,7 @@ export default function CustomersPage() {
                     collectedCents={customer.collectedCents ?? undefined}
                     owedCents={customer.owedCents ?? undefined}
                     refundedCents={customer.refundedCents ?? 0}
+                    timezone={timeZone}
                   />
               ))}
               {more.hasMore || more.moneyPartial || more.moneyPaused ? (
