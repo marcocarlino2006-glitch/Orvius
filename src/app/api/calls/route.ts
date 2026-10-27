@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isAfterHours } from "@/lib/business";
 import { holdDecisionsByLead } from "@/lib/booking-decision";
 import { gradeCall, summarizeCallQuality } from "@/lib/call-quality";
-import { callOutcome } from "@/lib/call-outcome";
+import { callIsBooked, callOutcome } from "@/lib/call-outcome";
 import { prisma } from "@/lib/prisma";
 import { modelOnFile } from "@/lib/equipment-fact";
 import { requireEntitledSession } from "@/lib/tenant";
@@ -117,7 +117,7 @@ export async function GET(request: NextRequest) {
       status: call.status,
       summary: call.summary,
       durationSec: call.durationSec,
-      booked: call.booked,
+      booked: callIsBooked(call),
       createdAt: call.createdAt.toISOString(),
       afterHours: isAfterHours(call.createdAt, hoursJson, timezone, hours?.closedDatesJson),
       outcome: callOutcome({

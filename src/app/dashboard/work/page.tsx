@@ -93,12 +93,12 @@ export default function WorkPage() {
         </Link>
       }
     >
-      <div className="cmd cmd-one">
+      <div className="cmd cmd-one cmd-work">
         {error ? <ShellAlert tone="error">{error}</ShellAlert> : null}
         <header className="cmd-head">
           <h2 className="cmd-headline os-own-color">{headline}</h2>
         </header>
-        <div className="cmd-filters font-sans" role="tablist" aria-label="Work">
+        <div className="jobs-pipeline font-sans" role="tablist" aria-label="Work">
           {view === "open"
             ? FILTERS.filter((f) => f.id === "you" || f.id === "all" || f.id === filter || counts[f.id] > 0).map((f) => (
                 <button
@@ -106,10 +106,11 @@ export default function WorkPage() {
                   type="button"
                   role="tab"
                   aria-selected={filter === f.id}
-                  className={filter === f.id ? "is-on" : ""}
+                  className={`jobs-pipeline-stage ${filter === f.id ? "jobs-pipeline-stage-active" : ""}`}
                   onClick={() => setFilter(f.id)}
                 >
-                  {f.label}
+                  <span className="jobs-pipeline-label">{f.label}</span>
+                  {data ? <span className="jobs-pipeline-count">{counts[f.id]}</span> : null}
                 </button>
               ))
             : null}
@@ -117,10 +118,10 @@ export default function WorkPage() {
             type="button"
             role="tab"
             aria-selected={view === "closed"}
-            className={view === "closed" ? "is-on" : ""}
+            className={`jobs-pipeline-stage ${view === "closed" ? "jobs-pipeline-stage-active" : ""}`}
             onClick={() => setView(view === "closed" ? "open" : "closed")}
           >
-            {view === "closed" ? "Back to open work" : "Closed, last 30 days"}
+            <span className="jobs-pipeline-label">{view === "closed" ? "Back to open work" : "Closed, last 30 days"}</span>
           </button>
         </div>
         {!data && error ? (

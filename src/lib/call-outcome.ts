@@ -24,11 +24,21 @@ export type CallOutcomeInput = {
 
 const DROPPED = new Set(["failed", "busy", "no-answer", "canceled", "cancelled"]);
 
+/**
+ * A call is booked when a job exists. The call's own flag is only trusted when
+ * the request it made has not been looked up and found without a job.
+ */
+export function callIsBooked(call: Pick<CallOutcomeInput, "booked" | "lead">): boolean {
+  if (call.lead?.job) return true;
+  return call.booked && call.lead?.job !== null;
+}
+
 /** Order matters: a safety call that was also transferred is still a safety call. */
 export function callOutcome(call: CallOutcomeInput): CallOutcome {
   const status = call.status.trim().toLowerCase();
-  if (call.escalated || (isEmergency(call.lead?.urgency) && !call.booked && !call.lead?.job)) return "safety";
-  if (call.booked || call.lead?.job) return "booked";
+  const booked = callIsBooked(call);
+  if (call.escalated || (isEmergency(call.lead?.urgency) && !booked)) return "safety";
+  if (booked) return "booked";
   if (call.endedReason && /forward|transfer/i.test(call.endedReason)) return "transferred";
   if (DROPPED.has(status) || status === "in-progress" || status === "ringing") return "incomplete";
   if (!call.lead || (call.durationSec != null && call.durationSec < 15)) return "incomplete";

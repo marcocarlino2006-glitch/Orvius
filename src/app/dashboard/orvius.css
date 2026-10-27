@@ -20070,3 +20070,24 @@ html .os-shell .sc-embed .billing-settings > div > .pro-panel {
     inset: -11px -6px;
   }
 }
+
+/* Work is a list of requests, so it keeps the divided list. Command draws one line. */
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one.cmd-work .wc-list {
+  overflow: hidden !important;
+  border: 1px solid var(--m-line) !important;
+  border-radius: var(--m-r) !important;
+  background: var(--m-card) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one.cmd-work .wc-list > .wc {
+  padding: 0.875rem 1rem !important;
+  transition: background var(--ox-dur-fast) var(--ox-ease);
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one.cmd-work .wc-list > .wc + .wc {
+  border-top: 1px solid var(--m-line) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one.cmd-work .wc-list > .wc:hover {
+  background: var(--m-hover) !important;
+}

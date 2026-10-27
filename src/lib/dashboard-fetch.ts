@@ -13,6 +13,12 @@ export type DashboardLoadFailure = {
   hrefLabel?: string;
 };
 
+/** A raw message read next to the next step must end like a sentence. */
+export function asSentence(message: string | null | undefined): string {
+  const text = message?.trim() ?? "";
+  return text && !/[.!?]$/.test(text) ? `${text}.` : text;
+}
+
 export function describeDashboardFailure(
   surface: string,
   status: number | null,
@@ -63,7 +69,7 @@ export function describeDashboardFailure(
   return {
     status,
     title: `${surface} could not load`,
-    cause: rawMessage?.trim() || "The server did not return this list.",
+    cause: asSentence(rawMessage) || "The server did not return this list.",
     impact: `${surface} may be incomplete until this recovers — your shop line still answers calls.`,
     recovery: "Retry now. If it keeps failing, open Command and check Settings.",
     href: "/dashboard",
