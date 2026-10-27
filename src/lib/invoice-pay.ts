@@ -433,6 +433,16 @@ export async function applyCardPaymentToInvoice(params: {
     if (await holdDemoPayment({ businessId, entityType: "invoice", entityId: invoice.id, sessionId: session.id, amountCents, held: "follow_ups" })) {
       return { ok: true, reason: "held_in_demo" };
     }
+    await recordAudit({
+      businessId,
+      entityType: "job",
+      entityId: invoice.jobId ?? invoice.id,
+      jobId: invoice.jobId,
+      action: "payment.recorded",
+      actor: "system",
+      summary: `${formatCentsExact(amountCents)} paid by card`,
+      idempotencyKey: `payment:${session.id}`,
+    });
     await textOwnerPaid({ businessId, jobId: invoice.jobId, amountCents, sessionId: session.id }).catch(() => null);
     if (params.network && invoice.jobId) {
       await creditNetworkSender({ jobId: invoice.jobId, amountCents: workCents }).catch((error) =>

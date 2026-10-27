@@ -12905,6 +12905,29 @@ a.dt-row:focus-visible,
   white-space: nowrap;
 }
 
+@media (max-width: 640px) {
+  .cmd-fact,
+  .cmd-live-call {
+    flex-wrap: wrap;
+    row-gap: 0.15rem;
+  }
+
+  .cmd-fact a,
+  .cmd-live-call a,
+  .cmd-fact-what {
+    flex: 1 1 100%;
+    overflow: visible;
+    text-overflow: unset;
+    white-space: normal;
+  }
+
+  .cmd-fact time,
+  .cmd-live-call time {
+    flex: 1 1 100%;
+    margin-left: 0;
+  }
+}
+
 .cmd-path {
   display: flex;
   flex-wrap: wrap;
@@ -20019,4 +20042,31 @@ html .os-shell .dsp-block[draggable="true"] {
   padding: 0;
   display: grid;
   gap: 0.75rem;
+}
+
+/* A bordered card in Billing keeps room between its text and its edge. */
+html .os-shell .sc-embed .billing-settings > div > .pro-panel {
+  padding-inline: 1rem !important;
+}
+
+/* Switches and the back link stay small to the eye and large to a finger. */
+.os-shell .sc-dialog .sc-switch::after,
+.os-shell .sc-dialog .sc-crumb::after {
+  content: "";
+  position: absolute;
+  inset: -8px -4px;
+}
+
+.os-shell .sc-dialog .sc-crumb {
+  position: relative;
+}
+
+@media (pointer: coarse) {
+  .os-shell .sc-dialog .sc-switch::after {
+    inset: -14px -9px;
+  }
+
+  .os-shell .sc-dialog .sc-crumb::after {
+    inset: -11px -6px;
+  }
 }

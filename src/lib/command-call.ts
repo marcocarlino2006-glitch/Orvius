@@ -33,7 +33,7 @@ export function commandCallSummary(summary: string | null | undefined): string |
 export function commandCallOutcome(call: CommandCall): CallOutcome {
   return callOutcome({
     status: call.status,
-    booked: Boolean(call.booked),
+    booked: Boolean(call.booked && call.job),
     durationSec: call.durationSec ?? null,
     endedReason: call.endedReason ?? null,
     lead: call.hasLead ? { urgency: call.urgency ?? null, job: call.job ? { id: call.job.id } : null } : null,

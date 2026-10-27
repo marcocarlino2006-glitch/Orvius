@@ -85,7 +85,9 @@ const job = (over = {}) => ({
 
 test("a request's stage and next action follow its status", () => {
   assert.equal(work.requestWorkItem(lead()).nextAction, "Call Dana back");
-  assert.equal(work.requestWorkItem(lead({ urgency: "emergency" })).nextAction, "Call Dana back now — emergency");
+  assert.equal(work.requestWorkItem(lead({ urgency: "emergency" })).nextAction, "Call Dana now. Leak repair.");
+  assert.equal(work.requestWorkItem(lead({ urgency: "emergency", serviceType: null })).nextAction, "Call Dana now. Safety call.");
+  assert.equal(work.requestWorkItem(lead({ urgency: "emergency", serviceType: "Gas smell" })).nextAction, "Call Dana now. Gas smell.");
   assert.equal(work.requestWorkItem(lead({ urgency: "emergency" })).urgent, true);
   assert.equal(work.requestWorkItem(lead({ status: "contacted" })).nextAction, "Pick a time with Dana");
   assert.equal(work.requestWorkItem(lead({ status: "booked" })).nextAction, "Put the booked time on the schedule");
@@ -165,6 +167,9 @@ test("a job's stage and next action follow the visit", () => {
   assert.equal(jobItem(job({ status: "confirmed" })).nextAction, "Assign a technician");
   assert.equal(jobItem(job({ status: "en_route", technician: tech })).nextAction, "Mark arrived");
   assert.equal(jobItem(job({ status: "on_site", technician: tech })).nextAction, "Mark done");
+  const paidOnSite = jobItem(job({ status: "on_site", technician: tech, invoices: [{ status: "paid", paidAt: now, amountCents: 42000 }] }));
+  assert.equal(paidOnSite.nextAction, "Mark done");
+  assert.ok(paidOnSite.path.some((beat) => beat.key === "bill" && beat.state === "done" && beat.label.startsWith("Paid")));
 
   const field = jobItem(job({ status: "en_route", technician: tech }));
   assert.deepEqual(field.responsible, { kind: "technician", label: "Ray", email: null });

@@ -25,6 +25,10 @@ test("attention, an approval, and real Orvius work stay separate sentences", () 
   );
   assert.equal(deskFacts({ needsYou: 4, approvals: 0, handled: quiet })?.you, "4 things need you.");
   assert.equal(deskFacts({ needsYou: 4, approvals: 0, handled: quiet })?.orvius, null);
+  assert.equal(
+    deskFacts({ needsYou: 0, approvals: 0, handled: { ...quiet, collected: 1 } })?.orvius,
+    "Orvius today collected 1 payment.",
+  );
 });
 
 test("money is one sentence, and owed or unbilled appears only when it is true", () => {
