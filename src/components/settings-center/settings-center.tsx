@@ -666,7 +666,7 @@ function ReceptionistApplyBanner({ apply, section, applying, timezone, onApply }
   if (apply.state === "not_applicable") {
     return receptionistPane ? (
       <p className="sc-banner" role="status">
-        Saved. {apply.next}
+        {apply.next}
       </p>
     ) : null;
   }
