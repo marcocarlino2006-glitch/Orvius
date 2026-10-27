@@ -1,7 +1,6 @@
 /**
- * The sample desk is the default until someone signs up.
- * A signed-out visitor can read the day. They cannot read billing, export, or account.
- * A signed-in person with no shop is not handed the sample.
+ * A visitor can open the sample day. They cannot read a shop.
+ * Two shops do not share a number or a customer.
  */
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -9,29 +8,37 @@ import test from "node:test";
 import { PrismaClient } from "@prisma/client";
 
 const { isSampleDeskPage, isSampleDeskRead } = await import("../src/lib/sample-desk.ts");
-const { findPublicSampleShop } = await import("../src/lib/sample-shop.ts");
+const { SAMPLE_ROWS, sampleDeskPreview } = await import("../src/lib/sample-preview.ts");
 
 const tenant = readFileSync(new URL("../src/lib/tenant.ts", import.meta.url), "utf8");
 const middleware = readFileSync(new URL("../src/middleware.ts", import.meta.url), "utf8");
-const ring1 = readFileSync(new URL("../src/app/api/ring1/route.ts", import.meta.url), "utf8");
+const preview = readFileSync(new URL("../src/lib/sample-preview.ts", import.meta.url), "utf8");
+const provider = readFileSync(new URL("../src/lib/ring1-context.tsx", import.meta.url), "utf8");
+const customers = readFileSync(new URL("../src/app/api/customers/route.ts", import.meta.url), "utf8");
+const setup = readFileSync(new URL("../src/lib/setup-sandbox.ts", import.meta.url), "utf8");
 
-test("the desk pages are open and setup stays behind sign-in", () => {
+test("only the home sample is open, and a shop's pages stay signed in", () => {
   assert.equal(isSampleDeskPage("/dashboard"), true);
-  assert.equal(isSampleDeskPage("/dashboard/work"), true);
-  assert.equal(isSampleDeskPage("/dashboard/jobs/abc"), true);
-  assert.equal(isSampleDeskPage("/dashboard/customers/abc"), true);
-  assert.equal(isSampleDeskPage("/dashboard/inbox/abc"), true);
-  assert.equal(isSampleDeskPage("/dashboard/jobs/new"), false);
-  assert.equal(isSampleDeskPage("/dashboard/onboarding"), false);
-  assert.equal(isSampleDeskPage("/dashboard/billing"), false);
-  assert.equal(isSampleDeskPage("/dashboard/reports"), false);
-  assert.equal(isSampleDeskPage("/dashboard/ask"), false);
-  assert.equal(isSampleDeskPage("/dashboard/settings"), false);
-  assert.equal(isSampleDeskPage("/admin"), false);
-  assert.equal(isSampleDeskPage("/admin/daily"), false);
+  for (const path of [
+    "/dashboard/work",
+    "/dashboard/jobs/abc",
+    "/dashboard/customers/abc",
+    "/dashboard/inbox/abc",
+    "/dashboard/calls",
+    "/dashboard/schedule",
+    "/dashboard/jobs/new",
+    "/dashboard/onboarding",
+    "/dashboard/billing",
+    "/dashboard/reports",
+    "/dashboard/ask",
+    "/dashboard/settings",
+    "/admin",
+  ]) {
+    assert.equal(isSampleDeskPage(path), false, path);
+  }
 });
 
-test("only the day reads are public", () => {
+test("a shop's number and records are never a public read", () => {
   for (const path of [
     "/api/ring1",
     "/api/work",
@@ -42,73 +49,86 @@ test("only the day reads are public", () => {
     "/api/customers/abc/visits",
     "/api/jobs",
     "/api/jobs/abc",
-    "/api/jobs/abc/field",
     "/api/leads",
     "/api/leads/abc",
     "/api/dispatch",
     "/api/technicians",
     "/api/messages",
-    "/api/messages/thread",
-  ]) {
-    assert.equal(isSampleDeskRead(path), true, path);
-  }
-  for (const path of [
     "/api/account",
     "/api/account/export",
-    "/api/account/area",
-    "/api/customers/abc/export",
-    "/api/customers/win-back",
-    "/api/jobs/abc/billing",
-    "/api/jobs/abc/notes",
-    "/api/jobs/abc/photos",
-    "/api/jobs/abc/confirm-sms",
-    "/api/reports",
-    "/api/connect",
-    "/api/onboarding",
-    "/api/ask",
-    "/api/copilot",
-    "/api/billing/checkout",
-    "/api/leads/abc/follow-up",
   ]) {
     assert.equal(isSampleDeskRead(path), false, path);
   }
 });
 
-test("sign-in still owns a shop, and a visitor cannot aim a private read at the sample", () => {
+test("sign-in resolves one shop, and the sample is not that shop's database", () => {
   const sessionGate = tenant.slice(tenant.indexOf("export async function requireBusinessSession"));
-  const sample = sessionGate.indexOf("sampleDeskAccess()");
-  const noShop = sessionGate.indexOf("noBusinessResponse()");
-  assert.ok(sample > sessionGate.indexOf("if (!email"), "the sample answers only when nobody is signed in");
-  assert.ok(noShop > sample, "a signed-up person with no shop is not handed the sample");
-  assert.match(tenant, /isSampleDeskRead\(path\)/);
-  assert.match(middleware, /isSampleDeskPage\(pathname\)/);
-  assert.match(middleware, /x-orvius-pathname/);
-  assert.match(middleware, /forwarded\.set\("x-orvius-pathname", pathname\)/);
+  assert.equal(sessionGate.includes("sampleDeskAccess"), false);
+  assert.equal(sessionGate.includes("findPublicSampleShop"), false);
+  assert.ok(sessionGate.indexOf("noBusinessResponse()") > sessionGate.indexOf("if (!email"));
   assert.match(tenant, /Sign in to do that on your shop/);
-  assert.match(ring1, /guest \? null : business\.ownerPhone/);
-  assert.match(ring1, /if \(!locked && !guest\)/);
+  assert.match(middleware, /isSampleDeskPage\(pathname\)/);
+  assert.equal(preview.includes("prisma"), false);
+  assert.equal(preview.includes("+1347"), false);
+  assert.equal(preview.includes("844"), false);
+  for (const row of SAMPLE_ROWS) assert.match(row.phone, /555/);
+  const shown = sampleDeskPreview();
+  assert.equal(shown.business.guest, true);
+  assert.equal(shown.business.line, null);
+  assert.equal(shown.business.ownerPhone, null);
+  assert.match(provider, /status === "unauthenticated"/);
+  assert.match(provider, /sampleDeskPreview\(\)/);
+  assert.match(customers, /businessId: business\.id/);
+  const created = setup.slice(setup.indexOf("prisma.business.create"), setup.indexOf("await recordAudit"));
+  assert.match(created, /environment:\s*"test"/);
+  assert.equal(created.includes("twilioPhone"), false);
+  assert.equal(created.includes("vapiPhoneNumber"), false);
+  assert.equal(created.includes("Nora Walsh"), false);
 });
 
-test("the public sample is the reference shop, never some other business", async () => {
+test("one shop's customer and number are not the other shop's", async () => {
   const prisma = new PrismaClient();
-  const slug = `not-the-sample-${Date.now().toString(36)}`;
+  const stamp = Date.now().toString(36);
+  const slugA = `own-shop-a-${stamp}`;
+  const slugB = `own-shop-b-${stamp}`;
+  const lineA = `+1555555${stamp.slice(-4).padStart(4, "0")}`.slice(0, 12);
   try {
-    await prisma.business.create({
+    const shopA = await prisma.business.create({
       data: {
-        name: "Summit Heating & Air",
-        slug,
+        name: "Shop A",
+        slug: slugA,
         environment: "production",
         trade: "HVAC",
-        ownerEmail: "not-the-sample@example.com",
+        ownerEmail: `a-${stamp}@example.com`,
+        twilioPhone: lineA,
+        vapiPhoneNumber: lineA,
       },
     });
-    const sample = await findPublicSampleShop();
-    assert.ok(sample, "the reference shop is on this database");
-    assert.ok(sample.slug === "summit-hvac-demo" || sample.slug === "summit-hvac");
-    assert.notEqual(sample.slug, slug);
-    assert.notEqual(sample.ownerEmail, "not-the-sample@example.com");
+    const shopB = await prisma.business.create({
+      data: {
+        name: "Shop B",
+        slug: slugB,
+        environment: "production",
+        trade: "HVAC",
+        ownerEmail: `b-${stamp}@example.com`,
+      },
+    });
+    await prisma.customer.create({
+      data: {
+        businessId: shopA.id,
+        name: "Only on A",
+        phone: "+1 555 010 0199",
+        phoneNormalized: `15550100199${stamp}`.slice(0, 16),
+      },
+    });
+    const onB = await prisma.customer.findMany({ where: { businessId: shopB.id } });
+    assert.equal(onB.length, 0);
+    assert.equal(shopB.twilioPhone, null);
+    assert.equal(shopB.vapiPhoneNumber, null);
+    assert.notEqual(shopA.twilioPhone, shopB.twilioPhone);
+    assert.notEqual(shopA.vapiPhoneNumber, shopB.vapiPhoneNumber);
   } finally {
-    await prisma.business.deleteMany({ where: { slug } });
+    await prisma.business.deleteMany({ where: { slug: { in: [slugA, slugB] } } });
     await prisma.$disconnect();
   }
 });

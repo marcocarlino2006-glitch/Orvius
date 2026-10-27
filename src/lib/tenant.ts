@@ -1,14 +1,11 @@
 import { auth } from "@/auth";
 import { allowLockedRead, requireActiveBilling } from "@/lib/plan-gate";
 import { LOCKED_READ_HEADER } from "@/lib/locked-read";
-import { isSampleDeskRead } from "@/lib/sample-desk";
-import { findPublicSampleShop } from "@/lib/sample-shop";
 import { headers } from "next/headers";
 import { getShopAccessWithAutoLine } from "@/lib/provision-business";
 import { can, type Permission } from "@/lib/workspace-access";
 import { verifyAdminRequest } from "@/lib/env";
 import { NextResponse } from "next/server";
-import type { Session } from "next-auth";
 import type { Business } from "@prisma/client";
 
 async function isReadRequest() {
@@ -42,32 +39,15 @@ export async function requireAdmin(request: Request) {
 }
 
 /**
- * A signed-out GET of the desk reads the public sample shop.
- * A signed-in person with no shop does not: they already signed up, so they get their own setup.
- * Writes never take this path. The pathname header is set by middleware, not by the browser.
+ * The signed-in email's shop, and only that shop.
+ * A visitor does not get another business's number, customers, jobs, or calls.
+ * A person who signed up and has no shop yet is not handed one either.
  */
-async function sampleDeskAccess() {
-  if (!(await isReadRequest())) return null;
-  let path = "";
-  try {
-    path = (await headers()).get("x-orvius-pathname") ?? "";
-  } catch {
-    return null;
-  }
-  if (!isSampleDeskRead(path)) return null;
-  const business = await findPublicSampleShop();
-  if (!business) return null;
-  const session = { user: { name: null, email: null }, expires: "" } as Session;
-  return { session, email: "", business, role: "dispatcher" as const, guest: true as const };
-}
-
 export async function requireBusinessSession() {
   const session = await auth();
   const email = session?.user?.email?.toLowerCase();
 
   if (!email || !session?.user) {
-    const sample = await sampleDeskAccess();
-    if (sample) return sample;
     return { error: unauthorizedResponse() };
   }
 
