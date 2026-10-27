@@ -1,5 +1,5 @@
 import { afterResponse } from "@/lib/after-response";
-import { linkTouchToCustomer } from "@/lib/customer";
+import { linkTouchToCustomer, normalizePhone } from "@/lib/customer";
 import { sendBookingReceiptSms, sendCustomerConfirmSms } from "@/lib/customer-confirm";
 import { deriveDemandSignal, tradeForCapture } from "@/lib/demand-capture";
 import {
@@ -750,6 +750,7 @@ export async function createJobFromLead(params: {
   }
 
   async function bookInTransaction() {
+    const callerPhone = normalizePhone(lead.phone ?? "");
     return prisma.$transaction(async (tx) => {
       if (params.repeatSince && (customerId || lead.phone)) {
         const earlier = await tx.job.findFirst({
@@ -759,7 +760,13 @@ export async function createJobFromLead(params: {
             status: { in: params.repeatSince.statuses },
             createdAt: { gte: params.repeatSince.at },
             AND: [
-              { OR: [...(customerId ? [{ customerId }] : []), ...(lead.phone ? [{ lead: { phone: lead.phone } }] : [])] },
+              {
+                OR: [
+                  ...(customerId ? [{ customerId }] : []),
+                  ...(lead.phone ? [{ lead: { phone: lead.phone } }] : []),
+                  ...(callerPhone ? [{ customer: { phoneNormalized: callerPhone } }] : []),
+                ],
+              },
               ...(demand.categoryCode ? [{ OR: [{ categoryCode: demand.categoryCode }, { categoryCode: null }] }] : []),
             ],
           },
