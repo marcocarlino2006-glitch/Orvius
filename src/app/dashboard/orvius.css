@@ -20133,3 +20133,21 @@ html .os-shell .sc-embed .billing-settings > div > .pro-panel {
     flex: 0 0 100%;
   }
 }
+
+/* One height and one corner for every single-line field. */
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro.os-shell :is(input.input, select.input, .sc-input, .pro-search-input, .dsp-date, .dt-address-input, .wc-select) {
+  min-height: 2.4375rem !important;
+  border-radius: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro.os-shell :is(input.input, select.input, .sc-input, .pro-search-input, .dsp-date, .dt-address-input, .wc-select) {
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 767px) {
+  :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro.os-shell :is(input.input, select.input, .sc-input, .pro-search-input, .dsp-date, .dt-address-input, .wc-select) {
+    font-size: 1rem;
+  }
+}
