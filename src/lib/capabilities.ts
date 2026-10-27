@@ -103,6 +103,7 @@ type CapabilityShop = Pick<
   | "depositAmountCents"
   | "stripeConnectAccountId"
   | "stripeConnectChargesEnabled"
+  | "salesTaxBps"
   | "environment"
 >;
 
@@ -226,6 +227,7 @@ export function capabilityReport(input: CapabilityInput): Capability[] {
     facts: [
       { label: "Stripe account connected", ok: Boolean(shop.stripeConnectAccountId) },
       { label: "Stripe cleared to charge", ok: cardsReady },
+      { label: "Sales tax rate set (invoices add no tax at 0%)", ok: (shop.salesTaxBps ?? 0) > 0 ? true : null },
     ],
     fixHref: cardsReady ? null : "/dashboard/settings?settings=integrations",
   };
