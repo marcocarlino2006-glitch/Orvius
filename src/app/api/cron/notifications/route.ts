@@ -12,6 +12,7 @@ import { watchAllLines } from "@/lib/line-watch";
 import { sendDueWeeklyReports } from "@/lib/weekly-report";
 import { runBillingReconcile } from "@/lib/billing-reconcile";
 import { sweepUnbilledJobs } from "@/lib/job-billing";
+import { runInvoiceReminders } from "@/lib/invoice-reminders";
 import { sendFounderScoreboard } from "@/lib/company-scoreboard";
 import { logError, logInfo } from "@/lib/logger";
 import { processNotificationQueue } from "@/lib/notifications";
@@ -144,6 +145,7 @@ export async function GET(request: NextRequest) {
     text the customer or change a bill that was already sent.
   */
   const jobBilling = await step("job_billing", () => sweepUnbilledJobs());
+  const invoiceReminders = await step("invoice_reminders", () => runInvoiceReminders({ budgetMs: 10_000 }));
 
   /* Housekeeping and syncs share what is left of the deadline, longest-waiting first. */
   const housekeeping = {
@@ -213,6 +215,7 @@ export async function GET(request: NextRequest) {
     founderScoreboard,
     billingMismatches: billingReconcile?.checked ? billingReconcile.mismatches.length : null,
     jobBilling,
+    invoiceReminders,
     stalledPorts,
     overage,
     strandedTextLeads,
