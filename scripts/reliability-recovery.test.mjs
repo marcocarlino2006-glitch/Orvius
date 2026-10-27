@@ -26,6 +26,16 @@ test("every existing shop-line repair backfills the voice fallback", () => {
     /voiceFallbackUrl: getWebhookUrl\("\/api\/webhooks\/twilio\/voice-fallback"\)/,
   );
   assert.match(twilio, /\.\.\.voiceFallback\(\)/);
+  assert.match(
+    provisioning,
+    /attachAssistantToShopLine\(\{[\s\S]*?\}\);\s*await ensureVoiceFallback\(phone\)/,
+    "a new line re-asserts the fallback after Vapi imports it",
+  );
+  assert.match(
+    provisioning,
+    /attachAssistantToShopLine\(\{[\s\S]*?\}\);\s*await ensureVoiceFallback\(currentLine\)/,
+    "a repaired line re-asserts the fallback after Vapi imports it",
+  );
 });
 
 test("owner dashboard health checks trigger stuck-alert recovery", () => {

@@ -25,6 +25,7 @@
     "go-live": "node scripts/go-live.mjs",
     "launch:certify": "npm run build && npm run test:trust && MULTI_B_CI=1 npm run multi-b:check && npm run beyond:check",
     "pre-post:check": "node scripts/pre-post-check.mjs",
+    "lines:check": "node --experimental-strip-types --import ./scripts/lib/register-alias.mjs scripts/line-fallback-check.mjs",
     "bulletproof": "node --experimental-strip-types --import ./scripts/lib/register-alias.mjs scripts/bulletproof-check.mjs",
     "manus:post": "node --experimental-strip-types --import ./scripts/lib/register-alias.mjs scripts/manus-post.mjs",
     "sim:calls": "node scripts/call-sim.mjs",

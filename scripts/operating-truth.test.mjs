@@ -33,6 +33,7 @@ mock.module(twilioPhoneUrl, {
   namedExports: {
     ...twilioPhone,
     configureSmsWebhook: async (phone) => void lineWork.push(`configureSmsWebhook ${phone}`),
+    ensureVoiceFallback: async () => {},
     purchaseLocalNumber: async () => {
       lineWork.push("purchaseLocalNumber");
       throw new Error("no purchases in tests");

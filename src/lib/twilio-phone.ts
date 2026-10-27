@@ -156,6 +156,17 @@ export async function configureSmsWebhook(phoneNumber: string) {
   });
 }
 
+/*
+  Vapi's import of the number rewrites its voice settings, so the fallback is
+  asserted again once the assistant is attached rather than trusted from before.
+*/
+export async function ensureVoiceFallback(phoneNumber: string) {
+  const client = getTwilioClient();
+  const [entry] = await client.incomingPhoneNumbers.list({ phoneNumber, limit: 1 });
+  if (!entry) return;
+  await client.incomingPhoneNumbers(entry.sid).update(voiceFallback());
+}
+
 export function canProvisionDedicatedLine() {
   return (
     isConfigured("TWILIO_ACCOUNT_SID") &&
