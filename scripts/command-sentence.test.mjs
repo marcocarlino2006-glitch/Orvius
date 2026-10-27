@@ -20,6 +20,13 @@ test("a decision names itself, ahead of any tally", () => {
   assert.equal(
     commandSentence({
       ...clear,
+      item: { title: "Gas smell", customer: "Dana", nextAction: "Call Dana now. Gas smell." },
+    }),
+    "Call Dana now. Gas smell.",
+  );
+  assert.equal(
+    commandSentence({
+      ...clear,
       brief: "Today: 5 jobs booked, 4 completed.",
       approval: { title: "Book Pam Thursday at 1", needsCheck: false },
       item: { title: "AC not cooling", customer: "Maria Lopez", nextAction: "Call Maria Lopez" },

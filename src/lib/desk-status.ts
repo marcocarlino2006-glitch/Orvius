@@ -18,6 +18,7 @@ type HandledCounts = {
   assigned: number;
   confirmations: number;
   escalated: number;
+  collected?: number;
 };
 
 function join(parts: string[]): string {
@@ -41,6 +42,7 @@ export function deskFacts(input: { needsYou: number; approvals: number; handled?
   if (handled?.assigned) parts.push(handled.assigned === 1 ? "assigned 1 technician" : `assigned ${handled.assigned} technicians`);
   if (handled?.confirmations) parts.push(handled.confirmations === 1 ? "sent 1 confirmation" : `sent ${handled.confirmations} confirmations`);
   if (handled?.escalated) parts.push(handled.escalated === 1 ? "held 1 call for a person" : `held ${handled.escalated} calls for a person`);
+  if (handled?.collected) parts.push(handled.collected === 1 ? "collected 1 payment" : `collected ${handled.collected} payments`);
   const orvius = parts.length ? `Orvius today ${join(parts)}.` : null;
   if (!you && !ok && !orvius) return null;
   return { you, ok, orvius };

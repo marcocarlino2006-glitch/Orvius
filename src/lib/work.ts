@@ -225,14 +225,17 @@ function jobPath(job: WorkJob, stage: WorkStage): WorkPathBeat[] {
   const confirmed = Boolean(job.customerConfirmedAt) || stage === "confirmed" || field;
   const accepted = Boolean(job.techAcceptedAt) || field;
   const owed = unpaidInvoices(job);
+  const paidInvoices = job.invoices.filter((invoice) => invoice.paidAt || invoice.status === "paid");
+  const paidCents = paidInvoices.reduce((sum, invoice) => sum + invoice.amountCents, 0);
   const steps: Array<{ key: string; label: string; done: boolean; hold?: boolean }> = [
     { key: "booked", label: "Booked", done: true },
     { key: "confirmed", label: "Confirmed", done: confirmed },
     { key: "tech", label: tech, done: accepted, hold: !accepted && !job.technician },
   ];
-  if (stage === "done" || owed.length > 0) {
-    const paid = owed.length === 0;
-    steps.push({ key: "bill", label: paid ? "Paid" : "Unpaid", done: paid });
+  if (stage === "done" || owed.length > 0 || paidCents > 0) {
+    const settled = owed.length === 0 && paidCents > 0;
+    const figure = settled ? formatCentsTidy(paidCents) : null;
+    steps.push({ key: "bill", label: settled ? (figure ? `Paid ${figure}` : "Paid") : "Unpaid", done: settled });
   }
   return pathOf(steps);
 }
@@ -240,10 +243,11 @@ function jobPath(job: WorkJob, stage: WorkStage): WorkPathBeat[] {
 export function requestWorkItem(lead: WorkRequest): WorkItem {
   const stage = requestStage(lead.status);
   const named = lead.name?.trim() || spokenPhone(lead.phone) || "them";
+  const hazard = lead.serviceType?.trim() || "Safety call";
   const nextAction =
     stage === "needs_callback"
       ? lead.urgency === "emergency"
-        ? `Call ${named} back now — emergency`
+        ? `Call ${named} now. ${hazard}.`
         : `Call ${named} back`
       : stage === "needs_time"
         ? lead.status === "booked"

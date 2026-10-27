@@ -176,10 +176,12 @@ const RESULT: Record<string, string> = {
   "copilot.declined": "Declined",
   "job.rescheduled": "Moved",
   "job.status_changed": "Status changed",
+  "payment.recorded": "Paid",
+  "payment.confirmed": "Paid",
 };
 
 /** Things people did from Command or a record, shown beside what Orvius did. */
-const PERSON_ACTIONS = ["copilot.executed", "copilot.declined", "job.rescheduled", "job.status_changed", "technician.assigned"];
+const PERSON_ACTIONS = ["copilot.executed", "copilot.declined", "job.rescheduled", "job.status_changed", "technician.assigned", "payment.recorded", "payment.confirmed"];
 
 function actedBy(actor: string, email: string | null) {
   if (actor === "orvius" || actor === "system") return "Orvius";
@@ -193,10 +195,12 @@ export type Handled = {
   assigned: number;
   confirmations: number;
   escalated: number;
+  /** Card payments Orvius recorded. Cash the technician took is on the events, not in this count. */
+  collected: number;
   events: HandledEvent[];
 };
 
-const FEED_ACTIONS = ["job.booked", "technician.assigned", "autopilot.assigned", "autopilot.confirm_sent", "lead.escalated", "lead.held"];
+const FEED_ACTIONS = ["job.booked", "technician.assigned", "autopilot.assigned", "autopilot.confirm_sent", "lead.escalated", "lead.held", "payment.recorded", "payment.confirmed"];
 
 /** What Orvius did on its own in the window — the other half of the Command story. */
 export async function listHandled(businessId: string, sinceMs = 24 * 60 * 60 * 1000, now = new Date()): Promise<Handled> {
@@ -214,7 +218,7 @@ export async function listHandled(businessId: string, sinceMs = 24 * 60 * 60 * 1
         createdAt: { gte: since },
         OR: [
           { actor: { in: ["orvius", "system"] }, action: { in: FEED_ACTIONS } },
-          { actor: { in: ["owner", "teammate"] }, action: { in: PERSON_ACTIONS } },
+          { actor: { in: ["owner", "teammate", "technician"] }, action: { in: PERSON_ACTIONS } },
         ],
       },
       orderBy: { createdAt: "desc" },
@@ -230,6 +234,7 @@ export async function listHandled(businessId: string, sinceMs = 24 * 60 * 60 * 1
     assigned: n("technician.assigned", "autopilot.assigned"),
     confirmations: n("autopilot.confirm_sent"),
     escalated: n("lead.escalated", "lead.held"),
+    collected: n("payment.recorded", "payment.confirmed"),
     events: feed.map((r) => ({
       id: r.id,
       at: r.createdAt.toISOString(),

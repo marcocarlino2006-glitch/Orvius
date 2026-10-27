@@ -206,6 +206,8 @@ export function WorkCard({
                 {item.amountLabel ? <span className="cmd-fact-money">{item.amountLabel}</span> : null}
                 <time dateTime={item.scheduledAt ?? item.createdAt}>{formatBeat(item.scheduledAt ?? item.createdAt, timezone)}</time>
               </p>
+              {item.address ? <p className="wc-where">{item.address}</p> : null}
+              {top?.kind === "emergency" && top.detail ? <p className="wc-detail">{spokenText(top.detail)}</p> : null}
               {item.path?.length ? (
                 <ol className="cmd-path">
                   {item.path.map((beat) => (
