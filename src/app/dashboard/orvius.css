@@ -20091,3 +20091,45 @@ html .os-shell .sc-embed .billing-settings > div > .pro-panel {
 :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one.cmd-work .wc-list > .wc:hover {
   background: var(--m-hover) !important;
 }
+
+/* Small text links on the record pages get a full-size touch area without moving anything. */
+@media (max-width: 640px), (pointer: coarse) {
+  .os-shell :is(.jv-links a, .rec-add-link, .cl-source, .wh-event-title a) {
+    position: relative;
+  }
+
+  .os-shell :is(.jv-links a, .rec-add-link, .cl-source, .wh-event-title a)::after {
+    content: "";
+    position: absolute;
+    inset: -9px -6px;
+  }
+
+  .os-shell .wh-event > .ct-kind {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Phone header: the logo and the page buttons share a row only when they fit. Three buttons drop to their own row instead of covering the logo. The header scrolls away so the dock keeps the screen. */
+@media (max-width: 767px) {
+  html body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .os-topbar {
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: center;
+    position: static !important;
+  }
+
+  html body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .os-topbar-brand {
+    order: 1;
+  }
+
+  html body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .os-topbar-actions {
+    order: 2;
+    margin-left: auto;
+    flex: 0 1 auto;
+  }
+
+  html body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .os-topbar-shop {
+    order: 3;
+    flex: 0 0 100%;
+  }
+}
