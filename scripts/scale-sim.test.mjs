@@ -77,6 +77,29 @@ test("a call report that hits the database lock retries in place, and only for t
   assert.match(route, /if \(attempt >= 2 \|\| !isDatabaseBusy\(error\)\) throw error;/);
 });
 
+test("a callback from the same number written another way is still the same caller", async () => {
+  const { createScriptPrisma, loadEnvFile } = await import("./lib/db.mjs");
+  loadEnvFile();
+  const prisma = createScriptPrisma();
+  const { createJobFromLead, RepeatCallerError } = await import("../src/lib/job.ts");
+  const shop = await prisma.business.create({
+    data: { name: "Format Air", slug: `format-${Date.now()}`, environment: "test", timezone: "America/Chicago", hoursJson: "{}", servicesJson: "[]" },
+  });
+  try {
+    const lead = (phone, n) =>
+      prisma.lead.create({ data: { businessId: shop.id, phone, status: "new", serviceType: "AC not cooling", address: `${n} Main St` } });
+    const repeatSince = { at: new Date(Date.now() - 86_400_000), statuses: ["scheduled", "confirmed"] };
+    const first = await createJobFromLead({ leadId: (await lead("(555) 555-0177", 1)).id, skipAutoAssign: true, repeatSince });
+    await assert.rejects(
+      createJobFromLead({ leadId: (await lead("+15555550177", 2)).id, skipAutoAssign: true, repeatSince }),
+      (error) => error instanceof RepeatCallerError && error.job.id === first.id,
+    );
+    assert.equal(await prisma.job.count({ where: { businessId: shop.id } }), 1);
+  } finally {
+    await prisma.business.delete({ where: { id: shop.id } }).catch(() => {});
+  }
+});
+
 test("a dropped call and its callback booking together leave one job", async () => {
   const { createScriptPrisma, loadEnvFile } = await import("./lib/db.mjs");
   loadEnvFile();
