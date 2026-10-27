@@ -266,7 +266,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
         ) : latestCall && latestWho ? (
           <DeskCall call={latestCall} live={false} who={latestWho} when={formatWhen(latestCall.createdAt, new Date(), data?.coverage?.timezone)} reply={replyLine} timezone={data?.coverage?.timezone} />
         ) : null}
-        {!pictured && liveApproval ? (
+        {!liveCall && liveApproval ? (
           <ul className="wc-list cmd-queue">
             <li className="wc wc--approval wc--now">
               {liveApproval.needsCheck ? (
@@ -276,7 +276,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
               )}
             </li>
           </ul>
-        ) : !pictured && liveItem ? (
+        ) : !liveCall && liveItem ? (
           <ul className="wc-list cmd-queue">
             <WorkCard key={liveItem.key} item={liveItem} approval={approvalFor(liveItem.approvalId)} technicians={data?.technicians ?? []} onChange={() => void refresh()} variant="now" timezone={data?.coverage?.timezone} />
           </ul>
@@ -321,7 +321,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
               : undefined
           }
           items={items}
-          asideKey={pictured ? null : (liveItem?.key ?? null)}
+          asideKey={!liveCall && liveItem ? liveItem.key : null}
           technicians={data.technicians ?? []}
           onWorkChange={() => void refresh()}
           timezone={data.coverage?.timezone}

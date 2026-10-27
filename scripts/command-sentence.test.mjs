@@ -191,6 +191,9 @@ test("the desk shows the call: a booked one opens the job, an open one calls bac
   assert.equal(commandCallPhone(booked), "+1 312 555 0194");
   assert.deepEqual(commandCallActions(booked, true).primary, { href: "/dashboard/calls/c1", label: "Open the call" });
 
+  const flagged = { id: "c3", status: "ended", booked: true, hasLead: true, durationSec: 90, callerPhone: "+13125550100", summary: "Water under the furnace.", job: null };
+  assert.equal(commandCallOutcomeLine(flagged, false), "Held for review");
+
   const open = { id: "c2", status: "ended", booked: false, hasLead: true, durationSec: 90, callerPhone: "+13125550100", summary: null, job: null };
   assert.equal(commandCallOutcomeLine(open, false), "Held for review");
   assert.deepEqual(commandCallActions(open, false), {
