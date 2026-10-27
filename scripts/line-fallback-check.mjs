@@ -9,13 +9,11 @@
  * Needs TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, DATABASE_URL (and APP_URL so the
  * expected fallback address is the production one).
  */
-import { PrismaClient } from "@prisma/client";
-
 import { auditLineFallback, expectedVoiceFallbackUrl, unprotectedLines } from "../src/lib/line-fallback.ts";
+import { prisma } from "../src/lib/prisma.ts";
 import { getTwilioClient } from "../src/lib/twilio-client.ts";
 
 const fix = process.argv.includes("--fix");
-const prisma = new PrismaClient();
 
 try {
   const shops = await prisma.business.findMany({
