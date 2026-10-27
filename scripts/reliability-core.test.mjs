@@ -65,7 +65,7 @@ test("dashboard fetch failures name cause, impact, and recovery", () => {
   assert.match(lib, /Open Billing/);
   const inbox = read("src/app/dashboard/inbox/page.tsx");
   assert.match(inbox, /readDashboardError/);
-  assert.match(inbox, /Recover:/);
+  assert.match(inbox, /failure\.cause[^\n]*failure\.recovery/);
 });
 
 test("onboarding opens the desk once the number exists", () => {

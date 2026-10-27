@@ -1,6 +1,9 @@
+import type { Metadata } from "next";
 import { BrandIntro } from "@/components/brand-intro";
 import { MarketingShell } from "@/components/marketing-shell";
 import Link from "next/link";
+
+export const metadata: Metadata = { title: "Page not found" };
 
 export default function NotFound() {
   return (

@@ -231,7 +231,6 @@ export default function InboxPage() {
   const [filter, setFilter] = useState<Filter>("");
   const [failure, setFailure] = useState<DashboardLoadFailure | null>(null);
   const [loading, setLoading] = useState(true);
-  const [loadedAt, setLoadedAt] = useState<string | null>(null);
   const [truncated, setTruncated] = useState(false);
   const [timeZone, setTimeZone] = useState<string | null>(null);
 
@@ -248,7 +247,6 @@ export default function InboxPage() {
       setLeads(data.leads ?? []);
       setCounts(data.views ?? null);
       setTruncated(Boolean(data.truncated));
-      setLoadedAt(data.generatedAt);
       setTimeZone(data.timezone ?? null);
     } catch {
       setFailure(describeDashboardFailure("Inbox", null, "Network error"));
@@ -267,7 +265,6 @@ export default function InboxPage() {
   return (
     <OsShell
       title="Inbox"
-      subtitle={loadedAt ? `Updated ${ago(loadedAt, timeZone)}` : undefined}
       actions={
         <Link href="/dashboard/inbox/messages" className="btn btn-secondary text-sm">
           Messages

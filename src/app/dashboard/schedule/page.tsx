@@ -343,7 +343,7 @@ export default function DispatchPage() {
   const bookedMin = schedule?.lanes.reduce((sum, lane) => sum + lane.bookedMin, 0) ?? 0;
 
   return (
-    <OsShell title="Schedule" subtitle="Who is going where today.">
+    <OsShell title="Schedule">
       <PlanUpgradeGate module="dispatch">
         {view === "day" ? (
         <ProLead

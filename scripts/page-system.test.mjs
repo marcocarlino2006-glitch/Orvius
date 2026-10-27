@@ -14,6 +14,7 @@ import { callOutcome } from "../src/lib/call-outcome.ts";
 import { previewMove } from "../src/lib/schedule-move.ts";
 import { aiAuthority } from "../src/lib/ai-authority.ts";
 import { osProductNav } from "../src/lib/os-nav.ts";
+import { describeDashboardFailure } from "../src/lib/dashboard-fetch.ts";
 
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 
@@ -77,6 +78,11 @@ test("call outcomes: safety wins, transfers come from the end reason, short call
   assert.equal(callOutcome({ ...base, durationSec: 5 }), "incomplete");
   assert.equal(callOutcome({ ...base, lead: null }), "incomplete");
   assert.equal(callOutcome(base), "held");
+  // Booked means a job exists: a flag with no job behind it is a request still waiting.
+  assert.equal(callOutcome({ ...base, booked: true, lead: { urgency: "normal", job: null } }), "held");
+  assert.equal(callOutcome({ ...base, booked: true, lead: { urgency: "emergency", job: null } }), "safety");
+  assert.equal(callOutcome({ ...base, booked: false, lead: { urgency: "normal", job: { id: "j1" } } }), "booked");
+  assert.equal(callOutcome({ ...base, booked: true, lead: { urgency: "normal", job: { id: "j1" } } }), "booked");
 });
 
 test("a schedule move is previewed with conflicts and who gets told, before anything saves", () => {
@@ -136,4 +142,12 @@ test("Command asks for work in one bar and shows propose → approve → result"
   assert.match(center, /cmd-one/);
   assert.doesNotMatch(center, /The rest is in Work/);
   assert.doesNotMatch(center, /revenue at risk/i);
+});
+
+test("a load failure reads as sentences: the cause ends before the next step starts", () => {
+  const failed = describeDashboardFailure("Inbox", null, "Network error");
+  assert.equal(failed.cause, "Network error.");
+  assert.equal(`${failed.cause} ${failed.recovery}`.includes("Network error. Retry now."), true);
+  assert.equal(describeDashboardFailure("Inbox", 500, "Could not read leads.").cause, "Could not read leads.");
+  assert.equal(describeDashboardFailure("Inbox", 500, null).cause, "The server did not return this list.");
 });

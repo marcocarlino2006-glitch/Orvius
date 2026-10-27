@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { callOutcome } from "@/lib/call-outcome";
+import { callIsBooked, callOutcome } from "@/lib/call-outcome";
 import { holdDecisionsByLead } from "@/lib/booking-decision";
 import { gradeCall } from "@/lib/call-quality";
 import { getCustomerTimeline } from "@/lib/customer";
@@ -75,7 +75,7 @@ export async function GET(_request: Request, { params }: Params) {
 
   const actionsTaken: string[] = [];
   if (call.ownerNotifiedAt) actionsTaken.push("Owner alerted");
-  if (call.booked || call.lead?.job) actionsTaken.push("Job booked");
+  if (callIsBooked(call)) actionsTaken.push("Job booked");
   if (call.lead?.status === "contacted") actionsTaken.push("Marked contacted");
   if (call.lead?.status === "new" && !call.lead.job) {
     actionsTaken.push("Lead waiting in inbox");

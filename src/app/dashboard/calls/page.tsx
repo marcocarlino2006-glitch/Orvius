@@ -47,7 +47,6 @@ export default function CallsPage() {
   const [filter, setFilter] = useState<Filter>("");
   const [query, setQuery] = useState("");
   const [searched, setSearched] = useState("");
-  const [loadedAt, setLoadedAt] = useState<number | null>(null);
 
   const load = useCallback((q: string) => {
     setLoading(true);
@@ -61,7 +60,6 @@ export default function CallsPage() {
         setCalls(data.calls ?? []);
         setTimeZone(typeof data.timezone === "string" ? data.timezone : null);
         setSearched(q);
-        setLoadedAt(Date.now());
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -95,7 +93,6 @@ export default function CallsPage() {
   return (
     <OsShell
       title="Calls"
-      subtitle={loadedAt ? `What happened on the phone · updated ${new Date(loadedAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", ...(timeZone ? { timeZone } : {}) })}` : "What happened on the phone"}
     >
       <ProLead
         loading={loading && !calls.length}
