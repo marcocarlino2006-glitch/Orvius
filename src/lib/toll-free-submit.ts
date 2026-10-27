@@ -29,7 +29,7 @@ export type TollFreeOwnerFacts = {
   account notifications for the owner, customer care for the caller.
 */
 export const USE_CASE_SUMMARY =
-  "Orvius sends transactional texts only, never marketing, for HVAC, plumbing and electrical shops. Account notifications: the owner enters a mobile number during setup and is texted when a caller requests service. Customer care: the customer calls or texts the shop first and gives a number for that job. Messages cover that job only: received, a proposed time and confirm link, one reminder, one follow-up, and a pay link. Each customer text names the shop and says Reply STOP to opt out.";
+  "Orvius sends transactional texts only, never marketing, for HVAC, plumbing and electrical shops. Account notifications: the owner enters a mobile number at setup and is texted when a caller requests service. Customer care: the customer calls or texts the shop first and gives a number for that job. Texts cover that job only: received, a proposed time and confirm link, one reminder, one follow-up, a pay link, one review request. Each customer text names the shop and says Reply STOP to opt out.";
 
 export const MESSAGE_SAMPLES = [
   "Same day · AC not cooling\nAnn Lee\n12 Oak St, Austin TX\n+15125550101\nProposed window · Thu, Oct 1, 2:00 PM CDT (awaiting customer confirm)",

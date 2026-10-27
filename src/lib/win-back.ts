@@ -5,6 +5,8 @@ import { getAppUrl } from "@/lib/env";
 import { isShopDaytime } from "@/lib/lead-follow-up";
 import { logInfo } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
+import { isSimulatedWorkspace } from "@/lib/sms-simulation";
+import { textingEligibility } from "@/lib/sms-eligibility";
 
 /**
  * Win-back: the owner texts customers who haven't been back in a while. It is
@@ -71,7 +73,7 @@ export async function winBackAudience(businessId: string, months: number, now = 
 
 export type WinBackResult =
   | { ok: true; sent: number; skipped: number; remaining: number }
-  | { ok: false; reason: "night" | "empty_message" | "too_long"; message: string };
+  | { ok: false; reason: "night" | "empty_message" | "too_long" | "shared_sender" | "held"; message: string };
 
 export async function sendWinBack(params: {
   businessId: string;
@@ -93,6 +95,24 @@ export async function sendWinBack(params: {
   });
   if (!isShopDaytime(now, shop.timezone)) {
     return { ok: false, reason: "night", message: "Texts to customers go out between 9am and 8pm your time. Try again then." };
+  }
+  /*
+    The shared Orvius number is registered with the carriers for service
+    texts only. A promotional text goes out only from the shop's own approved
+    texting registration, so the shared number never sends marketing.
+  */
+  if (!(await isSimulatedWorkspace(params.businessId))) {
+    const eligibility = await textingEligibility(params.businessId);
+    if (!eligibility.ok) {
+      return { ok: false, reason: "held", message: `${eligibility.detail} Promotional texts wait until your own texting registration is approved.` };
+    }
+    if (eligibility.via === "shared") {
+      return {
+        ok: false,
+        reason: "shared_sender",
+        message: "Promotional texts need your own approved texting registration. The shared Orvius number is for service texts only.",
+      };
+    }
   }
   const link = shop.bookingPageOn ? `${getAppUrl().replace(/\/$/, "")}/b/${shop.slug}` : null;
 

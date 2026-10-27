@@ -24,7 +24,7 @@ The founder launch card at `/admin` shows the live status once it's submitted.
 
 ## Use case summary
 
-> Orvius sends transactional texts only, never marketing, for HVAC, plumbing and electrical shops. Account notifications: the owner enters a mobile number during setup and is texted when a caller requests service. Customer care: the customer calls or texts the shop first and gives a number for that job. Messages cover that job only: received, a proposed time and confirm link, one reminder, one follow-up, and a pay link. Each customer text names the shop and says Reply STOP to opt out.
+> Orvius sends transactional texts only, never marketing, for HVAC, plumbing and electrical shops. Account notifications: the owner enters a mobile number at setup and is texted when a caller requests service. Customer care: the customer calls or texts the shop first and gives a number for that job. Texts cover that job only: received, a proposed time and confirm link, one reminder, one follow-up, a pay link, one review request. Each customer text names the shop and says Reply STOP to opt out.
 
 Twilio's form rejects this field above 500 characters. The sentence above is the one the admin button files.
 
@@ -59,6 +59,11 @@ These follow the templates in the code that sends them; the names, times and lin
    > Cole Heating: thanks for choosing us. Your balance is $285.00. Pay securely here: https://app.orvius.im/i/…
    >
    > Reply STOP to opt out. Msg&data rates may apply.
+
+5. Review request, once after a finished visit (`src/lib/review-requests.ts`):
+   > Hi Ann, thanks for choosing Cole Heating. Would you take a minute to leave us a review? It really helps a small business: https://g.page/r/… Reply STOP to opt out.
+
+Promotional texts (win-back) are not sent from this number. They go out only from a shop's own approved texting registration (`src/lib/win-back.ts`), so the filing's "never marketing" is true of the shared sender. The SMS terms page describes those promotional texts because a shop with its own registration can send them.
 
 ## If it is rejected
 
