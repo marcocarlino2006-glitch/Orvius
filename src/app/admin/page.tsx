@@ -4,6 +4,7 @@ import { askConfirm } from "@/components/ask-dialog";
 import { OsShell } from "@/components/os-shell";
 import { LineFallbackCard } from "@/components/line-fallback-card";
 import { TollFreeForm } from "@/components/toll-free-form";
+import { ProLead } from "@/components/pro-lead";
 import { LiveStatusBar } from "@/components/live-status-bar";
 import { FormField, ShellBadge } from "@/components/shell-primitives";
 import { AdminSkeleton, SkeletonBar } from "@/components/shell-skeleton";
@@ -106,8 +107,23 @@ const defaultHours = JSON.stringify(
   2,
 );
 
+const SHOP_PAGE = 25;
+
+const ADMIN_TABS = [
+  { id: "overview", label: "Overview" },
+  { id: "launch", label: "Launch" },
+  { id: "shops", label: "Shops" },
+  { id: "growth", label: "Growth" },
+] as const;
+
+type AdminTab = (typeof ADMIN_TABS)[number]["id"];
+
 export default function AdminPage() {
   const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [shopTotal, setShopTotal] = useState(0);
+  const [shopQuery, setShopQuery] = useState("");
+  const [shopLimit, setShopLimit] = useState(SHOP_PAGE);
+  const [tab, setTab] = useState<AdminTab>("overview");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -158,10 +174,12 @@ export default function AdminPage() {
     }
   }
 
-  async function loadBusinesses() {
+  async function loadBusinesses(query = shopQuery, limit = shopLimit) {
     setLoading(true);
     try {
-      const res = await fetch("/api/businesses");
+      const search = new URLSearchParams({ limit: String(limit) });
+      if (query.trim()) search.set("q", query.trim());
+      const res = await fetch(`/api/businesses?${search}`);
       const data = await res.json().catch(() => null);
       if (!res.ok || !Array.isArray(data)) {
         setBusinesses([]);
@@ -171,6 +189,7 @@ export default function AdminPage() {
         return;
       }
       setBusinesses(data);
+      setShopTotal(Number(res.headers.get("x-total-count")) || data.length);
       setOwnerEdits(
         Object.fromEntries(
           data.map((b: Business) => [b.id, b.ownerPhone ?? ""]),
@@ -185,7 +204,23 @@ export default function AdminPage() {
   }
 
   useEffect(() => {
-    loadBusinesses();
+    const fromUrl = new URLSearchParams(window.location.search).get("tab");
+    const match = ADMIN_TABS.find((t) => t.id === fromUrl);
+    if (match) setTab(match.id);
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => void loadBusinesses(shopQuery, shopLimit), shopQuery ? 250 : 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shopQuery, shopLimit]);
+
+  function pickTab(next: AdminTab) {
+    setTab(next);
+    window.history.replaceState(null, "", next === "overview" ? "/admin" : `/admin?tab=${next}`);
+  }
+
+  useEffect(() => {
     loadProspects();
     fetch("/api/health")
       .then((res) => res.json())
@@ -388,8 +423,8 @@ export default function AdminPage() {
   if (loading && !health) {
     return (
       <OsShell
-        title="Business setup"
-        subtitle="Provision a shop, connect the live line, and verify owner alerts."
+        title="Admin"
+        subtitle="The company, the launch, every shop and the pipeline."
         statusLabel="Loading"
       >
         <AdminSkeleton />
@@ -399,8 +434,8 @@ export default function AdminPage() {
 
   return (
     <OsShell
-      title="Business setup"
-      subtitle="Provision a shop, connect the live line, and verify owner alerts."
+      title="Admin"
+      subtitle="The company, the launch, every shop and the pipeline."
       statusLabel={health?.configured ? "Ready to provision" : "Setup needed"}
       actions={
         <Link href="/admin/daily" className="btn btn-void text-sm">
@@ -409,18 +444,46 @@ export default function AdminPage() {
       }
     >
       <LiveStatusBar />
+      <nav className="pro-filter-bar adm-tabs" aria-label="Admin sections" role="tablist">
+        {ADMIN_TABS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            role="tab"
+            aria-selected={tab === t.id}
+            className={`pro-filter-tab${tab === t.id ? " pro-filter-tab-active" : ""}`}
+            onClick={() => pickTab(t.id)}
+          >
+            {t.label}
+            {t.id === "launch" && gate && gate.blockers > 0 ? <span className="pro-filter-count">{gate.blockers}</span> : null}
+          </button>
+        ))}
+      </nav>
 
+      <div className="adm">
+      {tab === "overview" ? (
+        <>
+
+      {board ? (
+        <ProLead
+          figure={String(board.payingShops)}
+          caption="Paying shops"
+          facts={[
+            { label: "Active", value: board.activeShops },
+            { label: "Calls this week", value: board.thisWeek.calls },
+            { label: "Jobs booked", value: board.thisWeek.jobsBooked },
+            { label: "Platform fees", value: dollars(board.thisWeek.platformFeeCents ?? 0) },
+          ]}
+        />
+      ) : null}
       {board ? <ScoreboardCard board={board} /> : null}
       {funnel ? <LaunchFunnelCard funnel={funnel} /> : null}
       {density ? <DensityCard density={density} /> : null}
       {attach ? <PaymentsAttachCard attach={attach} /> : null}
-      <ProofKitCard
-        businesses={businesses}
-        kit={kit}
-        shopId={kitShopId}
-        onPick={(id) => void loadProofKit(id)}
-      />
-      <LineFallbackCard />
+        </>
+      ) : null}
+      {tab === "launch" ? (
+        <>
       {gate ? (
         <LaunchGateCard gate={gate} />
       ) : gateNote ? (
@@ -432,7 +495,237 @@ export default function AdminPage() {
           <p className="mt-2 font-sans text-sm text-ash">{gateNote}</p>
         </section>
       ) : null}
+      <LineFallbackCard />
 
+      <section className="card mb-8 p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="home-os-kicker">Pre-post gate</p>
+            <h2 className="mt-2 font-serif text-xl tracking-[-0.03em] text-void">
+              Go-live checklist
+            </h2>
+          </div>
+          <ShellBadge tone={checklist.every((c) => c.done) ? "live" : "flare"}>
+            {checklist.filter((c) => c.done).length}/{checklist.length}
+          </ShellBadge>
+        </div>
+        <ul className="mt-5 space-y-2">
+          {checklist.map((item) => (
+            <li
+              key={item.label}
+              className="flex items-center justify-between rounded-md border border-rule px-3 py-2.5 font-sans text-sm"
+            >
+              <span className="text-void">{item.label}</span>
+              <span className={item.done ? "text-live font-medium" : "text-ash"}>
+                {item.done ? "Done" : "Open"}
+              </span>
+            </li>
+          ))}
+        </ul>
+        {health ? (
+          <p className="mt-4 font-sans text-xs leading-relaxed text-ash">
+            Webhook: {health.webhookUrl} · SMS: {health.smsWebhookUrl}
+          </p>
+        ) : null}
+      </section>
+
+        </>
+      ) : null}
+      {tab === "shops" ? (
+        <>
+      <section className="card" aria-label="Shops">
+        <div className="adm-head">
+          <div>
+            <p className="home-os-kicker">Shops</p>
+            <h2>Connected shops</h2>
+          </div>
+          <span className="adm-count">
+            {shopQuery.trim() ? `${shopTotal} match` : `${shopTotal} total`}
+          </span>
+        </div>
+        <input
+          className="input adm-search"
+          type="search"
+          value={shopQuery}
+          onChange={(e) => {
+            setShopLimit(SHOP_PAGE);
+            setShopQuery(e.target.value);
+          }}
+          placeholder="Search by name, slug, phone or email"
+          aria-label="Search shops"
+        />
+        {error ? <p className="adm-note adm-note--bad" role="alert">{error}</p> : null}
+        {success ? <p className="adm-note adm-note--ok" role="status">{success}</p> : null}
+        {loading && businesses.length === 0 ? (
+          <div className="mt-4 space-y-3" aria-busy="true">
+            <SkeletonBar wide className="h-4" />
+            <SkeletonBar wide className="h-3 max-w-[70%]" />
+          </div>
+        ) : businesses.length === 0 ? (
+          <p className="adm-empty">
+            {shopQuery.trim()
+              ? "No shop matches that search."
+              : "No shops yet. Add the first one below to provision its line."}
+          </p>
+        ) : (
+          <ul className="adm-rows">
+            {businesses.map((business) => (
+              <li key={business.id} className="adm-shop">
+                <div className="adm-shop-main">
+                  <p className="adm-shop-name">{business.name}</p>
+                  <p className="adm-shop-meta">
+                    /{business.slug} · {business.twilioPhone ?? business.vapiPhoneNumber ?? "No line"} ·{" "}
+                    {business._count?.calls ?? 0} calls · {business._count?.leads ?? 0} leads
+                  </p>
+                </div>
+                <span className="adm-pill">{business.billingStatus ?? "pilot"}</span>
+                <details className="adm-shop-more">
+                  <summary>Edit</summary>
+                  <div className="adm-shop-edit">
+                    <input
+                      className="input text-sm"
+                      value={ownerEdits[business.id] ?? ""}
+                      onChange={(e) =>
+                        setOwnerEdits({
+                          ...ownerEdits,
+                          [business.id]: e.target.value,
+                        })
+                      }
+                      placeholder="+1 owner phone for SMS"
+                      aria-label={`Owner phone for ${business.name}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => saveOwnerPhone(business.id)}
+                      className="btn btn-secondary shrink-0 text-sm"
+                    >
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(business.id)}
+                      className="adm-danger"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </details>
+              </li>
+            ))}
+          </ul>
+        )}
+        {businesses.length < shopTotal ? (
+          <button
+            type="button"
+            className="btn btn-secondary adm-more"
+            disabled={loading}
+            onClick={() => setShopLimit((n) => n + SHOP_PAGE)}
+          >
+            {loading ? "Loading…" : `Show more (${shopTotal - businesses.length} left)`}
+          </button>
+        ) : null}
+      </section>
+
+      <section className="card" aria-label="Add a shop">
+        <details className="adm-add" open={businesses.length === 0 && !loading && !shopQuery.trim()}>
+          <summary>
+            <span className="home-os-kicker">Provision</span>
+            <span className="adm-add-title">Add a shop</span>
+            <span className="adm-add-hint">Each shop gets its own dedicated number, never the marketing demo line.</span>
+          </summary>
+          <div className="pt-4">
+<form onSubmit={handleSubmit} className="space-y-4">
+          <FormField label="Business name">
+            <input
+              className="input"
+              required
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              placeholder="Summit HVAC"
+            />
+          </FormField>
+
+          <p className="font-sans text-sm text-ash">
+            Each shop gets its own dedicated Twilio number and night line —
+            never the marketing demo line.
+          </p>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <FormField label="Owner mobile (required)">
+              <input
+                className="input"
+                required
+                value={form.ownerPhone}
+                onChange={(e) =>
+                  setForm({ ...form, ownerPhone: e.target.value })
+                }
+                placeholder="+15551234567"
+              />
+            </FormField>
+            <FormField label="Owner email">
+              <input
+                className="input"
+                type="email"
+                value={form.ownerEmail}
+                onChange={(e) =>
+                  setForm({ ...form, ownerEmail: e.target.value })
+                }
+                placeholder="owner@company.com"
+              />
+            </FormField>
+          </div>
+
+          <FormField label="Custom greeting">
+            <input
+              className="input"
+              value={form.greeting}
+              onChange={(e) => setForm({ ...form, greeting: e.target.value })}
+              placeholder="Thank you for calling your shop name..."
+            />
+          </FormField>
+
+          <details className="adm-advanced">
+            <summary>Hours and services (defaults are fine for most shops)</summary>
+            <div className="space-y-4 pt-3">
+          <FormField label="Hours JSON">
+            <textarea
+              className="input min-h-40 font-mono text-sm"
+              value={form.hoursJson}
+              onChange={(e) =>
+                setForm({ ...form, hoursJson: e.target.value })
+              }
+            />
+          </FormField>
+
+          <FormField label="Services JSON">
+            <textarea
+              className="input min-h-40 font-mono text-sm"
+              value={form.servicesJson}
+              onChange={(e) =>
+                setForm({ ...form, servicesJson: e.target.value })
+              }
+            />
+          </FormField>
+            </div>
+          </details>
+
+          <button disabled={submitting} className="btn btn-void">
+            {submitting ? "Creating..." : "Create business + Vapi assistant"}
+          </button>
+        </form>
+          </div>
+        </details>
+      </section>
+      <ProofKitCard
+        businesses={businesses}
+        kit={kit}
+        shopId={kitShopId}
+        onPick={(id) => void loadProofKit(id)}
+      />
+        </>
+      ) : null}
+      {tab === "growth" ? (
+        <>
       <section className="card mb-8 p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -502,9 +795,6 @@ export default function AdminPage() {
           >
             {purgingSeeds ? "Purging…" : "Purge seed prospects"}
           </button>
-          <Link href="/admin/daily" className="btn btn-secondary text-xs">
-            Master all
-          </Link>
           <Link href="/pilot" className="btn btn-secondary text-xs">
             Pilot page
           </Link>
@@ -525,46 +815,7 @@ export default function AdminPage() {
           <p className="mt-3 font-sans text-sm text-flare-dim">{prospectError}</p>
         ) : null}
         {prospects.length === 0 ? (
-          <div className="mt-5 font-sans text-sm text-ash space-y-3">
-            <p>
-              Pipeline empty — multi-b distribution is zero until you load owners.
-              Target: 20 touches/day from Google Maps, trade groups, warm intros.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <label className="btn btn-void text-sm cursor-pointer">
-                {importing ? "Importing…" : "Import CSV (20/day)"}
-                <input
-                  type="file"
-                  accept=".csv,text/csv"
-                  className="sr-only"
-                  disabled={importing}
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) void importProspectCsv(file);
-                    e.target.value = "";
-                  }}
-                />
-              </label>
-              <Link href="/pilot" className="btn btn-secondary text-sm">
-                Open pilot form
-              </Link>
-              <Link href="/product" className="btn btn-secondary text-sm">
-                Share product tour
-              </Link>
-              <button
-                type="button"
-                className="btn btn-secondary text-sm"
-                onClick={async () => {
-                  const cold = outreachTemplates.find((t) => t.id === "cold_dm");
-                  if (!cold) return;
-                  await navigator.clipboard.writeText(cold.body);
-                  setCopyNote("Copied cold DM — paste into first outreach");
-                }}
-              >
-                Copy first outreach
-              </button>
-            </div>
-          </div>
+          <p className="adm-empty">No prospects loaded yet. Import a CSV and the due-first board fills in.</p>
         ) : (
           <ul className="mt-5 space-y-3">
             {prospects.slice(0, 40).map((p) => (
@@ -678,210 +929,8 @@ export default function AdminPage() {
         )}
       </section>
 
-      <section className="card mb-8 p-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="home-os-kicker">Pre-post gate</p>
-            <h2 className="mt-2 font-serif text-xl tracking-[-0.03em] text-void">
-              Go-live checklist
-            </h2>
-          </div>
-          <ShellBadge tone={checklist.every((c) => c.done) ? "live" : "flare"}>
-            {checklist.filter((c) => c.done).length}/{checklist.length}
-          </ShellBadge>
-        </div>
-        <ul className="mt-5 space-y-2">
-          {checklist.map((item) => (
-            <li
-              key={item.label}
-              className="flex items-center justify-between rounded-md border border-rule px-3 py-2.5 font-sans text-sm"
-            >
-              <span className="text-void">{item.label}</span>
-              <span className={item.done ? "text-live font-medium" : "text-ash"}>
-                {item.done ? "Done" : "Open"}
-              </span>
-            </li>
-          ))}
-        </ul>
-        {health ? (
-          <p className="mt-4 font-sans text-xs leading-relaxed text-ash">
-            Webhook: {health.webhookUrl} · SMS: {health.smsWebhookUrl}
-          </p>
-        ) : null}
-      </section>
-
-      <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-        <form onSubmit={handleSubmit} className="card space-y-4 p-6 md:p-7">
-          <h2 className="font-sans text-[0.9375rem] font-semibold text-void">
-            Add business
-          </h2>
-
-          <FormField label="Business name">
-            <input
-              className="input"
-              required
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="Summit HVAC"
-            />
-          </FormField>
-
-          <p className="font-sans text-sm text-ash">
-            Each shop gets its own dedicated Twilio number and night line —
-            never the marketing demo line.
-          </p>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <FormField label="Owner mobile (required)">
-              <input
-                className="input"
-                required
-                value={form.ownerPhone}
-                onChange={(e) =>
-                  setForm({ ...form, ownerPhone: e.target.value })
-                }
-                placeholder="+15551234567"
-              />
-            </FormField>
-            <FormField label="Owner email">
-              <input
-                className="input"
-                type="email"
-                value={form.ownerEmail}
-                onChange={(e) =>
-                  setForm({ ...form, ownerEmail: e.target.value })
-                }
-                placeholder="owner@company.com"
-              />
-            </FormField>
-          </div>
-
-          <FormField label="Custom greeting">
-            <input
-              className="input"
-              value={form.greeting}
-              onChange={(e) => setForm({ ...form, greeting: e.target.value })}
-              placeholder="Thank you for calling your shop name..."
-            />
-          </FormField>
-
-          <FormField label="Hours JSON">
-            <textarea
-              className="input min-h-40 font-mono text-sm"
-              value={form.hoursJson}
-              onChange={(e) =>
-                setForm({ ...form, hoursJson: e.target.value })
-              }
-            />
-          </FormField>
-
-          <FormField label="Services JSON">
-            <textarea
-              className="input min-h-40 font-mono text-sm"
-              value={form.servicesJson}
-              onChange={(e) =>
-                setForm({ ...form, servicesJson: e.target.value })
-              }
-            />
-          </FormField>
-
-          {error ? (
-            <p className="font-sans text-sm text-flare-dim">{error}</p>
-          ) : null}
-          {success ? (
-            <p className="font-sans text-sm text-live">{success}</p>
-          ) : null}
-
-          <button disabled={submitting} className="btn btn-void">
-            {submitting ? "Creating..." : "Create business + Vapi assistant"}
-          </button>
-        </form>
-
-        <section className="card p-6 md:p-7">
-          <h2 className="font-sans text-[0.9375rem] font-semibold text-void">
-            Connected businesses
-          </h2>
-          {loading ? (
-            <div className="mt-5 space-y-4" aria-busy="true">
-              <div className="rounded-md border border-rule bg-fog/40 p-4">
-                <SkeletonBar wide className="h-4" />
-                <SkeletonBar wide className="mt-3 h-3 max-w-[70%]" />
-              </div>
-            </div>
-          ) : businesses.length === 0 ? (
-            <p className="mt-4 font-sans text-sm text-ash">
-              No businesses yet. Create your first one to provision a Vapi
-              assistant.
-            </p>
-          ) : (
-            <ul className="mt-5 space-y-4">
-              {businesses.map((business) => (
-                <li
-                  key={business.id}
-                  className="rounded-md border border-rule bg-fog/40 p-4"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="font-sans text-sm font-semibold text-void">
-                        {business.name}
-                      </p>
-                      <p className="font-sans text-xs text-ash">/{business.slug}</p>
-                    </div>
-                    <button
-                      onClick={() => handleDelete(business.id)}
-                      className="font-sans text-xs text-flare-dim hover:underline"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                  <dl className="mt-3 space-y-1 font-sans text-xs text-ash">
-                    <div>
-                      Calls / Leads: {business._count?.calls ?? 0} /{" "}
-                      {business._count?.leads ?? 0}
-                    </div>
-                    <div>Twilio: {business.twilioPhone ?? "Not set"}</div>
-                    <div>
-                      Billing:{" "}
-                      <span className="font-medium capitalize text-void">
-                        {business.billingStatus ?? "pilot"}
-                      </span>
-                    </div>
-                  </dl>
-                  <div className="mt-4 flex gap-2">
-                    <input
-                      className="input text-sm"
-                      value={ownerEdits[business.id] ?? ""}
-                      onChange={(e) =>
-                        setOwnerEdits({
-                          ...ownerEdits,
-                          [business.id]: e.target.value,
-                        })
-                      }
-                      placeholder="+1 owner phone for SMS"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => saveOwnerPhone(business.id)}
-                      className="btn btn-secondary shrink-0 text-sm"
-                    >
-                      Save
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-
-          <div className="mt-6 rounded-md border border-rule bg-white p-4 font-sans text-sm leading-relaxed text-ash">
-            <p className="font-medium text-void">Test before you post</p>
-            <ol className="mt-2 list-decimal space-y-1 pl-5">
-              <li>Call your live Twilio number from your phone.</li>
-              <li>Confirm lead appears in /dashboard.</li>
-              <li>Confirm owner SMS arrives within 30 seconds.</li>
-              <li>Deploy to Vercel and update Vapi webhook URL.</li>
-            </ol>
-          </div>
-        </section>
+        </>
+      ) : null}
       </div>
     </OsShell>
   );
@@ -1190,45 +1239,61 @@ function ScoreboardCard({ board }: { board: CompanyScoreboard }) {
 
 /** What stands between today and public signup, each with the exact fix. */
 function LaunchGateCard({ gate }: { gate: LaunchGate }) {
+  const items = gate.items ?? [];
+  const open = items.filter((item) => !item.ready);
+  const done = items.length - open.length;
   return (
-    <section className="card mb-8 p-6" aria-label="Launch gate">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <section className="card" aria-label="Launch gate">
+      <div className="adm-head">
         <div>
           <p className="home-os-kicker">Launch</p>
-          <h2 className="mt-2 font-serif text-xl tracking-[-0.03em] text-void">
+          <h2>
             {gate.signupOpen ? "Signup is open" : `${gate.blockers} ${gate.blockers === 1 ? "step" : "steps"} before signup opens`}
           </h2>
+          <p className="adm-sub">{done} of {items.length} checks ready</p>
         </div>
         <ShellBadge tone={gate.signupOpen ? "live" : "flare"}>{gate.signupOpen ? "Open" : "Closed"}</ShellBadge>
       </div>
       {gate.sequence?.length ? (
-        <div className="mt-4 rounded-lg bg-black/[0.03] p-4">
-          <p className="font-sans text-sm font-medium text-void">Open the portal, in this order</p>
-          <ol className="mt-2 list-decimal space-y-1.5 pl-5 font-sans text-sm text-void">
+        <div className="adm-sequence">
+          <p className="adm-sequence-title">Open the portal, in this order</p>
+          <ol>
             {gate.sequence.map((step) => (
               <li key={step.key}>
-                {step.label} <span className="text-ash">— {step.why}</span>
+                {step.label} <span>— {step.why}</span>
               </li>
             ))}
           </ol>
         </div>
       ) : null}
-      <ul className="mt-4 space-y-3">
-        {(gate.items ?? []).map((item) => (
-          <li key={item.key} className="font-sans text-sm">
-            <p className={item.ready ? "text-live" : "text-void"}>
-              {item.ready ? "✓" : "○"} {item.label}
-              {!item.ready && !item.blocksSignup ? " · does not block signup, but alerts may not arrive" : ""}
-            </p>
-            {(item.fix ?? []).map((step) => (
-              <p key={step} className="ml-5 mt-1 text-xs text-ash">
-                {step}
+      {open.length ? (
+        <ul className="adm-rows adm-checks">
+          {open.map((item) => (
+            <li key={item.key} className="adm-check">
+              <p className="adm-check-title">
+                {item.label}
+                {!item.blocksSignup ? <span className="adm-pill">Doesn&apos;t block signup</span> : null}
               </p>
+              {(item.fix ?? []).map((step) => (
+                <p key={step} className="adm-check-fix">
+                  {step}
+                </p>
+              ))}
+              {item.key === "textDelivery" && item.canSubmit ? <TollFreeForm /> : null}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {done ? (
+        <details className="adm-done">
+          <summary>{done} ready</summary>
+          <ul>
+            {items.filter((item) => item.ready).map((item) => (
+              <li key={item.key}>✓ {item.label}</li>
             ))}
-            {item.key === "textDelivery" && item.canSubmit ? <TollFreeForm /> : null}
-          </li>
-        ))}
-      </ul>
+          </ul>
+        </details>
+      ) : null}
     </section>
   );
 }
