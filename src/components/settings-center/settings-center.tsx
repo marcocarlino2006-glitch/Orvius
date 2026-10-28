@@ -393,6 +393,9 @@ export function SettingsCenter({
         const meta = SETTINGS_SECTIONS.find((s) => s.id === item.id);
         return (
           <button key={item.id} type="button" className="sc-place-row" onClick={() => go(item.id)}>
+            <span className="sc-row-lead">
+              <SettingsIcon name={item.id} />
+            </span>
             <span className="sc-row-copy">
               <span className="sc-row-label">{meta ? settingsNavLabel(meta) : item.id}</span>
               <span className="sc-row-hint">{item.detail}</span>
@@ -417,14 +420,14 @@ export function SettingsCenter({
     if (!account || !b) return null;
     switch (section) {
       case "account":
-        return <AccountSection account={account} b={b} name={name} email={email} checklist={checklist} go={go} />;
+        return <AccountSection account={account} b={b} name={name} email={email} checklist={checklist} go={go} more={placeRows} />;
 
       case "business":
         return <BusinessSection b={b} patch={patch} />;
 
       case "phone":
         return (
-          <div id="overflow-forward">
+          <div id="overflow-forward" className="sc-card">
             <ConnectNumber onConfirmManually={(next) => saveOverflow(next)} />
           </div>
         );
@@ -636,7 +639,7 @@ export function SettingsCenter({
                     You&apos;re a Dispatcher here, so settings are view-only. The shop owner or a manager can change them.
                   </p>
                 ) : null}
-                {placeRows}
+                {section === "account" ? null : placeRows}
                 {renderSection()}
               </>
             )}

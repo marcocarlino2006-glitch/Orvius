@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { signOut } from "next-auth/react";
 import { RecordAvatar } from "@/components/record-avatar";
 import type { SettingsSectionId } from "@/lib/settings-center";
@@ -10,6 +11,7 @@ import { AppearanceGroup } from "../appearance-group";
 import { ReferGroup } from "../refer-group";
 import { SecurityGroup } from "../security-group";
 import { ScGroup, ScRow } from "../settings-primitives";
+import { SettingsIcon } from "../settings-icons";
 
 export function AccountSection({
   account,
@@ -18,6 +20,7 @@ export function AccountSection({
   email,
   checklist,
   go,
+  more,
 }: {
   account: Account;
   b: Business;
@@ -25,6 +28,7 @@ export function AccountSection({
   email: string;
   checklist: ReturnType<typeof buildShopSetupChecklist>;
   go: (next: SettingsSectionId) => void;
+  more?: ReactNode;
 }) {
   return (
     <>
@@ -41,9 +45,6 @@ export function AccountSection({
           <p className="sc-profile-name">{name}</p>
           <p className="sc-profile-email">{email}</p>
         </div>
-        <button type="button" className="sc-btn" onClick={() => signOut({ callbackUrl: "/" })}>
-          Sign out
-        </button>
       </div>
 
       <div className="sc-plan">
@@ -90,6 +91,8 @@ export function AccountSection({
         </div>
       ) : null}
 
+      {more}
+
       <ScGroup title="Workspace">
         <ScRow label="Shop" hint={[b.trade, b.address].filter(Boolean).join(" · ") || undefined}>
           <span className="sc-value">{b.name}</span>
@@ -113,6 +116,24 @@ export function AccountSection({
       {email && b.ownerEmail && email.toLowerCase() === b.ownerEmail.toLowerCase() ? <ReferGroup /> : null}
 
       <AppearanceGroup />
+
+      <div className="sc-end" aria-label="Sign out and delete">
+        <button type="button" className="sc-end-row" onClick={() => signOut({ callbackUrl: "/" })}>
+          <span className="sc-row-lead">
+            <SettingsIcon name="signout" />
+          </span>
+          Sign out
+        </button>
+        <button type="button" className="sc-end-row sc-end-row--danger" onClick={() => go("data")}>
+          <span className="sc-row-lead">
+            <SettingsIcon name="data" />
+          </span>
+          <span className="sc-row-copy">
+            <span className="sc-row-label">Delete workspace</span>
+            <span className="sc-row-hint">Your shop, calls and records, permanently</span>
+          </span>
+        </button>
+      </div>
     </>
   );
 }
