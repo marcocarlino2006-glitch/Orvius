@@ -2,6 +2,7 @@
 
 import { askConfirm } from "@/components/ask-dialog";
 import { OsShell } from "@/components/os-shell";
+import { LineFallbackCard } from "@/components/line-fallback-card";
 import { TollFreeForm } from "@/components/toll-free-form";
 import { LiveStatusBar } from "@/components/live-status-bar";
 import { FormField, ShellBadge } from "@/components/shell-primitives";
@@ -419,6 +420,7 @@ export default function AdminPage() {
         shopId={kitShopId}
         onPick={(id) => void loadProofKit(id)}
       />
+      <LineFallbackCard />
       {gate ? (
         <LaunchGateCard gate={gate} />
       ) : gateNote ? (

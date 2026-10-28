@@ -24,6 +24,7 @@ import { syncBusinessAssistant } from "@/lib/sync-business-assistant";
 import {
   canProvisionDedicatedLine,
   configureSmsWebhook,
+  ensureVoiceFallback,
   findLineByFriendlyName,
   purchaseLocalNumber,
   releasePhoneNumber,
@@ -280,6 +281,7 @@ async function provisionDedicatedLine(params: {
     assistantId: params.assistantId,
     shopName: params.shopName,
   });
+  await ensureVoiceFallback(phone);
   return phone;
 }
 
@@ -418,6 +420,7 @@ export async function ensureDedicatedShopLine(business: Business): Promise<{
       assistantId: business.vapiAssistantId,
       shopName: business.name,
     });
+    await ensureVoiceFallback(currentLine);
     await syncBusinessAssistant(business);
     return { business, repaired: false, dedicatedLine: true };
   }
