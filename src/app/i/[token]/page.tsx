@@ -1,3 +1,4 @@
+import "@/app/public-field.css";
 import type { Metadata } from "next";
 import { PublicInvoiceClient } from "@/components/public-invoice-client";
 
