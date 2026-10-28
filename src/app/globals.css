@@ -402,8 +402,7 @@ h3 {
   display: inline-flex;
   align-items: center;
   gap: 0;
-  color: black;
-  background: white;
+  color: inherit;
   line-height: 1;
 }
 
@@ -414,9 +413,7 @@ h3 {
 }
 
 .orvius-logo-mark {
-  color: black;
-  background: white;
-  border-radius: 22%;
+  color: inherit;
 }
 
 /* The lockup lives inside the word span so a later font-size still scales both. */
@@ -429,7 +426,7 @@ h3 {
   font-weight: 800;
   letter-spacing: -0.075em;
   line-height: 1;
-  color: black;
+  color: inherit;
 }
 
 .orvius-logo-word .orvius-logo-mark {
@@ -448,8 +445,7 @@ h3 {
 }
 
 .orvius-logo-void {
-  color: black;
-  background: white;
+  color: var(--ox-day-ink, #f6f6f6);
 }
 
 .orvius-logo-chalk {
@@ -2777,11 +2773,7 @@ button.btn {
   text-transform: none !important;
   letter-spacing: normal !important;
   font-weight: inherit !important;
-  border-radius: 0.5rem !important;
-}
-
-.orvius-logo-word {
-  padding: 0.14em 0.42em 0.14em 0.2em;
+  border-radius: 0 !important;
 }
 
 .orvius-logo-mark {
@@ -2789,20 +2781,13 @@ button.btn {
   text-transform: none !important;
   letter-spacing: normal !important;
   font-weight: inherit !important;
-  color: black !important;
-  background: white !important;
-  border-radius: 22% !important;
-}
-
-.orvius-logo,
-.orvius-logo-void {
-  color: black !important;
-  background: white !important;
+  color: inherit !important;
+  background: none !important;
 }
 
 .orvius-logo-word,
 .orvius-logo-svg {
-  color: black !important;
+  color: inherit !important;
 }
 
 /* ── Company presence — sparse product atmosphere ── */
@@ -3165,8 +3150,7 @@ label:has(> input[type="radio"]) {
 .os-sidebar-brand .orvius-logo-mark {
   width: 1.63em !important;
   height: 1.63em !important;
-  color: black !important;
-  background: white !important;
+  color: inherit !important;
 }
 
 .pro-panel {
@@ -3884,8 +3868,7 @@ label:has(> input[type="radio"]) {
 }
 
 .os-shell-pro .os-sidebar-brand .orvius-logo {
-  color: black !important;
-  background: white !important;
+  color: var(--ox-text) !important;
 }
 
 .os-shell-pro .job-card,
@@ -4260,8 +4243,7 @@ label:has(> input[type="radio"]) {
 }
 
 .onboarding-shell--night .orvius-logo {
-  color: black !important;
-  background: white !important;
+  color: var(--ox-text) !important;
 }
 
 /* Owner alert / transcript on night details */
@@ -5020,7 +5002,10 @@ html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated {
 html[data-theme="night"] .mkt-nav--institution .mkt-nav-links a,
 html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated .mkt-nav-links a,
 html[data-theme="night"] .mkt-nav--institution .mkt-nav-login,
-html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated .mkt-nav-login {
+html[data-theme="night"] .mkt-nav--institution.mkt-nav--elevated .mkt-nav-login,
+html[data-theme="night"] .mkt-nav .mkt-nav-brand .orvius-logo,
+html[data-theme="night"] .mkt-nav--elevated .mkt-nav-brand .orvius-logo,
+html[data-theme="night"] .mkt-nav--institution .mkt-nav-brand .orvius-logo {
   color: #edecec !important;
 }
 

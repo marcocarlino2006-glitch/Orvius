@@ -71,7 +71,7 @@ function DeskCall({
   const outcome = commandCallOutcomeLine(call, live);
   const bookedAt = outcome === "Booked" && call.job?.scheduledAt ? formatBeat(call.job.scheduledAt, timezone) : "";
   const phone = commandCallPhone(call);
-  const facts = [bookedAt ? `${outcome} · ${bookedAt}` : outcome, phone].filter(Boolean);
+  const outcomeLine = bookedAt ? `${outcome} · ${bookedAt}` : outcome;
   const actions = commandCallActions(call, live);
   return (
     <div className="cmd-call">
@@ -82,10 +82,37 @@ function DeskCall({
         <span className="cmd-live-about">{call.serviceType?.trim() || (live ? "On the line" : "Call")}</span>
         <time dateTime={call.createdAt}>{when}</time>
       </p>
-      {summary ? <p className="cmd-call-summary">{summary}</p> : live ? null : <p className="cmd-call-summary">Nothing was written down.</p>}
-      {summary ? <p className="cmd-call-note">Written by Orvius</p> : null}
-      {facts.length ? <p className="cmd-call-meta">{facts.join(" · ")}</p> : null}
-      {call.address?.trim() ? <p className="cmd-call-where">{call.address.trim()}</p> : null}
+      <dl className="cmd-call-trail">
+        {summary ? (
+          <div>
+            <dt>Heard</dt>
+            <dd className="cmd-call-summary">{summary}</dd>
+          </div>
+        ) : live ? null : (
+          <div>
+            <dt>Heard</dt>
+            <dd className="cmd-call-summary">Nothing was written down.</dd>
+          </div>
+        )}
+        {outcomeLine ? (
+          <div>
+            <dt>Did</dt>
+            <dd>{outcomeLine}</dd>
+          </div>
+        ) : null}
+        {call.address?.trim() ? (
+          <div>
+            <dt>Where</dt>
+            <dd>{call.address.trim()}</dd>
+          </div>
+        ) : null}
+        {phone ? (
+          <div>
+            <dt>Phone</dt>
+            <dd>{phone}</dd>
+          </div>
+        ) : null}
+      </dl>
       <div className="cmd-call-actions">
         <CallAction link={actions.primary} who={who} />
         {actions.secondary ? <CallAction link={actions.secondary} who={who} quiet /> : null}
