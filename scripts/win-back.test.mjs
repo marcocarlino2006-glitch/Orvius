@@ -28,10 +28,16 @@ function fakeSms() {
   return { sent, send: async (p) => (sent.push(p), { sent: true, sid: `SM${sent.length}` }) };
 }
 
-async function shop(overrides = {}) {
-  return prisma.business.create({
+async function shop({ ownCampaign = true, ...overrides } = {}) {
+  const business = await prisma.business.create({
     data: { name: "Luxe Hair Studio", slug: `wb-${stamp()}`, trade: "Salon", hoursJson: "{}", servicesJson: "[]", timezone: "America/Chicago", ...overrides },
   });
+  if (ownCampaign) {
+    await prisma.shopTexting.create({
+      data: { businessId: business.id, status: "approved", detailsJson: "{}", messagingServiceSid: `MG${stamp()}` },
+    });
+  }
+  return business;
 }
 
 async function customer(business, { name = "Ann Cole", seen = 8, completed = true, upcoming = false, ...data } = {}) {
@@ -106,6 +112,48 @@ test("a send texts each once as the owner, and a second send the same day texts 
     assert.equal(again.sent.length, 0);
     assert.ok(await prisma.auditEvent.findFirst({ where: { businessId: business.id, action: "customers.win_back_sent" } }));
   } finally {
+    await drop(business.id);
+  }
+});
+
+test("promotional texts never go out on the shared Orvius number or before the shop's own registration is approved", async () => {
+  const held = await shop({ ownCampaign: false });
+  try {
+    const c = await customer(held);
+    const sms = fakeSms();
+    const result = await sendWinBack({ businessId: held.id, months: 6, template: "Hi {first}", by, now: AFTERNOON, send: sms.send });
+    assert.equal(result.ok, false);
+    assert.equal(result.reason, "held");
+    assert.equal(sms.sent.length, 0);
+    assert.equal((await prisma.customer.findUniqueOrThrow({ where: { id: c.id } })).winBackSentAt, null, "nothing is marked sent");
+  } finally {
+    await drop(held.id);
+  }
+});
+
+test("a verified shared sender still does not carry a promotional text", async () => {
+  const before = { number: process.env.TWILIO_PHONE_NUMBER, service: process.env.TWILIO_MESSAGING_SERVICE_SID };
+  process.env.TWILIO_PHONE_NUMBER = "+18885550100";
+  delete process.env.TWILIO_MESSAGING_SERVICE_SID;
+  const identity = "number:+18885550100";
+  await prisma.messagingSender.upsert({
+    where: { identity },
+    create: { identity, kind: "toll_free", status: "verified", evidence: "test", checkedAt: new Date(), recordedBy: "test" },
+    update: { status: "verified" },
+  });
+  const business = await shop({ ownCampaign: false });
+  try {
+    await customer(business);
+    const sms = fakeSms();
+    const result = await sendWinBack({ businessId: business.id, months: 6, template: "Hi {first}", by, now: AFTERNOON, send: sms.send });
+    assert.equal(result.ok, false);
+    assert.equal(result.reason, "shared_sender");
+    assert.equal(sms.sent.length, 0);
+  } finally {
+    await prisma.messagingSender.deleteMany({ where: { identity } });
+    if (before.number === undefined) delete process.env.TWILIO_PHONE_NUMBER;
+    else process.env.TWILIO_PHONE_NUMBER = before.number;
+    if (before.service !== undefined) process.env.TWILIO_MESSAGING_SERVICE_SID = before.service;
     await drop(business.id);
   }
 });
