@@ -9,6 +9,7 @@ import { SupportContact } from "@/components/support-contact";
 import { TestAlertButton } from "@/components/test-alert-button";
 import { WorkCard } from "@/components/work-card";
 import { replyClock, replyPhrase } from "@/lib/call-latency";
+import { callToCash } from "@/lib/call-to-cash";
 import { commandCallActions, commandCallOutcomeLine, commandCallPhone, commandCallSummary, type CommandCall, type CommandCallLink } from "@/lib/command-call";
 import { commandNow } from "@/lib/command-now";
 import { deskFacts } from "@/lib/desk-status";
@@ -73,6 +74,7 @@ function DeskCall({
   const phone = commandCallPhone(call);
   const outcomeLine = bookedAt ? `${outcome} · ${bookedAt}` : outcome;
   const actions = commandCallActions(call, live);
+  const thread = callToCash({ live, hasLead: call.hasLead, job: call.job });
   return (
     <div className="cmd-call">
       <p className="cmd-call-kicker">{live ? "On the line" : "Latest call"}</p>
@@ -113,6 +115,17 @@ function DeskCall({
           </div>
         ) : null}
       </dl>
+      {thread ? (
+        <ol className="cmd-thread" aria-label="Where this call stands">
+          {thread.map((step) => (
+            <li key={step.key} className={`cmd-thread-step cmd-thread-step--${step.state}`} aria-current={step.state === "now" ? "step" : undefined}>
+              <i aria-hidden />
+              <span>{step.label}</span>
+              <span className="sr-only">{step.state === "done" ? ", done" : step.state === "now" ? ", next" : ""}</span>
+            </li>
+          ))}
+        </ol>
+      ) : null}
       <div className="cmd-call-actions">
         <CallAction link={actions.primary} who={who} />
         {actions.secondary ? <CallAction link={actions.secondary} who={who} quiet /> : null}
