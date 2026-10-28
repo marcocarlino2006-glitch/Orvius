@@ -330,3 +330,101 @@
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+
+/* Money pages (/e estimate, /i invoice, /d deposit): the same phone page as the confirm link. */
+.public-shell {
+  min-height: 100dvh;
+  padding: 1.25rem 1rem calc(3rem + env(safe-area-inset-bottom)) !important;
+  background: var(--ov-booking-bg) !important;
+  color: var(--ov-booking-ink);
+  font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
+}
+.public-shell .public-shell-inner {
+  max-width: 30rem;
+  padding-top: 1rem;
+}
+.public-shell .public-money {
+  padding: 1.25rem;
+  border: 1px solid var(--ov-booking-line-soft);
+  border-radius: 0.75rem;
+  background: var(--ov-booking-card);
+}
+.public-shell .public-money-shop {
+  margin: 0 0 0.375rem;
+  color: var(--ov-booking-faint);
+}
+.public-shell .public-money-title {
+  font-family: inherit;
+  font-size: 1.375rem;
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--ox-white);
+}
+.public-shell .public-money-amount {
+  margin: 1.25rem 0 0;
+  font-size: 2.25rem;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--ox-white);
+}
+.public-shell .public-money-meta,
+.public-shell .public-money-notes,
+.public-shell .public-money-muted {
+  font-size: 0.9375rem;
+  color: var(--ov-booking-muted);
+}
+.public-shell .public-money-status {
+  display: inline-block;
+  margin-top: 0.875rem;
+  padding: 0.25rem 0.625rem;
+  border: 1px solid var(--ov-booking-line-soft);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--ov-booking-muted);
+}
+.public-shell .public-money-error {
+  color: var(--ov-booking-red);
+}
+.public-shell .public-money-ok {
+  color: var(--ov-booking-mint);
+}
+.public-shell .public-money-actions {
+  margin-top: 1.5rem;
+}
+.public-shell .public-money-actions .btn {
+  width: 100%;
+  min-height: 3.125rem;
+  border-radius: 0.75rem !important;
+  font-size: 1rem;
+  font-weight: 500;
+}
+.public-shell .public-money-actions .btn-void:not(:disabled) {
+  border: 0;
+  background: var(--ov-booking-accent);
+  color: var(--ov-booking-on-accent);
+}
+.public-shell .public-money-actions .btn-secondary {
+  background: var(--ov-booking-action);
+  border: 1px solid var(--ov-booking-line);
+  color: var(--ox-white);
+}
+.public-shell .public-money-fine {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--ov-booking-line-soft);
+  color: var(--ov-booking-faint);
+}
+.public-shell .public-option {
+  border-radius: 0.75rem !important;
+  background: var(--ov-booking-raised);
+  border-color: var(--ov-booking-track);
+}
+.public-shell .public-money-lines {
+  border-top-color: var(--ov-booking-line-soft);
+}
+.public-shell .public-money-lines > .is-total {
+  border-top-color: var(--ov-booking-line-soft);
+}
