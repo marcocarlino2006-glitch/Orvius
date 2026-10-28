@@ -1,6 +1,6 @@
 import type { SettingsSectionId } from "@/lib/settings-center";
 
-type IconName = SettingsSectionId | "help" | "close" | "back" | "external" | "search" | "updown" | "sms" | "mail" | "calendar" | "jobs";
+type IconName = SettingsSectionId | "help" | "close" | "back" | "external" | "search" | "updown" | "sms" | "mail" | "calendar" | "jobs" | "signout";
 
 const PATHS: Record<IconName, string[]> = {
   account: ["M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z", "M4.5 20a7.5 7.5 0 0 1 15 0"],
@@ -45,6 +45,7 @@ const PATHS: Record<IconName, string[]> = {
   mail: ["M3.5 6h17v12h-17z", "M3.5 7l8.5 6 8.5-6"],
   calendar: ["M4 6h16v14H4z", "M4 10h16", "M8 3.5v4", "M16 3.5v4"],
   jobs: ["M4 8h16v11H4z", "M9 8V5.5h6V8", "M4 13h16"],
+  signout: ["M14 4h3.5A1.5 1.5 0 0 1 19 5.5v13a1.5 1.5 0 0 1-1.5 1.5H14", "M10 8l-4 4 4 4", "M6 12h9"],
 };
 
 export type { IconName as SettingsIconName };

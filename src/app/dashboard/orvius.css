@@ -9401,7 +9401,11 @@ html[data-theme="day"] .os-shell.os-shell-night :is(.lead-quick-btn,  .lead-quic
   display: flex;
   align-items: center;
   gap: 0.875rem;
-  padding: 0.5rem 0 1.25rem;
+  margin: 1rem 0 0.75rem;
+  padding: 1rem 1.125rem;
+  border: 1px solid rgb(var(--ox-tint) / 0.08);
+  border-radius: 0.75rem;
+  background: rgb(var(--ox-tint) / 0.03);
 }
 
 .sc-profile-avatar {
@@ -10517,6 +10521,64 @@ html[data-theme="day"] .os-shell .sc-dialog {
 
 .os-shell .sc-dialog .sc-place-row .sc-row-hint {
   display: block;
+}
+
+.os-shell .sc-dialog .sc-row-lead {
+  display: inline-flex;
+  width: 20px;
+  flex-shrink: 0;
+  justify-content: center;
+  color: var(--sc-mute);
+}
+
+.os-shell .sc-dialog .sc-row-lead .sc-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.os-shell .sc-dialog .sc-end {
+  display: grid;
+  gap: 12px;
+  margin: 24px 0 8px;
+}
+
+.os-shell .sc-dialog .sc-end-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--sc-line);
+  border-radius: 12px !important;
+  background: var(--sc-hover);
+  color: inherit;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.os-shell .sc-dialog .sc-end-row .sc-row-label {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+}
+
+.os-shell .sc-dialog .sc-end-row .sc-row-hint {
+  display: block;
+  font-weight: 400;
+}
+
+.os-shell .sc-dialog .sc-end-row--danger,
+.os-shell .sc-dialog .sc-end-row--danger .sc-row-lead,
+.os-shell .sc-dialog .sc-end-row--danger .sc-row-label {
+  color: #b42318 !important;
+}
+
+html:not([data-theme="day"]) .os-shell .sc-dialog .sc-end-row--danger,
+html:not([data-theme="day"]) .os-shell .sc-dialog .sc-end-row--danger .sc-row-lead,
+html:not([data-theme="day"]) .os-shell .sc-dialog .sc-end-row--danger .sc-row-label {
+  color: #f0746a !important;
 }
 
 .os-shell .sc-dialog .sc-place-row > .sc-icon {

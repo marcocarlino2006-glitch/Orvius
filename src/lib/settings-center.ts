@@ -10,7 +10,7 @@ export const SETTINGS_SECTIONS = [
   { id: "integrations", label: "Calendar, payments & texting", nav: "Integrations", group: "connections" },
   { id: "receptionist", label: "What Orvius may do", group: "authority" },
   { id: "notifications", label: "Alerts & escalation", group: "escalation" },
-  { id: "account", label: "Profile & security", group: "account" },
+  { id: "account", label: "Account", group: "account" },
   { id: "general", label: "Preferences", group: "account" },
   { id: "team", label: "Team access", group: "account" },
   { id: "billing", label: "Billing", group: "account" },
