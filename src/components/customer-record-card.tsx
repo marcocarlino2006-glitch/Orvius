@@ -57,7 +57,7 @@ export function CustomerRecordCard({
       role="row"
       onClickCapture={(event) => {
         if (!onSelect || event.metaKey || event.ctrlKey || event.shiftKey) return;
-        if (!window.matchMedia("(min-width: 1100px)").matches) return;
+        if (!window.matchMedia("(min-width: 1480px)").matches) return;
         event.preventDefault();
         event.stopPropagation();
         onSelect();
