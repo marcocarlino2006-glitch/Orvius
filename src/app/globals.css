@@ -2777,7 +2777,11 @@ button.btn {
   text-transform: none !important;
   letter-spacing: normal !important;
   font-weight: inherit !important;
-  border-radius: 0 !important;
+  border-radius: 0.5rem !important;
+}
+
+.orvius-logo-word {
+  padding: 0.14em 0.42em 0.14em 0.2em;
 }
 
 .orvius-logo-mark {
