@@ -10,6 +10,8 @@ name: Sweep heartbeat
 # Schedules alone still left gaps of up to five hours between runs, so each run
 # queues its successor when it ends (workflow_dispatch is the one event the
 # built-in token may start). The hourly schedule restarts the chain if it breaks.
+# A run also ends as soon as main moves: the sweeps only accept the commit the
+# run checked out, so a run left over an old head would be refused after every deploy.
 on:
   schedule:
     - cron: "7 * * * *"
@@ -54,6 +56,14 @@ jobs:
           end=$(( $(date +%s) + 345 * 60 ))
           tick=0
           while [ "$(date +%s)" -lt "$end" ]; do
+            # The approved release is the commit this run checked out, so once main
+            # moves the sweeps are refused until a run on the new head takes over.
+            # Hand over now rather than idle, refused, for the rest of six hours.
+            head=$(gh api "repos/$GITHUB_REPOSITORY/commits/main" --jq .sha 2>/dev/null || true)
+            if [ -n "$head" ] && [ "$head" != "$GITHUB_SHA" ]; then
+              echo "main moved to ${head:0:7}; handing over"
+              break
+            fi
             call alert-drain 60
             if [ $(( tick % 6 )) -eq 0 ]; then call line-watch 240; fi
             # The uptime probe's own schedule lands hours late too; this keeps it near every ten minutes.
