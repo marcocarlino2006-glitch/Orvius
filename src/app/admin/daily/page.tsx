@@ -1,13 +1,11 @@
 "use client";
 
-import { FounderManusNext } from "@/components/founder-manus-next";
 import { OsShell } from "@/components/os-shell";
-import { ShellBadge, ShellPanel } from "@/components/shell-primitives";
+import { ShellBadge } from "@/components/shell-primitives";
 import {
   fillOutreachTemplate,
   outreachTemplates,
 } from "@/lib/outreach-templates";
-import type { ManusPostStep } from "@/lib/manus-post";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -30,10 +28,6 @@ type MasteryReport = {
   next: MasteryGate | null;
   mastered: boolean;
   shopName: string | null;
-  manusPost?: {
-    next: ManusPostStep | null;
-    cli: string;
-  };
 };
 
 type Prospect = {
@@ -45,10 +39,7 @@ type Prospect = {
   nextActionAt: string | null;
 };
 
-/**
- * Founder mastery cockpit — close every multi-b gate in order.
- * Distribution run sits below the scorecard; never skip a red gate above.
- */
+/** The founder's readiness checklist, in order, with outreach below it. */
 export default function AdminDailyPage() {
   const [mastery, setMastery] = useState<MasteryReport | null>(null);
   const [due, setDue] = useState<Prospect[]>([]);
@@ -119,105 +110,82 @@ export default function AdminDailyPage() {
 
   return (
     <OsShell
-      title="Master all"
-      subtitle="Multi-b close sequence — one red gate at a time. No skipping."
+      title="Checklist"
+      subtitle="What stands between here and ready to sell, in order."
       actions={
         <Link href="/admin" className="btn btn-secondary text-sm">
-          Full admin
+          Admin
         </Link>
       }
     >
-      <ShellPanel
-        title={
-          mastery
-            ? `Mastery ${mastery.passed}/${mastery.total}${mastery.shopName ? ` · ${mastery.shopName}` : ""}`
-            : "Mastery scorecard"
-        }
-      >
-        {loading ? (
-          <p className="font-sans text-sm text-ash">Loading…</p>
-        ) : !mastery ? (
-          <p className="font-sans text-sm text-ash">
-            Sign in as founder/owner to load the mastery scorecard.
-          </p>
-        ) : (
-          <>
-            {mastery.manusPost ? (
-              <FounderManusNext
-                tone="cockpit"
-                next={mastery.manusPost.next}
-              />
+      <div className="adm">
+        <section className="card" aria-label="Readiness checklist">
+          <div className="adm-head">
+            <div>
+              <p className="home-os-kicker">Readiness{mastery?.shopName ? ` · ${mastery.shopName}` : ""}</p>
+              <h2>{mastery ? `${mastery.passed} of ${mastery.total} steps done` : "Readiness"}</h2>
+            </div>
+            {mastery ? (
+              <ShellBadge tone={mastery.mastered ? "live" : "flare"}>
+                {mastery.mastered ? "Ready" : `${mastery.total - mastery.passed} open`}
+              </ShellBadge>
             ) : null}
+          </div>
 
-            {next ? (
-              <div className="mb-4 rounded-md border border-flare/40 bg-flare/5 p-3">
-                <p className="font-sans text-xs text-flare">
-                  Next — do not skip
+          {loading ? (
+            <p className="adm-empty">Loading…</p>
+          ) : !mastery ? (
+            <p className="adm-empty">Sign in with the founder email to load the checklist.</p>
+          ) : (
+            <>
+              {next ? (
+                <div className="adm-next">
+                  <p className="adm-next-kicker">Next</p>
+                  <p className="adm-next-title">
+                    {next.step}. {next.title}
+                  </p>
+                  <p className="adm-sub">{next.action}</p>
+                  {next.href ? (
+                    <Link href={next.href} className="btn btn-void adm-next-cta text-xs">
+                      Open
+                    </Link>
+                  ) : null}
+                </div>
+              ) : (
+                <p className="adm-note adm-note--ok">
+                  Every ordered gate is clear. Keep the beyond check green and re-verify the live line before any public claim.
                 </p>
-                <p className="mt-1 font-sans text-sm font-semibold text-void">
-                  {next.step}. {next.title}
-                </p>
-                <p className="mt-1 font-sans text-sm text-ash">{next.action}</p>
-                {next.href ? (
-                  <Link href={next.href} className="btn btn-void mt-3 text-xs">
-                    Open
-                  </Link>
-                ) : null}
-              </div>
-            ) : (
-              <p className="mb-4 font-sans text-sm text-live">
-                Ordered shop gates clear on this snapshot — keep beyond:check green and run live
-                cell re-verify before public claims.
+              )}
+
+              <GateList gates={mastery.gates.filter((g) => g.id !== "beyond_laws")} />
+              {mastery.gates.some((g) => g.id === "beyond_laws") ? (
+                <>
+                  <p className="adm-group-title adm-standing">Always on</p>
+                  <GateList gates={mastery.gates.filter((g) => g.id === "beyond_laws")} />
+                </>
+              ) : null}
+              <p className="adm-sub">
+                From a terminal: <code>npm run master:all</code>
               </p>
-            )}
+            </>
+          )}
+        </section>
 
-            <ul className="space-y-2 font-sans text-sm">
-              {mastery.gates.map((g) => (
-                <li
-                  key={g.id}
-                  className="flex flex-wrap items-center justify-between gap-2 border-b border-rule/60 py-2 last:border-0"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-void">
-                      {g.ok ? "✓" : "○"} {g.step}. {g.title}
-                    </p>
-                    <p className="text-xs text-ash">
-                      {g.detail}
-                      {g.owner === "founder" ? " · founder" : ""}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <ShellBadge tone={g.ok ? "live" : "flare"}>
-                      {g.ok ? "done" : "open"}
-                    </ShellBadge>
-                    {g.href && !g.ok ? (
-                      <Link href={g.href} className="btn btn-secondary text-xs">
-                        Fix
-                      </Link>
-                    ) : null}
-                  </div>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-3 font-sans text-xs text-ash">
-              CLI: <code className="text-void">npm run master:all</code> · Strict list:{" "}
-              <code className="text-void">docs/MULTI-B-STRICT.md</code>
-            </p>
-          </>
-        )}
-      </ShellPanel>
-
-      <div className="mt-6">
-        <ShellPanel title="Distribution run (only after gates above allow)">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="font-sans text-sm text-ash">
-              Overdue {overdueCount} · hit {dailyTarget}/day after cert + cash gates, not before.
-            </p>
+        <section className="card" aria-label="Outreach today">
+          <div className="adm-head">
+            <div>
+              <p className="home-os-kicker">Outreach</p>
+              <h2>Today&apos;s touches</h2>
+              <p className="adm-sub">
+                {overdueCount > 0 ? `${overdueCount} overdue · ` : ""}
+                Target {dailyTarget} a day once the checklist above allows it.
+              </p>
+            </div>
             <ShellBadge tone={underTarget || overdueCount > 0 ? "flare" : "live"}>
               {touchesToday}/{dailyTarget}
             </ShellBadge>
           </div>
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="adm-actions">
             {outreachTemplates.map((t) => (
               <button
                 key={t.id}
@@ -231,35 +199,26 @@ export default function AdminDailyPage() {
                 Copy {t.label}
               </button>
             ))}
-            <Link href="/admin" className="btn btn-secondary text-xs">
+            <Link href="/admin?tab=growth" className="btn btn-secondary text-xs">
               Import CSV
             </Link>
           </div>
-          {note ? <p className="mt-2 font-sans text-xs text-live">{note}</p> : null}
+          {note ? <p className="adm-note adm-note--ok" role="status">{note}</p> : null}
           {due.length === 0 ? (
-            <p className="mt-4 font-sans text-sm text-ash">
-              No due prospects. Import a real CSV on Admin — replace seeds before live outreach.
-            </p>
+            <p className="adm-empty">No prospects are due. Import a CSV on the Growth tab to fill the board.</p>
           ) : (
-            <ul className="mt-4 space-y-3">
+            <ul className="adm-rows">
               {due.map((p) => (
-                <li
-                  key={p.id}
-                  className="rounded-md border border-rule bg-fog/40 p-3 font-sans text-sm"
-                >
-                  <p className="font-semibold text-void">
-                    {p.businessName ?? p.email}
-                  </p>
-                  <p className="text-xs text-ash">
-                    {p.email}
-                    {p.phone ? ` · ${p.phone}` : ""} · {p.status}
-                  </p>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      className="btn btn-void text-xs"
-                      onClick={() => logTouch(p.id, p.status)}
-                    >
+                <li key={p.id} className="adm-gate">
+                  <div className="adm-gate-main">
+                    <p className="adm-check-title">{p.businessName ?? p.email}</p>
+                    <p className="adm-check-fix">
+                      {p.email}
+                      {p.phone ? ` · ${p.phone}` : ""} · {p.status}
+                    </p>
+                  </div>
+                  <div className="adm-gate-side">
+                    <button type="button" className="btn btn-void text-xs" onClick={() => logTouch(p.id, p.status)}>
                       Logged touch
                     </button>
                     <button
@@ -289,8 +248,36 @@ export default function AdminDailyPage() {
               ))}
             </ul>
           )}
-        </ShellPanel>
+        </section>
       </div>
     </OsShell>
+  );
+}
+
+function GateList({ gates }: { gates: MasteryGate[] }) {
+  return (
+    <ul className="adm-rows adm-checks">
+      {gates.map((g) => (
+        <li key={g.id} className="adm-gate">
+          <div className="adm-gate-main">
+            <p className="adm-check-title">
+              {g.id === "beyond_laws" ? g.title : `${g.step}. ${g.title}`}
+            </p>
+            <p className="adm-check-fix">
+              {g.detail}
+              {g.owner === "founder" ? " · founder" : ""}
+            </p>
+          </div>
+          <div className="adm-gate-side">
+            <ShellBadge tone={g.ok ? "live" : "flare"}>{g.ok ? "Done" : "Open"}</ShellBadge>
+            {g.href && !g.ok ? (
+              <Link href={g.href} className="btn btn-secondary text-xs">
+                Fix
+              </Link>
+            ) : null}
+          </div>
+        </li>
+      ))}
+    </ul>
   );
 }

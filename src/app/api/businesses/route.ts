@@ -47,6 +47,9 @@ const createBusinessSchema = z.object({
     .optional(),
 });
 
+const DEFAULT_LIST = 25;
+const MAX_LIST = 200;
+
 const staffReceptionistKey = (slug: string) => `staff-receptionist:${slug}`;
 
 /** The admin key covers scripts. The founder session covers this page in the browser. */
@@ -59,16 +62,46 @@ export async function GET(request: NextRequest) {
   const denied = await denyUnlessPrivileged(request);
   if (denied) return denied;
 
-  const businesses = await prisma.business.findMany({
-    orderBy: { createdAt: "desc" },
-    include: {
-      _count: {
-        select: { calls: true, leads: true },
-      },
-    },
-  });
+  const params = request.nextUrl.searchParams;
+  const q = params.get("q")?.trim().slice(0, 80) ?? "";
+  const limit = Math.min(Math.max(Number(params.get("limit")) || DEFAULT_LIST, 1), MAX_LIST);
+  const where = q
+    ? {
+        OR: [
+          { name: { contains: q } },
+          { slug: { contains: q } },
+          { ownerPhone: { contains: q } },
+          { ownerEmail: { contains: q } },
+          { twilioPhone: { contains: q } },
+          { vapiPhoneNumber: { contains: q } },
+        ],
+      }
+    : {};
 
-  return NextResponse.json(businesses);
+  const [businesses, total] = await Promise.all([
+    prisma.business.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      take: limit,
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        ownerPhone: true,
+        ownerEmail: true,
+        greeting: true,
+        vapiAssistantId: true,
+        vapiPhoneNumber: true,
+        twilioPhone: true,
+        billingStatus: true,
+        createdAt: true,
+        _count: { select: { calls: true, leads: true } },
+      },
+    }),
+    prisma.business.count({ where }),
+  ]);
+
+  return NextResponse.json(businesses, { headers: { "x-total-count": String(total) } });
 }
 
 export async function POST(request: NextRequest) {
