@@ -6,45 +6,23 @@
  *   npm run lines:check            read only, exits 1 if any line is unprotected
  *   npm run lines:check -- --fix   sets the fallback on those lines, then re-reads
  *
- * Needs TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, DATABASE_URL (and APP_URL so the
- * expected fallback address is the production one).
+ * The same check runs from the Calls card in /admin, with no local credentials.
+ * Here it needs TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN and DATABASE_URL.
  */
-import { auditLineFallback, expectedVoiceFallbackUrl, unprotectedLines } from "../src/lib/line-fallback.ts";
+import { lineFallbackReport } from "../src/lib/line-fallback-report.ts";
 import { prisma } from "../src/lib/prisma.ts";
-import { getTwilioClient } from "../src/lib/twilio-client.ts";
-
-const fix = process.argv.includes("--fix");
 
 try {
-  const shops = await prisma.business.findMany({
-    where: { OR: [{ vapiPhoneNumber: { not: null } }, { twilioPhone: { not: null } }] },
-    select: { name: true, vapiPhoneNumber: true, twilioPhone: true },
-  });
-  const owners = new Map();
-  for (const shop of shops) {
-    const phone = shop.vapiPhoneNumber ?? shop.twilioPhone;
-    if (phone && !owners.has(phone)) owners.set(phone, shop.name);
+  const report = await lineFallbackReport({ fix: process.argv.includes("--fix") });
+  console.log(`Expected fallback: ${report.expected}\n`);
+  for (const line of report.lines) {
+    console.log(`${line.status.padEnd(15)} ${line.phone}  ${line.shop ?? ""}  AI route: ${line.aiRoute}`);
   }
-
-  console.log(`Expected fallback: ${expectedVoiceFallbackUrl()}`);
-  console.log(`Lines: ${owners.size}${fix ? " (fixing)" : ""}\n`);
-
-  const client = getTwilioClient();
-  let rows = await auditLineFallback([...owners.keys()], client, { fix });
-  for (const row of rows) {
-    console.log(`${row.status.padEnd(15)} ${row.phone}  ${owners.get(row.phone)}  AI route: ${row.aiRoute}`);
-  }
-
-  if (fix) rows = await auditLineFallback([...owners.keys()], client);
-  const open = unprotectedLines(rows);
-  const noAi = rows.filter((r) => r.status !== "not_on_account" && r.aiRoute !== "vapi");
-  const foreign = rows.filter((r) => r.status === "not_on_account");
-
   console.log("");
-  if (foreign.length) console.log(`${foreign.length} line(s) are not on this Twilio account, so they cannot be verified here.`);
-  if (noAi.length) console.log(`${noAi.length} line(s) do not route to Vapi: check them before trusting a call to be answered.`);
-  if (open.length) {
-    console.log(`${open.length} line(s) have no fallback. A caller would hear Twilio's error tone if the AI were down.`);
+  if (report.notOnAccount) console.log(`${report.notOnAccount} line(s) are not on this Twilio account, so they cannot be verified here.`);
+  if (report.notVapi) console.log(`${report.notVapi} line(s) do not route to Vapi: check them before trusting a call to be answered.`);
+  if (report.unprotected) {
+    console.log(`${report.unprotected} line(s) have no fallback. A caller would hear Twilio's error tone if the AI were down.`);
     process.exitCode = 1;
   } else {
     console.log("Every verifiable line has the fallback.");

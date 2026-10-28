@@ -4,6 +4,7 @@
  * was set once. These cover the read-back and the repair.
  */
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 process.env.APP_URL = "https://app.example.test";
@@ -62,4 +63,18 @@ test("fix sets only the fallback, and a second audit finds nothing left", async 
 test("a number listed twice is checked once", async () => {
   const { client } = fakeTwilio([line(1)]);
   assert.equal((await auditLineFallback(["+15550001", "+15550001"], client)).length, 1);
+});
+
+const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
+
+test("the founder can check and fix lines from /admin, and nobody else can", () => {
+  const route = read("src/app/api/admin/line-fallback/route.ts");
+  const get = route.slice(route.indexOf("export async function GET"), route.indexOf("export async function POST"));
+  const post = route.slice(route.indexOf("export async function POST"));
+  for (const handler of [get, post]) {
+    assert.ok(handler.indexOf("isPrivilegedRequest") < handler.indexOf("respond("), "auth runs before any Twilio call");
+  }
+  assert.match(get, /respond\(false\)/, "GET never changes Twilio");
+  assert.match(post, /respond\(true\)/);
+  assert.match(read("src/app/admin/page.tsx"), /<LineFallbackCard \/>/);
 });
