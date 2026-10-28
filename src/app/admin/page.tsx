@@ -439,7 +439,7 @@ export default function AdminPage() {
       statusLabel={health?.configured ? "Ready to provision" : "Setup needed"}
       actions={
         <Link href="/admin/daily" className="btn btn-void text-sm">
-          Master all
+          Checklist
         </Link>
       }
     >
@@ -1186,10 +1186,14 @@ function ScoreboardCard({ board }: { board: CompanyScoreboard }) {
           ))}
         </tbody>
       </table>
-      <p className="mt-4 border-t border-black/5 pt-3 font-sans text-xs text-ash" aria-label="Where new shops came from">
-        New shops by source, 30 days: {signupChannelText(board.signupChannels ?? [])}
-      </p>
-      <div className="mt-4 border-t border-black/5 pt-3 font-sans text-xs text-ash" aria-label="Shop density">
+      <div className="adm-group" aria-label="Where new shops came from">
+        <p className="adm-group-title">Acquisition</p>
+        <p className="py-0.5 font-sans text-xs text-ash">
+          New shops by source, 30 days: {signupChannelText(board.signupChannels ?? [])}
+        </p>
+      </div>
+      <div className="adm-group font-sans text-xs text-ash" aria-label="Shop density">
+        <p className="adm-group-title">Network</p>
         <p className="py-0.5">
           Network: {board.networkReadyAreas ?? 0} area(s) where a pass can land · {board.networkJobs30d ?? 0} job(s)
           passed and taken, 30 days
@@ -1219,14 +1223,16 @@ function ScoreboardCard({ board }: { board: CompanyScoreboard }) {
           <p className="py-0.5">No located shops yet.</p>
         )}
       </div>
-      <div className="mt-4 border-t border-black/5 pt-3 font-sans text-xs text-ash" aria-label="Revenue and value">
+      <div className="adm-group font-sans text-xs text-ash" aria-label="Revenue and value">
+        <p className="adm-group-title">Revenue and margin</p>
         {[...revenueLines(board.revenue), ...valueLines(board.valueAtRisk ?? []), ...relianceLines(board.reliance ?? [])].map((line) => (
           <p key={line} className="py-0.5">
             {line}
           </p>
         ))}
       </div>
-      <div className="mt-4 border-t border-black/5 pt-3 font-sans text-xs text-ash" aria-label="Unit cost">
+      <div className="adm-group font-sans text-xs text-ash" aria-label="Unit cost">
+        <p className="adm-group-title">Cost per call</p>
         {unitCostLines(board.unitCost ?? null).map((line) => (
           <p key={line} className="py-0.5">
             {line}

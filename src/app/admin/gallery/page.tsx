@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { OsShell } from "@/components/os-shell";
 import { ShellPanel } from "@/components/shell-primitives";
 
@@ -30,9 +31,25 @@ export default function GalleryReviewPage() {
   }
 
   return (
-    <OsShell title="Gallery review" subtitle="Real calls shops sent for the public gallery. Read for anything that identifies the caller before listing.">
-      {error ? <p className="jv-sub font-sans" role="alert">{error}</p> : null}
-      {rows && rows.length === 0 ? <p className="jv-sub font-sans">Nothing waiting for review.</p> : null}
+    <OsShell
+      title="Gallery review"
+      subtitle="Real calls shops sent for the public gallery. Read for anything that identifies the caller before listing."
+      actions={
+        <Link href="/admin" className="btn btn-secondary text-sm">
+          Admin
+        </Link>
+      }
+    >
+      <div className="adm">
+      {error ? <p className="adm-note adm-note--bad" role="alert">{error}</p> : null}
+      {!rows && !error ? <p className="adm-empty" aria-busy="true">Loading…</p> : null}
+      {rows && rows.length === 0 ? (
+        <section className="card" aria-label="Gallery review">
+          <p className="home-os-kicker">Queue</p>
+          <h2>Nothing waiting for review</h2>
+          <p className="adm-sub">When a shop shares a call to the gallery it shows up here before anyone else can hear it.</p>
+        </section>
+      ) : null}
       {rows?.map((row) => (
         <ShellPanel key={row.id} title={`${row.shopName} · ${row.trade}`} dense action={<span className="cl-source font-sans">Shared by {row.sharedByEmail}</span>}>
           <ol className="cgs-turns font-sans">
@@ -52,6 +69,7 @@ export default function GalleryReviewPage() {
           </div>
         </ShellPanel>
       ))}
+      </div>
     </OsShell>
   );
 }
