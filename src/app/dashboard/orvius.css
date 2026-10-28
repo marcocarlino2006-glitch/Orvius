@@ -9646,9 +9646,14 @@ html[data-theme="day"] .os-shell.os-shell-night :is(.lead-quick-btn,  .lead-quic
   box-shadow: none !important;
 }
 
-.os-shell .sc-embed .billing-settings > .pro-panel:first-child {
-  padding-top: 0.25rem !important;
-  border-top: 0 !important;
+.os-shell .sc-embed > .pro-panel,
+.os-shell .sc-embed .billing-settings > .pro-panel,
+.os-shell .sc-embed .billing-settings > div > .pro-panel {
+  margin: 0 0 12px !important;
+  padding: 1rem 1.125rem !important;
+  border: 1px solid rgb(var(--ox-tint) / 0.08) !important;
+  border-radius: 0.75rem !important;
+  background: rgb(var(--ox-tint) / 0.03) !important;
 }
 
 .os-shell .sc-embed .pro-panel-head {
@@ -10105,33 +10110,53 @@ html[data-theme="day"] .os-shell.os-shell-night :is(.lead-quick-btn,  .lead-quic
 }
 
 .os-shell .sc-dialog .sc-group {
-  padding: 24px 0;
+  padding: 12px 0;
 }
 
 .os-shell .sc-dialog .sc-group + .sc-group {
   margin-top: 0;
-  border-top: 1px solid var(--sc-line);
+  border-top: 0;
 }
 
 .os-shell .sc-dialog .sc-group-title {
-  margin: 0 0 16px;
-  color: var(--sc-text) !important;
-  font-size: 14px !important;
+  margin: 0 0 8px 4px;
+  color: var(--sc-mute) !important;
+  font-size: 12px !important;
   font-weight: 500 !important;
 }
 
 .os-shell .sc-dialog .sc-rows {
   display: grid;
-  gap: 24px;
+  gap: 0;
+  padding: 2px 16px;
+  border: 1px solid var(--sc-line);
+  border-radius: 0.75rem;
+  background: rgb(var(--ox-tint) / 0.03);
+}
+
+.os-shell .sc-dialog .sc-card {
+  margin: 12px 0;
+  padding: 16px;
+  border: 1px solid var(--sc-line);
+  border-radius: 0.75rem;
+  background: rgb(var(--ox-tint) / 0.03);
+}
+
+.os-shell .sc-dialog .sc-rows > :not(.sc-row) {
+  padding: 12px 0;
+}
+
+.os-shell .sc-dialog .sc-rows > * + * {
+  border-top: 1px solid var(--sc-line);
 }
 
 .os-shell .sc-dialog .sc-row {
   gap: 16px;
-  padding: 0;
+  padding: 14px 0;
 }
 
 .os-shell .sc-dialog .sc-rows > .sc-row + .sc-row {
-  border-top: 0;
+  border-top: 1px solid var(--sc-line);
 }
 
 .os-shell .sc-dialog .sc-row--stack {
@@ -10489,21 +10514,27 @@ html[data-theme="day"] .os-shell .sc-dialog {
 
 .os-shell .sc-dialog .sc-place-more {
   display: grid;
-  gap: 2px;
-  margin: 4px 0 8px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--sc-line);
+  gap: 0;
+  margin: 12px 0;
+  overflow: hidden;
+  border: 1px solid var(--sc-line);
+  border-radius: 0.75rem;
+  background: rgb(var(--ox-tint) / 0.03);
+}
+
+.os-shell .sc-dialog .sc-place-row + .sc-place-row {
+  border-top: 1px solid var(--sc-line);
 }
 
 .os-shell .sc-dialog .sc-place-row {
   display: flex;
   align-items: center;
   gap: 16px;
-  width: calc(100% + 16px);
-  margin: 0 -8px;
-  padding: 10px 8px;
+  width: 100%;
+  margin: 0;
+  padding: 14px 16px;
   border: 0;
-  border-radius: 0.5rem;
+  border-radius: 0;
   background: transparent;
   color: inherit;
   text-align: left;

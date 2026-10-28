@@ -427,7 +427,7 @@ export function SettingsCenter({
 
       case "phone":
         return (
-          <div id="overflow-forward">
+          <div id="overflow-forward" className="sc-card">
             <ConnectNumber onConfirmManually={(next) => saveOverflow(next)} />
           </div>
         );
