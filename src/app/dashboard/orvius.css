@@ -20737,3 +20737,25 @@ html .os-shell .sc-embed .billing-settings > div > .pro-panel {
 :root body .os-shell.os-shell-night .os-content-pro :has(> .rp-tile) + :is(.tm-section, .ox-state--inline) {
   margin-top: 1rem;
 }
+
+/* Home leads with the sentence. Notices above it stay quiet: one hairline,
+   no fill, tight rhythm, so the first thing read is what needs the owner. */
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > :is(.cmd-issues, .cmd-day-one) {
+  margin: 0 0 0.625rem;
+  padding: 0.75rem 1rem !important;
+  border-color: var(--ox-line);
+  background: transparent;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-day-one .cmd-day-one-list {
+  gap: 0.5rem;
+  margin-top: 0.625rem;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-day-one .cmd-day-one-worth {
+  color: var(--ox-text-2);
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > :is(.cmd-issues, .cmd-day-one) + .cmd-now {
+  margin-top: 1.75rem;
+}
