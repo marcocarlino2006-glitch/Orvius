@@ -123,18 +123,11 @@ body {
 
 .ov-public .orvius-logo {
   gap: 0.52rem !important;
-  color: black !important;
-  background: white !important;
   font-family: var(--ov-font) !important;
 }
 
-.ov-public .orvius-logo-mark {
-  color: black !important;
-  background: white !important;
-}
-
 .ov-public .orvius-logo-word {
-  color: black !important;
+  color: inherit !important;
   font-family: var(--ov-font) !important;
   font-weight: 800 !important;
   letter-spacing: -0.075em !important;

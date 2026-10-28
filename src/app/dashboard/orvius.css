@@ -20759,3 +20759,35 @@ html .os-shell .sc-embed .billing-settings > div > .pro-panel {
 :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > :is(.cmd-issues, .cmd-day-one) + .cmd-now {
   margin-top: 1.75rem;
 }
+
+/* The latest call reads as a short trail: what Orvius heard, what it did, where, who. */
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd .cmd-call-trail {
+  display: grid;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 40rem;
+  margin: 0;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd .cmd-call-trail > div {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: baseline;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd .cmd-call-trail dt {
+  font-size: var(--type-meta);
+  color: var(--ox-mute);
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd .cmd-call-trail dd {
+  margin: 0;
+  font-size: var(--type-body);
+  line-height: var(--type-body-leading);
+  color: var(--ox-text-2);
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd .cmd-call-trail dd.cmd-call-summary {
+  color: var(--ox-text) !important;
+}

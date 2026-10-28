@@ -38,11 +38,11 @@ test("the logo is the symbol beside the ORVIUS wordmark, in one ink", () => {
   assert.match(css, /\.orvius-logo-svg \{[^}]*height: 0\.78em;/);
   assert.match(css, /\.orvius-logo-word \.orvius-logo-mark \{[^}]*width: 1\.63em;/);
   assert.match(css, /aspect-ratio: 756\.31 \/ 100/);
-  assert.match(css, /\.os-sidebar-brand \.orvius-logo-mark \{[^}]*color: black !important;/);
-  assert.match(css, /\.orvius-logo-mark \{[^}]*background: white !important;/);
-  assert.match(css, /\.orvius-logo-word,\s*\.orvius-logo-svg \{\s*color: black !important;/);
-  assert.match(read("src/app/public-v2.css"), /\.ov-public \.orvius-logo-mark \{[^}]*color: black !important;/);
-  assert.match(read("src/app/public-v2.css"), /\.ov-public \.orvius-logo-word \{[^}]*color: black !important;/);
+  // Ink on the surface, like the products we match: the lockup takes the colour of the page it sits on.
+  assert.match(css, /\.os-sidebar-brand \.orvius-logo-mark \{[^}]*color: inherit !important;/);
+  assert.doesNotMatch(css, /\.orvius-logo[a-z-]* \{[^}]*background: white/, "no white plaque behind the lockup");
+  assert.match(css, /\.orvius-logo-word,\s*\.orvius-logo-svg \{\s*color: inherit !important;/);
+  assert.match(read("src/app/public-v2.css"), /\.ov-public \.orvius-logo-word \{[^}]*color: inherit !important;/);
   assert.doesNotMatch(read("src/app/public-v2.css"), /\.orvius-logo-mark \{[^}]*--ov-copper/);
 });
 
