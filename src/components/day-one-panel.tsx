@@ -41,15 +41,30 @@ export function DayOnePanel({ day, onSaved }: { day: DayOne; onSaved: () => void
 
   return (
     <section className="cmd-day-one" aria-labelledby="day-one-title">
-      <h2 id="day-one-title" className="cmd-day-one-title">
-        Finish day one
-      </h2>
+      <div className="cmd-day-one-head">
+        <h2 id="day-one-title" className="cmd-day-one-title">
+          Finish day one
+        </h2>
+        <span className="cmd-day-one-count">
+          {day.steps.filter((step) => step.done).length} of {day.steps.length} done
+        </span>
+      </div>
       <p className="cmd-day-one-worth">{day.worth}</p>
       <ol className="cmd-day-one-list">
         {day.steps.map((step, index) => (
           <li key={step.id} className={step.done ? "cmd-day-one-step cmd-day-one-step--done" : "cmd-day-one-step"}>
+            <span className="cmd-day-one-mark" aria-hidden>
+              {step.done ? (
+                <svg viewBox="0 0 16 16" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3.5 8.5l3 3 6-7" />
+                </svg>
+              ) : (
+                index + 1
+              )}
+            </span>
             <p className="cmd-day-one-step-title">
-              {index + 1}. {step.title}
+              <span className="sr-only">{step.done ? "Done: " : `Step ${index + 1}: `}</span>
+              {step.title}
             </p>
             {step.done ? null : <p className="cmd-day-one-detail">{step.detail}</p>}
             {step.href ? (
