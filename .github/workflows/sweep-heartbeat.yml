@@ -12,6 +12,8 @@ name: Sweep heartbeat
 # built-in token may start). The hourly schedule restarts the chain if it breaks.
 # A run also ends as soon as main moves: the sweeps only accept the commit the
 # run checked out, so a run left over an old head would be refused after every deploy.
+# The successor starts before that deploy is live, so each run waits up to twenty
+# minutes for its own commit to be served before it gives up.
 on:
   schedule:
     - cron: "7 * * * *"
@@ -47,7 +49,15 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           # Refuses up front (and every tick) when the target, its listing or the approved release is wrong.
-          node scripts/scheduled-drain.mjs alert-drain 60 >/dev/null || exit 1
+          # A run handed over by a merge starts before the deploy finishes, so it waits
+          # for the deployment to serve this commit instead of failing and ending the chain.
+          ready=0
+          for attempt in $(seq 1 40); do
+            if node scripts/scheduled-drain.mjs alert-drain 60 >/dev/null 2>&1; then ready=1; break; fi
+            echo "waiting for the deployment to serve ${GITHUB_SHA:0:7} ($attempt/40)"
+            sleep 30
+          done
+          [ "$ready" = 1 ] || { node scripts/scheduled-drain.mjs alert-drain 60 || true; exit 1; }
           call() {
             node scripts/scheduled-drain.mjs "$1" "$2" >/tmp/out 2>&1 \
               && echo "$(date -u +%H:%M) $1 ok" \
