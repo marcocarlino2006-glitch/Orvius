@@ -15,7 +15,16 @@ export type CommandCall = {
   urgency?: string | null;
   address?: string | null;
   hasLead?: boolean;
-  job?: { id: string; title: string; status: string; scheduledAt: string | null } | null;
+  job?: {
+    id: string;
+    title: string;
+    status: string;
+    scheduledAt: string | null;
+    confirmedAt?: string | null;
+    completedAt?: string | null;
+    invoiceStatus?: string | null;
+    invoicePaidAt?: string | null;
+  } | null;
 };
 
 export type CommandCallLink = { href: string; label: string };
