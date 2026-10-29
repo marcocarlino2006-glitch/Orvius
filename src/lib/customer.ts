@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { RECEIPT_STATUSES, collectedCents, refundedOf } from "@/lib/payment-math";
 import { estimateTitle } from "@/lib/estimate-options";
 import { paymentMethodLabel } from "@/lib/when";
+import { isUniqueViolation } from "@/lib/unique-violation";
 
 export type CustomerTouch = {
   businessId: string;
@@ -147,7 +148,7 @@ export async function findOrCreateCustomerDetailed(
   } catch (error) {
     // Two concurrent touches from the same caller: the unique
     // (businessId, phoneNormalized) edge lets exactly one create win.
-    if ((error as { code?: string })?.code !== "P2002") throw error;
+    if (!isUniqueViolation(error)) throw error;
     const winner = await prisma.customer.findUniqueOrThrow({
       where: {
         businessId_phoneNormalized: { businessId: touch.businessId, phoneNormalized: normalized },

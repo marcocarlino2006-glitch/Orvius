@@ -5,6 +5,7 @@ import { enqueueOwnerAlert } from "@/lib/notification-queue";
 import { prisma } from "@/lib/prisma";
 import { reserveShopLine, shopLineBusySay } from "@/lib/shop-machine";
 import { CALLER_HOURLY_LIMIT, DEFAULT_SHOP_DAILY_CEILING } from "@/lib/usage-limits";
+import { isUniqueViolation } from "@/lib/unique-violation";
 
 /*
   Every answered minute is billed to Orvius by Vapi the moment it happens; the
@@ -180,7 +181,7 @@ export async function holdLineBusyCaller(params: {
         select: { id: true },
       });
     } catch (error) {
-      if (params.callId && (error as { code?: string }).code === "P2002") {
+      if (params.callId && isUniqueViolation(error)) {
         lead = await prisma.lead.create({ data, select: { id: true } });
       } else {
         logWarn("call.busy_line_lead_failed", {

@@ -3,6 +3,7 @@ import { demoLiveCallCap } from "@/lib/demo-load";
 import { LIVE_CALL_WINDOW_MS } from "@/lib/live-call";
 import { prisma } from "@/lib/prisma";
 import { webDemoCap } from "@/lib/web-demo";
+import { isUniqueViolation } from "@/lib/unique-violation";
 
 /*
   One call line per live shop. The demos keep a separate budget on the same
@@ -83,7 +84,7 @@ export async function shopLineAvailability(env: NodeJS.ProcessEnv = process.env)
 const slotKey = (businessId: string) => `shop-line:${businessId}`;
 const slotTag = (vapiCallId: string) => `shop-call:${vapiCallId}`;
 
-const isUniqueClash = (error: unknown) => error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
+const isUniqueClash = (error: unknown) => isUniqueViolation(error);
 
 /**
  * Claim this shop's one line for this call. A second call loses while the

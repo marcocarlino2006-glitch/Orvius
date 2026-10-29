@@ -10,6 +10,7 @@ import { withSmsOptOutFooter } from "@/lib/sms-keywords";
 import { getTwilioClient } from "@/lib/twilio-client";
 import { OWNER_REPLY_HINT } from "@/lib/owner-alert-message";
 import { isSimulatedWorkspace, simulatedSid, simulateSend } from "@/lib/sms-simulation";
+import { isUniqueViolation } from "@/lib/unique-violation";
 
 /*
   Each rung is the wait after the attempt of that number: a first failure is
@@ -50,14 +51,7 @@ export type NotifyOwnerResult = {
   duplicate?: boolean;
 };
 
-function isUniqueConstraintError(error: unknown) {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error as { code?: string }).code === "P2002"
-  );
-}
+const isUniqueConstraintError = isUniqueViolation;
 
 /** `attempts` is the number of tries already made, so the first failure is 1. */
 export function getNotificationRetryAt(attempts: number, now = Date.now()) {

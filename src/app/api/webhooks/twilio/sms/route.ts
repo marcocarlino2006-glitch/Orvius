@@ -42,6 +42,7 @@ import { hasOpenWebChat } from "@/lib/web-chat";
 import { handleOwnerText } from "@/lib/owner-text-commands";
 import { answerNetworkConsent } from "@/lib/orvius-network";
 import { classifyRequest } from "@/lib/trade-playbooks";
+import { isUniqueViolation } from "@/lib/unique-violation";
 
 const SMS_REPLY =
   "Thanks for contacting us! We received your message and will get back to you shortly. For urgent service, call us directly.";
@@ -309,7 +310,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     // A concurrent delivery of the same MessageSid won the insert.
-    if ((error as { code?: string })?.code === "P2002") {
+    if (isUniqueViolation(error)) {
       logInfo("twilio.sms.duplicate", { messageSid, businessId: business.id });
       return twimlResponse(SMS_REPLY);
     }

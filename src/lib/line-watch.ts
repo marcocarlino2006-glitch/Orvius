@@ -114,6 +114,11 @@ function accountNumbers() {
   return numbersCache.list;
 }
 
+/** Which address, without the id of a shop's own door. */
+function redactRoute(url: string | null) {
+  return url ? url.replace(/\/machines\/[^/?#]+/, "/machines/:id") : null;
+}
+
 async function detectLineProblem(business: Business): Promise<string | null> {
   const line = business.vapiPhoneNumber ?? business.twilioPhone;
   if (!business.vapiAssistantId || !line) return null;
@@ -125,7 +130,11 @@ async function detectLineProblem(business: Business): Promise<string | null> {
   if (!entry) return `${line} is not connected to the receptionist`;
   if (entry.assistantId !== business.vapiAssistantId) return `${line} is answered by a different receptionist`;
   const url = assistant.server?.url ?? assistant.serverUrl ?? null;
-  if (url !== (await shopReceptionistUrl(business))) return "the receptionist is sending calls to the wrong address";
+  const expected = await shopReceptionistUrl(business);
+  if (url !== expected) {
+    logWarn("line_watch.address_mismatch", { businessId: business.id, actual: redactRoute(url), expected: redactRoute(expected) });
+    return "the receptionist is sending calls to the wrong address";
+  }
   return null;
 }
 
@@ -249,7 +258,12 @@ export async function watchShopLine(
 
   const problem = await deps.lineProblem(business).catch(() => null);
   if (problem) {
-    await syncBusinessAssistant(business).catch(() => undefined);
+    await syncBusinessAssistant(business).catch((error: unknown) => {
+      logWarn("line_watch.repair_failed", {
+        businessId: business.id,
+        error: error instanceof Error ? error.message.slice(0, 300) : String(error).slice(0, 300),
+      });
+    });
     const after = await deps.lineProblem(business).catch(() => problem);
     result.lineRepaired = !after;
     result.lineProblem = after;

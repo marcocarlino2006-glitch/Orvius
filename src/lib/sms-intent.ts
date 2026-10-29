@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { writeAudit } from "@/lib/audit";
 import { logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
+import { isUniqueViolation } from "@/lib/unique-violation";
 
 /*
   The intent ledger: an operational text is written down before the provider
@@ -58,7 +59,7 @@ export type IntentClaim =
   | { kind: "closed"; intent: IntentRow };
 
 function isUnique(error: unknown) {
-  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
+  return isUniqueViolation(error);
 }
 
 const SENT = new Set(["submitted", "delivered", "undelivered"]);

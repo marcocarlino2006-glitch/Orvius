@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { logInfo, logWarn } from "@/lib/logger";
+import { isUniqueViolation } from "@/lib/unique-violation";
 
 type RecordWebhookEventInput = {
   source: string;
@@ -11,14 +12,7 @@ type RecordWebhookEventInput = {
   error?: string | null;
 };
 
-function isUniqueConstraintError(error: unknown) {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error as { code?: string }).code === "P2002"
-  );
-}
+const isUniqueConstraintError = isUniqueViolation;
 
 /** SQLite's write lock was held past the wait (libsql reports SQLITE_BUSY as a socket timeout) or a transaction expired queued behind it. */
 export function isDatabaseBusy(error: unknown) {
