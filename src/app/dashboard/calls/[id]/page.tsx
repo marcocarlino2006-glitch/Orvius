@@ -1,5 +1,7 @@
 "use client";
 
+import { isLiveCall } from "@/lib/live-call";
+import { CallThread } from "@/components/call-thread";
 import { CallPlayer } from "@/components/call-player";
 import { RecordFetchError, recordFailureFrom } from "@/lib/dashboard-fetch";
 import { RecordLoadFailure } from "@/components/record-load-failure";
@@ -59,6 +61,10 @@ type CallDetail = {
       title: string;
       status: string;
       scheduledAt: string | null;
+      confirmedAt?: string | null;
+      completedAt?: string | null;
+      invoiceStatus?: string | null;
+      invoicePaidAt?: string | null;
     } | null;
   } | null;
 };
@@ -173,6 +179,10 @@ export default function CallDetailPage() {
           <ShellAlert tone="error">{quality.headline} Call the customer to make it right.</ShellAlert>
         </div>
       ) : null}
+
+      <div className="cl-thread">
+        <CallThread input={{ live: isLiveCall(call.status, call.createdAt), hasLead: Boolean(call.lead), job: call.lead?.job ?? null }} />
+      </div>
 
       <div className="os-detail-grid cl-grid">
         <div className="os-detail-primary">

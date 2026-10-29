@@ -39,6 +39,9 @@ export async function GET(_request: Request, { params }: Params) {
               status: true,
               scheduledAt: true,
               technicianId: true,
+              confirmedAt: true,
+              completedAt: true,
+              invoices: { orderBy: { createdAt: "desc" }, take: 1, select: { status: true, paidAt: true } },
             },
           },
         },
@@ -114,6 +117,10 @@ export async function GET(_request: Request, { params }: Params) {
               ? {
                   ...call.lead.job,
                   scheduledAt: call.lead.job.scheduledAt?.toISOString() ?? null,
+                  confirmedAt: call.lead.job.confirmedAt?.toISOString() ?? null,
+                  completedAt: call.lead.job.completedAt?.toISOString() ?? null,
+                  invoiceStatus: call.lead.job.invoices[0]?.status ?? null,
+                  invoicePaidAt: call.lead.job.invoices[0]?.paidAt?.toISOString() ?? null,
                 }
               : null,
           }

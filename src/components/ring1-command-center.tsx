@@ -5,11 +5,12 @@ import { useState, type ReactNode } from "react";
 import { AskBar, CheckCard, DemoPanel, PlanCard, TryDemo } from "@/components/command-board";
 import { DayOnePanel } from "@/components/day-one-panel";
 import { DeskBoard } from "@/components/desk-board";
+import { RestOfDay } from "@/components/rest-of-day";
 import { SupportContact } from "@/components/support-contact";
 import { TestAlertButton } from "@/components/test-alert-button";
 import { WorkCard } from "@/components/work-card";
 import { replyClock, replyPhrase } from "@/lib/call-latency";
-import { callToCash } from "@/lib/call-to-cash";
+import { CallThread } from "@/components/call-thread";
 import { commandCallActions, commandCallOutcomeLine, commandCallPhone, commandCallSummary, type CommandCall, type CommandCallLink } from "@/lib/command-call";
 import { commandNow } from "@/lib/command-now";
 import { deskFacts } from "@/lib/desk-status";
@@ -74,7 +75,6 @@ function DeskCall({
   const phone = commandCallPhone(call);
   const outcomeLine = bookedAt ? `${outcome} · ${bookedAt}` : outcome;
   const actions = commandCallActions(call, live);
-  const thread = callToCash({ live, hasLead: call.hasLead, job: call.job });
   return (
     <div className="cmd-call">
       <p className="cmd-call-kicker">{live ? "On the line" : "Latest call"}</p>
@@ -115,17 +115,7 @@ function DeskCall({
           </div>
         ) : null}
       </dl>
-      {thread ? (
-        <ol className="cmd-thread" aria-label="Where this call stands">
-          {thread.map((step) => (
-            <li key={step.key} className={`cmd-thread-step cmd-thread-step--${step.state}`} aria-current={step.state === "now" ? "step" : undefined}>
-              <i aria-hidden />
-              <span>{step.label}</span>
-              <span className="sr-only">{step.state === "done" ? ", done" : step.state === "now" ? ", next" : ""}</span>
-            </li>
-          ))}
-        </ol>
-      ) : null}
+      <CallThread input={{ live, hasLead: call.hasLead, job: call.job }} />
       <div className="cmd-call-actions">
         <CallAction link={actions.primary} who={who} />
         {actions.secondary ? <CallAction link={actions.secondary} who={who} quiet /> : null}
@@ -248,6 +238,11 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
         ? `Last measured reply, ${replyClock(earlierReply)}`
         : null;
   const stale = Boolean(loadError && data);
+  const restParts = [
+    items.length ? `${items.length} open` : null,
+    data?.dispatchToday?.jobCount ? `${data.dispatchToday.jobCount} ${data.dispatchToday.jobCount === 1 ? "job" : "jobs"} today` : null,
+  ].filter(Boolean);
+  const restSummary = restParts.length ? restParts.join(" · ") : "Today's jobs, the money, what Orvius did";
 
   return (
     <div className="cmd cmd-one">
@@ -347,7 +342,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
       ) : null}
 
       {data ? (
-        <div id="the-day" className="cmd-day-board">
+        <RestOfDay summary={restSummary} startOpen={!pictured}>
         <DeskBoard
           jobs={data.dispatchToday?.jobs ?? []}
           money={data.money}
@@ -370,7 +365,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
           activity={data.handled?.events ?? []}
           activitySkipId={!liveCall && !liveApproval && !liveItem ? (lastDone?.id ?? null) : null}
         />
-        </div>
+        </RestOfDay>
       ) : null}
 
       <div className="cmd-ask">

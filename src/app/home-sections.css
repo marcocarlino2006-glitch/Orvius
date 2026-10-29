@@ -621,3 +621,31 @@ html.hx-motion [data-reveal-stagger].is-in > * {
     justify-content: center;
   }
 }
+
+/* The call-to-cash path: five steps in one row, the same order the desk reads. */
+.ov-public .hx-facts .hx-facts-row--path {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.ov-public .hx-facts .hx-fact-step {
+  margin: 0 0 0.5rem;
+  color: var(--ov-muted);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.ov-public .hx-facts .hx-facts-caption--second {
+  margin-top: 2.75rem;
+}
+
+@media (max-width: 980px) {
+  .ov-public .hx-facts .hx-facts-row--path {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .ov-public .hx-facts .hx-facts-row--path {
+    grid-template-columns: 1fr;
+  }
+}
