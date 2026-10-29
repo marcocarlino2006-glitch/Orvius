@@ -20834,3 +20834,50 @@ html .os-shell .sc-embed .billing-settings > div > .pro-panel {
 :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd .cmd-thread-step--now i {
   border-color: var(--ox-text);
 }
+
+/* Home keeps one thing in front. The rest of today is one line until opened. */
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd .cmd-rest {
+  display: grid;
+  gap: 0.75rem;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd .cmd-rest-toggle {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 0;
+  border: 0;
+  border-top: 1px solid var(--ox-line);
+  background: transparent;
+  color: var(--ox-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd .cmd-rest-title {
+  font-size: var(--type-body);
+  font-weight: 500;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd .cmd-rest-summary {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--type-body);
+  color: var(--ox-text-2);
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd .cmd-rest-chevron {
+  font-size: var(--type-meta);
+  color: var(--ox-mute);
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd .cmd-rest-toggle:hover .cmd-rest-chevron {
+  color: var(--ox-text);
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd .cmd-rest-toggle:focus-visible {
+  outline: 2px solid var(--ox-text);
+  outline-offset: 2px;
+}

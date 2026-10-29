@@ -5,6 +5,7 @@ import { useState, type ReactNode } from "react";
 import { AskBar, CheckCard, DemoPanel, PlanCard, TryDemo } from "@/components/command-board";
 import { DayOnePanel } from "@/components/day-one-panel";
 import { DeskBoard } from "@/components/desk-board";
+import { RestOfDay } from "@/components/rest-of-day";
 import { SupportContact } from "@/components/support-contact";
 import { TestAlertButton } from "@/components/test-alert-button";
 import { WorkCard } from "@/components/work-card";
@@ -248,6 +249,11 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
         ? `Last measured reply, ${replyClock(earlierReply)}`
         : null;
   const stale = Boolean(loadError && data);
+  const restParts = [
+    items.length ? `${items.length} open` : null,
+    data?.dispatchToday?.jobCount ? `${data.dispatchToday.jobCount} ${data.dispatchToday.jobCount === 1 ? "job" : "jobs"} today` : null,
+  ].filter(Boolean);
+  const restSummary = restParts.length ? restParts.join(" · ") : "Today's jobs, the money, what Orvius did";
 
   return (
     <div className="cmd cmd-one">
@@ -347,7 +353,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
       ) : null}
 
       {data ? (
-        <div id="the-day" className="cmd-day-board">
+        <RestOfDay summary={restSummary} startOpen={!pictured}>
         <DeskBoard
           jobs={data.dispatchToday?.jobs ?? []}
           money={data.money}
@@ -370,7 +376,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
           activity={data.handled?.events ?? []}
           activitySkipId={!liveCall && !liveApproval && !liveItem ? (lastDone?.id ?? null) : null}
         />
-        </div>
+        </RestOfDay>
       ) : null}
 
       <div className="cmd-ask">
