@@ -1,5 +1,6 @@
 "use client";
 
+import { CallThread } from "@/components/call-thread";
 import { askConfirm, askText } from "@/components/ask-dialog";
 import { askCompletion } from "@/components/completion-prompt";
 import { JobBillSection, type JobBill } from "@/components/job-bill-section";
@@ -417,6 +418,10 @@ export default function JobDetailPage() {
           <ShellAlert tone="error">{error}</ShellAlert>
         </div>
       ) : null}
+
+      <div className="cl-thread">
+        <CallThread input={{ hasLead: true, job: { status: job.status, confirmedAt: job.confirmedAt, completedAt: job.completedAt, invoiceStatus: bill?.invoice?.status ?? job.estimate?.invoice?.status ?? null } }} />
+      </div>
 
       <div className="os-detail-grid">
         <div className="os-detail-primary">

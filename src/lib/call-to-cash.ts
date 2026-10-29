@@ -46,7 +46,7 @@ export function callToCash(input: CashThreadInput): CashStep[] | null {
     booked: Boolean(job),
     confirmed: Boolean(job?.confirmedAt) || finished,
     done: finished,
-    paid: job?.invoiceStatus === "paid" || Boolean(job?.invoicePaidAt),
+    paid: job?.invoiceStatus?.toLowerCase() === "paid" || Boolean(job?.invoicePaidAt),
   };
 
   const order: CashStepKey[] = ["answered", "booked", "confirmed", "done", "paid"];

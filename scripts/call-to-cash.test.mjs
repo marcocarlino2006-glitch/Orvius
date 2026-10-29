@@ -50,8 +50,22 @@ test("only one step is ever the next thing", () => {
 
 test("Home draws the thread under the latest call from the records", () => {
   const command = readFileSync(new URL("../src/components/ring1-command-center.tsx", import.meta.url), "utf8");
-  assert.match(command, /callToCash\(\{ live, hasLead: call\.hasLead, job: call\.job \}\)/);
-  assert.match(command, /className="cmd-thread"/);
+  assert.match(command, /<CallThread input=\{\{ live, hasLead: call\.hasLead, job: call\.job \}\} \/>/);
+  const thread = readFileSync(new URL("../src/components/call-thread.tsx", import.meta.url), "utf8");
+  assert.match(thread, /className="cmd-thread"/);
   const route = readFileSync(new URL("../src/app/api/ring1/route.ts", import.meta.url), "utf8");
   assert.match(route, /invoices: \{ orderBy: \{ createdAt: "desc" \}, take: 1, select: \{ status: true, paidAt: true \} \}/);
+});
+
+test("the call page shows the same thread from the same records", () => {
+  const page = readFileSync(new URL("../src/app/dashboard/calls/[id]/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /<CallThread input=\{\{ live: isLiveCall\(call\.status, call\.createdAt\)/);
+  const route = readFileSync(new URL("../src/app/api/calls/[id]/route.ts", import.meta.url), "utf8");
+  assert.match(route, /invoices: \{ orderBy: \{ createdAt: "desc" \}, take: 1, select: \{ status: true, paidAt: true \} \}/);
+  assert.match(route, /invoiceStatus: call\.lead\.job\.invoices\[0\]\?\.status \?\? null/);
+});
+
+test("the job page shows the same thread", () => {
+  const page = readFileSync(new URL("../src/app/dashboard/jobs/[id]/page.tsx", import.meta.url), "utf8");
+  assert.match(page, /<CallThread input=\{\{ hasLead: true, job: \{ status: job\.status/);
 });
