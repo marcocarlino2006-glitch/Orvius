@@ -105,3 +105,9 @@ test("Command shows day one from the proved call, card charges, and the ticket",
   assert.ok(desk.indexOf("<DayOnePanel") < desk.indexOf("cmd-headline"), "day one is the first read");
   assert.match(version, /updatedAt: true/);
 });
+
+test("the notices and day one share one setup panel above the sentence", () => {
+  const desk = readFileSync(new URL("../src/components/ring1-command-center.tsx", import.meta.url), "utf8");
+  assert.match(desk, /className="cmd-setup"[\s\S]*cmd-readiness[\s\S]*<DayOnePanel/);
+  assert.ok(desk.indexOf('className="cmd-setup"') < desk.indexOf("cmd-headline"));
+});
