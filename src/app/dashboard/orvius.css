@@ -20740,23 +20740,23 @@ html .os-shell .sc-embed .billing-settings > div > .pro-panel {
 
 /* Home leads with the sentence. Notices above it stay quiet: one hairline,
    no fill, tight rhythm, so the first thing read is what needs the owner. */
-:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > :is(.cmd-issues, .cmd-day-one) {
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-setup > :is(.cmd-issues, .cmd-day-one) {
   margin: 0 0 0.625rem;
   padding: 0.75rem 1rem !important;
   border-color: var(--ox-line);
   background: transparent;
 }
 
-:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-day-one .cmd-day-one-list {
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-setup > .cmd-day-one .cmd-day-one-list {
   gap: 0.5rem;
   margin-top: 0.625rem;
 }
 
-:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-day-one .cmd-day-one-worth {
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-setup > .cmd-day-one .cmd-day-one-worth {
   color: var(--ox-text-2);
 }
 
-:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > :is(.cmd-issues, .cmd-day-one) + .cmd-now {
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-setup + .cmd-now {
   margin-top: 1.75rem;
 }
 
@@ -20887,14 +20887,14 @@ html .os-shell .sc-embed .billing-settings > div > .pro-panel {
 }
 
 /* Notices above the sentence take one short row each, so the sentence starts near the top. */
-:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-issues .cmd-issues-title {
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-setup > .cmd-issues .cmd-issues-title {
   margin: 0 0 0.375rem;
   font-size: var(--type-meta);
   font-weight: 400;
   color: var(--ox-text-2);
 }
 
-:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-issues ul {
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-setup > .cmd-issues ul {
   display: grid;
   gap: 0.5rem;
   margin: 0;
@@ -20902,19 +20902,19 @@ html .os-shell .sc-embed .billing-settings > div > .pro-panel {
   list-style: none;
 }
 
-:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-issues .cmd-issue {
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-setup > .cmd-issues .cmd-issue {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 0 1rem;
 }
 
-:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-issues .cmd-issue-title {
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-setup > .cmd-issues .cmd-issue-title {
   grid-column: 1;
   margin: 0;
 }
 
-:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-issues .cmd-issue-detail {
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-setup > .cmd-issues .cmd-issue-detail {
   grid-column: 1;
   display: -webkit-box;
   margin: 0.125rem 0 0;
@@ -20923,29 +20923,29 @@ html .os-shell .sc-embed .billing-settings > div > .pro-panel {
   -webkit-line-clamp: 1;
 }
 
-:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-issues .cmd-issue-actions {
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-setup > .cmd-issues .cmd-issue-actions {
   grid-column: 2;
   grid-row: 1 / 3;
   margin: 0;
 }
 
 @media (max-width: 640px) {
-  :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-issues .cmd-issue {
+  :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-setup > .cmd-issues .cmd-issue {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-issues .cmd-issue-detail {
+  :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-setup > .cmd-issues .cmd-issue-detail {
     -webkit-line-clamp: 3;
   }
 
-  :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-issues .cmd-issue-actions {
+  :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-setup > .cmd-issues .cmd-issue-actions {
     grid-column: 1;
     grid-row: auto;
     margin-top: 0.375rem;
   }
 }
 
-:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-day-one .cmd-day-one-toggle {
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-setup > .cmd-day-one .cmd-day-one-toggle {
   margin-left: auto;
   padding: 0;
   border: 0;
@@ -20956,12 +20956,12 @@ html .os-shell .sc-embed .billing-settings > div > .pro-panel {
   cursor: pointer;
 }
 
-:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-day-one .cmd-day-one-head {
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-setup > .cmd-day-one .cmd-day-one-head {
   align-items: baseline;
   gap: 0.75rem;
 }
 
-:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-day-one .cmd-day-one-next {
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-setup > .cmd-day-one .cmd-day-one-next {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -20969,11 +20969,11 @@ html .os-shell .sc-embed .billing-settings > div > .pro-panel {
   margin-top: 0.5rem;
 }
 
-:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-day-one .cmd-day-one-next .cmd-day-one-step-title {
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-setup > .cmd-day-one .cmd-day-one-next .cmd-day-one-step-title {
   margin: 0;
 }
 
-:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-day-one .cmd-day-one-next-label {
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-setup > .cmd-day-one .cmd-day-one-next-label {
   margin-right: 0.375rem;
   color: var(--ox-mute);
   font-size: var(--type-meta);
@@ -20982,4 +20982,23 @@ html .os-shell .sc-embed .billing-settings > div > .pro-panel {
 /* Three reading levels in a table: the name, what Orvius wrote under it, then when and where. */
 :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .dt-primary > .dt-sub:not(.is-attention):not(.is-risk) {
   color: var(--ox-text-2);
+}
+
+/* Setup is one panel: the notices and the day-one step share a single outline. */
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-setup {
+  margin: 0 0 0.625rem;
+  border: 1px solid var(--ox-line);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-setup > :is(.cmd-issues, .cmd-day-one) {
+  margin: 0;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-setup > .cmd-issues + .cmd-day-one {
+  border-top: 1px solid var(--ox-line) !important;
 }

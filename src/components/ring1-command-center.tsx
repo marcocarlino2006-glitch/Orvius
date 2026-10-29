@@ -255,31 +255,35 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
           </button>
         </p>
       ) : null}
-      {blocking.length ? (
-        <section className="cmd-issues cmd-readiness" role="alert" aria-labelledby="cmd-readiness">
-          <h3 id="cmd-readiness" className="cmd-issues-title">
-            {blocking.length === 1 ? "Something needs fixing before Orvius can run normally" : `${blocking.length} things need fixing before Orvius can run normally`}
-          </h3>
-          <ul>
-            {blocking.map((issue) => (
-              <li key={issue.id} className={`cmd-issue cmd-issue--${issue.severity}`}>
-                <p className="cmd-issue-title">{issue.title}</p>
-                <p className="cmd-issue-detail">{issue.detail}</p>
-                <div className="cmd-issue-actions">
-                  {ALERT_KINDS.has(issue.kind) ? <TestAlertButton onDone={() => void refresh()} /> : null}
-                  {issue.href ? (
-                    <Link href={issue.href} className="cmd-issue-action">
-                      {issue.action} →
-                    </Link>
-                  ) : null}
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
+      {blocking.length || data?.dayOne?.open ? (
+        <div className="cmd-setup">
+        {blocking.length ? (
+          <section className="cmd-issues cmd-readiness" role="alert" aria-labelledby="cmd-readiness">
+            <h3 id="cmd-readiness" className="cmd-issues-title">
+              {blocking.length === 1 ? "Something needs fixing before Orvius can run normally" : `${blocking.length} things need fixing before Orvius can run normally`}
+            </h3>
+            <ul>
+              {blocking.map((issue) => (
+                <li key={issue.id} className={`cmd-issue cmd-issue--${issue.severity}`}>
+                  <p className="cmd-issue-title">{issue.title}</p>
+                  <p className="cmd-issue-detail">{issue.detail}</p>
+                  <div className="cmd-issue-actions">
+                    {ALERT_KINDS.has(issue.kind) ? <TestAlertButton onDone={() => void refresh()} /> : null}
+                    {issue.href ? (
+                      <Link href={issue.href} className="cmd-issue-action">
+                        {issue.action} →
+                      </Link>
+                    ) : null}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
 
-      {data?.dayOne?.open ? <DayOnePanel day={data.dayOne} onSaved={() => refresh()} /> : null}
+        {data?.dayOne?.open ? <DayOnePanel day={data.dayOne} onSaved={() => refresh()} /> : null}
+        </div>
+      ) : null}
 
       <div className={pictured ? "cmd-now cmd-stage" : "cmd-now"}>
       <header className="cmd-head">
