@@ -33,6 +33,7 @@ import { businessIdForVoiceMachine, callBelongsToShop, ForeignVoiceShop } from "
 import { isDemoPlatformLine } from "@/lib/demo-business";
 import { endWebDemo, isLineWebCall, WEB_DEMO_CHANNEL } from "@/lib/web-demo";
 import { isLineEntitled } from "@/lib/billing-entitlement";
+import { isUniqueViolation } from "@/lib/unique-violation";
 
 /* Room for a made-up line-watch run after the response (cron-backstop.ts). */
 export const maxDuration = 60;
@@ -52,7 +53,7 @@ async function createCallRow(data: { businessId: string; vapiCallId: string; cal
   try {
     return await prisma.call.create({ data: { ...data, status: "in-progress" }, select });
   } catch (error) {
-    if ((error as { code?: string })?.code !== "P2002") throw error;
+    if (!isUniqueViolation(error)) throw error;
     const row = await prisma.call.findUniqueOrThrow({ where: { vapiCallId: data.vapiCallId }, select: { ...select, businessId: true } });
     if (row.businessId !== data.businessId) throw new ForeignVoiceShop();
     return row;

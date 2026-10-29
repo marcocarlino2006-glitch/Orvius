@@ -14,6 +14,7 @@ import { recordAudit } from "@/lib/audit";
 import { formatShopTime, safeTimezone } from "@/lib/availability";
 import { extractPostalCode, isInServiceArea, parseServiceZips } from "@/lib/service-area";
 import { classifyRequest, parseServiceOverrides, resolveTrade, TRADE_PLAYBOOKS } from "@/lib/trade-playbooks";
+import { isUniqueViolation } from "@/lib/unique-violation";
 
 /**
  * The shop's public booking page (/b/[slug]): a customer picks a service and
@@ -283,7 +284,7 @@ export async function bookOnline(shop: BookingShop, input: BookingInput): Promis
     });
   } catch (error) {
     /* The same press arrived twice at once; the first write is the booking, this one reads it back. */
-    if (key && (error as { code?: string })?.code === "P2002") {
+    if (key && isUniqueViolation(error)) {
       // The first copy may still be writing its job; give it a moment before calling the request time-less.
       for (let attempt = 0; attempt < 10; attempt++) {
         const earlier = await bookingReadBack(shop, key);

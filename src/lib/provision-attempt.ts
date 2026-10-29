@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { Prisma, type ProvisionAttempt } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { isUniqueViolation } from "@/lib/unique-violation";
 
 /** Longer than a provisioning run can take; a crashed run's lease lapses after this. */
 export const PROVISION_LEASE_MS = 3 * 60 * 1000;
@@ -31,7 +32,7 @@ export async function claimProvisionAttempt(key: string, now = new Date()): Prom
         data: { key, tag: randomBytes(6).toString("hex"), status: "running", leaseUntil },
       });
     } catch (error) {
-      if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== "P2002") throw error;
+      if (!isUniqueViolation(error)) throw error;
     }
   }
 
@@ -96,7 +97,7 @@ export async function withLease<T>(
         await prisma.provisionAttempt.create({ data: { key, tag, status: "running", leaseUntil } });
         held = true;
       } catch (error) {
-        if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== "P2002") throw error;
+        if (!isUniqueViolation(error)) throw error;
       }
     }
     if (!held) {

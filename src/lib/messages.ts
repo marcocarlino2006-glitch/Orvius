@@ -1,6 +1,7 @@
 import { normalizePhone } from "@/lib/customer";
 import { logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
+import { isUniqueViolation } from "@/lib/unique-violation";
 
 export type MessageAuthor = "customer" | "orvius" | "owner";
 
@@ -77,7 +78,7 @@ export async function recordMessage(params: {
       select: { id: true },
     });
   } catch (error) {
-    if ((error as { code?: string })?.code === "P2002") return null;
+    if (isUniqueViolation(error)) return null;
     logWarn("messages.record_failed", {
       businessId: params.businessId,
       error: error instanceof Error ? error.message : "unknown",

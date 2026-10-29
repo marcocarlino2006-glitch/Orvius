@@ -28,19 +28,13 @@ import { isAfterHours, parseJson, type BusinessHours } from "@/lib/business";
 import { jobTitle } from "@/lib/job-schedule";
 import { isDatabaseBusy } from "@/lib/webhook-events";
 import { jobTransitionProblem, type JobStatus } from "@/lib/job-status";
+import { isUniqueViolation } from "@/lib/unique-violation";
 
 export { suggestedSchedule, jobTitle } from "@/lib/job-schedule";
 export { JOB_STATUSES, isJobStatus, jobStatusLabel } from "@/lib/job-status";
 export type { JobStatus } from "@/lib/job-status";
 
-function isUniqueConstraintError(error: unknown) {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error as { code?: string }).code === "P2002"
-  );
-}
+const isUniqueConstraintError = isUniqueViolation;
 
 /*
   Each round of a booking race settles at least one job per free technician,

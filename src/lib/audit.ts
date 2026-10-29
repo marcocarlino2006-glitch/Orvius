@@ -1,5 +1,6 @@
 import { logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
+import { isUniqueViolation } from "@/lib/unique-violation";
 
 export type AuditActor = "orvius" | "owner" | "teammate" | "system" | "technician" | "customer";
 
@@ -26,14 +27,7 @@ export function personActor(session: { role: string; email: string }): { actor: 
   return { actor: session.role === "owner" ? "owner" : "teammate", actorEmail: session.email };
 }
 
-function isUniqueConstraintError(error: unknown) {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error as { code?: string }).code === "P2002"
-  );
-}
+const isUniqueConstraintError = isUniqueViolation;
 
 /**
  * Record one decision. The audit trail must never be the reason a call fails

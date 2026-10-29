@@ -6,6 +6,7 @@ import { listCrew } from "@/lib/field";
 import { getPlanTechLimit, requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
 import { requireEntitledSession, requirePermission } from "@/lib/tenant";
+import { isUniqueViolation } from "@/lib/unique-violation";
 
 export async function GET() {
   const authResult = await requireEntitledSession();
@@ -75,8 +76,7 @@ export async function POST(request: Request) {
       same name cannot be told apart on the board anyway.
     */
     if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2002"
+      isUniqueViolation(error)
     ) {
       return NextResponse.json(
         { error: `${name} is already on your crew.` },

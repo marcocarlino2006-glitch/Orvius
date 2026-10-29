@@ -6,6 +6,7 @@ import { isMoneySchemaDrift } from "@/lib/command-degraded";
 import { logWarn } from "@/lib/logger";
 import { formatCentsExact } from "@/lib/money";
 import { prisma } from "@/lib/prisma";
+import { isUniqueViolation } from "@/lib/unique-violation";
 
 /**
  * Durable invoice creation for a completed job.
@@ -69,7 +70,7 @@ function schemaMissing(error: unknown) {
 }
 
 function isUnique(error: unknown) {
-  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
+  return isUniqueViolation(error);
 }
 
 /** A bill the customer was sent, signed, or paid toward. A retry must not price it again. */

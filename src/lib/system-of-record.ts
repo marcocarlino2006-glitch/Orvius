@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { Prisma } from "@prisma/client";
 import { recordAudit } from "@/lib/audit";
 import { prisma } from "@/lib/prisma";
+import { isUniqueViolation } from "@/lib/unique-violation";
 
 /*
   The operating-platform proof loop. Each shop has a versioned contract naming
@@ -86,7 +87,7 @@ export async function setRecordContract(params: { businessId: string; domains: u
       data: { businessId: params.businessId, version, domainsJson: JSON.stringify(domains), replicasJson: JSON.stringify(replicas), createdByEmail: params.actorEmail },
     });
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") throw new RecordContractError("Someone else changed this at the same time. Reload and try again.", 409);
+    if (isUniqueViolation(error)) throw new RecordContractError("Someone else changed this at the same time. Reload and try again.", 409);
     throw error;
   }
   await recordAudit({
@@ -118,7 +119,7 @@ export async function correlate(input: CorrelationInput): Promise<{ ok: true; cr
     await prisma.externalCorrelation.create({ data: { ...input, externalId, contractVersion: contract.version } });
     return { ok: true, created: true };
   } catch (error) {
-    if (!(error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002")) throw error;
+    if (!(isUniqueViolation(error))) throw error;
   }
   const existing = await prisma.externalCorrelation.findMany({
     where: {

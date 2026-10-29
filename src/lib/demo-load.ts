@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { LIVE_CALL_WINDOW_MS, liveCallSince } from "@/lib/live-call";
 import { prisma } from "@/lib/prisma";
+import { isUniqueViolation } from "@/lib/unique-violation";
 
 /*
   The public demo line shares one Vapi account, and one concurrency limit, with
@@ -69,7 +70,7 @@ export function demoLineBusyForVisitor(load: DemoLoad, limits = { cap: demoLiveC
 const SLOT_PREFIX = "demo-line:slot:";
 const slotTag = (vapiCallId: string) => `demo-call:${vapiCallId}`;
 
-const isUniqueClash = (error: unknown) => error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
+const isUniqueClash = (error: unknown) => isUniqueViolation(error);
 
 export async function reserveDemoSlot(vapiCallId: string, now = new Date(), cap = demoLiveCallCap()): Promise<boolean> {
   const tag = slotTag(vapiCallId);
