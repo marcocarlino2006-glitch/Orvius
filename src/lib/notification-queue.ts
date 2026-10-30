@@ -517,12 +517,12 @@ async function markDeliveryFailure(
   });
 
   if (exhausted && row.channel === "email") {
-    await pageOwnerUnreachable(row.businessId, "email").catch(() => null);
+    await pageOwnerUnreachable(row.businessId, "email").catch((error: unknown) => logError("owner_alert.page_failed", { businessId: row.businessId, channel: "email", error: error instanceof Error ? error.message.slice(0, 300) : String(error).slice(0, 300) }));
   }
   if (exhausted && row.channel === "sms") {
     try {
       if ((await escalateSmsFailureToEmail(row)) === "no_email") {
-        await pageOwnerUnreachable(row.businessId, "sms").catch(() => null);
+        await pageOwnerUnreachable(row.businessId, "sms").catch((error: unknown) => logError("owner_alert.page_failed", { businessId: row.businessId, channel: "sms", error: error instanceof Error ? error.message.slice(0, 300) : String(error).slice(0, 300) }));
       }
     } catch (escalateError) {
       logError("notification.sms_failover_email_failed", {
@@ -691,7 +691,7 @@ export async function processNotificationQueue(limit = 20, scope: { businessId?:
       const errMsg = error instanceof Error ? error.message : "Delivery failed";
       await markDeliveryFailure(row, errMsg);
       if (row.channel === "sms" && isTwilioAccountFailure(error)) {
-        await pagePlatform("twilio_account", { code: (error as { code?: unknown }).code, notificationId: row.id }).catch(() => null);
+        await pagePlatform("twilio_account", { code: (error as { code?: unknown }).code, notificationId: row.id }).catch((pageError: unknown) => logError("platform_page.failed", { notificationId: row.id, error: pageError instanceof Error ? pageError.message.slice(0, 300) : String(pageError).slice(0, 300) }));
       }
       logError("notification.queue_delivery_failed", {
         notificationId: row.id,

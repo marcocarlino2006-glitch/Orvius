@@ -256,7 +256,10 @@ export async function watchShopLine(
 
   for (const call of lost) await recoverLostCall(business, call, result);
 
-  const problem = await deps.lineProblem(business).catch(() => null);
+  const problem = await deps.lineProblem(business).catch((error: unknown) => {
+    logWarn("line_watch.check_failed", { businessId: business.id, error: error instanceof Error ? error.message.slice(0, 300) : String(error).slice(0, 300) });
+    return null;
+  });
   if (problem) {
     await syncBusinessAssistant(business).catch((error: unknown) => {
       logWarn("line_watch.repair_failed", {

@@ -113,3 +113,9 @@ test("once a day one live receptionist is saved again, so a provider that starts
     await prisma.business.delete({ where: { id: shop.id } }).catch(() => {});
   }
 });
+
+test("the call path never swallows an error without a log line", () => {
+  for (const file of ["src/lib/call-ingest.ts", "src/lib/sync-business-assistant.ts", "src/lib/line-watch.ts", "src/lib/notification-queue.ts", "src/lib/vapi.ts", "src/lib/vendor-alarm.ts", "src/lib/receptionist-self-test.ts"]) {
+    assert.doesNotMatch(readFileSync(file, "utf8"), /\.catch\(\(\) => (null|undefined|\{\}|false)\)/, `${file}: a silent catch hides the next retired model`);
+  }
+});
