@@ -283,6 +283,8 @@ model Business {
   jobNotes               JobNote[]
   jobLineItems           JobLineItem[]
   priceBookItems         PriceBookItem[]
+  visitReviews           VisitReview[]
+  areaClaims             AreaRequest[]
   /**
    * Last calendar month ("2026-09") whose call overage was invoiced; one charge per month, ever.
    */
@@ -895,6 +897,7 @@ model Job {
   photos     JobPhoto[]
   fieldNotes JobNote[]
   lineItems  JobLineItem[]
+  visitReview VisitReview?
 
   @@index([businessId, scheduledAt])
   @@index([businessId, status])
@@ -903,6 +906,43 @@ model Job {
   @@index([customerConfirmSid])
   @@index([businessId, updatedAt])
   @@index([customerId])
+}
+
+/**
+ * One review per finished visit, from the customer who had the work done.
+ * Every rating is published. Asking only the happy ones is review gating.
+ */
+model VisitReview {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  jobId      String   @unique
+  job        Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  rating     Int
+  body       String?
+  createdAt  DateTime @default(now())
+
+  @@index([businessId, createdAt])
+}
+
+/**
+ * Someone searched for a trade in an area and asked Orvius for a shop.
+ * The first live shop there to take it gets the lead. A second take does nothing.
+ */
+model AreaRequest {
+  id          String    @id @default(cuid())
+  trade       String
+  zip3        String
+  name        String
+  phone       String
+  need        String
+  claimedById String?
+  claimedBy   Business? @relation(fields: [claimedById], references: [id], onDelete: SetNull)
+  leadId      String?   @unique
+  createdAt   DateTime  @default(now())
+  claimedAt   DateTime?
+
+  @@index([trade, zip3, claimedAt])
 }
 
 /**

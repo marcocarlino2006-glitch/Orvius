@@ -1386,3 +1386,34 @@ CREATE TABLE IF NOT EXISTS "JobBilling" (
 CREATE UNIQUE INDEX IF NOT EXISTS "JobBilling_jobId_key" ON "JobBilling"("jobId");
 CREATE INDEX IF NOT EXISTS "JobBilling_businessId_status_idx" ON "JobBilling"("businessId", "status");
 CREATE INDEX IF NOT EXISTS "JobBilling_status_attemptedAt_idx" ON "JobBilling"("status", "attemptedAt");
+
+-- A finished visit can carry one review from the customer who had the work done. Every rating is kept.
+CREATE TABLE IF NOT EXISTS "VisitReview" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "jobId" TEXT NOT NULL,
+    "rating" INTEGER NOT NULL,
+    "body" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "VisitReview_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT "VisitReview_jobId_fkey" FOREIGN KEY ("jobId") REFERENCES "Job" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "VisitReview_jobId_key" ON "VisitReview"("jobId");
+CREATE INDEX IF NOT EXISTS "VisitReview_businessId_createdAt_idx" ON "VisitReview"("businessId", "createdAt");
+
+-- A customer who searched and asked for a shop. One live shop in that area takes it.
+CREATE TABLE IF NOT EXISTS "AreaRequest" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "trade" TEXT NOT NULL,
+    "zip3" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "phone" TEXT NOT NULL,
+    "need" TEXT NOT NULL,
+    "claimedById" TEXT,
+    "leadId" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "claimedAt" DATETIME,
+    CONSTRAINT "AreaRequest_claimedById_fkey" FOREIGN KEY ("claimedById") REFERENCES "Business" ("id") ON DELETE SET NULL ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "AreaRequest_leadId_key" ON "AreaRequest"("leadId");
+CREATE INDEX IF NOT EXISTS "AreaRequest_trade_zip3_claimedAt_idx" ON "AreaRequest"("trade", "zip3", "claimedAt");
