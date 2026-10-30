@@ -94,16 +94,19 @@ const plus = (d, min) => new Date(d.getTime() + min * 60_000);
 test("a Housecall Pro job takes the only technician's time, and a cancelled one does not", async () => {
   const business = await shopWith("housecall");
   try {
-    const [free] = await findOpenSlots(slotParams(business), { count: 1 });
+    const open = await findOpenSlots(slotParams(business), { count: 40 });
+    const free = open[0];
     assert.ok(free);
+    // A real open slot on a later day, not free + 24h: across a clock change that lands outside hours.
+    const nextDay = open.find((slot) => slot.getTime() >= free.getTime() + 20 * 3_600_000);
+    assert.ok(nextDay);
     fake.hcpJobs = [
       { id: "j1", work_status: "scheduled", schedule: { scheduled_start: iso(free), scheduled_end: iso(plus(free, 120)) }, customer: { mobile_number: "5125550100" } },
-      { id: "j2", work_status: "pro canceled", schedule: { scheduled_start: iso(plus(free, 24 * 60)), scheduled_end: iso(plus(free, 26 * 60)) } },
+      { id: "j2", work_status: "pro canceled", schedule: { scheduled_start: iso(nextDay), scheduled_end: iso(plus(nextDay, 120)) } },
     ];
     const result = await refreshFsmSchedule(business.id);
     assert.deepEqual(result, { source: "housecall", error: null, count: 1 });
     assert.deepEqual(await findOpenSlots(slotParams(business), { count: 1, onlyAt: free }), [], "not offered over the Housecall Pro job");
-    const nextDay = plus(free, 24 * 60);
     assert.equal((await findOpenSlots(slotParams(business), { count: 1, onlyAt: nextDay })).length, 1, "the cancelled job frees its time");
   } finally {
     await prisma.business.delete({ where: { id: business.id } }).catch(() => {});
