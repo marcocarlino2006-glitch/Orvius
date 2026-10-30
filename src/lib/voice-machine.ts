@@ -137,11 +137,23 @@ function realStoredId(value: string | null | undefined): string | null {
   return value;
 }
 
+/* Each read of a missing column is a logged database error on every call and every line check; ask again every ten minutes, not every time. */
+const COLUMN_RECHECK_MS = 10 * 60_000;
+let columnMissingUntil = 0;
+const columnKnownMissing = () => Date.now() < columnMissingUntil;
+const noteColumnMissing = () => {
+  columnMissingUntil = Date.now() + COLUMN_RECHECK_MS;
+};
+
 async function machineColumn<T>(read: () => Promise<T>): Promise<T> {
+  if (columnKnownMissing()) throw new VoiceMachineColumnMissing();
   try {
     return await read();
   } catch (error) {
-    if (missingColumn(error)) throw new VoiceMachineColumnMissing();
+    if (missingColumn(error)) {
+      noteColumnMissing();
+      throw new VoiceMachineColumnMissing();
+    }
     throw error;
   }
 }
@@ -163,7 +175,10 @@ export async function ensureVoiceMachine(businessId: string): Promise<string> {
       `;
       return rows[0]?.voiceMachineId ?? null;
     });
-    if (current === QUOTED_COLUMN_SENTINEL) throw new VoiceMachineColumnMissing();
+    if (current === QUOTED_COLUMN_SENTINEL) {
+      noteColumnMissing();
+      throw new VoiceMachineColumnMissing();
+    }
     if (current) return current;
     const id = randomBytes(16).toString("hex");
     const won = await machineColumn(() => prisma.$executeRaw`
@@ -200,6 +215,7 @@ async function doorForShopId(machineId: string, storedId: string | null | undefi
 /** The business id this machine route is sealed to. Null when no active live shop owns it. */
 export async function businessIdForVoiceMachine(machineId: string): Promise<string | null> {
   if (!machineId || machineId === QUOTED_COLUMN_SENTINEL) return null;
+  if (columnKnownMissing()) return doorForShopId(machineId, null);
   try {
     const stored = await prisma.$queryRaw<Array<{ voiceMachineId: string | null }>>`
       SELECT "voiceMachineId" AS voiceMachineId FROM "Business" WHERE "id" = ${machineId} LIMIT 1
@@ -216,7 +232,10 @@ export async function businessIdForVoiceMachine(machineId: string): Promise<stri
     if (!shop || Number(shop.isActive) === 0) return null;
     return shop.id;
   } catch (error) {
-    if (missingColumn(error)) return doorForShopId(machineId, null);
+    if (missingColumn(error)) {
+      noteColumnMissing();
+      return doorForShopId(machineId, null);
+    }
     throw error;
   }
 }

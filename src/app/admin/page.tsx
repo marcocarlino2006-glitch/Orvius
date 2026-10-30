@@ -2,6 +2,7 @@
 
 import { askConfirm } from "@/components/ask-dialog";
 import { OsShell } from "@/components/os-shell";
+import { ReceptionistScorecardCard } from "@/components/receptionist-scorecard-card";
 import { VendorAlarmCard } from "@/components/vendor-alarm-card";
 import { LineFallbackCard } from "@/components/line-fallback-card";
 import { TollFreeForm } from "@/components/toll-free-form";
@@ -496,6 +497,7 @@ export default function AdminPage() {
           <p className="mt-2 font-sans text-sm text-ash">{gateNote}</p>
         </section>
       ) : null}
+      <ReceptionistScorecardCard />
       <VendorAlarmCard />
       <LineFallbackCard />
 
