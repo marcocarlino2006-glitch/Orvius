@@ -80,7 +80,7 @@
     "@prisma/adapter-libsql": "7.10.0",
     "@prisma/client": "6.19.3",
     "@sentry/nextjs": "^10.74.0",
-    "@vapi-ai/web": "^2.7.1",
+    "@vapi-ai/web": "^3.0.1",
     "next": "15.5.28",
     "next-auth": "^5.0.0-beta.32",
     "react": "^19.0.0",
