@@ -24,7 +24,7 @@ import {
 import { ensureAssistantCurrent } from "@/lib/sync-business-assistant";
 import { handleInCallToolCalls } from "@/lib/in-call-tools";
 import { callerWordsSoFar, readToolCalls } from "@/lib/in-call-tool-defs";
-import { loadCallerContextNote, noteForConnectedCall, sendCallerContext } from "@/lib/caller-context";
+import { clockNote, loadCallerContextNote, noteForConnectedCall, sendCallerContext } from "@/lib/caller-context";
 import { backstopLateSweeps } from "@/lib/cron-backstop";
 import { isVapiBillingRefusal, pagePlatform } from "@/lib/platform-pager";
 import { alertSpendCut, callSpendCut, endCallWith, holdLineBusyCaller } from "@/lib/call-spend-guard";
@@ -296,6 +296,7 @@ export async function handleVapiWebhook(
                 networkZip3: true,
                 address: true,
                 bookingMode: true,
+                serviceZipsJson: true,
               },
             }),
           ]);
@@ -393,13 +394,19 @@ export async function handleVapiWebhook(
           }
           return;
         }
-        if (!callerPhone) return;
-        const returning = await loadCallerContextNote({
-          businessId: business.id,
-          phone: callerPhone,
-          timezone: business.timezone ?? "America/New_York",
+        const timezone = business.timezone ?? "America/New_York";
+        const clock = clockNote({
+          now: new Date(),
+          timezone,
+          hoursJson: business.hoursJson,
+          closedDatesJson: business.closedDatesJson,
         });
-        await sendCallerContext(controlUrl, noteForConnectedCall(returning));
+        if (!callerPhone) {
+          await sendCallerContext(controlUrl, clock);
+          return;
+        }
+        const returning = await loadCallerContextNote({ businessId: business.id, phone: callerPhone, timezone });
+        await sendCallerContext(controlUrl, `${clock} ${noteForConnectedCall(returning)}`);
       });
     }
 

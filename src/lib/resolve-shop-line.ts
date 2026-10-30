@@ -23,6 +23,8 @@ const SHOP_LINE_SELECT = {
   trade: true,
   address: true,
   networkOn: true,
+  hoursJson: true,
+  closedDatesJson: true,
 } as const;
 
 /** A reply this long after our last text to that phone is a new conversation. */
@@ -48,6 +50,8 @@ type ShopLineMatch = {
   trade: string | null;
   address: string | null;
   networkOn: boolean;
+  hoursJson: string;
+  closedDatesJson: string | null;
 };
 
 type TenantCandidate = { id: string; slug: string; name: string; environment: string | null; createdAt: Date };

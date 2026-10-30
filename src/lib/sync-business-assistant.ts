@@ -57,6 +57,7 @@ export function buildBusinessAssistantConfig(business: Business) {
     rulesJson: business.receptionistRulesJson,
     closedDatesJson: business.closedDatesJson,
     timezone: business.timezone,
+    serviceZipsJson: business.serviceZipsJson,
   });
   const route = voiceRoute(business);
   return buildVapiAssistantConfig({

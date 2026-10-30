@@ -13,6 +13,7 @@ import { enqueueOwnerAlert, processNotificationQueue } from "@/lib/notification-
 import { findNetworkPartners, zip3From } from "@/lib/orvius-network";
 import { checkTruck } from "@/lib/truck-stock";
 import { prisma } from "@/lib/prisma";
+import { extractPostalCode, parseServiceZips } from "@/lib/service-area";
 import { classifyRequest } from "@/lib/trade-playbooks";
 import { outsideScope } from "@/lib/trade-scope";
 import {
@@ -27,6 +28,7 @@ import {
   NO_SLOTS_REPLY,
   CALENDAR_UNREADABLE_REPLY,
   OWNER_SETS_TIMES_REPLY,
+  outsideAreaReply,
   outsideScopeReply,
   URGENT_NO_BOOK_REPLY,
   urgentTeamReply,
@@ -62,7 +64,7 @@ import {
 const str = (value: unknown) => (typeof value === "string" && value.trim() ? value.trim() : null);
 
 type ShopForTools = Pick<Business, "id" | "hoursJson" | "timezone" | "trade" | "servicesJson" | "name"> & { jobLengthsJson?: string | null } &
-  Partial<Pick<Business, "ownerPhone" | "ownerEmail" | "transferPhone" | "networkOn" | "networkZip3" | "address" | "bookingMode">>;
+  Partial<Pick<Business, "ownerPhone" | "ownerEmail" | "transferPhone" | "networkOn" | "networkZip3" | "address" | "bookingMode" | "serviceZipsJson">>;
 
 type CallForTools = { id: string; vapiCallId?: string | null; callerPhone?: string | null };
 
@@ -209,6 +211,21 @@ async function passToNetwork(shop: ShopForTools, callId: string, args: Record<st
   return PASSED_TO_NETWORK_REPLY;
 }
 
+/*
+  Only the caller's own words count, never the model's summary, and only a
+  call where every ZIP the caller said is outside the list is refused: a
+  caller who corrects a ZIP mid-call keeps their booking.
+*/
+export function zipOutsideArea(serviceZipsJson: string | null | undefined, callerWords: string | null | undefined): string | null {
+  const allowed = parseServiceZips(serviceZipsJson);
+  if (!allowed.length || !callerWords) return null;
+  const said = callerLines(callerWords)
+    .map((line) => extractPostalCode(line))
+    .filter((zip): zip is string => Boolean(zip));
+  if (!said.length || said.some((zip) => allowed.includes(zip))) return null;
+  return said[said.length - 1];
+}
+
 async function holdAppointment(
   shop: ShopForTools,
   callId: string,
@@ -228,6 +245,11 @@ async function holdAppointment(
   }
   const outside = intent === "new" ? outsideScope(shop.trade, str(args.serviceType)) : null;
   if (outside) return outsideScopeReply(outside.label);
+  const farZip = intent === "new" ? zipOutsideArea(shop.serviceZipsJson, callerWords) : null;
+  if (farZip) {
+    logInfo("in_call.hold_outside_area", { businessId: shop.id, callId });
+    return outsideAreaReply(farZip);
+  }
   if (playbook.urgency === "emergency" && intent === "new") return URGENT_NO_BOOK_REPLY;
   if (shop.bookingMode === "alert" || holdsForApproval(await getSchedulingPolicy(shop.id))) return OWNER_SETS_TIMES_REPLY;
   const offered = await prisma.call.findUnique({ where: { id: callId }, select: { slotOfferJson: true } });
@@ -456,7 +478,7 @@ export async function handleInCallToolCalls(params: {
           }
         }
         if (call.name === "hold_new_time") {
-          return { toolCallId: call.id, result: await holdAppointment(params.shop, params.callId, call.args, "reschedule") };
+          return { toolCallId: call.id, result: await holdAppointment(params.shop, params.callId, call.args, "reschedule", params.callerWords) };
         }
         return { toolCallId: call.id, result: "Unknown tool. Continue the call without it." };
       } catch {

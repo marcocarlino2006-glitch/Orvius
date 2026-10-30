@@ -273,6 +273,10 @@ export const CALENDAR_UNREADABLE_REPLY =
 export const BAD_SLOT_REPLY = "That slot id is not valid. Call check_availability again and use a slot id it returns.";
 export const NO_ALT_NOTE = "Nothing is open at the time they asked for. Say so, then offer these instead. ";
 
+export function outsideAreaReply(zip: string) {
+  return `Not held. ${zip} is not a ZIP code this shop goes to. Read the ZIP back to the caller. If they correct it, call hold_appointment again. If it is right, say the shop doesn't cover that area, take their name and callback, and put in notes "Out of service area — not a job".`;
+}
+
 export function dangerRefusal(instruction: string) {
   return `Do not book this. ${instruction} Call alert_team_now if you have not already, then follow the danger rule.`;
 }

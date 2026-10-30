@@ -9,8 +9,10 @@ import assert from "node:assert/strict";
 
 import { findAvailableSchedules } from "../src/lib/availability.ts";
 import { buildInCallTools, describeSlot, parseSlotPreference, readToolCalls } from "../src/lib/in-call-tool-defs.ts";
-import { buildCallerContextNote, noteForConnectedCall } from "../src/lib/caller-context.ts";
+import { readFileSync } from "node:fs";
+import { buildCallerContextNote, clockNote, noteForConnectedCall } from "../src/lib/caller-context.ts";
 import { buildAssistantSystemPrompt } from "../src/lib/business.ts";
+import { zipOutsideArea } from "../src/lib/in-call-tools.ts";
 import { assistantConfigFingerprint, buildVapiAssistantConfig } from "../src/lib/vapi.ts";
 import { ownerAlertContextLine } from "../src/lib/owner-alert-message.ts";
 import { DEFAULT_VOICE_ID, RECEPTIONIST_VOICES, resolveVoiceId } from "../src/lib/voices.ts";
@@ -103,6 +105,57 @@ test("a returning caller is recognised but must confirm before details are used"
   const withHistory = noteForConnectedCall(note);
   assert.match(withHistory, /a callback number is already on this call/);
   assert.match(withHistory, /Is this Maria\?/);
+});
+
+test("the receptionist knows the service area and never books a ZIP the shop doesn't go to", () => {
+  const zips = JSON.stringify(["60614", "60657"]);
+  const prompt = buildAssistantSystemPrompt({ name: "Sim Heating", greeting: null, hoursJson: "{}", servicesJson: "[]", canBook: true, serviceZipsJson: zips });
+  assert.match(prompt, /SERVICE AREA\nThe shop only goes to these ZIP codes: 60614, 60657\./);
+  assert.doesNotMatch(buildAssistantSystemPrompt({ name: "Sim", greeting: null, hoursJson: "{}", servicesJson: "[]" }), /SERVICE AREA/);
+
+  assert.equal(zipOutsideArea(zips, "My heat is out\nIt's 1200 Main St, Evanston 60201"), "60201");
+  assert.equal(zipOutsideArea(zips, "1200 Clark St, 60614"), null);
+  assert.equal(zipOutsideArea(zips, "It's 60201\nSorry, I mean 60614"), null, "a corrected ZIP keeps the booking");
+  assert.equal(zipOutsideArea(zips, "12345 Oak Street"), null, "a house number is not a ZIP");
+  assert.equal(zipOutsideArea(zips, "No ZIP said"), null);
+  assert.equal(zipOutsideArea(null, "60201"), null, "no allowlist, no refusal");
+
+  const tools = readFileSync("src/lib/in-call-tools.ts", "utf8");
+  assert.match(tools, /holdAppointment\(params\.shop, params\.callId, call\.args, "reschedule", params\.callerWords\)/, "a move hears the caller's own words too");
+  assert.match(readFileSync("src/lib/sync-business-assistant.ts", "utf8"), /serviceZipsJson: business\.serviceZipsJson/);
+  assert.match(readFileSync("src/app/api/webhooks/vapi/route.ts", "utf8"), /serviceZipsJson: true/);
+});
+
+test("every connected call learns the shop's day, time and whether it is open", () => {
+  const hoursJson = JSON.stringify({
+    monday: { open: "08:00", close: "17:00" },
+    tuesday: { open: "08:00", close: "17:00" },
+    wednesday: { open: "08:00", close: "17:00" },
+    thursday: { open: "08:00", close: "17:00" },
+    friday: { open: "08:00", close: "17:00" },
+    saturday: { open: "09:00", close: "13:00", closed: false },
+    sunday: { open: "", close: "", closed: true },
+  });
+  // Friday Oct 30 2026, 3:05pm New York.
+  const open = clockNote({ now: new Date("2026-10-30T19:05:00Z"), timezone: NY, hoursJson });
+  assert.match(open, /Friday, October 30, 3:05 PM/);
+  assert.match(open, /Tomorrow is Saturday/);
+  assert.match(open, /open right now/);
+  assert.doesNotMatch(open, /\d{3}/, "no digit run a model could mistake for a phone number");
+  const late = clockNote({ now: new Date("2026-10-31T03:00:00Z"), timezone: NY, hoursJson });
+  assert.match(late, /Friday, October 30, 11:00 PM/);
+  assert.match(late, /closed right now/);
+  const holiday = clockNote({
+    now: new Date("2026-10-30T19:05:00Z"),
+    timezone: NY,
+    hoursJson,
+    closedDatesJson: JSON.stringify([{ date: "2026-10-30", label: "Shop day off" }]),
+  });
+  assert.match(holiday, /closed right now/);
+  assert.match(clockNote({ now: new Date("2026-10-30T19:05:00Z"), timezone: "Not/AZone", hoursJson }), /3:05 PM/);
+
+  const route = readFileSync("src/app/api/webhooks/vapi/route.ts", "utf8");
+  assert.match(route, /sendCallerContext\(controlUrl, clock\)/, "a call with no caller ID still gets the clock");
 });
 
 test("the receptionist books on the call and never names a time the schedule didn't give it", () => {
