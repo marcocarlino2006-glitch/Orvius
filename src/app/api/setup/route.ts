@@ -189,6 +189,7 @@ async function view(business: Business | null) {
       team: setup.team ?? null,
       crew,
       hours: hoursPresetFor(business.hoursJson),
+      hoursSummary: hoursSummary(business.hoursJson),
       importedHours: Boolean(setup.imported?.hours && hoursSummary(business.hoursJson)),
       importedHoursSummary: setup.imported?.hours ? hoursSummary(business.hoursJson) : null,
       importedAddress: setup.imported?.address ? business.address : null,

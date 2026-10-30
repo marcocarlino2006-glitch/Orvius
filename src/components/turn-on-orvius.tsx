@@ -37,6 +37,7 @@ type Sandbox = {
   team: "solo" | "crew" | null;
   crew: number;
   hours: HoursPresetId | null;
+  hoursSummary: string | null;
   importedHours: boolean;
   importedHoursSummary: string | null;
   importedAddress: string | null;
@@ -820,6 +821,11 @@ function PermissionsStep({
   );
 }
 
+/** The hours the shop actually has: from its listing, a preset, or the starting week. */
+function openLine(sandbox: Sandbox): string {
+  return sandbox.hoursSummary ? ` Open ${sandbox.hoursSummary}.` : "";
+}
+
 /* ── 5. See your business run ──────────────────────────────────────────── */
 
 function TestStep({ sandbox, onNext }: { sandbox: Sandbox; onNext: () => void }) {
@@ -827,7 +833,7 @@ function TestStep({ sandbox, onNext }: { sandbox: Sandbox; onNext: () => void })
     <>
       <Heading
         title="Hear your shop answer."
-        lead="Talk to it as a customer would. It answers as your business. Weekdays 8 to 6, Saturday 9 to 2. It takes the request until you set how far apart jobs sit, on the desk. No one else is called, and nothing is charged."
+        lead={`Talk to it as a customer would. It answers as your business.${openLine(sandbox)} It takes the request until you set how far apart jobs sit, on the desk. No one else is called, and nothing is charged.`}
       />
 
       <TalkInBrowser
@@ -997,7 +1003,7 @@ function LiveStep({
     <>
       <Heading
         title="Pay."
-        lead="This puts your shop on its own line. Weekdays 8 to 6, Saturday 9 to 2. It takes the request until you set how far apart jobs sit. Change both on the desk."
+        lead={`This puts your shop on its own line.${openLine(sandbox)} It takes the request until you set how far apart jobs sit. Change both on the desk.`}
       />
       {canceled ? <p className="ton-note" role="status">Checkout closed before payment. Nothing was charged and your setup is saved.</p> : null}
 

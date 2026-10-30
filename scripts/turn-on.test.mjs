@@ -224,6 +224,13 @@ test("the turn-on business step finds the shop before asking the owner to type",
   assert.match(route, /importedHours/);
 });
 
+test("setup quotes the shop's own hours, never a hardcoded week", () => {
+  const ui = read("src/components/turn-on-orvius.tsx");
+  assert.doesNotMatch(ui, /Weekdays 8 to 6/);
+  assert.match(ui, /openLine\(sandbox\)/);
+  assert.match(read("src/app/api/setup/route.ts"), /hoursSummary: hoursSummary\(business\.hoursJson\)/);
+});
+
 test("an owner whose business is live cannot start test mode over it", async () => {
   const owner = email();
   await prisma.business.create({
