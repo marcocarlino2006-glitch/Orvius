@@ -11,8 +11,13 @@ const { buildBusinessAssistantConfig } = await import("../src/lib/sync-business-
 const { prisma } = await import("../src/lib/prisma.ts");
 
 test("the production column statements are the reviewed ones", async () => {
-  const { VOICE_MACHINE_PLAN_SHA256, voiceMachinePlanSha256 } = await import("./apply-voice-machine-column.mjs");
-  assert.equal(voiceMachinePlanSha256(), VOICE_MACHINE_PLAN_SHA256);
+  const { VOICE_MACHINE_STATEMENTS, voiceMachinePlanSha256 } = await import("../src/lib/voice-machine-schema.ts");
+  assert.deepEqual([...VOICE_MACHINE_STATEMENTS], [
+    `ALTER TABLE "Business" ADD COLUMN "voiceMachineId" TEXT`,
+    `UPDATE "Business" SET "voiceMachineId" = "id" WHERE "voiceMachineId" IS NULL`,
+    `CREATE UNIQUE INDEX IF NOT EXISTS "Business_voiceMachineId_key" ON "Business"("voiceMachineId")`,
+  ]);
+  assert.equal(voiceMachinePlanSha256().length, 64);
 });
 
 test("a shop's seal opens only that shop's machine", () => {
