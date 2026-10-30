@@ -224,6 +224,33 @@ test("the turn-on business step finds the shop before asking the owner to type",
   assert.match(route, /importedHours/);
 });
 
+test("the plan and billing picked on the pricing page reach checkout when they can be sold", async () => {
+  const { pickPlan } = await import("../src/lib/pricing-plans.ts");
+  const ready = [
+    { id: "line", checkoutReadyAnnual: true },
+    { id: "pro", checkoutReadyAnnual: false },
+    { id: "fleet", checkoutReadyAnnual: true },
+  ];
+  assert.deepEqual(pickPlan(ready, "fleet", "year"), { planId: "fleet", interval: "year" });
+  assert.deepEqual(pickPlan(ready, "pro", "year"), { planId: "pro", interval: "month" });
+  assert.deepEqual(pickPlan(ready, "bogus", null), { planId: "pro", interval: "month" });
+  assert.deepEqual(pickPlan([{ id: "line", checkoutReadyAnnual: false }], "fleet", "month"), { planId: "line", interval: "month" });
+  assert.equal(pickPlan([], "pro", "month"), null);
+
+  assert.match(read("src/app/dashboard/onboarding/page.tsx"), /initialPlan=\{first\("plan"\)/);
+  assert.match(read("src/app/dashboard/onboarding/page.tsx"), /initialInterval=\{first\("interval"\)/);
+  const ui = read("src/components/turn-on-orvius.tsx");
+  assert.doesNotMatch(ui, /interval: "month",/);
+  assert.match(ui, /pickPlan\(ready, initialPlan, initialInterval\)/);
+});
+
+test("setup quotes the shop's own hours, never a hardcoded week", () => {
+  const ui = read("src/components/turn-on-orvius.tsx");
+  assert.doesNotMatch(ui, /Weekdays 8 to 6/);
+  assert.match(ui, /openLine\(sandbox\)/);
+  assert.match(read("src/app/api/setup/route.ts"), /hoursSummary: hoursSummary\(business\.hoursJson\)/);
+});
+
 test("an owner whose business is live cannot start test mode over it", async () => {
   const owner = email();
   await prisma.business.create({

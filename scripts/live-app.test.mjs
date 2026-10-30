@@ -13,7 +13,8 @@ import { pushFromAlert } from "../src/lib/web-push.ts";
 import manifest from "../src/app/manifest.ts";
 
 test("g-then-letter jumps to every main screen, and never fires while typing", () => {
-  assert.equal(goToHref("c"), "/dashboard");
+  assert.equal(goToHref("h"), "/dashboard");
+  assert.equal(GO_TO.find((g) => g.href === "/dashboard")?.label, "Home", "the shortcut names Home the way the sidebar does");
   assert.equal(goToHref("D"), "/dashboard/schedule");
   assert.equal(goToHref("z"), null);
   assert.equal(new Set(GO_TO.map((g) => g.key)).size, GO_TO.length, "no two screens share a key");

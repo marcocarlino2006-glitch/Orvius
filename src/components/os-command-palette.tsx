@@ -72,19 +72,24 @@ export function OsCommandPalette({
       return;
     }
     setSearching(true);
+    // A slow answer for "ma" must never land on top of the answer for "mar".
+    const controller = new AbortController();
     const timer = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`, { signal: controller.signal });
         if (!res.ok) return;
         const data = (await res.json()) as { hits: SearchHit[] };
-        setHits(data.hits ?? []);
+        if (!controller.signal.aborted) setHits(data.hits ?? []);
       } catch {
-        /* keep last results */
+        /* aborted, or keep last results */
       } finally {
-        setSearching(false);
+        if (!controller.signal.aborted) setSearching(false);
       }
     }, 180);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
   }, [query, open]);
 
   const go = useCallback(

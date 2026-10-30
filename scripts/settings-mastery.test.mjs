@@ -54,3 +54,18 @@ test("the shop's numbers live with Performance, where they are used", () => {
   assert.equal(sectionFromAnchor("#economics-baseline"), "performance");
   assert.equal(sectionFromAnchor("your-numbers"), "performance");
 });
+
+test("old settings and profile links redirect on the server, and the panel keeps their anchor", async () => {
+  const { knownAnchorSection, settingsRedirectTarget } = await import("../src/lib/settings-center.ts");
+  assert.equal(settingsRedirectTarget("/dashboard/profile", null), "/dashboard?settings=account");
+  assert.equal(settingsRedirectTarget("/dashboard/settings", "phone"), "/dashboard?settings=phone");
+  assert.equal(settingsRedirectTarget("/dashboard/settings", "nonsense"), "/dashboard?settings=business");
+  assert.equal(knownAnchorSection("#owner-alerts"), "notifications");
+  assert.equal(knownAnchorSection("#nothing-here"), null);
+  for (const page of ["src/app/dashboard/settings/page.tsx", "src/app/dashboard/profile/page.tsx"]) {
+    const source = readFileSync(page, "utf8");
+    assert.doesNotMatch(source, /"use client"|useEffect/, `${page} must not paint a page before redirecting`);
+    assert.match(source, /redirect\(settingsRedirectTarget/);
+  }
+  assert.match(readFileSync("src/components/settings-center/settings-center-host.tsx", "utf8"), /knownAnchorSection\(window\.location\.hash\)/);
+});

@@ -7,6 +7,7 @@ import { TalkInBrowser } from "@/components/talk-in-browser";
 import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
 import { OrviusMarkSvg } from "@/lib/orvius-mark";
 import { company } from "@/lib/company";
+import { ANNUAL_DISCOUNT_LABEL, pickPlan, type BillingInterval } from "@/lib/pricing-plans";
 import {
   HOURS_PRESETS,
   PERMISSION_LEVELS,
@@ -37,6 +38,7 @@ type Sandbox = {
   team: "solo" | "crew" | null;
   crew: number;
   hours: HoursPresetId | null;
+  hoursSummary: string | null;
   importedHours: boolean;
   importedHoursSummary: string | null;
   importedAddress: string | null;
@@ -74,7 +76,16 @@ function readInvited(raw: SetupResponse["invited"]): InviteArea | null {
   return { trade: raw.trade, zip3: raw.zip3 };
 }
 
-type Plan = { id: "line" | "pro" | "fleet"; name: string; price: number; tagline: string; featured: boolean; checkoutReady: boolean };
+type Plan = {
+  id: "line" | "pro" | "fleet";
+  name: string;
+  price: number;
+  annualPrice: number | null;
+  tagline: string;
+  featured: boolean;
+  checkoutReady: boolean;
+  checkoutReadyAnnual: boolean;
+};
 
 /** What the owner walks. Hours, the first job and permissions start as a normal shop week and change on the desk. */
 const OWNER_STEPS = ["business", "test", "live"] as const;
@@ -107,10 +118,14 @@ export function TurnOnOrvius({
   checkoutOpen,
   initialStep,
   canceled,
+  initialPlan,
+  initialInterval,
 }: {
   checkoutOpen: boolean;
   initialStep?: string | null;
   canceled?: boolean;
+  initialPlan?: string | null;
+  initialInterval?: string | null;
 }) {
   const router = useRouter();
   const [loaded, setLoaded] = useState(false);
@@ -224,7 +239,13 @@ export function TurnOnOrvius({
         ) : null}
         {step === "test" && sandbox ? <TestStep sandbox={sandbox} onNext={() => go("live")} /> : null}
         {step === "live" && sandbox ? (
-          <LiveStep sandbox={sandbox} checkoutOpen={checkoutOpen} canceled={Boolean(canceled)} />
+          <LiveStep
+            sandbox={sandbox}
+            checkoutOpen={checkoutOpen}
+            canceled={Boolean(canceled)}
+            initialPlan={initialPlan ?? null}
+            initialInterval={initialInterval ?? null}
+          />
         ) : null}
         {error ? (
           <p className="ton-error" role="alert">
@@ -820,6 +841,11 @@ function PermissionsStep({
   );
 }
 
+/** The hours the shop actually has: from its listing, a preset, or the starting week. */
+function openLine(sandbox: Sandbox): string {
+  return sandbox.hoursSummary ? ` Open ${sandbox.hoursSummary}.` : "";
+}
+
 /* ── 5. See your business run ──────────────────────────────────────────── */
 
 function TestStep({ sandbox, onNext }: { sandbox: Sandbox; onNext: () => void }) {
@@ -827,7 +853,7 @@ function TestStep({ sandbox, onNext }: { sandbox: Sandbox; onNext: () => void })
     <>
       <Heading
         title="Hear your shop answer."
-        lead="Talk to it as a customer would. It answers as your business. Weekdays 8 to 6, Saturday 9 to 2. It takes the request until you set how far apart jobs sit, on the desk. No one else is called, and nothing is charged."
+        lead={`Talk to it as a customer would. It answers as your business.${openLine(sandbox)} It takes the request until you set how far apart jobs sit, on the desk. No one else is called, and nothing is charged.`}
       />
 
       <TalkInBrowser
@@ -905,10 +931,14 @@ function LiveStep({
   sandbox,
   checkoutOpen,
   canceled,
+  initialPlan,
+  initialInterval,
 }: {
   sandbox: Sandbox;
   checkoutOpen: boolean;
   canceled: boolean;
+  initialPlan: string | null;
+  initialInterval: string | null;
 }) {
   const [ownerPhone, setOwnerPhone] = useState(sandbox.liveDraft.ownerPhone ?? "");
   const [areaCode, setAreaCode] = useState(sandbox.liveDraft.areaCode ?? "");
@@ -923,6 +953,7 @@ function LiveStep({
   const [sms, setSms] = useState(false);
   const [plans, setPlans] = useState<Plan[] | null>(null);
   const [planId, setPlanId] = useState<Plan["id"]>("pro");
+  const [interval, setBilling] = useState<BillingInterval>("month");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -933,10 +964,21 @@ function LiveStep({
       .then((json: { plans?: Plan[] } | null) => {
         const ready = (json?.plans ?? []).filter((p) => p.checkoutReady);
         setPlans(ready);
-        if (ready.length && !ready.some((p) => p.id === "pro")) setPlanId(ready[0].id);
+        const picked = pickPlan(ready, initialPlan, initialInterval);
+        if (picked) {
+          setPlanId(picked.planId);
+          setBilling(picked.interval);
+        }
       })
       .catch(() => setPlans([]));
-  }, [checkoutOpen]);
+  }, [checkoutOpen, initialPlan, initialInterval]);
+
+  const chosen = plans?.find((p) => p.id === planId);
+  const annualOffered = Boolean(plans?.some((p) => p.checkoutReadyAnnual));
+  const choosePlan = (plan: Plan) => {
+    setPlanId(plan.id);
+    if (!plan.checkoutReadyAnnual) setBilling("month");
+  };
 
   const checklist = sandbox.checklist.map((item) => {
     if (item.id === "recording" && recording) return { ...item, state: "live" as const, detail: "Approved. Callers hear the notice first." };
@@ -966,7 +1008,7 @@ function LiveStep({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           planId,
-          interval: "month",
+          interval: interval === "year" && chosen?.checkoutReadyAnnual ? "year" : "month",
           shop: {
             name: sandbox.name,
             trade: sandbox.trade,
@@ -997,7 +1039,7 @@ function LiveStep({
     <>
       <Heading
         title="Pay."
-        lead="This puts your shop on its own line. Weekdays 8 to 6, Saturday 9 to 2. It takes the request until you set how far apart jobs sit. Change both on the desk."
+        lead={`This puts your shop on its own line.${openLine(sandbox)} It takes the request until you set how far apart jobs sit. Change both on the desk.`}
       />
       {canceled ? <p className="ton-note" role="status">Checkout closed before payment. Nothing was charged and your setup is saved.</p> : null}
 
@@ -1030,7 +1072,7 @@ function LiveStep({
           </p>
           <div className="ton-actions ton-actions--split">
             <Link href="/dashboard" className="ton-secondary">
-              Open Command
+              Open Orvius
             </Link>
             <Link href="/pilot" className="ton-primary">
               Book a call
@@ -1068,7 +1110,7 @@ function LiveStep({
             </p>
           </fieldset>
 
-          {plans && plans.length > 1 ? (
+          {plans && (plans.length > 1 || annualOffered) ? (
             <fieldset className="ton-group">
               <legend className="ton-group-title">Your plan</legend>
               <div className="ton-chips" role="radiogroup" aria-label="Plan">
@@ -1079,12 +1121,28 @@ function LiveStep({
                     role="radio"
                     aria-checked={planId === plan.id}
                     className={`ton-chip ${planId === plan.id ? "is-on" : ""}`}
-                    onClick={() => setPlanId(plan.id)}
+                    onClick={() => choosePlan(plan)}
                   >
-                    {plan.name} · ${plan.price}/mo
+                    {plan.name} · ${interval === "year" && plan.checkoutReadyAnnual && plan.annualPrice ? plan.annualPrice : plan.price}/mo
                   </button>
                 ))}
               </div>
+              {chosen?.checkoutReadyAnnual ? (
+                <div className="ton-chips" role="radiogroup" aria-label="Billing">
+                  {(["month", "year"] as const).map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      role="radio"
+                      aria-checked={interval === value}
+                      className={`ton-chip ${interval === value ? "is-on" : ""}`}
+                      onClick={() => setBilling(value)}
+                    >
+                      {value === "month" ? "Monthly" : `Annual · ${ANNUAL_DISCOUNT_LABEL.toLowerCase()}`}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
               <p className="ton-note">
                 <Link href="/pricing" target="_blank">
                   Compare plans

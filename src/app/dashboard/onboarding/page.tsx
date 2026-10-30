@@ -31,5 +31,13 @@ export default async function DashboardOnboardingPage({ searchParams }: { search
   const open = email ? (await resolveShopAccess(email))?.business : null;
   if (open?.environment === "production") return <OnboardingWizard checkoutOpen={checkoutOpen} />;
 
-  return <TurnOnOrvius checkoutOpen={checkoutOpen} initialStep={first("step") ?? null} canceled={first("canceled") === "1"} />;
+  return (
+    <TurnOnOrvius
+      checkoutOpen={checkoutOpen}
+      initialStep={first("step") ?? null}
+      canceled={first("canceled") === "1"}
+      initialPlan={first("plan") ?? null}
+      initialInterval={first("interval") ?? null}
+    />
+  );
 }

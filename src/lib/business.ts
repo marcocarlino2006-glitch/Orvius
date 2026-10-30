@@ -162,6 +162,7 @@ LISTED PRICES
 
 import { formatClosuresForPrompt, isClosedDay, parseClosures } from "@/lib/shop-closures";
 import { formatRulesForPrompt } from "@/lib/receptionist-rules";
+import { parseServiceZips } from "@/lib/service-area";
 import { scopePromptBlock } from "@/lib/trade-scope";
 import {
   industryKind,
@@ -188,7 +189,15 @@ type AssistantPromptInput = {
   /** Business.closedDatesJson: whole days closed (holidays). */
   closedDatesJson?: string | null;
   timezone?: string | null;
+  /** Business.serviceZipsJson: the ZIP codes the owner serves. Empty means no allowlist. */
+  serviceZipsJson?: string | null;
 };
+
+export function formatServiceAreaForPrompt(serviceZipsJson: string | null | undefined): string {
+  const zips = parseServiceZips(serviceZipsJson);
+  if (!zips.length) return "";
+  return `\n\nSERVICE AREA\nThe shop only goes to these ZIP codes: ${zips.join(", ")}.\nAsk for the ZIP with the address. If it is not on this list, say the shop doesn't cover that area and put in notes "Out of service area — not a job". Never book it.`;
+}
 
 export function buildAssistantSystemPrompt(business: AssistantPromptInput): string {
   const greeting =
@@ -285,7 +294,7 @@ OPENING LINE
 BUSINESS HOURS
 ${formatHoursForPrompt(business.hoursJson)}${formatClosuresForPrompt(business.closedDatesJson, business.timezone ?? "America/New_York")}
 
-After hours: still take the message and mark urgency. Emergency calls get priority callback.
+After hours: still take the message and mark urgency. Emergency calls get priority callback.${formatServiceAreaForPrompt(business.serviceZipsJson)}
 
 SERVICES
 ${formatServicesForPrompt(business.servicesJson)}${tradeBlock}${formatPricesRule(business.servicesJson)}${formatRulesForPrompt(business.rulesJson)}

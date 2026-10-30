@@ -11,7 +11,15 @@ import { sendSms } from "@/lib/twilio-sms";
   Sentry is only a third copy: with no DSN set it was the only one.
 */
 
-export type PlatformFailure = "vapi_unreachable" | "vapi_billing" | "db_unreachable" | "twilio_account" | "spend_ceiling" | "demo_overflow" | "error_burst";
+export type PlatformFailure =
+  | "vapi_unreachable"
+  | "vapi_billing"
+  | "db_unreachable"
+  | "twilio_account"
+  | "spend_ceiling"
+  | "demo_overflow"
+  | "error_burst"
+  | "signup_closed";
 
 const HEADLINE: Record<PlatformFailure, string> = {
   vapi_unreachable: "Vapi is not answering calls. Shop lines are going to the backup voicemail.",
@@ -21,14 +29,17 @@ const HEADLINE: Record<PlatformFailure, string> = {
   spend_ceiling: "A shop passed its daily call ceiling; new calls on that line are being ended to cap the Vapi bill. Check for a robodialer or a call loop.",
   demo_overflow: "The demo line is full; new callers are told to try again or watch a call online. Raise ORVIUS_DEMO_MAX_LIVE_CALLS only if Vapi concurrency allows it.",
   error_burst: "Production is logging errors in a burst. Something just broke; check Vercel logs.",
+  signup_closed: "Self-serve signup is closed in production: the website is sending new shops to a call instead of checkout.",
 };
 
 /** One page per failure kind per quarter hour, however many calls hit it. */
 const REPAGE_MS = 15 * 60_000;
+/* A setting that stays off is one problem, not one every quarter hour. */
+const REPAGE_MS_BY_KIND: Partial<Record<PlatformFailure, number>> = { signup_closed: 6 * 60 * 60_000 };
 
 async function claimPage(kind: PlatformFailure, now: Date) {
   const name = `page:${kind}`;
-  const before = new Date(now.getTime() - REPAGE_MS);
+  const before = new Date(now.getTime() - (REPAGE_MS_BY_KIND[kind] ?? REPAGE_MS));
   const claimed = await prisma.cronRun.updateMany({
     where: { name, OR: [{ lastClaimAt: null }, { lastClaimAt: { lte: before } }] },
     data: { lastClaimAt: now },

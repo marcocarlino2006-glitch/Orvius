@@ -185,7 +185,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
 
   if (!data && loadError && !loading) {
     return (
-      <section className="cc" aria-label="Command">
+      <section className="cc" aria-label="Home">
         <div className="ox-state ox-state--failure" role="alert">
           <p className="ox-state-title">Command could not load</p>
           <p className="ox-state-copy">{loadError} This screen failing doesn&apos;t stop your line — calls are answered separately.</p>

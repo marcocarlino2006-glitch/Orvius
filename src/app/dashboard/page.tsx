@@ -17,13 +17,13 @@ export default function DashboardPage() {
   const { status } = useSession();
   if (status === "unauthenticated") {
     return (
-      <OsShell title="Command">
+      <OsShell title="Home">
         <SampleDay />
       </OsShell>
     );
   }
   return (
-    <OsShell title="Command">
+    <OsShell title="Home">
       <Ring1CommandCenter
         setup={
           <Suspense fallback={null}>

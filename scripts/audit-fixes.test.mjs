@@ -751,8 +751,9 @@ test("22. the Vapi bill has a ceiling: a caller dialing on repeat and a runaway 
 
   const { buildVapiAssistantConfig } = await import("../src/lib/vapi.ts");
   const config = buildVapiAssistantConfig({ businessName: "X", systemPrompt: "p", greeting: "g", webhookUrl: "https://x" });
-  assert.equal(config.maxDurationSeconds, 600, "a stuck line stops billing at ten minutes");
+  assert.equal(config.maxDurationSeconds, 900, "a stuck line stops billing at fifteen minutes, past a long real call");
   assert.equal(config.silenceTimeoutSeconds, 30);
+  assert.deepEqual(config.backgroundSpeechDenoisingPlan, { smartDenoisingPlan: { enabled: true } });
 });
 
 test("23. a line stops answering three weeks into a failed payment or a week after an unpaid pilot, the owner is told, and paying turns it back on", async () => {

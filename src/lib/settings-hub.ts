@@ -191,7 +191,7 @@ export function buildSettingsHub(input: SettingsHubInput): {
     next = {
       id: "baseline",
       title: "Set average ticket",
-      body: "One number unlocks estimated booked value on Command.",
+      body: "One number unlocks estimated booked value on Home.",
       cta: "Set ticket",
       href: "#economics-baseline",
     };

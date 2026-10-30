@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
       messageSid,
     });
     return twimlResponse(
-      "Got it — call capture marked done. Open Command and work the next lead.",
+      "Got it — call capture marked done. Open Orvius and work the next lead.",
     );
   }
 

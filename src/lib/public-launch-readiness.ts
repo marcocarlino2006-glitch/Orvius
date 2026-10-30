@@ -48,3 +48,10 @@ export function getPublicLaunchReadiness() {
     requirements,
   };
 }
+
+/** The names of the requirements that are off, for the founder's page. Never values. */
+export function missingLaunchRequirements(requirements: PublicLaunchRequirements): string[] {
+  return Object.entries(requirements)
+    .filter(([, ok]) => !ok)
+    .map(([name]) => name);
+}

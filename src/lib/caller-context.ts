@@ -1,3 +1,4 @@
+import { isAfterHours } from "@/lib/business";
 import { describeSlot } from "@/lib/in-call-tool-defs";
 import { logWarn } from "@/lib/logger";
 import { normalizePhone } from "@/lib/customer";
@@ -44,6 +45,39 @@ export const NUMBER_ON_THIS_CALL =
 
 export function noteForConnectedCall(returning: string | null): string {
   return returning ? `${NUMBER_ON_THIS_CALL} ${returning}` : NUMBER_ON_THIS_CALL;
+}
+
+/**
+ * The assistant's prompt is synced once and cached by Vapi, so it cannot
+ * carry the clock. Without this the model guesses what "today" and
+ * "tomorrow" mean and whether the shop is open.
+ */
+export function clockNote(input: {
+  now: Date;
+  timezone: string;
+  hoursJson: string;
+  closedDatesJson?: string | null;
+}): string {
+  let timezone = input.timezone;
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: timezone }).format(input.now);
+  } catch {
+    timezone = "America/New_York";
+  }
+  const day = new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  }).format(input.now);
+  const time = new Intl.DateTimeFormat("en-US", { timeZone: timezone, hour: "numeric", minute: "2-digit" }).format(input.now);
+  const tomorrow = new Intl.DateTimeFormat("en-US", { timeZone: timezone, weekday: "long" }).format(
+    new Date(input.now.getTime() + 24 * 60 * 60 * 1000),
+  );
+  const open = !isAfterHours(input.now, input.hoursJson, timezone, input.closedDatesJson);
+  return `Private note, never read this aloud: at the shop it is ${day}, ${time}. Tomorrow is ${tomorrow}. The shop is ${
+    open ? "open right now" : "closed right now; take the message and mark urgency"
+  }. Use this for "today", "tomorrow" and "this weekend".`;
 }
 
 export function buildCallerContextNote(input: CallerContextInput): string | null {

@@ -7,6 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import { SIGNUP_HREF } from "@/lib/signup-href";
 import {
   isSettingsSection,
+  knownAnchorSection,
   SETTINGS_EVENT,
   SETTINGS_PARAM,
   settingsSectionForHref,
@@ -51,7 +52,8 @@ export function SettingsCenterHost() {
       window.location.assign(SIGNUP_HREF);
       return;
     }
-    setSection(fromUrl);
+    // An old /dashboard/settings#owner-alerts link arrives here with its anchor intact.
+    setSection(knownAnchorSection(window.location.hash) ?? fromUrl);
   }, [pathname, guest]);
 
   useEffect(() => {

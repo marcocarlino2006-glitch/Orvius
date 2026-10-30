@@ -112,7 +112,7 @@ export async function startSetup(
   input: { name: string; trade: Trade; timezone?: string | null; found?: ClaimedShop; invite?: { trade: string; zip3: string } | null },
 ): Promise<Business> {
   const owner = email.trim().toLowerCase();
-  if (await ownsLiveShop(owner)) throw new SetupError("Your business is already live. Open Command to run it.");
+  if (await ownsLiveShop(owner)) throw new SetupError("Your business is already live. Open Home to run it.");
   const name = input.name.trim().slice(0, 80);
   const greeting = `Thanks for calling ${name}. How can I help you today?`;
   /* Claimed facts are applied only when well-formed, and their origin is kept so nothing found reads as owner-typed. */

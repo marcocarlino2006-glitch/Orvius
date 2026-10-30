@@ -25,9 +25,9 @@ type OsShellProps = {
   actions?: React.ReactNode;
 };
 
-/** Command and Work speak with their own headline. Every other screen keeps a quiet name. */
+/** Home and Work speak with their own headline. Every other screen keeps a quiet name. */
 function chromeTitle(title: string) {
-  if (title === "Command" || title === "Work") return null;
+  if (title === "Home" || title === "Work") return null;
   return title;
 }
 

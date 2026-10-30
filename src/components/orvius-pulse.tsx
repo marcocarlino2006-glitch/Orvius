@@ -174,7 +174,7 @@ export function OrviusPulse({
                   key={row.id}
                   label="Orvius number"
                   value="Ready"
-                  detail="Answers from Command."
+                  detail="Answers on Home."
                   tone="ok"
                 />
               ) : (

@@ -87,7 +87,7 @@ export function OutcomeCard({
       const body = option.kind === "assign_tech" ? { action: "assign_tech", jobId: option.jobId, technicianId: option.technicianId } : { action: "reschedule", jobId: option.jobId, at: option.at };
       const data = await send("/api/copilot", "POST", body);
       if (typeof data.proposalId !== "string" || typeof data.preview !== "string") {
-        setError("The plan didn't come back readable. Nothing runs without your approval; refresh to see it in Command.");
+        setError("The plan didn't come back readable. Nothing runs without your approval; refresh to see it on Home.");
         return;
       }
       setPlan({ proposalId: data.proposalId, preview: data.preview });

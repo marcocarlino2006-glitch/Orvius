@@ -89,7 +89,7 @@ function OperatingPanel({ o }: { o: OperatingEvidence }) {
           </span>
         </li>
         <li>
-          <span className="rp-open-label">Of those, from a call Orvius answered or a booking approved in Command</span>
+          <span className="rp-open-label">Of those, from a call Orvius answered or a booking approved in Orvius</span>
           <span className="rp-open-money">{o.attributableJobs}</span>
           <span className="rp-open-age">attributable: Orvius had a hand in it, not proof it caused the sale</span>
         </li>
