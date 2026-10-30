@@ -472,12 +472,17 @@ async function postTool(callId, phone, name, args) {
   return data.results?.[0]?.result ?? "";
 }
 
-/** check_availability, then hold the first time offered. Returns what was offered and held. */
-async function liveBooking(callId, phone, live) {
+/** check_availability, then hold the first time offered with the caller's name and address. Returns what was offered and held. */
+async function liveBooking(callId, phone, live, caller = { name: "Casey Lee", address: "200 Church St, Evanston IL 60201" }) {
   const offer = await postTool(callId, phone, "check_availability", live);
   const offered = [...offer.matchAll(/\[slot ([^\]]+)\]/g)].map((m) => m[1]);
   if (!offered.length) throw new Error(`no times offered: ${offer}`);
-  const held = await postTool(callId, phone, "hold_appointment", { slot: offered[0], serviceType: live.serviceType });
+  const held = await postTool(callId, phone, "hold_appointment", {
+    slot: offered[0],
+    serviceType: live.serviceType,
+    callerName: caller.name,
+    address: caller.address,
+  });
   if (!/^Held /.test(held)) throw new Error(`hold refused: ${held}`);
   return { offered, held: offered[0] };
 }
@@ -548,7 +553,7 @@ async function runScenario(business, s) {
   for (let i = 0; i < s.calls.length; i++) {
     const callId = `sim_${stamp}_${s.id}_${i}`;
     const callerPhone = s.samePhone === false ? nextPhone() : phone;
-    if (s.calls[i].live) live = await liveBooking(callId, callerPhone, s.calls[i].live);
+    if (s.calls[i].live) live = await liveBooking(callId, callerPhone, s.calls[i].live, s.calls[i].structured);
     last = await postCall(callId, callerPhone, s.calls[i]);
     if (i < s.calls.length - 1) await new Promise((r) => setTimeout(r, 150));
   }
