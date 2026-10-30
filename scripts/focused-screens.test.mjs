@@ -30,3 +30,9 @@ test("the call screen leaves out what it doesn't know and doesn't repeat itself"
 test("the work card under the latest call on Home is labeled", () => {
   assert.match(read("src/components/ring1-command-center.tsx"), /cmd-next-kicker">Needs you next</);
 });
+
+test("Home's composer is a field of its own; the shop's setup cards sit below it, not inside it", () => {
+  const desk = read("src/components/ring1-command-center.tsx");
+  assert.match(desk, /<AskBar onChange=\{\(\) => void refresh\(\)\} \/>\s*\{setup \? <div className="cmd-ask-setup">\{setup\}<\/div> : null\}/);
+  assert.match(read("src/app/dashboard/orvius.css"), /\.cmd\.cmd-one \.cb-ask-form \{\s*border: 1px solid var\(--m-line-2\) !important;/);
+});

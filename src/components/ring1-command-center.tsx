@@ -374,7 +374,8 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
       ) : null}
 
       <div className="cmd-ask">
-        <AskBar onChange={() => void refresh()} below={setup} />
+        <AskBar onChange={() => void refresh()} />
+        {setup ? <div className="cmd-ask-setup">{setup}</div> : null}
         {data?.business?.demoWorkspace ? <DemoPanel onChange={() => void refresh()} /> : null}
         {data && !data.business?.demoWorkspace && !data.business?.referenceImplementation ? (
           <TryDemo empty={!data.metrics.totalCalls} />

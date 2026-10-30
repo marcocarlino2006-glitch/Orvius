@@ -21024,3 +21024,38 @@ html .os-shell .sc-embed .billing-settings > div > .pro-panel {
   min-height: 0 !important;
   height: 100% !important;
 }
+
+/* Home's composer reads as a field you can type in; the shop's setup cards sit below it, not inside it. */
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one .cb-ask-stack {
+  border: 0 !important;
+  background: transparent !important;
+  overflow: visible !important;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one .cb-ask-form {
+  border: 1px solid var(--m-line-2) !important;
+  border-radius: 0.75rem !important;
+  background: var(--ox-s1) !important;
+  padding: 0.75rem 0.75rem 0.5rem 1rem !important;
+  transition: border-color var(--ox-dur-fast) ease;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one .cb-ask-stack:focus-within .cb-ask-form {
+  border-color: var(--m-mute) !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one .cmd-ask-setup {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one .cmd-ask-setup:empty {
+  display: none;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd.cmd-one .cb-try {
+  margin-top: 1rem !important;
+}
