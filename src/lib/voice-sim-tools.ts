@@ -6,6 +6,8 @@ import {
   dangerRefusal,
   heldNewTimeReply,
   heldReply,
+  missingBookingDetails,
+  missingDetailsReply,
   NO_ALT_NOTE,
   NO_SLOTS_REPLY,
   outsideScopeReply,
@@ -118,6 +120,9 @@ function answer(shop: SimShop, call: ToolCall, now: Date, transferring: boolean,
     const outside = call.name === "hold_appointment" ? outsideScope(shop.trade, str(call.args.serviceType)) : null;
     if (outside) return outsideScopeReply(outside.label);
     if (playbook.urgency === "emergency" && call.name === "hold_appointment") return URGENT_NO_BOOK_REPLY;
+    // A browser preview has no caller ID, so only a spoken name and address are checked.
+    const missing = call.name === "hold_appointment" ? missingBookingDetails(call.args, { reachable: true }) : [];
+    if (missing.length) return missingDetailsReply(missing);
     const open = findAvailableSchedules(
       { now, hoursJson: shop.hoursJson, timezone: tz, existing: [], capacity: 1, durationMin },
       { count: 1, onlyAt: at },

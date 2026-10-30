@@ -162,6 +162,7 @@ test("the receptionist books on the call and never names a time the schedule did
   const prompt = buildAssistantSystemPrompt({ name: "Sim Heating", greeting: null, hoursJson: "{}", servicesJson: "[]", canBook: true });
   assert.match(prompt, /call check_availability/);
   assert.match(prompt, /call hold_appointment/);
+  assert.match(prompt, /confirm their name, callback number and street address, then call hold_appointment/, "the address is asked before the time is held");
   assert.match(prompt, /NEVER say an appointment time that did not come from check_availability/);
   assert.match(prompt, /Never book an emergency/);
   assert.match(prompt, /call tell_the_team/);

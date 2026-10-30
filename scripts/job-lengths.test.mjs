@@ -128,7 +128,8 @@ test("a live call holds the shop's length, not the default", async () => {
   const [held] = await handleInCallToolCalls({
     shop: forTools,
     callId: call.id,
-    toolCalls: [{ id: "h", name: "hold_appointment", args: { slot, serviceType } }],
+    call: { id: call.id, callerPhone: "+15555550123" },
+    toolCalls: [{ id: "h", name: "hold_appointment", args: { slot, serviceType, callerName: "Dana Reyes", address: "12 Elm St, Springfield" } }],
   });
   assert.match(held.result, /^Held /, held.result);
   const row = await prisma.call.findUnique({ where: { id: call.id } });

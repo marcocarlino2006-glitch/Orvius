@@ -142,7 +142,8 @@ async function holdOnCall(shop, lead) {
   const [held] = await handleInCallToolCalls({
     shop: tools,
     callId: call.id,
-    toolCalls: [{ id: "h", name: "hold_appointment", args: { slot, serviceType: "AC not cooling" } }],
+    call: { id: call.id, callerPhone: "+15555550123" },
+    toolCalls: [{ id: "h", name: "hold_appointment", args: { slot, serviceType: "AC not cooling", callerName: "Dana Reyes", address: "12 Elm St, Springfield" } }],
   });
   assert.match(held.result, /^Held /);
   return new Date(slot);

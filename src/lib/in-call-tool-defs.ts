@@ -44,14 +44,20 @@ export function buildInCallTools(params: { webhookUrl: string; webhookSecret?: s
       function: {
         name: "hold_appointment",
         description:
-          "Reserve the time the caller picked from check_availability. Pass the slot id exactly as check_availability returned it.",
+          "Reserve the time the caller picked from check_availability. Pass the slot id exactly as check_availability returned it. Ask for their name and the service address first: a time is only held for a visit the shop can be sent to.",
         parameters: {
           type: "object",
           properties: {
             slot: { type: "string", description: "The slot id from check_availability, e.g. 2026-09-29T12:00:00.000Z" },
             serviceType: { type: "string", description: "What needs fixing" },
+            callerName: { type: "string", description: "The caller's name as they said it" },
+            address: { type: "string", description: "The service address as the caller said it: street number and street, plus city or ZIP" },
+            callbackNumber: {
+              type: "string",
+              description: "A callback number the caller said out loud. Omit it to use the number they are calling from.",
+            },
           },
-          required: ["slot"],
+          required: ["slot", "callerName", "address"],
         },
       },
       messages: [{ type: "request-start", content: "One moment." }],
@@ -288,7 +294,36 @@ export function availabilityReply(slots: Date[], timezone: string, note = "") {
 
 export function heldReply(at: Date, timezone: string) {
   const when = describeSlot(at, timezone);
-  return `Held ${when}. If the caller is a person, tell them "You're booked for ${when}." If the caller is an AI assistant booking for someone else, do not say the time is confirmed; the shop confirms with the customer. Do not promise a text. Make sure you have their name, callback number and service address before ending the call.`;
+  return `Held ${when}. If the caller is a person, tell them "You're booked for ${when}." If the caller is an AI assistant booking for someone else, do not say the time is confirmed; the shop confirms with the customer. Do not promise a text.`;
+}
+
+type BookingDetail = "name" | "service address" | "callback number";
+
+/*
+  The visit is only written after the call, and that booker holds a call
+  without a name, a reachable number or a street address for the owner. So
+  the hold refuses first: "You're booked" is never said for a visit that
+  cannot be created.
+*/
+export function missingBookingDetails(
+  args: Record<string, unknown>,
+  callback: { reachable: boolean },
+): BookingDetail[] {
+  const text = (value: unknown) => (typeof value === "string" ? value.trim() : "");
+  const missing: BookingDetail[] = [];
+  if (text(args.callerName).length < 2) missing.push("name");
+  const address = text(args.address);
+  if (address.length < 6 || !/\d/.test(address) || !/[a-z]{2}/i.test(address)) missing.push("service address");
+  if (!callback.reachable) missing.push("callback number");
+  return missing;
+}
+
+export function missingDetailsReply(missing: BookingDetail[]) {
+  const named = missing.map((detail) =>
+    detail === "service address" ? "service address (street number and street, plus city or ZIP)" : detail,
+  );
+  const list = named.length > 1 ? `${named.slice(0, -1).join(", ")} and ${named[named.length - 1]}` : named[0];
+  return `Not held yet. Before a time is held you need their ${list}. Ask for it now without saying they are booked, then call hold_appointment again with the same slot.`;
 }
 
 export function heldNewTimeReply(at: Date, timezone: string) {
