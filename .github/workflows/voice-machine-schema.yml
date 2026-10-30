@@ -31,7 +31,7 @@ jobs:
       MIGRATION_APPROVAL: "Voice machine: Business column on production"
       MIGRATION_BACKUP_REF: actions-run/${{ github.run_id }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - uses: actions/setup-node@v4

@@ -23,7 +23,7 @@ jobs:
     environment: paid-voice-tests
     timeout-minutes: 120
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ fromJSON(inputs.authorization).commit }}
           persist-credentials: false
