@@ -305,6 +305,7 @@ export function Ring1CommandCenter({ setup }: { setup?: ReactNode }) {
         ) : latestCall && latestWho ? (
           <DeskCall call={latestCall} live={false} who={latestWho} when={formatWhen(latestCall.createdAt, new Date(), data?.coverage?.timezone)} reply={replyLine} timezone={data?.coverage?.timezone} />
         ) : null}
+        {!liveCall && (liveApproval || liveItem) && latestCall && latestWho ? <p className="cmd-call-kicker cmd-next-kicker">Needs you next</p> : null}
         {!liveCall && liveApproval ? (
           <ul className="wc-list cmd-queue">
             <li className="wc wc--approval wc--now">

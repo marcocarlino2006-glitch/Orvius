@@ -1876,22 +1876,18 @@
 }
 
 .call-player-wave {
-  display: flex;
-  align-items: center;
-  gap: 1px;
+  display: block;
   width: 100%;
   height: 100%;
+  overflow: hidden;
 }
 
 .call-player-bar {
-  flex: 1 1 0;
-  min-width: 1px;
-  border-radius: 0.125rem;
-  background: #2a2e35;
+  fill: #2a2e35;
 }
 
 .call-player-bar.is-played {
-  background: var(--signal-hot);
+  fill: var(--signal-hot);
 }
 
 /* Shown instead of the bars when the file would not decode. */
@@ -21001,4 +20997,30 @@ html .os-shell .sc-embed .billing-settings > div > .pro-panel {
 
 :root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-one > .cmd-setup > .cmd-issues + .cmd-day-one {
   border-top: 1px solid var(--ox-line) !important;
+}
+
+/* The transcript inside its own titled panel: one frame, not a card in a card. */
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .transcript-cinema.transcript-cinema-bare {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .cmd-live > .cmd-next-kicker {
+  margin: 1.5rem 0 0.5rem !important;
+  padding-top: 1.25rem !important;
+  border-top: 1px solid var(--ox-line) !important;
+}
+
+/* The scrubber is a transparent control over the waveform; the shell's field styling would paint over the picture. */
+:root body .os-shell .call-player .call-player-scrub,
+:root body .os-shell.os-shell-night.os-shell-pro.os-shell-pro .call-player .call-player-scrub {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  min-height: 0 !important;
+  height: 100% !important;
 }

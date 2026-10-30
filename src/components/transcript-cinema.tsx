@@ -6,26 +6,31 @@ type TranscriptCinemaProps = {
   transcript: string;
   variant?: "void" | "chalk";
   className?: string;
+  /** Inside a panel that already names it: no second frame or heading. */
+  bare?: boolean;
 };
 
 export function TranscriptCinema({
   transcript,
   variant = "chalk",
   className = "",
+  bare = false,
 }: TranscriptCinemaProps) {
   const lines = parseTranscript(transcript);
   const turns = lines.filter((line) => line.role !== "unknown").length;
 
   return (
-    <div className={`transcript-cinema transcript-cinema-${variant} ${className}`}>
-      <div className="transcript-cinema-head font-sans">
-        <p className="transcript-cinema-kicker">Call transcript</p>
-        {turns ? (
-          <span className="transcript-cinema-live">
-            {turns} turn{turns === 1 ? "" : "s"}
-          </span>
-        ) : null}
-      </div>
+    <div className={`transcript-cinema transcript-cinema-${variant}${bare ? " transcript-cinema-bare" : ""} ${className}`}>
+      {bare ? null : (
+        <div className="transcript-cinema-head font-sans">
+          <p className="transcript-cinema-kicker">Call transcript</p>
+          {turns ? (
+            <span className="transcript-cinema-live">
+              {turns} turn{turns === 1 ? "" : "s"}
+            </span>
+          ) : null}
+        </div>
+      )}
       <div className="transcript-cinema-body">
         {lines.map((line, index) => (
           <p
