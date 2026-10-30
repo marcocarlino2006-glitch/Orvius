@@ -2,6 +2,7 @@
 
 import { askConfirm } from "@/components/ask-dialog";
 import { OsShell } from "@/components/os-shell";
+import { VendorAlarmCard } from "@/components/vendor-alarm-card";
 import { LineFallbackCard } from "@/components/line-fallback-card";
 import { TollFreeForm } from "@/components/toll-free-form";
 import { ProLead } from "@/components/pro-lead";
@@ -495,6 +496,7 @@ export default function AdminPage() {
           <p className="mt-2 font-sans text-sm text-ash">{gateNote}</p>
         </section>
       ) : null}
+      <VendorAlarmCard />
       <LineFallbackCard />
 
       <section className="card mb-8 p-6">

@@ -86,6 +86,8 @@ export async function vapiRequest<T>(
 
   if (!response.ok) {
     const body = await response.text();
+    const { raiseVendorAlarm } = await import("@/lib/vendor-alarm");
+    await raiseVendorAlarm({ vendor: "vapi", operation: `${options.method ?? "GET"} ${path.replace(/\/[0-9a-f-]{16,}/gi, "/:id")}`, status: response.status, message: body });
     throw new Error(`Vapi API error (${response.status}): ${body}`);
   }
 

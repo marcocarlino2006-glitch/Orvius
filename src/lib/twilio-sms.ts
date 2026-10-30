@@ -247,6 +247,14 @@ export async function sendSms(params: {
         throw error;
       }
       if (kind === "rejected") {
+        const { raiseVendorAlarm } = await import("@/lib/vendor-alarm");
+        await raiseVendorAlarm({
+          vendor: "twilio",
+          operation: `send ${params.audience} text`,
+          status: (error as { status?: number })?.status,
+          message: `${errorCode ?? ""} ${error instanceof Error ? error.message : String(error)}`.trim(),
+          businessId: params.businessId,
+        });
         const shared = smsSender();
         if (!usedShared && shared && sharedAllowed) {
           logWarn("sms.own_sender_failed", { businessId: params.businessId, error: error instanceof Error ? error.message : "unknown" });

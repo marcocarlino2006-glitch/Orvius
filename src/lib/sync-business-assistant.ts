@@ -138,7 +138,10 @@ async function claimDemoLineIfOrphaned(assistantId: string, shopName: string) {
   if (entry.assistantId) {
     const current = await vapiRequest<{ serverUrl?: string; server?: { url?: string } }>(
       `/assistant/${entry.assistantId}`,
-    ).catch(() => null);
+    ).catch((error: unknown) => {
+      logWarn("assistant_sync.read_failed", { assistantId: entry.assistantId, error: error instanceof Error ? error.message.slice(0, 300) : String(error).slice(0, 300) });
+      return null;
+    });
     const url = current?.server?.url ?? current?.serverUrl ?? null;
     if (url === getWebhookUrl("/api/webhooks/vapi")) return;
   }

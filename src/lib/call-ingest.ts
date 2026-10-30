@@ -219,7 +219,7 @@ export async function captureEndOfCallReport(params: {
     });
 
     await completeWebhookEvent({ source: "vapi", externalId: vapiCallId, eventType, status: CAPTURED });
-    if (!business.lineVerifiedAt) await recordSetupMilestone(business.id, "line_proven", new Date(), { callId: call.id }).catch(() => undefined);
+    if (!business.lineVerifiedAt) await recordSetupMilestone(business.id, "line_proven", new Date(), { callId: call.id }).catch((error: unknown) => logWarn("call_ingest.milestone_failed", { businessId: business.id, error: error instanceof Error ? error.message.slice(0, 300) : String(error).slice(0, 300) }));
     return { duplicate: false, business, vapiCallId, call, lead };
   } catch (error) {
     await completeWebhookEvent({
@@ -728,7 +728,7 @@ export async function sweepUnfinishedCallReports(now = new Date()): Promise<numb
         dedupeKey: lastTry
           ? `${buildLeadAlertDedupeKey({ vapiCallId: event.externalId })}:abandoned`
           : buildLeadAlertDedupeKey({ vapiCallId: event.externalId }),
-      }).catch(() => undefined);
+      }).catch((error: unknown) => logError("call_ingest.lead_alert_failed", { businessId: business.id, leadId: lead.id, error: error instanceof Error ? error.message.slice(0, 300) : String(error).slice(0, 300) }));
     }
   }
   return finished;
