@@ -69,3 +69,10 @@ test("the shell paints the five places, and Work is not a table", () => {
   assert.match(read("src/components/desk-board.tsx"), /href="\/dashboard\/reports"/);
   assert.match(read("src/components/os-command-palette.tsx"), /osMoreNav/);
 });
+
+test("palette search cancels the request a newer keystroke replaced", () => {
+  const palette = read("src/components/os-command-palette.tsx");
+  assert.match(palette, /new AbortController\(\)/);
+  assert.match(palette, /signal: controller\.signal/);
+  assert.match(palette, /controller\.abort\(\)/);
+});

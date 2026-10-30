@@ -47,6 +47,7 @@ type VapiAssistantPayload = {
   endCallFunctionEnabled?: boolean;
   maxDurationSeconds?: number;
   silenceTimeoutSeconds?: number;
+  backgroundSpeechDenoisingPlan?: { smartDenoisingPlan: { enabled: boolean } };
   analysisPlan?: {
     summaryPlan?: { enabled: boolean };
     successEvaluationPlan?: {
@@ -356,9 +357,16 @@ export function buildVapiAssistantConfig(params: {
     serverUrlSecret: params.webhookSecret,
     monitorPlan: { controlEnabled: true },
     endCallFunctionEnabled: true,
-    // Pinned rather than left to Vapi's defaults: a stuck or silent line is billed by the minute.
-    maxDurationSeconds: 600,
+    /*
+      Pinned rather than left to Vapi's defaults: a stuck or silent line is
+      billed by the minute. Fifteen minutes, not ten: an elderly caller or an
+      AI assistant reading a long job can run past ten, and the cut is a hang-up
+      mid-sentence. Silence still ends a dead line at thirty seconds.
+    */
+    maxDurationSeconds: 900,
     silenceTimeoutSeconds: 30,
+    // Callers ring from trucks, basements and job sites; Krisp strips the compressor and the crew before the transcriber hears it.
+    backgroundSpeechDenoisingPlan: { smartDenoisingPlan: { enabled: true } },
     analysisPlan: {
       summaryPlan: { enabled: true },
       successEvaluationPlan: {
