@@ -96,7 +96,7 @@ jobs:
         run: npm run visual:audit -- --base http://127.0.0.1:3000 --shots /tmp/visual-audit --json /tmp/visual-audit/report.json
       - name: Visual audit screenshots
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: visual-audit
           path: /tmp/visual-audit

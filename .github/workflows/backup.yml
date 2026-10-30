@@ -59,7 +59,7 @@ jobs:
           echo "$drill" | grep -q 'restored=ok' || { echo "::error::No restore-drill result on the backup"; exit 1; }
           echo "Encrypted backup $(wc -c < "$out") bytes; $drill" | tee -a "$GITHUB_STEP_SUMMARY"
       - if: steps.gate.outputs.server == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: orvius-backup-encrypted
           path: encrypted/*.json.enc
@@ -81,7 +81,7 @@ jobs:
           out="orvius-$(date -u +%Y-%m-%dT%H-%M).json.enc"
           node scripts/db-backup.mjs drill --encrypt --out "encrypted/$out" | tee -a "$GITHUB_STEP_SUMMARY"
       - if: steps.gate.outputs.run == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: orvius-backup-encrypted
           path: encrypted/*.json.enc
