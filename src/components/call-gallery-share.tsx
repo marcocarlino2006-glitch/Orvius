@@ -37,6 +37,8 @@ export function CallGalleryShare({ callId }: { callId: string }) {
   }, [callId]);
 
   if (!view) return null;
+  // A call that can't go up and never did has nothing to offer here.
+  if (!view.shareable && !view.status) return null;
   const status = view.status ?? null;
 
   async function send(method: "POST" | "DELETE") {

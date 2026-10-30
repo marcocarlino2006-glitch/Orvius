@@ -228,16 +228,12 @@ export default function CallDetailPage() {
                   <dd>{length}</dd>
                 </div>
               ) : null}
-              <div>
-                <dt>Reply</dt>
-                <dd>
-                  {typeof call.replyP50Ms === "number"
-                    ? replyPhrase(call.replyP50Ms)
-                    : ["in-progress", "ringing", "queued"].includes(call.status)
-                      ? "Lands when the call ends."
-                      : "Not on this call's report."}
-                </dd>
-              </div>
+              {typeof call.replyP50Ms === "number" ? (
+                <div>
+                  <dt>Reply</dt>
+                  <dd>{replyPhrase(call.replyP50Ms)}</dd>
+                </div>
+              ) : null}
             </dl>
           </ShellPanel>
 
@@ -251,7 +247,7 @@ export default function CallDetailPage() {
 
           <ShellPanel title="Original transcript" dense action={<span className="cl-source font-sans">Word for word, as transcribed</span>}>
             {call.transcript ? (
-              <TranscriptCinema transcript={call.transcript} variant="void" />
+              <TranscriptCinema transcript={call.transcript} variant="void" bare />
             ) : call.contentPurgedAt ? (
               <p className="jv-sub font-sans">
                 The recording and transcript were deleted under your retention setting. The summary and job history stay.
@@ -304,7 +300,7 @@ export default function CallDetailPage() {
               <div className="cl-prior font-sans">
                 <p className="jf-label">Before this call</p>
                 <ul>
-                  {situation.priorJobs.map((job) => (
+                  {situation.priorJobs.slice(0, 3).map((job) => (
                     <li key={job.id}>
                       <Link href={`/dashboard/jobs/${job.id}`}>{job.title}</Link>
                       <span className="jv-sub">
@@ -313,6 +309,11 @@ export default function CallDetailPage() {
                     </li>
                   ))}
                 </ul>
+                {situation.priorJobs.length > 3 && call.customer ? (
+                  <Link href={`/dashboard/customers/${call.customer.id}`} className="jv-sub">
+                    {situation.priorJobs.length - 3} earlier {situation.priorJobs.length - 3 === 1 ? "visit" : "visits"} →
+                  </Link>
+                ) : null}
               </div>
             ) : null}
           </ShellPanel>

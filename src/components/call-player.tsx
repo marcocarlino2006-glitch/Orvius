@@ -170,21 +170,23 @@ export function CallPlayer({ src, durationSec }: CallPlayerProps) {
 
       <div className="call-player-track">
         {peaks ? (
-          <div className="call-player-wave" aria-hidden>
-            {peaks.map((value, index) => (
-              <span
-                key={index}
-                className={
-                  index / peaks.length <= progress
-                    ? "call-player-bar is-played"
-                    : "call-player-bar"
-                }
-                /* Floored so silence still draws a hairline and the track reads
-                   as a continuous strip rather than a broken one. */
-                style={{ height: `${Math.max(6, value * 100)}%` }}
-              />
-            ))}
-          </div>
+          /* One drawing that scales to the track: 180 separate bars with a gap each need ~360px and spilled over the clock on a narrow card. */
+          <svg className="call-player-wave" viewBox={`0 0 ${peaks.length * 2} 100`} preserveAspectRatio="none" aria-hidden>
+            {peaks.map((value, index) => {
+              /* Floored so silence still draws a hairline and the track reads as one strip. */
+              const height = Math.max(6, value * 100);
+              return (
+                <rect
+                  key={index}
+                  className={index / peaks.length <= progress ? "call-player-bar is-played" : "call-player-bar"}
+                  x={index * 2}
+                  y={(100 - height) / 2}
+                  width={1.4}
+                  height={height}
+                />
+              );
+            })}
+          </svg>
         ) : (
           <div className="call-player-plain" aria-hidden>
             <span style={{ width: `${progress * 100}%` }} />
