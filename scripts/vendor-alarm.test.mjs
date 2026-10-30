@@ -89,3 +89,27 @@ test("texting and email refusals are wired to the alarm, and the admin Launch ta
   assert.match(readFileSync("src/lib/email.ts", "utf8"), /raiseVendorAlarm\(\{ vendor: "resend"/);
   assert.match(readFileSync("src/app/admin/page.tsx", "utf8"), /<VendorAlarmCard \/>/);
 });
+
+test("once a day one live receptionist is saved again, so a provider that starts refusing saves is caught that day", async () => {
+  const { selfTestOneReceptionist, lastReceptionistSelfTest } = await import("../src/lib/receptionist-self-test.ts");
+  const day = new Date("2031-03-04T12:00:00Z");
+  const shop = await prisma.business.create({
+    data: { name: "Self Test HVAC", slug: `self-test-${word()}`, environment: "live", isActive: true, vapiAssistantId: `asst-${word()}`, hoursJson: "{}", servicesJson: "[]" },
+  });
+  try {
+    const saved = [];
+    const first = await selfTestOneReceptionist(day, { sync: async (b) => { saved.push(b.id); throw new Error("Vapi API error (400): retired model"); } });
+    assert.equal(first.ran, true);
+    assert.equal(first.ok, false);
+    assert.equal(saved.length, 1);
+    assert.deepEqual(await selfTestOneReceptionist(day, { sync: async () => saved.push("again") }), { ran: false, reason: "already ran today" });
+    assert.equal(saved.length, 1, "once a day, not every 30 minutes");
+    const last = await lastReceptionistSelfTest();
+    assert.equal(last.status, "failed");
+    assert.match(last.error, /retired model/);
+    assert.match(readFileSync("src/lib/line-watch-sweep.ts", "utf8"), /selfTestOneReceptionist\(\)/);
+  } finally {
+    await prisma.webhookEvent.deleteMany({ where: { source: "orvius", eventType: "self-test:receptionist-save", externalId: "2031-03-04" } });
+    await prisma.business.delete({ where: { id: shop.id } }).catch(() => {});
+  }
+});

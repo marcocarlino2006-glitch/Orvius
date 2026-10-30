@@ -4,17 +4,23 @@ import { useEffect, useState } from "react";
 
 type Alarm = { vendor: string; operation: string; status: number; message: string; count: number; day: string; firstAt: string };
 
+type SelfTest = { day: string; status: string; error: string | null } | null;
+
 const VENDOR: Record<string, string> = { vapi: "Vapi", twilio: "Twilio", resend: "Resend" };
 
 /** Providers refusing what Orvius sends them, last seven days. Empty is the goal. */
 export function VendorAlarmCard() {
   const [alarms, setAlarms] = useState<Alarm[] | null>(null);
+  const [selfTest, setSelfTest] = useState<SelfTest>(null);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     fetch("/api/admin/vendor-alarms")
       .then((res) => (res.ok ? res.json() : Promise.reject()))
-      .then((data: { alarms: Alarm[] }) => setAlarms(data.alarms))
+      .then((data: { alarms: Alarm[]; selfTest: SelfTest }) => {
+        setAlarms(data.alarms);
+        setSelfTest(data.selfTest);
+      })
       .catch(() => setFailed(true));
   }, []);
 
@@ -25,6 +31,12 @@ export function VendorAlarmCard() {
       <p className="mt-2 font-sans text-sm text-ash">
         Vapi, Twilio and Resend refusals from the last seven days. The first of each kind every day is emailed to the founders.
       </p>
+      {selfTest ? (
+        <p className={`mt-4 font-sans text-sm ${selfTest.status === "failed" ? "text-flare" : "text-void"}`}>
+          Daily receptionist save test, {selfTest.day}:{" "}
+          {selfTest.status === "passed" ? "Vapi accepted it." : selfTest.status === "failed" ? `refused. ${selfTest.error ?? ""}` : selfTest.status}
+        </p>
+      ) : null}
       {failed ? (
         <p className="mt-4 font-sans text-sm text-ash">The alarms didn&apos;t load. Try again in a moment.</p>
       ) : alarms === null ? (
