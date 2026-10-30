@@ -73,7 +73,7 @@ export function describeDashboardFailure(
     impact: `${surface} may be incomplete until this recovers — your shop line still answers calls.`,
     recovery: "Retry now. If it keeps failing, open Command and check Settings.",
     href: "/dashboard",
-    hrefLabel: "Open Command",
+    hrefLabel: "Open Home",
   };
 }
 

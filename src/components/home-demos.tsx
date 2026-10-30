@@ -174,7 +174,7 @@ function Pills({ index, pick }: { index: number; pick: (i: number) => void }) {
 }
 
 function Window({ title, biz, children, nav }: { title: string; biz: Biz; children: ReactNode; nav?: string }) {
-  const items = ["Command", "Inbox", "Calls", "Customers", "Schedule", "Settings"];
+  const items = ["Home", "Inbox", "Calls", "Customers", "Schedule", "Settings"];
   return (
     <div className="hd-window" aria-hidden>
       <aside className="hd-side">
@@ -300,7 +300,7 @@ export function BoardDemo() {
       render={(biz) => {
         const booked = biz.queue.filter((q) => q.tag === "Booked" || q.tag === "Emergency").length;
         return (
-          <Window title="Command" biz={biz} nav="Command">
+          <Window title="Home" biz={biz} nav="Home">
             <p className="hd-greet">Good morning, {biz.owner}.</p>
             <p className="hd-headline">
               {biz.queue.length} calls overnight, {booked} already booked.

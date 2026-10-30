@@ -1072,7 +1072,7 @@ function LiveStep({
           </p>
           <div className="ton-actions ton-actions--split">
             <Link href="/dashboard" className="ton-secondary">
-              Open Command
+              Open Orvius
             </Link>
             <Link href="/pilot" className="ton-primary">
               Book a call

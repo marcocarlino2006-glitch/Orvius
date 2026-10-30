@@ -172,9 +172,24 @@ export function isSettingsSection(value: string | null | undefined): value is Se
 }
 
 export function sectionFromAnchor(anchor: string | null | undefined): SettingsSectionId {
+  return knownAnchorSection(anchor) ?? "account";
+}
+
+/** The section an anchor names, or null when it names none. */
+export function knownAnchorSection(anchor: string | null | undefined): SettingsSectionId | null {
   const key = (anchor ?? "").replace(/^#/, "");
   if (isSettingsSection(key)) return key;
-  return LEGACY_ANCHORS[key] ?? "account";
+  return LEGACY_ANCHORS[key] ?? null;
+}
+
+/**
+ * Where /dashboard/settings and /dashboard/profile send a direct visit. The
+ * server never sees the #anchor, but the browser keeps it across the
+ * redirect, and the panel resolves it on arrival.
+ */
+export function settingsRedirectTarget(pathname: "/dashboard/settings" | "/dashboard/profile", param: string | null | undefined) {
+  if (pathname === "/dashboard/profile") return `/dashboard?${SETTINGS_PARAM}=account`;
+  return `/dashboard?${SETTINGS_PARAM}=${isSettingsSection(param) ? param : "business"}`;
 }
 
 /**

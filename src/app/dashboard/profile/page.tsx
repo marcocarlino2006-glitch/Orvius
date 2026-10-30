@@ -1,20 +1,6 @@
-"use client";
-
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { OsShell } from "@/components/os-shell";
-import { ShellLoading } from "@/components/shell-primitives";
+import { redirect } from "next/navigation";
+import { settingsRedirectTarget } from "@/lib/settings-center";
 
 export default function DashboardProfilePage() {
-  const router = useRouter();
-
-  useEffect(() => {
-    router.replace("/dashboard?settings=account");
-  }, [router]);
-
-  return (
-    <OsShell title="Account">
-      <ShellLoading label="Opening account…" />
-    </OsShell>
-  );
+  redirect(settingsRedirectTarget("/dashboard/profile", null));
 }

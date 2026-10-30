@@ -263,7 +263,7 @@ export function Ring1Provider({
       if (!res.ok) {
         throw new Error(
           res.status === 401
-            ? "Your session expired. Sign in again to refresh Command."
+            ? "Your session expired. Sign in again to refresh Home."
             : "Command could not refresh.",
         );
       }

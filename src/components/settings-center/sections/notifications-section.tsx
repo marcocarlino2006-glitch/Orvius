@@ -48,7 +48,7 @@ export function NotificationsSection({
           label="Text alerts"
           hint={
             !account.alerts.smsEnabled
-              ? `Texting is paused on Orvius's side.${account.alerts.emailConfigured ? ` New leads go to ${b.ownerEmail ?? email} until it's back.` : ""} Leads always show in Command.`
+              ? `Texting is paused on Orvius's side.${account.alerts.emailConfigured ? ` New leads go to ${b.ownerEmail ?? email} until it's back.` : ""} Leads always show on Home.`
               : !b.ownerPhone
                 ? "Add your mobile above to get a text for every new lead."
                 : `Target: on your phone within ${ownerSlAs.alertP95TargetSec} seconds of the call.`

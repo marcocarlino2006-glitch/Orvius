@@ -15,7 +15,7 @@ export function NumbersGroup({
   return (
     <div id="your-numbers">
       <ScGroup title="Your numbers">
-        <ScRow label="Average ticket" hint="Estimates booked value on Command. Not money collected.">
+        <ScRow label="Average ticket" hint="Estimates booked value on Home. Not money collected.">
           <span className="sc-affix">
             <span>$</span>
             <ScField

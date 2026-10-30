@@ -2,7 +2,7 @@ export const SHOW_SHORTCUTS_EVENT = "orvius:shortcuts";
 
 /** "g" then a letter jumps to a screen, like Gmail and Linear. */
 export const GO_TO: Array<{ key: string; href: string; label: string }> = [
-  { key: "c", href: "/dashboard", label: "Command" },
+  { key: "h", href: "/dashboard", label: "Home" },
   { key: "i", href: "/dashboard/inbox", label: "Inbox" },
   { key: "m", href: "/dashboard/inbox/messages", label: "Messages" },
   { key: "l", href: "/dashboard/calls", label: "Calls" },

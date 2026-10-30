@@ -4,7 +4,7 @@ import { OsShell } from "@/components/os-shell";
 import { usePathname } from "next/navigation";
 
 const TITLES: Record<string, string> = {
-  "/dashboard": "Command",
+  "/dashboard": "Home",
   "/dashboard/inbox": "Inbox",
   "/dashboard/calls": "Calls",
   "/dashboard/customers": "Customers",

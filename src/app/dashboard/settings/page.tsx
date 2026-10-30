@@ -1,23 +1,10 @@
-"use client";
+import { redirect } from "next/navigation";
+import { SETTINGS_PARAM, settingsRedirectTarget } from "@/lib/settings-center";
 
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { OsShell } from "@/components/os-shell";
-import { ShellLoading } from "@/components/shell-primitives";
-import { settingsSectionForHref } from "@/lib/settings-center";
+type Search = Promise<Record<string, string | string[] | undefined>>;
 
 /** Settings live in the panel over Command; this route keeps old links and bookmarks working. */
-export default function DashboardSettingsPage() {
-  const router = useRouter();
-
-  useEffect(() => {
-    const section = settingsSectionForHref(`${window.location.pathname}${window.location.search}${window.location.hash}`);
-    router.replace(`/dashboard?settings=${section ?? "business"}`);
-  }, [router]);
-
-  return (
-    <OsShell title="Settings">
-      <ShellLoading label="Opening settings…" />
-    </OsShell>
-  );
+export default async function DashboardSettingsPage({ searchParams }: { searchParams: Search }) {
+  const value = (await searchParams)[SETTINGS_PARAM];
+  redirect(settingsRedirectTarget("/dashboard/settings", Array.isArray(value) ? value[0] : value));
 }

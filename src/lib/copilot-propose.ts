@@ -236,5 +236,5 @@ export async function openTwin(businessId: string, action: string, paramsJson: s
 export function refuseTwin(status: string): Extract<ProposeOutcome, { ok: false }> {
   return status === "executing"
     ? { ok: false, status: 409, reason: "twin_running", error: "The same plan is running right now. Check Command in a moment; it won't run twice." }
-    : { ok: false, status: 409, reason: "twin_needs_check", error: "The same plan stopped partway and is flagged in Command. Say whether it happened there first, so it isn't done twice." };
+    : { ok: false, status: 409, reason: "twin_needs_check", error: "The same plan stopped partway and is flagged on Home. Say whether it happened there first, so it isn't done twice." };
 }

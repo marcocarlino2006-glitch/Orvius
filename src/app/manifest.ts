@@ -19,7 +19,7 @@ export default function manifest(): MetadataRoute.Manifest {
       { src: "/app-icon/512?maskable=1", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
     shortcuts: [
-      { name: "Command", url: "/dashboard" },
+      { name: "Home", url: "/dashboard" },
       { name: "Calls", url: "/dashboard/calls" },
       { name: "Schedule", url: "/dashboard/schedule" },
     ],
