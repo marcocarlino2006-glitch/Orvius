@@ -7,6 +7,7 @@ import type { VapiWebhookMessage } from "@/lib/vapi";
 import { captureEndOfCallReport, finishCallReport } from "@/lib/call-ingest";
 import { phonesEqual } from "@/lib/owner-alerts";
 import { recordForwardTestArrival } from "@/lib/forward-test";
+import { lineCheckInFlight, lineCheckToolResults, recordLineCheckReport } from "@/lib/line-check";
 import { linkTouchToCustomer } from "@/lib/customer";
 import { logError, logInfo, logWarn } from "@/lib/logger";
 import { isProduction } from "@/lib/runtime";
@@ -250,6 +251,17 @@ export async function handleVapiWebhook(
   if (inboundNumber && phonesEqual(message.call?.customer?.number ?? null, inboundNumber)) {
     if (await recordForwardTestArrival(business.id)) {
       return NextResponse.json({ ok: true, forwardTest: true });
+    }
+  }
+
+  // The daily line check rings the line from the shop's own number; it never becomes a call, a lead or an alert.
+  const caller = message.call?.customer?.number ?? null;
+  if (caller && (phonesEqual(caller, business.twilioPhone) || phonesEqual(caller, business.vapiPhoneNumber))) {
+    const lineCheck = await lineCheckInFlight(business.id);
+    if (lineCheck) {
+      if (type === "tool-calls") return NextResponse.json({ results: lineCheckToolResults(message) });
+      if (type === "end-of-call-report") await recordLineCheckReport(lineCheck, message);
+      return NextResponse.json({ ok: true, lineCheck: true });
     }
   }
 
