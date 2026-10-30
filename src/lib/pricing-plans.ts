@@ -309,3 +309,14 @@ export function requireStripePriceIdForPlan(
 export function isPaidPlanId(value: string): value is PaidPlanId {
   return value === "line" || value === "pro" || value === "fleet";
 }
+
+/** The plan and billing picked on the pricing page, kept only if checkout can sell exactly that. */
+export function pickPlan(
+  ready: { id: PaidPlanId; checkoutReadyAnnual: boolean }[],
+  wantedPlan: string | null,
+  wantedInterval: string | null,
+): { planId: PaidPlanId; interval: BillingInterval } | null {
+  if (!ready.length) return null;
+  const plan = ready.find((p) => p.id === wantedPlan) ?? ready.find((p) => p.id === "pro") ?? ready[0];
+  return { planId: plan.id, interval: wantedInterval === "year" && plan.checkoutReadyAnnual ? "year" : "month" };
+}
