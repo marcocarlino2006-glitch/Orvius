@@ -6,6 +6,7 @@ import { getBearerToken, secretsMatch, verifyAdminRequest } from "@/lib/env";
 import { logWarn } from "@/lib/logger";
 import { isUnauthenticatedAccessAllowed } from "@/lib/runtime";
 import { openUnchosenBooking } from "@/lib/scheduling-policy";
+import { pageIfSignupClosed } from "@/lib/signup-watch";
 import { scheduledTargetRefusal } from "@/lib/scheduled-target";
 
 /*
@@ -40,7 +41,11 @@ export async function GET(request: NextRequest) {
     logWarn("alert_drain.error_burst_failed", { error: error instanceof Error ? error.message : String(error) });
     return null;
   });
-  return NextResponse.json({ ok: true, bookingOpened, errors });
+  const signup = await pageIfSignupClosed().catch((error: unknown) => {
+    logWarn("alert_drain.signup_watch_failed", { error: error instanceof Error ? error.message : String(error) });
+    return null;
+  });
+  return NextResponse.json({ ok: true, bookingOpened, errors, signup });
 }
 
 export async function POST(request: NextRequest) {
