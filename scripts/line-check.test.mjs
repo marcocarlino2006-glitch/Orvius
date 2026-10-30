@@ -147,6 +147,29 @@ test("the test call reaches the webhook, is graded, and never becomes a call, a 
   }
 });
 
+test("an answer that comes too slowly fails the check, because callers hang up on a pause", async () => {
+  const { recordLineCheckReport } = await import("../src/lib/line-check.ts");
+  const { shop, check } = await shopWithCheck();
+  const mail = captureEmails();
+  try {
+    await recordLineCheckReport(check, {
+      type: "end-of-call-report",
+      artifact: {
+        messages: [say("bot", "Thanks for calling"), say("user", "Are you open today?"), say("bot", "Yes.")],
+        performanceMetrics: { turnLatencies: [{ turnLatency: 1200 }, { turnLatency: 3400 }] },
+      },
+    });
+    const settled = await prisma.webhookEvent.findUnique({ where: { id: check.id } });
+    assert.equal(settled.status, "failed");
+    assert.match(settled.error, /slowest reply took 3\.4s/);
+    assert.equal(mail.emails.length, 1);
+  } finally {
+    mail.restore();
+    await prisma.webhookEvent.deleteMany({ where: { id: check.id } });
+    await prisma.business.delete({ where: { id: shop.id } }).catch(() => {});
+  }
+});
+
 test("a call Vapi never reported fails with what the carrier saw, and the founders hear it once", async () => {
   const { shop, check } = await shopWithCheck(new Date(Date.now() - 20 * 60_000));
   const client = { calls: Object.assign(() => ({ fetch: async () => ({ status: "no-answer" }) }), { create: async () => ({ sid: "unused" }) }) };

@@ -170,14 +170,24 @@ export function lineCheckToolResults(message: VapiWebhookMessage["message"]) {
   return readToolCalls(message).map((call) => ({ toolCallId: call.id, result: "This is Orvius's daily line check. Nothing needs to be done." }));
 }
 
+/** Past this a caller talks over the silence or asks "hello?". */
+export const LINE_CHECK_SLOW_MS = 2_500;
+
 export async function recordLineCheckReport(check: { id: string; payloadJson: string | null }, message: VapiWebhookMessage["message"]) {
   const payload = readPayload(check.payloadJson);
   if (!payload) return false;
   const latency = latencyFromReport(message);
+  let verdict = lineCheckVerdict(message);
+  if (verdict.passed && latency && latency.p90 > LINE_CHECK_SLOW_MS) {
+    verdict = {
+      passed: false,
+      reason: `The receptionist answered, but its slowest reply took ${(latency.p90 / 1000).toFixed(1)}s. Callers talk over a pause that long.`,
+    };
+  }
   return settle(
     check.id,
     { ...payload, replyP50Ms: latency?.p50 ?? null, replyP90Ms: latency?.p90 ?? null, endedReason: message.endedReason ?? null },
-    lineCheckVerdict(message),
+    verdict,
   );
 }
 
