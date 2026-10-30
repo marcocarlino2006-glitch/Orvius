@@ -42,3 +42,10 @@ test("the line watch says why a line could not be repaired", () => {
   assert.match(watch, /line_watch\.address_mismatch/);
   assert.match(watch, /line_watch\.repair_failed/);
 });
+
+test("the receptionist voice model is not one Vapi has retired (a retired model fails every assistant save)", async () => {
+  const { readFileSync } = await import("node:fs");
+  const src = readFileSync(new URL("../src/lib/voices.ts", import.meta.url), "utf8");
+  assert.doesNotMatch(src, /VOICE_MODEL = "sonic-2"/, "cartesia sonic-2 was retired 2026-10-20");
+  assert.match(src, /VOICE_MODEL = "sonic-3\.6"/);
+});

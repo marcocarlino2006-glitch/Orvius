@@ -4,7 +4,7 @@
  * Sonic speaks Spanish with the same voice.
  */
 export const VOICE_PROVIDER = "cartesia";
-export const VOICE_MODEL = "sonic-2";
+export const VOICE_MODEL = "sonic-3.6";
 
 export const RECEPTIONIST_VOICES = [
   { id: "c894559e-d529-4d70-a6fb-3330ecf7ef6b", label: "Iris", description: "Warm · female" },
