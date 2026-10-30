@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { markCronRan } from "@/lib/cron-runs";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
+import { pageOnErrorBurst } from "@/lib/error-burst";
 import { getBearerToken, secretsMatch, verifyAdminRequest } from "@/lib/env";
 import { logWarn } from "@/lib/logger";
 import { isUnauthenticatedAccessAllowed } from "@/lib/runtime";
@@ -35,7 +36,11 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     logWarn("alert_drain.booking_open_failed", { error: error instanceof Error ? error.message : String(error) });
   }
-  return NextResponse.json({ ok: true, bookingOpened });
+  const errors = await pageOnErrorBurst().catch((error: unknown) => {
+    logWarn("alert_drain.error_burst_failed", { error: error instanceof Error ? error.message : String(error) });
+    return null;
+  });
+  return NextResponse.json({ ok: true, bookingOpened, errors });
 }
 
 export async function POST(request: NextRequest) {

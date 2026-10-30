@@ -11,7 +11,7 @@ import { sendSms } from "@/lib/twilio-sms";
   Sentry is only a third copy: with no DSN set it was the only one.
 */
 
-export type PlatformFailure = "vapi_unreachable" | "vapi_billing" | "db_unreachable" | "twilio_account" | "spend_ceiling" | "demo_overflow";
+export type PlatformFailure = "vapi_unreachable" | "vapi_billing" | "db_unreachable" | "twilio_account" | "spend_ceiling" | "demo_overflow" | "error_burst";
 
 const HEADLINE: Record<PlatformFailure, string> = {
   vapi_unreachable: "Vapi is not answering calls. Shop lines are going to the backup voicemail.",
@@ -20,6 +20,7 @@ const HEADLINE: Record<PlatformFailure, string> = {
   twilio_account: "Twilio rejected a send at the account level (suspended or bad credentials). Owner alerts are not going out.",
   spend_ceiling: "A shop passed its daily call ceiling; new calls on that line are being ended to cap the Vapi bill. Check for a robodialer or a call loop.",
   demo_overflow: "The demo line is full; new callers are told to try again or watch a call online. Raise ORVIUS_DEMO_MAX_LIVE_CALLS only if Vapi concurrency allows it.",
+  error_burst: "Production is logging errors in a burst. Something just broke; check Vercel logs.",
 };
 
 /** One page per failure kind per quarter hour, however many calls hit it. */
@@ -54,7 +55,8 @@ export async function pagePlatform(kind: PlatformFailure, detail: Record<string,
   const first = kind === "db_unreachable" ? true : await claimPage(kind, now).catch(() => true);
   if (!first) return { paged: false as const };
 
-  const text = `Orvius platform alert: ${HEADLINE[kind]}`;
+  const summary = typeof detail.summary === "string" ? ` ${detail.summary.slice(0, 200)}` : "";
+  const text = `Orvius platform alert: ${HEADLINE[kind]}${summary}`;
   const sent = { sms: false, email: 0 };
   const phone = process.env.ORVIUS_FOUNDER_PHONE?.trim();
   if (phone) {

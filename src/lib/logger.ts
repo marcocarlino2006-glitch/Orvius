@@ -53,6 +53,9 @@ export function logWarn(event: string, fields?: LogFields) {
  */
 export function logError(event: string, fields?: LogFields) {
   write("error", event, fields);
+  if (process.env.VERCEL_ENV === "production" || process.env.ORVIUS_COUNT_ERRORS === "1") {
+    void import("@/lib/error-burst").then(({ countError }) => countError(event)).catch(() => {});
+  }
   if (!process.env.SENTRY_DSN?.trim() && !process.env.NEXT_PUBLIC_SENTRY_DSN?.trim()) return;
   void import("@/lib/sentry-report")
     .then(({ captureServerMessage }) =>
