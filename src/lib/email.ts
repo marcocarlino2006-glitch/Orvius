@@ -65,6 +65,8 @@ export async function sendOwnerEmail(params: {
 
     if (!response.ok) {
       const body = await response.text();
+      const { raiseVendorAlarm } = await import("@/lib/vendor-alarm");
+      await raiseVendorAlarm({ vendor: "resend", operation: "send email", status: response.status, message: body });
       throw new Error(`Email send failed (${response.status}): ${body}`);
     }
 
