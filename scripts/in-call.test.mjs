@@ -155,7 +155,7 @@ test("every connected call learns the shop's day, time and whether it is open", 
   assert.match(clockNote({ now: new Date("2026-10-30T19:05:00Z"), timezone: "Not/AZone", hoursJson }), /3:05 PM/);
 
   const route = readFileSync("src/app/api/webhooks/vapi/route.ts", "utf8");
-  assert.match(route, /sendCallerContext\(controlUrl, clock\)/, "a call with no caller ID still gets the clock");
+  assert.match(route, /sendCallerContext\(controlUrl, callerPhone \? `\$\{clock\} \$\{noteForConnectedCall\(returning\)\}` : clock\)/, "a call with no caller ID still gets the clock");
 });
 
 test("the receptionist books on the call and never names a time the schedule didn't give it", () => {

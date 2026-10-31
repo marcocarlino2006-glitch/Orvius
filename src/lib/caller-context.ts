@@ -1,6 +1,6 @@
 import { isAfterHours } from "@/lib/business";
 import { describeSlot } from "@/lib/in-call-tool-defs";
-import { logWarn } from "@/lib/logger";
+import { logInfo, logWarn } from "@/lib/logger";
 import { normalizePhone } from "@/lib/customer";
 import { prisma } from "@/lib/prisma";
 
@@ -86,7 +86,7 @@ export function buildCallerContextNote(input: CallerContextInput): string | null
   const lines = [
     "Private note, never read this aloud: this number has called the shop before.",
     who
-      ? `It is usually ${input.name!.trim()}. You may ask "Is this ${who}?" Only use the details below after they confirm.`
+      ? `It is usually ${input.name!.trim()}. If your greeting did not already ask, you may ask "Is this ${who}?" Never ask it twice. Only use the details below after they confirm. If they say no, ask their name as usual.`
       : "Their name is not on file. Ask for it as usual.",
   ];
   if (input.openJob) {
@@ -117,6 +117,68 @@ export function buildCallerContextNote(input: CallerContextInput): string | null
 }
 
 const OPEN = ["scheduled", "confirmed", "en_route", "on_site"];
+
+const NOT_A_NAME = new Set(["unknown", "caller", "customer", "client", "homeowner", "tenant", "owner", "n/a", "na", "none", "sir", "maam", "ma'am", "test", "anonymous", "mr", "mrs", "ms", "dr"]);
+
+const COMPANY = /\b(llc|inc|corp|co|ltd|company|properties|property|management|mgmt|apartments|realty|hoa|church|school|restaurant)\b/i;
+
+/** A first name fit to say out loud, or null for anything an extractor might have filled in instead of a name. */
+export function greetableFirstName(name: string | null | undefined): string | null {
+  if (!name || COMPANY.test(name)) return null;
+  const first = name.trim().split(/\s+/)[0]?.replace(/[.,]$/, "") ?? "";
+  if (!/^\p{Lu}\p{Ll}[\p{L}'-]{0,18}$/u.test(first)) return null;
+  if (NOT_A_NAME.has(first.toLowerCase())) return null;
+  return first;
+}
+
+/*
+  The opening already carries the recording notice; only its closing question
+  changes. A phone is not a person, so the greeting asks rather than assumes,
+  the same question the private note allows.
+*/
+export function returningOpening(opening: string, first: string): string {
+  const line = opening.trim();
+  const question = line.match(/^(.*[.!])\s+[^.!?]+\?$/);
+  return question ? `${question[1]} Is this ${first}?` : `${line} Is this ${first}?`;
+}
+
+/** The greeting this caller should hear, or null for the shop's usual one. Gives up past the budget: the caller is listening to ringing. */
+export async function loadReturningOpening(params: {
+  businessId: string;
+  phone: string | null | undefined;
+  opening: string;
+  budgetMs?: number;
+}): Promise<string | null> {
+  const phoneNormalized = normalizePhone(params.phone ?? "");
+  if (!phoneNormalized) return null;
+  const startedAt = Date.now();
+  const first = await withinBudget(
+    prisma.customer
+      .findUnique({
+        where: { businessId_phoneNormalized: { businessId: params.businessId, phoneNormalized } },
+        select: { name: true },
+      })
+      .then((customer) => greetableFirstName(customer?.name)),
+    params.budgetMs ?? 150,
+  );
+  logInfo("vapi.returning_greeting", { businessId: params.businessId, ms: Date.now() - startedAt, outcome: first === LATE ? "late" : first ? "named" : "none" });
+  return first && first !== LATE ? returningOpening(params.opening, first) : null;
+}
+
+export const LATE = Symbol("late");
+
+/** The answer if it comes inside the budget; LATE if not; null if it fails. */
+export async function withinBudget<T>(work: Promise<T>, budgetMs: number): Promise<T | null | typeof LATE> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const late = new Promise<typeof LATE>((resolve) => {
+    timer = setTimeout(() => resolve(LATE), budgetMs);
+  });
+  try {
+    return await Promise.race([work.catch(() => null), late]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 export async function loadCallerContextNote(params: {
   businessId: string;

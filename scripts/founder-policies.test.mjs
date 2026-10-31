@@ -88,7 +88,7 @@ test("lapsed lines are only reported while release is held off", async () => {
 test("a canceled shop's number answers with a message, not its assistant", () => {
   const route = read("src/app/api/webhooks/vapi/route.ts");
   const canceled = route.indexOf("if (owner && !isLineEntitled(owner))");
-  assert.ok(canceled > 0 && canceled < route.indexOf("return { assistantId: owner.vapiAssistantId }"));
+  assert.ok(canceled > 0 && canceled < route.indexOf("return withReturningGreeting(owner, params.callerPhone)"));
   const sync = read("src/lib/billing-sync.ts");
   assert.match(sync, /await suspendShopLine\(updated\)/);
   assert.match(sync, /await resumeShopLine\(updated\)/);

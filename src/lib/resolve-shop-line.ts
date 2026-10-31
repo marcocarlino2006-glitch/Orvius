@@ -15,6 +15,7 @@ const SHOP_LINE_SELECT = {
   twilioPhone: true,
   vapiPhoneNumber: true,
   vapiAssistantId: true,
+  greeting: true,
   lineVerifiedAt: true,
   billingStatus: true,
   pilotEndsAt: true,
@@ -42,6 +43,7 @@ type ShopLineMatch = {
   twilioPhone: string | null;
   vapiPhoneNumber: string | null;
   vapiAssistantId: string | null;
+  greeting: string | null;
   lineVerifiedAt: Date | null;
   billingStatus: string;
   pilotEndsAt: Date | null;
