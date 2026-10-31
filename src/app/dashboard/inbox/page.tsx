@@ -20,6 +20,7 @@ import { askForMissing, INBOX_VIEWS, INBOX_VIEW_LABEL, type InboxFacts, type Inb
 import { inboxBrief } from "@/lib/list-brief";
 import { isEmergency, notableUrgency } from "@/lib/urgency";
 import { useBusiness } from "@/lib/use-business";
+import { cachedScreen, loadScreen } from "@/lib/screen-cache";
 import Link from "next/link";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 
@@ -224,30 +225,38 @@ function InboxRow({ lead, shop, timezone, onChanged }: { lead: LeadRow; shop: st
   );
 }
 
+type InboxPayload = { leads?: LeadRow[]; views?: Record<InboxView, number>; truncated?: boolean; timezone?: string | null };
+const inboxUrl = (view: string) => `/api/leads?view=${view}`;
+
 export default function InboxPage() {
   const { business } = useBusiness();
-  const [leads, setLeads] = useState<LeadRow[]>([]);
-  const [counts, setCounts] = useState<Record<InboxView, number> | null>(null);
+  const [seed] = useState(() => cachedScreen<InboxPayload>(inboxUrl("")));
+  const [leads, setLeads] = useState<LeadRow[]>(seed?.leads ?? []);
+  const [counts, setCounts] = useState<Record<InboxView, number> | null>(seed?.views ?? null);
   const [filter, setFilter] = useState<Filter>("");
   const [failure, setFailure] = useState<DashboardLoadFailure | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [truncated, setTruncated] = useState(false);
-  const [timeZone, setTimeZone] = useState<string | null>(null);
+  const [loading, setLoading] = useState(!seed);
+  const [truncated, setTruncated] = useState(Boolean(seed?.truncated));
+  const [timeZone, setTimeZone] = useState<string | null>(seed?.timezone ?? null);
 
   const load = useCallback(async (view: Filter) => {
-    setLoading(true);
-    setFailure(null);
-    try {
-      const res = await fetch(`/api/leads?view=${view}`, { cache: "no-store" });
-      if (!res.ok) {
-        setFailure(await readDashboardError("Inbox", res));
-        return;
-      }
-      const data = (await res.json()) as { leads: LeadRow[]; views: Record<InboxView, number>; truncated: boolean; generatedAt: string; timezone?: string | null };
+    const apply = (data: InboxPayload) => {
       setLeads(data.leads ?? []);
       setCounts(data.views ?? null);
       setTruncated(Boolean(data.truncated));
       setTimeZone(data.timezone ?? null);
+    };
+    const cached = cachedScreen<InboxPayload>(inboxUrl(view));
+    if (cached) apply(cached);
+    setLoading(!cached);
+    setFailure(null);
+    try {
+      const { res, data } = await loadScreen<InboxPayload>(inboxUrl(view));
+      if (!data) {
+        setFailure(await readDashboardError("Inbox", res));
+        return;
+      }
+      apply(data);
     } catch {
       setFailure(describeDashboardFailure("Inbox", null, "Network error"));
     } finally {
