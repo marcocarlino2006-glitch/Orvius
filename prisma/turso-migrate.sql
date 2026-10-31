@@ -1472,3 +1472,26 @@ CREATE TABLE IF NOT EXISTS "CallReview" (
     CONSTRAINT "CallReview_callId_fkey" FOREIGN KEY ("callId") REFERENCES "Call" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 CREATE INDEX IF NOT EXISTS "CallReview_businessId_createdAt_idx" ON "CallReview"("businessId", "createdAt");
+
+-- Each step from the pricing page to a paid shop, counted without cookies, and the ledger that sends each setup-recovery, welcome and first-call email once. Lifecycle rows go with their shop.
+CREATE TABLE IF NOT EXISTS "FunnelEvent" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "event" TEXT NOT NULL,
+    "who" TEXT NOT NULL,
+    "detail" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS "FunnelEvent_createdAt_event_idx" ON "FunnelEvent"("createdAt", "event");
+CREATE TABLE IF NOT EXISTS "LifecycleEmail" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "kind" TEXT NOT NULL,
+    "dedupeKey" TEXT NOT NULL,
+    "toEmail" TEXT NOT NULL,
+    "status" TEXT NOT NULL,
+    "providerId" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "LifecycleEmail_businessId_fkey" FOREIGN KEY ("businessId") REFERENCES "Business" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE UNIQUE INDEX IF NOT EXISTS "LifecycleEmail_dedupeKey_key" ON "LifecycleEmail"("dedupeKey");
+CREATE INDEX IF NOT EXISTS "LifecycleEmail_businessId_kind_idx" ON "LifecycleEmail"("businessId", "kind");

@@ -3,6 +3,7 @@ import { markCronRan } from "@/lib/cron-runs";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { pageOnErrorBurst } from "@/lib/error-burst";
 import { getBearerToken, secretsMatch, verifyAdminRequest } from "@/lib/env";
+import { sendLifecycleEmails } from "@/lib/lifecycle-email";
 import { logWarn } from "@/lib/logger";
 import { isUnauthenticatedAccessAllowed } from "@/lib/runtime";
 import { openUnchosenBooking } from "@/lib/scheduling-policy";
@@ -13,7 +14,8 @@ import { scheduledTargetRefusal } from "@/lib/scheduled-target";
   Driven every 5 minutes by .github/workflows/alert-drain.yml. Webhooks drain
   the owner-alert ladder on busy lines; this is what moves a retry on a quiet
   line at 3am, which otherwise waited for the daily cron. It also sweeps calls
-  whose report was captured but never finished and leads saved without an alert.
+  whose report was captured but never finished, leads saved without an alert,
+  and the setup-recovery, welcome and first-call emails.
 */
 export const maxDuration = 30;
 
@@ -45,7 +47,11 @@ export async function GET(request: NextRequest) {
     logWarn("alert_drain.signup_watch_failed", { error: error instanceof Error ? error.message : String(error) });
     return null;
   });
-  return NextResponse.json({ ok: true, bookingOpened, errors, signup });
+  const lifecycle = await sendLifecycleEmails().catch((error: unknown) => {
+    logWarn("alert_drain.lifecycle_email_failed", { error: error instanceof Error ? error.message : String(error) });
+    return null;
+  });
+  return NextResponse.json({ ok: true, bookingOpened, errors, signup, lifecycle });
 }
 
 export async function POST(request: NextRequest) {

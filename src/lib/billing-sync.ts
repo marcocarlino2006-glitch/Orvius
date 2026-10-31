@@ -2,6 +2,7 @@ import { logInfo, logWarn } from "@/lib/logger";
 import { alertPaymentFailed } from "@/lib/owner-nudges";
 import { isPaused } from "@/lib/billing-entitlement";
 import { recordAudit } from "@/lib/audit";
+import { recordOwnerStep } from "@/lib/funnel";
 import { cancelEvent, cancelReasonFrom, cancelReasonLabel, founderCancelText } from "@/lib/cancel-signal";
 import { pageFounderForShop } from "@/lib/platform-pager";
 import { planMonthlyCents } from "@/lib/value-check";
@@ -260,6 +261,10 @@ export async function syncSubscriptionToBusiness(
       ...cancelFields,
     },
   });
+
+  if (updated.paidSince && !business.paidSince && updated.ownerEmail) {
+    await recordOwnerStep("paid", updated.ownerEmail, updated.billingPlan);
+  }
 
   if (leaving) {
     await signalLeaving(updated, leaving, said).catch((error: unknown) =>

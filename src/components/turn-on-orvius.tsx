@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { FunnelBeacon } from "@/components/funnel-beacon";
 import { TalkInBrowser } from "@/components/talk-in-browser";
 import { DEMO_LINE_DISPLAY, demoLineHref } from "@/lib/demo-line";
 import { OrviusMarkSvg } from "@/lib/orvius-mark";
@@ -218,6 +219,8 @@ export function TurnOnOrvius({
 
   return (
     <main className="ton">
+      <FunnelBeacon event="setup" />
+      {step === "live" && sandbox ? <FunnelBeacon event="pay" /> : null}
       <TopBar index={index} done={sandbox?.progress.done ?? {}} onBack={back ? () => go(back) : undefined} testMode={Boolean(sandbox)} />
       <section className="ton-stage" key={step}>
         {step === "business" ? (

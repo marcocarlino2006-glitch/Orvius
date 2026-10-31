@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { FunnelBeacon } from "@/components/funnel-beacon";
 import { MarketingShell, ShellPageIntro } from "@/components/marketing-shell";
 import { StartActions } from "@/components/start-actions";
 import { PricingPagePlans } from "@/components/pricing-page-plans";
@@ -25,6 +26,7 @@ export default function PricingPage() {
 
   return (
     <MarketingShell>
+      <FunnelBeacon event="pricing" />
       <section className="tier1-hero tier1-hero-compact">
         <div className="editorial-wrap">
           <ShellPageIntro

@@ -32,6 +32,7 @@ const PUBLIC = {
   "csp-report": "browsers post CSP violations without a session",
   "demo-line": "read-only: whether the public demo line is free",
   "demo-web": "public browser demo; rate limited and ticketed",
+  funnel: "cookieless page-view counts; allowlisted events, rate limited, always 204",
   preview: "public shop preview; rate limited per IP, fail closed",
   "preview/[token]": "the preview token is the capability",
   "preview/[token]/share": "the preview token is the capability",
@@ -48,6 +49,7 @@ const PUBLIC = {
   "public/review/[token]": "customer review token",
   "public/tech/[token]": "customer-facing technician arrival link",
   "public/unsubscribe": "signed unsubscribe token",
+  "public/setup-emails": "signed unsubscribe token",
   status: "public status page",
 };
 

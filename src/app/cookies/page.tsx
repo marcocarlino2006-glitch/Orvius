@@ -33,11 +33,19 @@ export default function CookiesPage() {
         </p>
       </LegalSection>
 
-      <LegalSection title="3. Analytics (not enabled by default)">
+      <LegalSection title="3. Sign-up counts (no cookies)">
         <p>
-          If we enable non-essential product or traffic analytics in the future, we will update this
-          policy and the in-product notice before collecting those cookies. Until then, do not
-          assume analytics cookies are active.
+          We count how many people reach each step of signing up: the pricing page, the sign-up
+          page, setup, the pay step and checkout. This sets no cookie and stores nothing on your
+          device. Before you sign in, a visit is recorded as a one-way code made from your network
+          address, your browser and a key that changes every day, so the same visit tomorrow can&apos;t
+          be linked to today&apos;s and your address is never stored. After you sign in, the step is
+          recorded against a one-way code of your account email. If your browser sends Do Not Track
+          or Global Privacy Control, nothing is counted.
+        </p>
+        <p>
+          We do not use advertising or third-party analytics cookies. If that ever changes, we will
+          update this policy and the in-product notice first.
         </p>
       </LegalSection>
 

@@ -235,6 +235,7 @@ model Business {
   leads                  Lead[]
   customers              Customer[]
   jobs                   Job[]
+  lifecycleEmails        LifecycleEmail[]
   jobberConnection       JobberConnection?
   housecallConnection    HousecallConnection?
   serviceTitanConnection ServiceTitanConnection?
@@ -2349,4 +2350,30 @@ model CallReview {
   createdAt   DateTime @default(now())
 
   @@index([businessId, createdAt])
+}
+
+/// One step of the way from the pricing page to a paid shop. No cookie: "who" is a one-way code (a signed-in owner's hashed email, or a daily-rotating hash of the visitor) that cannot be turned back into a person.
+model FunnelEvent {
+  id        String   @id @default(cuid())
+  event     String
+  who       String
+  detail    String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt, event])
+}
+
+/// A setup-recovery, welcome or first-call email, claimed before it is sent so each goes once. kind "opted_out" is the owner stopping them.
+model LifecycleEmail {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  kind       String
+  dedupeKey  String   @unique
+  toEmail    String
+  status     String
+  providerId String?
+  createdAt  DateTime @default(now())
+
+  @@index([businessId, kind])
 }

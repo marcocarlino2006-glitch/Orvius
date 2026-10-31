@@ -1,10 +1,11 @@
 import { isOwnerDemoWorkspace, NOT_OWNER_DEMO } from "@/lib/demo-fence";
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
 import { getAllowedEmails } from "@/lib/auth-allowlist";
 import { canCreateShopForEmail } from "@/lib/self-serve-signup";
 import { auth } from "@/auth";
 import { isPrivilegedRequest } from "@/lib/admin-access";
 import { company } from "@/lib/company";
+import { recordOwnerStep } from "@/lib/funnel";
 import { prisma } from "@/lib/prisma";
 import {
   canOfferCheckout,
@@ -285,6 +286,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    after(() => recordOwnerStep("checkout", sessionEmail, `${body.planId}-${body.interval}`));
     return NextResponse.json({
       ok: true,
       url: checkoutSession.url,
