@@ -3,7 +3,7 @@ import { detectCallCapture } from "@/lib/capture-detect";
 import { after } from "next/server";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { prisma } from "@/lib/prisma";
-import type { VapiWebhookMessage } from "@/lib/vapi";
+import { openingWithNotice, type VapiWebhookMessage } from "@/lib/vapi";
 import { captureEndOfCallReport, finishCallReport } from "@/lib/call-ingest";
 import { phonesEqual } from "@/lib/owner-alerts";
 import { recordForwardTestArrival } from "@/lib/forward-test";
@@ -21,10 +21,10 @@ import {
   findPreviewByVapiCallId,
   recordPreviewOutcome,
 } from "@/lib/shop-preview";
-import { ensureAssistantCurrent } from "@/lib/sync-business-assistant";
+import { ensureAssistantCurrent, shopGreeting } from "@/lib/sync-business-assistant";
 import { handleInCallToolCalls } from "@/lib/in-call-tools";
 import { callerWordsSoFar, readToolCalls } from "@/lib/in-call-tool-defs";
-import { clockNote, loadCallerContextNote, noteForConnectedCall, sendCallerContext } from "@/lib/caller-context";
+import { clockNote, loadCallerContextNote, loadReturningOpening, noteForConnectedCall, sendCallerContext } from "@/lib/caller-context";
 import { backstopLateSweeps } from "@/lib/cron-backstop";
 import { isVapiBillingRefusal, pagePlatform } from "@/lib/platform-pager";
 import { alertSpendCut, callSpendCut, endCallWith, holdLineBusyCaller } from "@/lib/call-spend-guard";
@@ -104,6 +104,19 @@ async function findBusinessForCall(
  * assistant. An owner with an active preview hears their own shop; everyone
  * else hears the shop that owns the line, exactly as before.
  */
+/* A known caller is asked "Is this Dana?" in the first sentence, instead of being asked their name later. */
+async function withReturningGreeting(
+  shop: { id: string; name: string; greeting: string | null; vapiAssistantId: string | null },
+  callerPhone: string | null | undefined,
+) {
+  const firstMessage = await loadReturningOpening({
+    businessId: shop.id,
+    phone: callerPhone,
+    opening: openingWithNotice(shopGreeting(shop), shop.name),
+  });
+  return firstMessage ? { assistantId: shop.vapiAssistantId, assistantOverrides: { firstMessage } } : { assistantId: shop.vapiAssistantId };
+}
+
 async function answerAssistantRequest(params: {
   vapiCallId: string;
   callerPhone?: string;
@@ -118,7 +131,7 @@ async function answerAssistantRequest(params: {
   if (owner && !isLineEntitled(owner)) {
     return { error: `Thanks for calling ${owner.name}. This line isn't taking calls right now. Please reach the business directly.` };
   }
-  if (owner?.vapiAssistantId) return { assistantId: owner.vapiAssistantId };
+  if (owner?.vapiAssistantId) return withReturningGreeting(owner, params.callerPhone);
 
   logWarn("vapi.assistant_request.unrouted", { vapiCallId: params.vapiCallId, inboundNumber: params.inboundNumber });
   return { error: "Sorry, this line isn't taking calls right now. Please try again later." };
@@ -176,7 +189,7 @@ export async function handleVapiWebhook(
           error: `Thanks for calling ${shop.name}. This line isn't taking calls right now. Please reach the business directly.`,
         });
       }
-      return NextResponse.json({ assistantId: shop.vapiAssistantId });
+      return NextResponse.json(await withReturningGreeting(shop, message.call?.customer?.number));
     }
     business = shop;
   } else {
@@ -386,6 +399,12 @@ export async function handleVapiWebhook(
           if (!(await isLineWebCall(vapiCallId))) await endCallWith(controlUrl, "This demo starts from the Orvius website. Goodbye.");
           return;
         }
+        const noteStartedAt = Date.now();
+        const timezone = business.timezone ?? "America/New_York";
+        // Read alongside the spend check, not after it: every millisecond here is the caller's first turn without the note.
+        const returningNote = callerPhone
+          ? loadCallerContextNote({ businessId: business.id, phone: callerPhone, timezone }).catch(() => null)
+          : Promise.resolve(null);
         const onDemoLine = isDemoPlatformLine(inboundNumber ?? business.vapiPhoneNumber ?? business.twilioPhone);
         const cut = await callSpendCut({ shop: business, callerPhone, vapiCallId, demo: isDemoPlatformLine(inboundNumber ?? business.vapiPhoneNumber ?? business.twilioPhone), ownsLine: business.environment === "production" && !onDemoLine });
         if (cut) {
@@ -402,19 +421,15 @@ export async function handleVapiWebhook(
           }
           return;
         }
-        const timezone = business.timezone ?? "America/New_York";
         const clock = clockNote({
           now: new Date(),
           timezone,
           hoursJson: business.hoursJson,
           closedDatesJson: business.closedDatesJson,
         });
-        if (!callerPhone) {
-          await sendCallerContext(controlUrl, clock);
-          return;
-        }
-        const returning = await loadCallerContextNote({ businessId: business.id, phone: callerPhone, timezone });
-        await sendCallerContext(controlUrl, `${clock} ${noteForConnectedCall(returning)}`);
+        const returning = await returningNote;
+        await sendCallerContext(controlUrl, callerPhone ? `${clock} ${noteForConnectedCall(returning)}` : clock);
+        logInfo("vapi.caller_context.ms", { businessId: business.id, vapiCallId, returning: Boolean(returning), ms: Date.now() - noteStartedAt });
       });
     }
 

@@ -39,10 +39,12 @@ export type AssistantSyncResult = {
   warning: string | null;
 };
 
+export function shopGreeting(business: Pick<Business, "greeting" | "name">) {
+  return business.greeting?.trim() || `Thank you for calling ${business.name}. How can I help you today?`;
+}
+
 export function buildBusinessAssistantConfig(business: Business) {
-  const greeting =
-    business.greeting?.trim() ||
-    `Thank you for calling ${business.name}. How can I help you today?`;
+  const greeting = shopGreeting(business);
   const transferPhone = business.transferPhone?.trim() || null;
 
   const systemPrompt = buildAssistantSystemPrompt({
