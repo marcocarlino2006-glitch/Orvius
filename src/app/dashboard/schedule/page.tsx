@@ -15,8 +15,9 @@ import { previewMove, type MovePreview } from "@/lib/schedule-move";
 import { DispatchWeek } from "@/components/dispatch-week";
 import { WorkCard } from "@/components/work-card";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { patchJob } from "@/lib/job-patch-client";
+import { reassignOnBoard } from "@/lib/schedule-optimistic";
 import { jobPastDue } from "@/lib/job-status";
 import type { WorkItem } from "@/lib/work";
 
@@ -231,6 +232,8 @@ export default function DispatchPage() {
   const [picked, setPicked] = useState<string | null>(null);
   const [view, setView] = useState<"day" | "week">("day");
   const [board, setBoard] = useState<Board | null>(null);
+  const boardRef = useRef<Board | null>(null);
+  boardRef.current = board;
   const [late, setLate] = useState<WorkItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -271,6 +274,9 @@ export default function DispatchPage() {
   const [moving, setMoving] = useState(false);
 
   async function reassign(jobId: string, technicianId: string | null, name: string, undoTo?: string | null) {
+    const before = boardRef.current;
+    const moved = before ? reassignOnBoard(before.schedule, jobId, technicianId) : null;
+    if (before && moved) setBoard({ ...before, schedule: moved });
     try {
       const res = await patchJob(jobId, { technicianId });
       if (!res.ok) throw new Error();
@@ -292,6 +298,7 @@ export default function DispatchPage() {
           : {}),
       });
     } catch {
+      if (before && moved) setBoard(before);
       toast({ title: "That move didn't save. Try again.", tone: "error" });
     }
     load();
