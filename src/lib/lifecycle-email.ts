@@ -207,7 +207,7 @@ export function welcomeEmail(params: { name: string; line: string }): { subject:
       preheader: `Your receptionist is answering ${displayPhone(params.line)}.`,
       heading: `${params.name} is live.`,
       paragraphs: [
-        `Your receptionist is answering ${displayPhone(params.line)} in ${params.name}'s name. Each one lands on your desk as a job or a lead, and you get a text when one needs you.`,
+        `Your receptionist is answering ${displayPhone(params.line)} in ${params.name}'s name. Every call lands on your desk as a job or a lead, and you get a text when one needs you.`,
         "Two things today: call the number yourself to hear it, then put it where customers find you (your Google listing, website and truck), or forward your current number to it.",
       ],
       facts: [["Your Orvius number", displayPhone(params.line)]],
