@@ -17,6 +17,7 @@ import {
   vapiRequest,
 } from "@/lib/vapi";
 import { performOnce, revertEffect } from "@/lib/provider-effect";
+import { privilegedActor, recordPlatformAudit } from "@/lib/platform-audit";
 import { z } from "zod";
 import { ActivationRequiredError, defaultGreeting, draftActivationBusiness, recordSettledActivation, settleActivation } from "@/lib/activation-ack";
 
@@ -199,6 +200,12 @@ export async function POST(request: NextRequest) {
     assertCustomerShopLine({ phone: null, business });
 
     const { business: provisioned } = await ensureDedicatedShopLine(business);
+    await recordPlatformAudit(await privilegedActor(request), {
+      action: "admin.shop.created",
+      summary: `Created ${business.name} (${slug})`,
+      businessId: business.id,
+      detail: { slug, operator: ack?.operator ?? null },
+    });
 
     return NextResponse.json(provisioned, { status: 201 });
   } catch (error) {
@@ -231,6 +238,12 @@ export async function DELETE(request: NextRequest) {
 
   await prisma.business.delete({ where: { id } });
   await revertEffect("vapi", staffReceptionistKey(business.slug));
+  await recordPlatformAudit(await privilegedActor(request), {
+    action: "admin.shop.deleted",
+    summary: `Deleted ${business.name} (${business.slug})`,
+    businessId: business.id,
+    detail: { slug: business.slug, name: business.name },
+  });
   return NextResponse.json({ ok: true, line });
 }
 
@@ -272,6 +285,13 @@ export async function PATCH(request: NextRequest) {
     });
 
     if (business.vapiAssistantId) await syncBusinessAssistant(business);
+    const changed = Object.keys(body).filter((key) => key !== "id" && key !== "acknowledgement");
+    await recordPlatformAudit(await privilegedActor(request), {
+      action: "admin.shop.updated",
+      summary: `Updated ${business.name}: ${changed.join(", ") || "no fields"}`,
+      businessId: business.id,
+      detail: { fields: changed },
+    });
 
     return NextResponse.json(business);
   } catch (error) {

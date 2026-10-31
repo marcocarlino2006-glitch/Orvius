@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { isPrivilegedRequest } from "@/lib/admin-access";
 import { logError } from "@/lib/logger";
 import { lineFallbackReport } from "@/lib/line-fallback-report";
+import { privilegedActor, recordPlatformAudit } from "@/lib/platform-audit";
 
 export const dynamic = "force-dynamic";
 
@@ -24,5 +25,9 @@ export async function GET(request: NextRequest) {
 /** Sets the fallback on every line that lacks it, then reads them all back. */
 export async function POST(request: NextRequest) {
   if (!(await isPrivilegedRequest(request))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  await recordPlatformAudit(await privilegedActor(request), {
+    action: "admin.lines.fallback_set",
+    summary: "Set the AI-down fallback on every shop line that lacked it",
+  });
   return respond(true);
 }

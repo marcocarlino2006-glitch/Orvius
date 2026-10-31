@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { notifyOwner } from "@/lib/notifications";
 import { verifyAdminRequest } from "@/lib/env";
 import { isFounderEmail } from "@/lib/founder";
+import { recordPlatformAudit, staffActor } from "@/lib/platform-audit";
 import { logWarn } from "@/lib/logger";
 import { z } from "zod";
 import { clientIp, sharedRateLimit } from "@/lib/rate-limit";
@@ -139,6 +140,13 @@ export async function PATCH(request: NextRequest) {
           : {}),
       },
     });
+    if (body.status !== undefined) {
+      await recordPlatformAudit(await staffActor(request), {
+        action: "admin.waitlist.status_set",
+        summary: `${entry.email} → ${body.status}`,
+        detail: { entryId: entry.id, status: body.status },
+      });
+    }
     return NextResponse.json({ ok: true, entry });
   } catch (error) {
     const message =

@@ -1447,3 +1447,17 @@ CREATE TABLE IF NOT EXISTS "PartDraw" (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS "PartDraw_jobId_priceBookItemId_key" ON "PartDraw"("jobId", "priceBookItemId");
 CREATE INDEX IF NOT EXISTS "PartDraw_businessId_idx" ON "PartDraw"("businessId");
+
+-- Who did what from the founder console or with the admin key. No foreign key to Business, so the record outlives the shop.
+CREATE TABLE IF NOT EXISTS "PlatformAuditEvent" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "action" TEXT NOT NULL,
+    "actorKind" TEXT NOT NULL,
+    "actorEmail" TEXT,
+    "businessId" TEXT,
+    "summary" TEXT NOT NULL,
+    "detailJson" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS "PlatformAuditEvent_createdAt_idx" ON "PlatformAuditEvent"("createdAt");
+CREATE INDEX IF NOT EXISTS "PlatformAuditEvent_businessId_createdAt_idx" ON "PlatformAuditEvent"("businessId", "createdAt");
