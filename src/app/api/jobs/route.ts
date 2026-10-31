@@ -7,11 +7,12 @@ import { JOB_INCLUDE, OverrideRefusedError, OwnerClashError, createJobFromLead, 
 import { authorizeScheduleOverride, scheduleOverrideRecord } from "@/lib/scheduling-policy";
 import { personActor, recordAudit } from "@/lib/audit";
 import { classifyRequest } from "@/lib/trade-playbooks";
+import { CLOSED_PAGE, CLOSED_STATUSES, JOB_SEARCH_LIMIT, closedCursor, closedPageWhere, jobSearchWhere } from "@/lib/job-search";
 import { requirePlanModule } from "@/lib/plan-gate";
 import { prisma } from "@/lib/prisma";
 import { forbiddenResponse, requireEntitledSession } from "@/lib/tenant";
 
-export async function GET() {
+export async function GET(request: Request) {
   const authResult = await requireEntitledSession();
   if ("error" in authResult) return authResult.error;
   const { business } = authResult;
@@ -19,26 +20,60 @@ export async function GET() {
   const planGate = requirePlanModule(business, "jobs");
   if ("error" in planGate) return planGate.error;
 
-  /* Every open job, then the latest closed ones; one oldest-first cap would drop next week's work. */
-  const [open, closed] = await Promise.all([
+  const params = new URL(request.url).searchParams;
+  const timezone = safeTimezone(business.timezone);
+
+  const search = jobSearchWhere(business.id, params.get("q") ?? "");
+  if (search) {
+    const found = await prisma.job.findMany({
+      where: search,
+      take: JOB_SEARCH_LIMIT + 1,
+      orderBy: { updatedAt: "desc" },
+      include: JOB_INCLUDE,
+    });
+    return NextResponse.json({
+      jobs: found.slice(0, JOB_SEARCH_LIMIT).map(serializeJob),
+      truncated: found.length > JOB_SEARCH_LIMIT,
+      timezone,
+    });
+  }
+
+  const before = params.get("closedBefore");
+  const closedPage = () =>
     prisma.job.findMany({
-      where: { businessId: business.id, status: { notIn: ["completed", "cancelled"] } },
+      where: closedPageWhere(business.id, before),
+      take: CLOSED_PAGE + 1,
+      orderBy: [{ updatedAt: "desc" }, { id: "desc" }],
+      include: JOB_INCLUDE,
+    });
+  const pageOf = (rows: Awaited<ReturnType<typeof closedPage>>) => {
+    const page = rows.slice(0, CLOSED_PAGE);
+    return { page, next: rows.length > CLOSED_PAGE ? closedCursor(page[page.length - 1]) : null };
+  };
+
+  if (before) {
+    const { page, next } = pageOf(await closedPage());
+    return NextResponse.json({ jobs: page.map(serializeJob), closedNext: next, timezone });
+  }
+
+  /* Every open job, then the latest closed ones; one oldest-first cap would drop next week's work. */
+  const [open, closed, closedTotal] = await Promise.all([
+    prisma.job.findMany({
+      where: { businessId: business.id, status: { notIn: CLOSED_STATUSES } },
       take: 300,
       orderBy: [{ scheduledAt: "asc" }, { createdAt: "desc" }],
       include: JOB_INCLUDE,
     }),
-    prisma.job.findMany({
-      where: { businessId: business.id, status: { in: ["completed", "cancelled"] } },
-      take: 60,
-      orderBy: { updatedAt: "desc" },
-      include: JOB_INCLUDE,
-    }),
+    closedPage(),
+    prisma.job.count({ where: { businessId: business.id, status: { in: CLOSED_STATUSES } } }),
   ]);
-  const jobs = [...open, ...closed];
+  const { page, next } = pageOf(closed);
 
   return NextResponse.json({
-    jobs: jobs.map(serializeJob),
-    timezone: safeTimezone(business.timezone),
+    jobs: [...open, ...page].map(serializeJob),
+    closedNext: next,
+    closedTotal,
+    timezone,
   });
 }
 

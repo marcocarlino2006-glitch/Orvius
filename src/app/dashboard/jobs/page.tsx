@@ -91,6 +91,11 @@ export default function JobsPage() {
   const [query, setQuery] = useState("");
   const [timeZone, setTimeZone] = useState<string | undefined>();
   const [attempt, setAttempt] = useState(0);
+  const [closedNext, setClosedNext] = useState<string | null>(null);
+  const [closedTotal, setClosedTotal] = useState<number | null>(null);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const [found, setFound] = useState<{ q: string; jobs: JobRow[]; truncated: boolean } | null>(null);
+  const [searchFailed, setSearchFailed] = useState(false);
 
   useEffect(() => {
     setError(null);
@@ -105,6 +110,8 @@ export default function JobsPage() {
     ])
       .then(([jobData, leadData]) => {
         setJobs(jobData.jobs ?? []);
+        setClosedNext(jobData.closedNext ?? null);
+        setClosedTotal(typeof jobData.closedTotal === "number" ? jobData.closedTotal : null);
         setTimeZone(jobData.timezone ?? undefined);
         setNewLeadCount(leadData.counts?.new ?? 0);
       })
@@ -112,21 +119,73 @@ export default function JobsPage() {
       .finally(() => setLoading(false));
   }, [attempt]);
 
+  const term = query.trim();
+  const searching = term.length >= 2;
+  useEffect(() => {
+    if (!searching) return;
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      fetch(`/api/jobs?q=${encodeURIComponent(term)}`, { signal: controller.signal })
+        .then((res) => (res.ok ? res.json() : Promise.reject(new Error("search"))))
+        .then((data) => {
+          setSearchFailed(false);
+          setFound({ q: term, jobs: data.jobs ?? [], truncated: Boolean(data.truncated) });
+        })
+        .catch((err) => {
+          if (err?.name !== "AbortError") setSearchFailed(true);
+        });
+    }, 200);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [term, searching]);
+
+  async function loadOlderClosed() {
+    if (!closedNext || loadingOlder) return;
+    setLoadingOlder(true);
+    try {
+      const res = await fetch(`/api/jobs?closedBefore=${encodeURIComponent(closedNext)}`);
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setJobs((current) => {
+        const seen = new Set(current.map((job) => job.id));
+        return [...current, ...(data.jobs ?? []).filter((job: JobRow) => !seen.has(job.id))];
+      });
+      setClosedNext(data.closedNext ?? null);
+    } catch {
+      setError("Older jobs didn't load. Try again.");
+    } finally {
+      setLoadingOlder(false);
+    }
+  }
+
   const withState = useMemo(() => jobs.map((job) => ({ job, state: jobLifecycle(job).state })), [jobs]);
+
+  /*
+    Typing searches the loaded board at once, then every job the shop has ever
+    had on the server, so an old closed job is found instead of silently missing.
+  */
+  const searchRows = useMemo(() => {
+    if (!searching) return null;
+    const q = term.toLowerCase();
+    const byId = new Map<string, JobRow>();
+    for (const job of jobs) {
+      if ([job.title, job.serviceType, job.address, job.customer?.name, job.customer?.phone, job.lead?.name, job.lead?.phone, job.technician?.name].some((v) => v?.toLowerCase().includes(q))) {
+        byId.set(job.id, job);
+      }
+    }
+    if (found && found.q === term) for (const job of found.jobs) byId.set(job.id, job);
+    return [...byId.values()].map((job) => ({ job, state: jobLifecycle(job).state }));
+  }, [searching, term, jobs, found]);
 
   const filtered = useMemo(() => {
     const now = Date.now();
-    const q = query.trim().toLowerCase();
-    return withState
+    return (searchRows ?? withState)
       .filter(({ job, state }) => matchesTab(tabId, state, job))
-      .filter(({ job }) =>
-        !q ||
-        [job.title, job.serviceType, job.address, job.customer?.name, job.customer?.phone, job.lead?.name, job.lead?.phone, job.technician?.name]
-          .some((v) => v?.toLowerCase().includes(q)),
-      )
       .map(({ job }) => ({ job, facts: jobRowFacts(job, now) }))
       .sort((a, b) => (b.facts.attention?.weight ?? 0) - (a.facts.attention?.weight ?? 0));
-  }, [withState, tabId, query]);
+  }, [searchRows, withState, tabId]);
 
   const stageValue = useMemo(() => {
     const cents = filtered.reduce((sum, row) => sum + (row.facts.money.kind === "expected" ? 0 : (row.facts.money.cents ?? 0)), 0);
@@ -134,10 +193,12 @@ export default function JobsPage() {
   }, [filtered]);
 
   const tabCounts = useMemo(() => {
+    const rows = searchRows ?? withState;
     const counts: Record<string, number> = {};
-    for (const tab of TABS) counts[tab.id] = withState.filter(({ job, state }) => matchesTab(tab.id, state, job)).length;
+    for (const tab of TABS) counts[tab.id] = rows.filter(({ job, state }) => matchesTab(tab.id, state, job)).length;
+    if (!searchRows && closedTotal !== null) counts.closed = Math.max(counts.closed ?? 0, closedTotal);
     return counts;
-  }, [withState]);
+  }, [searchRows, withState, closedTotal]);
 
   /*
     Open work, not total work. A shop that closed four hundred jobs last year
@@ -319,9 +380,18 @@ export default function JobsPage() {
             <p className="dt-foot">
               {filtered.length} job{filtered.length === 1 ? "" : "s"}
               {stageValue ? ` · ${stageValue} on estimates, invoices and recorded totals (average-ticket guesses left out)` : ""}
+              {searching && found?.q === term && found.truncated ? " · showing the 100 most recent matches; add a word to narrow it" : ""}
             </p>
             </>
           )}
+          {searching && searchFailed ? (
+            <p className="dt-foot">Only the jobs on this board were searched; the full search didn&apos;t answer.</p>
+          ) : null}
+          {!searching && tabId === "closed" && closedNext ? (
+            <button type="button" className="ox-btn ox-btn--quiet ox-btn--sm" onClick={loadOlderClosed} disabled={loadingOlder}>
+              {loadingOlder ? "Loading…" : "Older closed jobs"}
+            </button>
+          ) : null}
         </>
       )}
       </PlanUpgradeGate>
