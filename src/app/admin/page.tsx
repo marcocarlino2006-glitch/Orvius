@@ -6,6 +6,7 @@ import { ReceptionistScorecardCard } from "@/components/receptionist-scorecard-c
 import { VendorAlarmCard } from "@/components/vendor-alarm-card";
 import { LineFallbackCard } from "@/components/line-fallback-card";
 import { PlatformAuditCard } from "@/components/platform-audit-card";
+import { SignupFunnelCard } from "@/components/signup-funnel-card";
 import { TollFreeForm } from "@/components/toll-free-form";
 import { ProLead } from "@/components/pro-lead";
 import { LiveStatusBar } from "@/components/live-status-bar";
@@ -481,6 +482,7 @@ export default function AdminPage() {
       ) : null}
       {board ? <ScoreboardCard board={board} /> : null}
       {funnel ? <LaunchFunnelCard funnel={funnel} /> : null}
+      <SignupFunnelCard />
       {density ? <DensityCard density={density} /> : null}
       {attach ? <PaymentsAttachCard attach={attach} /> : null}
         </>

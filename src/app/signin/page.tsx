@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { safeCallbackUrl } from "@/lib/safe-callback";
 import Link from "next/link";
 import { DevSignInButton } from "@/components/dev-sign-in-button";
+import { FunnelBeacon } from "@/components/funnel-beacon";
 import { OrviusLogo } from "@/components/orvius-logo";
 import { SignInBoard } from "@/components/signin-board";
 import { SignInPanel, type SignInMode } from "@/components/signin-panel";
@@ -50,6 +51,7 @@ export default async function SignInPage({
 
   return (
     <main className="ov-signin">
+      {mode === "signup" ? <FunnelBeacon event="signup" /> : null}
       <section className="ov-signin-canvas">
         <div className="ov-signin-canvas-inner">
           <div className="mkt-nav-brandline">

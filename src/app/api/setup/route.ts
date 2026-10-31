@@ -1,9 +1,10 @@
 import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { z } from "zod";
 import { ACQUISITION_COOKIE, inviteArea, parseAcquisition } from "@/lib/acquisition";
 import { auth } from "@/auth";
 import { busyCalendarHost } from "@/lib/busy-calendar";
+import { recordOwnerStep } from "@/lib/funnel";
 import { prisma } from "@/lib/prisma";
 import { sharedRateLimit, tooManyRequests } from "@/lib/rate-limit";
 import { shopLineAvailability } from "@/lib/shop-machine";
@@ -310,6 +311,8 @@ export async function POST(request: Request) {
         business = await saveSetupLiveDraft(email, { ownerPhone: body.ownerPhone, areaCode: body.areaCode });
         break;
     }
+    if (body.action === "start") after(() => recordOwnerStep("shop_named", email, body.trade));
+    if (body.action === "test") after(() => recordOwnerStep("heard", email));
     const response = NextResponse.json({ ok: true, live: false, ...(await view(business)) });
     if (body.action === "start") {
       response.cookies.set(ACTIVE_SHOP_COOKIE, business.id, {

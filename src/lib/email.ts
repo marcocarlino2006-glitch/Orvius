@@ -34,6 +34,8 @@ export async function sendOwnerEmail(params: {
   to: string;
   subject: string;
   text: string;
+  html?: string;
+  replyTo?: string;
   headers?: Record<string, string>;
 }) {
   const apiKey = process.env.RESEND_API_KEY?.trim();
@@ -58,6 +60,8 @@ export async function sendOwnerEmail(params: {
         to: [params.to],
         subject: params.subject,
         text: params.text,
+        ...(params.html ? { html: params.html } : {}),
+        ...(params.replyTo ? { reply_to: params.replyTo } : {}),
         ...(params.headers ? { headers: params.headers } : {}),
       }),
       signal: controller.signal,
