@@ -99,7 +99,6 @@ async function checkAvailability(shop: ShopForTools, callId: string, args: Recor
   const outside = outsideScope(shop.trade, serviceType);
   if (outside) return outsideScopeReply(outside.label);
   if (playbook.urgency === "emergency") return URGENT_NO_BOOK_REPLY;
-  if (await ownerSetsTimes(shop)) return OWNER_SETS_TIMES_REPLY;
   const base = {
     businessId: shop.id,
     urgency: playbook.urgency ?? urgency,
@@ -110,7 +109,12 @@ async function checkAvailability(shop: ShopForTools, callId: string, args: Recor
     excludeCallId: callId,
   };
   const preference = parseSlotPreference(str(args.preference));
-  let slots = await findOpenSlots(base, { count: OFFERED_SLOTS, minGapMin: OFFER_GAP_MIN, preference });
+  const [ownerFirst, firstLook] = await Promise.all([
+    ownerSetsTimes(shop),
+    findOpenSlots(base, { count: OFFERED_SLOTS, minGapMin: OFFER_GAP_MIN, preference }),
+  ]);
+  if (ownerFirst) return OWNER_SETS_TIMES_REPLY;
+  let slots = firstLook;
   let note = "";
   if (!slots.length && preference) {
     slots = await findOpenSlots(base, { count: OFFERED_SLOTS, minGapMin: OFFER_GAP_MIN });
@@ -261,7 +265,22 @@ async function holdAppointment(
     return outsideAreaReply(farZip);
   }
   if (playbook.urgency === "emergency" && intent === "new") return URGENT_NO_BOOK_REPLY;
-  if (await ownerSetsTimes(shop)) return OWNER_SETS_TIMES_REPLY;
+  const slot = {
+    businessId: shop.id,
+    urgency: null,
+    durationMin,
+    skill,
+    hoursJson: shop.hoursJson,
+    timezone,
+    excludeCallId: callId,
+  };
+  // The caller is waiting mid-sentence: every read the reply might need goes in one round trip, checked in the same order as before.
+  const [ownerFirst, offered, open] = await Promise.all([
+    ownerSetsTimes(shop),
+    prisma.call.findUnique({ where: { id: callId }, select: { slotOfferJson: true } }),
+    findOpenSlots(slot, { count: 1, onlyAt: at }),
+  ]);
+  if (ownerFirst) return OWNER_SETS_TIMES_REPLY;
   if (intent === "new") {
     const callback = trustedCallbackNumber({
       extracted: str(args.callbackNumber),
@@ -274,21 +293,11 @@ async function holdAppointment(
       return missingDetailsReply(missing);
     }
   }
-  const offered = await prisma.call.findUnique({ where: { id: callId }, select: { slotOfferJson: true } });
   if (!wasOffered(offered?.slotOfferJson, at)) {
     logInfo("in_call.hold_unoffered", { businessId: shop.id, callId });
     return UNOFFERED_SLOT_REPLY;
   }
-  const slot = {
-    businessId: shop.id,
-    urgency: null,
-    durationMin,
-    skill,
-    hoursJson: shop.hoursJson,
-    timezone,
-    excludeCallId: callId,
-  };
-  if (!(await findOpenSlots(slot, { count: 1, onlyAt: at })).length) return SLOT_TAKEN_REPLY;
+  if (!open.length) return SLOT_TAKEN_REPLY;
 
   /*
     Checking and then writing is a race: callers holding the same time at the
@@ -308,9 +317,9 @@ async function holdAppointment(
       heldIntent: intent === "reschedule" ? "reschedule" : null,
     },
   });
-  await prisma.$executeRaw`UPDATE "Call" SET "heldSeq" = (SELECT COALESCE(MAX("heldSeq"), 0) + 1 FROM "Call" WHERE "businessId" = ${shop.id}) WHERE "id" = ${callId}`;
-  const { heldSeq } = await prisma.call.findUniqueOrThrow({ where: { id: callId }, select: { heldSeq: true } });
-  const kept = await findOpenSlots({ ...slot, holdsSequencedBefore: heldSeq ?? 0 }, { count: 1, onlyAt: at });
+  const [numbered] = await prisma.$queryRaw<Array<{ heldSeq: number | bigint | null }>>`UPDATE "Call" SET "heldSeq" = (SELECT COALESCE(MAX("heldSeq"), 0) + 1 FROM "Call" WHERE "businessId" = ${shop.id}) WHERE "id" = ${callId} RETURNING "heldSeq"`;
+  const heldSeq = Number(numbered?.heldSeq ?? 0);
+  const kept = await findOpenSlots({ ...slot, holdsSequencedBefore: heldSeq }, { count: 1, onlyAt: at });
   if (!kept.length) {
     await prisma.call.updateMany({
       where: { id: callId, heldClaimedAt: claimedAt },

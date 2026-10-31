@@ -117,6 +117,8 @@ async function withReturningGreeting(
   return firstMessage ? { assistantId: shop.vapiAssistantId, assistantOverrides: { firstMessage } } : { assistantId: shop.vapiAssistantId };
 }
 
+const SLOW_TOOL_MS = 300;
+
 async function answerAssistantRequest(params: {
   vapiCallId: string;
   callerPhone?: string;
@@ -329,12 +331,11 @@ export async function handleVapiWebhook(
         toolCalls,
         callerWords: callerWordsSoFar(message),
       });
-      logInfo("in_call.tool_ms", {
-        businessId: business.id,
-        vapiCallId,
-        tools: toolCalls.map((t) => t.name).join(","),
-        ms: Date.now() - startedAt,
-      });
+      const toolMs = Date.now() - startedAt;
+      const timing = { businessId: business.id, vapiCallId, tools: toolCalls.map((t) => t.name).join(","), ms: toolMs };
+      logInfo("in_call.tool_ms", timing);
+      // Past this the caller hears dead air after "One moment."
+      if (toolMs > SLOW_TOOL_MS) logWarn("in_call.tool_slow", timing);
       return NextResponse.json({ results });
     } catch (error) {
       if (error instanceof ForeignVoiceShop) {
