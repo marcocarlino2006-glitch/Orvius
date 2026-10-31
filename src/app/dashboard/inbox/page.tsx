@@ -93,7 +93,20 @@ function detailsText(name: string | null, missing: string[], shop: string) {
   return `Hi${name ? ` ${name.split(/\s+/)[0]}` : ""}, this is ${shop}. To get you booked, could you send your ${ask}?`;
 }
 
-function InboxRow({ lead, shop, timezone, onChanged }: { lead: LeadRow; shop: string; timezone?: string | null; onChanged: () => void }) {
+function InboxRow({
+  lead,
+  shop,
+  timezone,
+  onChanged,
+  onClosed,
+}: {
+  lead: LeadRow;
+  shop: string;
+  timezone?: string | null;
+  onChanged: () => void;
+  /** Takes the row off the list at once; the returned function puts it back. */
+  onClosed: (lead: LeadRow) => () => void;
+}) {
   const [closing, setClosing] = useState(false);
   const [address, setAddress] = useState("");
   const [savingAddress, setSavingAddress] = useState(false);
@@ -130,6 +143,7 @@ function InboxRow({ lead, shop, timezone, onChanged }: { lead: LeadRow; shop: st
   async function close() {
     if (!(await askConfirm({ title: "Close this request without booking?", body: "It moves to Resolved.", confirmLabel: "Close request" }))) return;
     setClosing(true);
+    const restore = onClosed(lead);
     try {
       const res = await fetch(`/api/leads/${lead.id}`, {
         method: "PATCH",
@@ -140,6 +154,7 @@ function InboxRow({ lead, shop, timezone, onChanged }: { lead: LeadRow; shop: st
       toast({ title: "Request closed" });
       onChanged();
     } catch {
+      restore();
       toast({ title: "That didn't save. The request is still open.", tone: "error" });
     } finally {
       setClosing(false);
@@ -268,6 +283,25 @@ export default function InboxPage() {
     void load(filter);
   }, [filter, load]);
 
+  const closeOnList = useCallback((lead: LeadRow) => {
+    let index = -1;
+    setLeads((current) => {
+      index = current.findIndex((row) => row.id === lead.id);
+      return current.filter((row) => row.id !== lead.id);
+    });
+    const view = lead.inbox.view;
+    setCounts((current) => (current ? { ...current, [view]: Math.max(0, current[view] - 1), resolved: current.resolved + 1 } : current));
+    return () => {
+      setLeads((current) => {
+        if (current.some((row) => row.id === lead.id)) return current;
+        const next = [...current];
+        next.splice(index < 0 ? next.length : Math.min(index, next.length), 0, lead);
+        return next;
+      });
+      setCounts((current) => (current ? { ...current, [view]: current[view] + 1, resolved: Math.max(0, current.resolved - 1) } : current));
+    };
+  }, []);
+
   const openCount = counts ? counts.new + counts.waiting + counts.person : undefined;
   const nothingEver = counts !== null && openCount === 0 && counts.resolved === 0;
 
@@ -334,7 +368,7 @@ export default function InboxPage() {
               </span>
             </div>
             {leads.map((lead) => (
-              <InboxRow key={lead.id} lead={lead} shop={business?.name ?? "us"} timezone={timeZone} onChanged={() => void load(filter)} />
+              <InboxRow key={lead.id} lead={lead} shop={business?.name ?? "us"} timezone={timeZone} onChanged={() => void load(filter)} onClosed={closeOnList} />
             ))}
           </div>
           {truncated ? <p className="dt-foot">Showing the 300 newest open requests.</p> : null}

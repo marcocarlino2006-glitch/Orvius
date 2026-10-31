@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "@/components/toaster";
 import type { DispatchSchedule, ScheduleBlock } from "@/lib/dispatch-schedule";
 import { patchJob } from "@/lib/job-patch-client";
+import { moveOnWeek } from "@/lib/schedule-optimistic";
 
 type WeekDay = { day: string; schedule: DispatchSchedule };
 type Week = { days: WeekDay[]; today: string; timezone: string; crew: { id: string; name: string }[] };
@@ -38,6 +39,8 @@ const shift = (day: string, days: number) => {
 export function DispatchWeek({ anchor, onOpenDay }: { anchor: string; onOpenDay: (day: string) => void }) {
   const [start, setStart] = useState(anchor);
   const [week, setWeek] = useState<Week | null>(null);
+  const weekRef = useRef<Week | null>(null);
+  weekRef.current = week;
   const [error, setError] = useState<string | null>(null);
   const [drag, setDrag] = useState<Drag | null>(null);
   const [over, setOver] = useState<string | null>(null);
@@ -58,6 +61,9 @@ export function DispatchWeek({ anchor, onOpenDay }: { anchor: string; onOpenDay:
   }, [load]);
 
   async function move(d: Drag, laneId: string | null, laneName: string, day: string, undo = true) {
+    const before = weekRef.current;
+    const days = before ? moveOnWeek(before.days, d.jobId, laneId, day) : null;
+    if (before && days) setWeek({ ...before, days });
     try {
       const res = await patchJob(d.jobId, { technicianId: laneId, scheduledLocal: `${day}T${hhmm(d.startMin)}` });
       if (!res.ok) throw new Error();
@@ -84,6 +90,7 @@ export function DispatchWeek({ anchor, onOpenDay }: { anchor: string; onOpenDay:
           : {}),
       });
     } catch {
+      if (before && days) setWeek(before);
       toast({ title: "That move didn't save. Try again.", tone: "error" });
     }
     load();
