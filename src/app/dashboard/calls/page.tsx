@@ -10,6 +10,7 @@ import { DashboardSkeleton } from "@/components/shell-skeleton";
 import { CALL_OUTCOMES, CALL_OUTCOME_LABEL, type CallOutcome } from "@/lib/call-outcome";
 import type { CallVerdict } from "@/lib/call-quality";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { cachedScreen, loadScreen } from "@/lib/screen-cache";
 
 type CallRow = {
   id: string;
@@ -39,22 +40,26 @@ type CallRow = {
 
 type Filter = "" | CallOutcome | "review";
 
+const CALLS_URL = "/api/calls?limit=100";
+type CallsPayload = { calls?: CallRow[]; timezone?: unknown };
+
 export default function CallsPage() {
-  const [calls, setCalls] = useState<CallRow[]>([]);
-  const [timeZone, setTimeZone] = useState<string | null>(null);
+  const [seed] = useState(() => cachedScreen<CallsPayload>(CALLS_URL));
+  const [calls, setCalls] = useState<CallRow[]>(seed?.calls ?? []);
+  const [timeZone, setTimeZone] = useState<string | null>(typeof seed?.timezone === "string" ? seed.timezone : null);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!seed);
   const [filter, setFilter] = useState<Filter>("");
   const [query, setQuery] = useState("");
   const [searched, setSearched] = useState("");
 
-  const load = useCallback((q: string) => {
-    setLoading(true);
+  const load = useCallback((q: string, quiet = false) => {
+    if (!quiet) setLoading(true);
     setError(null);
-    fetch(`/api/calls?limit=100${q ? `&q=${encodeURIComponent(q)}` : ""}`, { cache: "no-store" })
-      .then(async (res) => {
-        if (!res.ok) throw new Error(res.status === 401 ? SESSION_EXPIRED : "Calls didn't load. Your line is still answering; try again.");
-        return res.json();
+    loadScreen<CallsPayload>(`${CALLS_URL}${q ? `&q=${encodeURIComponent(q)}` : ""}`)
+      .then(({ res, data }) => {
+        if (!data) throw new Error(res.status === 401 ? SESSION_EXPIRED : "Calls didn't load. Your line is still answering; try again.");
+        return data;
       })
       .then((data) => {
         setCalls(data.calls ?? []);
@@ -66,8 +71,8 @@ export default function CallsPage() {
   }, []);
 
   useEffect(() => {
-    load("");
-  }, [load]);
+    load("", Boolean(seed));
+  }, [load, seed]);
 
   useEffect(() => {
     const q = query.trim();

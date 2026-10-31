@@ -8,6 +8,7 @@ import { ProEmptyState } from "@/components/pro-page-chrome";
 import { ShellAlert } from "@/components/shell-primitives";
 import { DashboardSkeleton } from "@/components/shell-skeleton";
 import type { WorkItem } from "@/lib/work";
+import { cachedScreen, loadScreen } from "@/lib/screen-cache";
 
 type Assignee = { email: string; role: string };
 type Payload = { items: WorkItem[]; truncated: boolean; assignees: Assignee[]; needsYou: number; timezone?: string | null };
@@ -28,20 +29,19 @@ const FILTERS: Array<{ id: string; label: string; match: (i: WorkItem) => boolea
 export default function WorkPage() {
   const [view, setView] = useState<"open" | "closed">("open");
   const [filter, setFilter] = useState("you");
-  const [data, setData] = useState<Payload | null>(null);
+  const [data, setData] = useState<Payload | null>(() => cachedScreen<Payload>("/api/work?view=open"));
   const [techs, setTechs] = useState<Array<{ id: string; name: string }>>([]);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async (which: "open" | "closed") => {
     setError(null);
-    const res = await fetch(`/api/work?view=${which}`).catch(() => null);
-    const next = res?.ok ? ((await res.json().catch(() => null)) as Payload | null) : null;
+    const next = (await loadScreen<Payload>(`/api/work?view=${which}`).catch(() => null))?.data ?? null;
     if (!next || !Array.isArray(next.items)) throw new Error("Couldn't load your work.");
     setData(next);
   }, []);
 
   useEffect(() => {
-    setData(null);
+    setData(cachedScreen<Payload>(`/api/work?view=${view}`));
     load(view).catch((e: Error) => setError(e.message));
   }, [view, load]);
 

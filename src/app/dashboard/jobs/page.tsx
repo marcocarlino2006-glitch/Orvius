@@ -14,6 +14,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { industryTerms } from "@/lib/industry-terms";
 import { useBusiness } from "@/lib/use-business";
+import { cachedScreen, loadScreen } from "@/lib/screen-cache";
 import { JOB_STATE_LABEL, jobLifecycle, type JobState } from "@/lib/job-lifecycle";
 import { jobPastDue } from "@/lib/job-status";
 
@@ -32,6 +33,9 @@ type JobRow = JobRowInput & {
     invoice: (NonNullable<NonNullable<JobRowInput["estimate"]>["invoice"]> & { id: string }) | null;
   }) | null;
 };
+
+type JobsPayload = { jobs?: JobRow[]; closedNext?: string | null; closedTotal?: number; timezone?: string | null };
+type LeadCountPayload = { counts?: { new?: number } };
 
 type Tab = { id: "open" | "late" | JobState; label: string; empty: string };
 
@@ -83,38 +87,38 @@ function emptyJobs(
 
 export default function JobsPage() {
   const terms = industryTerms(useBusiness().business?.trade);
-  const [jobs, setJobs] = useState<JobRow[]>([]);
-  const [newLeadCount, setNewLeadCount] = useState(0);
+  const [seed] = useState(() => cachedScreen<JobsPayload>("/api/jobs"));
+  const [jobs, setJobs] = useState<JobRow[]>(seed?.jobs ?? []);
+  const [newLeadCount, setNewLeadCount] = useState(() => cachedScreen<LeadCountPayload>("/api/leads?limit=1")?.counts?.new ?? 0);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!seed);
   const [tabId, setTabId] = useState<Tab["id"]>("open");
   const [query, setQuery] = useState("");
-  const [timeZone, setTimeZone] = useState<string | undefined>();
+  const [timeZone, setTimeZone] = useState<string | undefined>(seed?.timezone ?? undefined);
   const [attempt, setAttempt] = useState(0);
-  const [closedNext, setClosedNext] = useState<string | null>(null);
-  const [closedTotal, setClosedTotal] = useState<number | null>(null);
+  const [closedNext, setClosedNext] = useState<string | null>(seed?.closedNext ?? null);
+  const [closedTotal, setClosedTotal] = useState<number | null>(seed?.closedTotal ?? null);
   const [loadingOlder, setLoadingOlder] = useState(false);
   const [found, setFound] = useState<{ q: string; jobs: JobRow[]; truncated: boolean } | null>(null);
   const [searchFailed, setSearchFailed] = useState(false);
 
   useEffect(() => {
     setError(null);
+    const apply = (jobData: JobsPayload, leadData: LeadCountPayload | null) => {
+      setJobs(jobData.jobs ?? []);
+      setClosedNext(jobData.closedNext ?? null);
+      setClosedTotal(typeof jobData.closedTotal === "number" ? jobData.closedTotal : null);
+      setTimeZone(jobData.timezone ?? undefined);
+      setNewLeadCount(leadData?.counts?.new ?? 0);
+    };
     Promise.all([
-      fetch("/api/jobs").then(async (res) => {
-        if (!res.ok) throw new Error(res.status === 401 ? SESSION_EXPIRED : "Jobs didn't load. Nothing changed; try again.");
-        return res.json();
+      loadScreen<JobsPayload>("/api/jobs").then(({ res, data }) => {
+        if (!data) throw new Error(res.status === 401 ? SESSION_EXPIRED : "Jobs didn't load. Nothing changed; try again.");
+        return data;
       }),
-      fetch("/api/leads?limit=1").then(async (res) =>
-        res.ok ? res.json() : { counts: { new: 0 } },
-      ),
+      loadScreen<LeadCountPayload>("/api/leads?limit=1").then(({ data }) => data).catch(() => null),
     ])
-      .then(([jobData, leadData]) => {
-        setJobs(jobData.jobs ?? []);
-        setClosedNext(jobData.closedNext ?? null);
-        setClosedTotal(typeof jobData.closedTotal === "number" ? jobData.closedTotal : null);
-        setTimeZone(jobData.timezone ?? undefined);
-        setNewLeadCount(leadData.counts?.new ?? 0);
-      })
+      .then(([jobData, leadData]) => apply(jobData, leadData))
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [attempt]);

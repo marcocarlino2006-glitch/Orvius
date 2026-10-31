@@ -13,6 +13,7 @@ import { OsSidebarFooter } from "@/components/os-sidebar-footer";
 import { PayPromptModal } from "@/components/pay-prompt-modal";
 import { Toaster } from "@/components/toaster";
 import { osNavCurrent, osProductNav, osWideNav } from "@/lib/os-nav";
+import { prefetchPlace } from "@/lib/screen-cache";
 import { SIGNUP_HREF } from "@/lib/signup-href";
 import { DARK_QUERY, applyResolvedTheme, readThemeChoice, resolveTheme } from "@/lib/theme";
 
@@ -134,6 +135,8 @@ export function OsShell({
                       href={item.href}
                       className={`os-nav-link${active ? " os-nav-link-active" : ""}`}
                       aria-current={active ? "page" : undefined}
+                      onMouseEnter={() => prefetchPlace(item.href)}
+                      onFocus={() => prefetchPlace(item.href)}
                     >
                       <OsIcon name={item.icon} />
                       <span className="os-nav-label">{item.label}</span>
@@ -215,7 +218,7 @@ export function OsShell({
             {osProductNav.map((item) => {
               const active = osNavCurrent(pathname, item.href);
               return (
-                <Link key={item.href} href={item.href} className={`os-tab${active ? " is-active" : ""}`} aria-current={active ? "page" : undefined}>
+                <Link key={item.href} href={item.href} className={`os-tab${active ? " is-active" : ""}`} aria-current={active ? "page" : undefined} onTouchStart={() => prefetchPlace(item.href)}>
                   <span className="os-tab-icon">
                     <OsIcon name={item.icon} />
                   </span>
