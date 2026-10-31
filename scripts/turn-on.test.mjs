@@ -274,7 +274,8 @@ test("going live is the only way out of test mode, and it keeps the shop", () =>
 test("alert-first is enforced on the call, in booking and in the owner's text", () => {
   const tools = read("src/lib/in-call-tools.ts");
   assert.match(tools, /bookingMode === "alert" \|\| getEffectivePlanId\(shop\) === "expired" \|\| holdsForApproval\(await getSchedulingPolicy\(shop\.id\)\)/);
-  assert.equal(tools.match(/if \(await ownerSetsTimes\(shop\)\) return OWNER_SETS_TIMES_REPLY/g)?.length, 2, "both offering and holding a time");
+  assert.equal(tools.match(/ownerSetsTimes\(shop\),/g)?.length, 2, "both offering and holding a time ask");
+  assert.equal(tools.match(/if \(ownerFirst\) return OWNER_SETS_TIMES_REPLY/g)?.length, 2, "and both refuse before anything else is answered");
   assert.match(read("src/lib/auto-job.ts"), /bookingMode === "alert"/);
   assert.match(read("src/lib/owner-alert-message.ts"), /owner_first/);
   assert.match(read("src/lib/sync-business-assistant.ts"), /offerTimes: business\.bookingMode !== "alert"/);
