@@ -707,7 +707,8 @@ model Call {
   forgetRequestedAt   DateTime?
   updatedAt           DateTime  @updatedAt
 
-  lead Lead?
+  lead   Lead?
+  review CallReview?
 
   @@index([businessId, createdAt])
   @@index([businessId, updatedAt])
@@ -2334,5 +2335,18 @@ model PlatformAuditEvent {
   createdAt  DateTime @default(now())
 
   @@index([createdAt])
+  @@index([businessId, createdAt])
+}
+
+/// The post-call judge's verdict on an answered call, graded against the shop's trade.
+model CallReview {
+  callId      String   @id
+  call        Call     @relation(fields: [callId], references: [id], onDelete: Cascade)
+  businessId  String
+  verdictJson String
+  /// How many rubric checks failed, so the worst calls sort first.
+  failed      Int      @default(0)
+  createdAt   DateTime @default(now())
+
   @@index([businessId, createdAt])
 }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { loadCallReviews } from "@/lib/call-review";
 import { isAfterHours } from "@/lib/business";
 import { holdDecisionsByLead } from "@/lib/booking-decision";
 import { gradeCall, summarizeCallQuality } from "@/lib/call-quality";
@@ -100,6 +101,7 @@ export async function GET(request: NextRequest) {
         ).map((e) => e.leadId)
       : [],
   );
+  const reviews = await loadCallReviews(items.map((call) => call.id));
   const grades = items.map((call) =>
     gradeCall({
       call,
@@ -107,6 +109,7 @@ export async function GET(request: NextRequest) {
       business: shop,
       knownAddress: call.customer?.address,
       holdDecision: call.lead ? holds.get(call.lead.id) : null,
+      review: reviews.get(call.id),
     }),
   );
 

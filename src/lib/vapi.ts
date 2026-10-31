@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { judgeSchema } from "@/lib/call-judge";
 import { buildInCallTools } from "@/lib/in-call-tool-defs";
 import { DEFAULT_VOICE_ID, VOICE_MODEL, VOICE_PROVIDER } from "@/lib/voices";
 import { resolveEquipment } from "@/lib/equipment-fact";
@@ -272,6 +273,8 @@ export function buildVapiAssistantConfig(params: {
   voiceId?: string | null;
   /** Give the receptionist check_availability and hold_appointment. */
   inCallBooking?: boolean;
+  /** The shop's trade, so the post-call judge asks that trade's dispatcher questions. */
+  trade?: string | null;
 }): VapiAssistantPayload {
   const receptionist = getAiModelPolicy("receptionist");
   const tools: Array<Record<string, unknown>> = [
@@ -430,6 +433,7 @@ export function buildVapiAssistantConfig(params: {
               description:
                 "Model number they read off the sticker, letters and digits. Omit when they did not read one. Never a price, a size, or a guess.",
             },
+            callReview: judgeSchema(params.trade),
           },
         },
       },

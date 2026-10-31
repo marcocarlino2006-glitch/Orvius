@@ -1,4 +1,5 @@
 import { isLeadQualifiedForBooking } from "@/lib/auto-job";
+import { judgeFailures, type JudgeVerdict } from "@/lib/call-judge";
 import { isInformationOnlyRequest } from "@/lib/info-request";
 import { leadIsNotAJob } from "@/lib/lead-not-a-job";
 import { callerUsedCallingNumber, digitRuns, inventedNumbers } from "@/lib/callback-number";
@@ -37,7 +38,8 @@ export type CallFinding = {
     | "stacked_questions"
     | "long_reply"
     | "no_transcript"
-    | "low_self_rating";
+    | "low_self_rating"
+    | `judge_${string}`;
   /** One sentence, written for the owner. */
   label: string;
   /** fix = something went wrong for the caller; watch = worth a listen. */
@@ -84,6 +86,8 @@ export type CallGradeInput = {
   knownAddress?: string | null;
   /** Numbers Orvius may say aloud without the caller saying them first (the shop's own line). */
   allowedNumbers?: Array<string | null | undefined>;
+  /** The post-call judge's trade rubric answers, when it gave them. */
+  review?: JudgeVerdict | null;
 };
 
 const REPEATED =
@@ -119,7 +123,15 @@ function list(items: string[]) {
   return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
 }
 
-const PENALTY: Record<CallFinding["key"], number> = {
+const JUDGE_PENALTY = { fix: 20, watch: 8 } as const;
+
+function penaltyOf(finding: CallFinding): number {
+  return finding.key.startsWith("judge_") ? JUDGE_PENALTY[finding.severity] : PENALTY[finding.key as FixedKey];
+}
+
+type FixedKey = Exclude<CallFinding["key"], `judge_${string}`>;
+
+const PENALTY: Record<FixedKey, number> = {
   not_connected: 60,
   hung_up: 15,
   missing_capture: 0,
@@ -363,7 +375,18 @@ export function gradeCall(input: CallGradeInput): CallGrade {
     findings.push({ key: "low_self_rating", label: `The voice agent scored its own call ${rating}/10.`, severity: "watch" });
   }
 
-  const penalty = capturePenalty + findings.reduce((sum, f) => sum + PENALTY[f.key], 0);
+  const judged = judgeFailures(input.review ?? null);
+  judged.forEach((check, index) => {
+    if (findings.some((f) => f.label === check.failLabel)) return;
+    findings.push({
+      key: `judge_${check.key}`,
+      label: check.failLabel,
+      severity: check.severity,
+      ...(index === 0 && input.review?.worstLine ? { quote: clip(input.review.worstLine) } : {}),
+    });
+  });
+
+  const penalty = capturePenalty + findings.reduce((sum, f) => sum + penaltyOf(f), 0);
   const score = Math.max(0, Math.min(100, 100 - penalty));
   const verdict: CallVerdict = findings.some((f) => f.severity === "fix")
     ? "fix"
@@ -371,7 +394,7 @@ export function gradeCall(input: CallGradeInput): CallGrade {
       ? "listen"
       : "clean";
 
-  const weight = (f: CallFinding) => (f.key === "missing_capture" ? capturePenalty : PENALTY[f.key]);
+  const weight = (f: CallFinding) => (f.key === "missing_capture" ? capturePenalty : penaltyOf(f));
   const ordered = [...findings].sort(
     (a, b) => (a.severity === b.severity ? weight(b) - weight(a) : a.severity === "fix" ? -1 : 1),
   );

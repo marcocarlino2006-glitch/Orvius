@@ -1,4 +1,5 @@
 import { holdDecisionsByLead } from "@/lib/booking-decision";
+import { loadCallReviews } from "@/lib/call-review";
 import { gradeCall } from "@/lib/call-quality";
 import { isEmailConfigured, sendOwnerEmail } from "@/lib/email";
 import { logInfo, logWarn } from "@/lib/logger";
@@ -95,6 +96,7 @@ async function scoredCalls(from: Date, to: Date): Promise<ScoredCall[]> {
     orderBy: { createdAt: "desc" },
     take: 5000,
     select: {
+      id: true,
       businessId: true,
       status: true,
       durationSec: true,
@@ -130,6 +132,7 @@ async function scoredCalls(from: Date, to: Date): Promise<ScoredCall[]> {
   for (const [businessId, leadIds] of unbookedByShop) {
     for (const [leadId, reason] of await holdDecisionsByLead(businessId, leadIds)) holds.set(leadId, reason);
   }
+  const reviews = await loadCallReviews(calls.map((call) => call.id));
   return calls.map((call) => {
     const grade = gradeCall({
       call,
@@ -137,6 +140,7 @@ async function scoredCalls(from: Date, to: Date): Promise<ScoredCall[]> {
       business: call.business ?? {},
       knownAddress: call.customer?.address,
       holdDecision: call.lead ? holds.get(call.lead.id) : null,
+      review: reviews.get(call.id),
     });
     const keys = new Set(grade.findings.map((f) => f.key));
     const booked = call.booked || Boolean(call.lead?.job);

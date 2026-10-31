@@ -1,0 +1,47 @@
+name: Call review schema
+
+# The apply script loads src/lib/call-review-schema.ts with node, so that file
+# stays free of the app's @/ alias.
+# By hand, or when the call-review merge reaches main. Backs up through the app
+# (the encrypted bytes are the artifact), restore-drills them there, then
+# creates CallReview. The database URL stays on the host.
+# A later edit of this file does not run the step unless the merge message
+# names call-review, or someone starts it by hand.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/call-review-schema.yml
+
+permissions:
+  contents: read
+
+jobs:
+  apply:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, 'call-review')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+      DRAIN_TARGET_URL: https://orvius.im
+      DRAIN_TARGET_ENV: production
+      DRAIN_EXPECTED_RELEASE: ${{ github.sha }}
+      MIGRATION_APPROVAL: "Call review: CallReview on production"
+      MIGRATION_BACKUP_REF: actions-run/${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Back up, then create the call review table
+        run: node --experimental-strip-types scripts/apply-call-review-schema.mjs
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: orvius-backup-encrypted
+          path: encrypted/*.json.enc
+          if-no-files-found: error
+          retention-days: 30

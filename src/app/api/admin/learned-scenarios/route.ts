@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { loadCallReviews } from "@/lib/call-review";
 import { auth } from "@/auth";
 import { holdDecisionsByLead } from "@/lib/booking-decision";
 import { gradeCall } from "@/lib/call-quality";
@@ -67,6 +68,7 @@ export async function GET(request: Request) {
     for (const [leadId, reason] of await holdDecisionsByLead(businessId, leadIds)) holds.set(leadId, reason);
   }
 
+  const reviews = await loadCallReviews(calls.map((call) => call.id));
   const learnable: LearnableCall[] = calls.map((call) => {
     const business = call.business ?? {};
     return {
@@ -81,6 +83,7 @@ export async function GET(request: Request) {
         business,
         knownAddress: call.customer?.address,
         holdDecision: call.lead ? holds.get(call.lead.id) : null,
+        review: reviews.get(call.id),
       }),
     };
   });

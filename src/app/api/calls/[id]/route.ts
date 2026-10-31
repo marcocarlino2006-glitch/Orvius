@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { loadCallReviews } from "@/lib/call-review";
 import { callIsBooked, callOutcome } from "@/lib/call-outcome";
 import { holdDecisionsByLead } from "@/lib/booking-decision";
 import { gradeCall } from "@/lib/call-quality";
@@ -93,12 +94,14 @@ export async function GET(_request: Request, { params }: Params) {
     ? (await prisma.auditEvent.count({ where: { businessId: call.businessId, leadId: call.lead.id, action: "lead.escalated" } })) > 0
     : false;
   const outcome = callOutcome({ ...call, escalated });
+  const review = (await loadCallReviews([call.id])).get(call.id);
   const quality = gradeCall({
     call,
     lead: call.lead,
     business: call.business ?? undefined,
     knownAddress: call.customer?.address,
     holdDecision: call.lead ? holds.get(call.lead.id) : null,
+    review,
   });
 
   return NextResponse.json({

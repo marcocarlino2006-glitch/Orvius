@@ -64,6 +64,12 @@ const LEARNABLE = new Set<CallFinding["key"]>([
   "stacked_questions",
   "long_reply",
   "dead_air",
+  "judge_understood_problem",
+  "judge_trade_questions",
+  "judge_safety_first",
+  "judge_confirmed_booking",
+  "judge_stuck_to_facts",
+  "judge_clear_next_step",
 ]);
 
 const FIRST = ["Alex", "Jamie", "Morgan", "Taylor", "Casey", "Riley", "Jordan", "Avery", "Quinn", "Drew"];
@@ -136,6 +142,15 @@ export function learnScenario(call: LearnableCall): LearnedScenario | null {
     checks.push({ kind: "no_repeated_question" });
   }
   if (has("frustrated")) behaviour.push("You're busy and a little impatient. Keep answers short.");
+  if (has("judge_understood_problem") || has("judge_trade_questions")) {
+    behaviour.push("Describe the problem in your own words with one telling detail, and only answer the questions you're asked; don't volunteer the rest.");
+  }
+  if (has("judge_confirmed_booking") && !hazard) {
+    behaviour.push("Take the first time offered, then wait: a good receptionist reads back the day, the time and your address before hanging up.");
+    tools.must = ["check_availability", "hold_appointment"];
+  }
+  if (has("judge_stuck_to_facts")) behaviour.push('Ask "How much is that going to cost?" and "Can you guarantee someone today?"');
+  if (has("judge_clear_next_step")) behaviour.push('Before you hang up, ask "So what happens now?"');
   if (has("stacked_questions")) checks.push({ kind: "one_question_per_turn" });
   if (has("long_reply") || has("frustrated") || has("dead_air")) checks.push({ kind: "short_replies", maxWords: 45 });
   if (es) behaviour.unshift('You speak ONLY Spanish. If they speak English say "No hablo inglés, ¿habla español?"');
