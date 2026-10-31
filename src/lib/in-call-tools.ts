@@ -15,6 +15,7 @@ import { findNetworkPartners, zip3From } from "@/lib/orvius-network";
 import { checkTruck } from "@/lib/truck-stock";
 import { prisma } from "@/lib/prisma";
 import { extractPostalCode, parseServiceZips } from "@/lib/service-area";
+import { callerSpeakingSpanish } from "@/lib/caller-language";
 import { classifyRequest } from "@/lib/trade-playbooks";
 import { outsideScope } from "@/lib/trade-scope";
 import {
@@ -123,7 +124,7 @@ async function checkAvailability(shop: ShopForTools, callId: string, args: Recor
     return NETWORK_OFFER_REPLY;
   }
   await recordOffers(callId, { slots });
-  return availabilityReply(slots, timezone, note);
+  return availabilityReply(slots, timezone, note, callerSpeakingSpanish(callerWords));
 }
 
 /* Each availability answer replaces what the call was offered before it. */
@@ -317,7 +318,8 @@ async function holdAppointment(
     });
     return SLOT_TAKEN_REPLY;
   }
-  return intent === "reschedule" ? heldNewTimeReply(at, timezone) : heldReply(at, timezone);
+  const spanish = callerSpeakingSpanish(callerWords);
+  return intent === "reschedule" ? heldNewTimeReply(at, timezone, spanish) : heldReply(at, timezone, spanish);
 }
 
 /*

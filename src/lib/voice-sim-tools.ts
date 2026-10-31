@@ -21,6 +21,7 @@ import {
   SLOT_TAKEN_REPLY,
   type ToolCall,
 } from "@/lib/in-call-tool-defs";
+import { callerSpeakingSpanish } from "@/lib/caller-language";
 import { classifyRequest } from "@/lib/trade-playbooks";
 import { outsideScope } from "@/lib/trade-scope";
 
@@ -109,7 +110,7 @@ function answer(shop: SimShop, call: ToolCall, now: Date, transferring: boolean,
       slots = findAvailableSchedules(base, { count: OFFERED_SLOTS, minGapMin: OFFER_GAP_MIN });
       if (slots.length) note = NO_ALT_NOTE;
     }
-    return slots.length ? availabilityReply(slots, tz, note) : NO_SLOTS_REPLY;
+    return slots.length ? availabilityReply(slots, tz, note, callerSpeakingSpanish(callerWords)) : NO_SLOTS_REPLY;
   }
   if (call.name === "hold_appointment" || call.name === "hold_new_time") {
     const raw = str(call.args.slot);
@@ -128,7 +129,8 @@ function answer(shop: SimShop, call: ToolCall, now: Date, transferring: boolean,
       { count: 1, onlyAt: at },
     );
     if (!open.length) return SLOT_TAKEN_REPLY;
-    return call.name === "hold_new_time" ? heldNewTimeReply(at, tz) : heldReply(at, tz);
+    const spanish = callerSpeakingSpanish(callerWords);
+    return call.name === "hold_new_time" ? heldNewTimeReply(at, tz, spanish) : heldReply(at, tz, spanish);
   }
   if (call.name === "alert_team_now") return safetyAlertReply({ queued: true, transferring });
   if (call.name === "tell_the_team") return urgentTeamReply({ queued: true });

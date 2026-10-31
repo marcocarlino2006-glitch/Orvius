@@ -200,6 +200,21 @@ export function describeSlot(at: Date, timezone: string) {
   }).format(at);
 }
 
+/** The same time as a Spanish speaker says it: "el jueves 30 de octubre a las 3 de la tarde". */
+export function describeSlotSpanish(at: Date, timezone: string) {
+  const part = (locale: string, options: Intl.DateTimeFormatOptions, type: Intl.DateTimeFormatPartTypes) =>
+    new Intl.DateTimeFormat(locale, { timeZone: timezone, ...options }).formatToParts(at).find((p) => p.type === type)?.value ?? "";
+  const weekday = part("es-US", { weekday: "long" }, "weekday");
+  const day = Number(part("en-US", { day: "numeric" }, "day"));
+  const month = part("es-US", { month: "long" }, "month");
+  const hour24 = Number(part("en-US", { hour: "numeric", hourCycle: "h23" }, "hour"));
+  const minute = Number(part("en-US", { minute: "numeric" }, "minute"));
+  const hour = hour24 % 12 || 12;
+  const minutes = minute === 0 ? "" : minute === 30 ? " y media" : minute === 15 ? " y cuarto" : `:${String(minute).padStart(2, "0")}`;
+  const period = hour24 === 12 ? "del mediodía" : hour24 < 12 ? "de la mañana" : hour24 < 20 ? "de la tarde" : "de la noche";
+  return `el ${weekday} ${day} de ${month} a ${hour === 1 ? "la" : "las"} ${hour}${minutes} ${period}`;
+}
+
 export type ToolCall = { id: string; name: string; args: Record<string, unknown> };
 
 /*
@@ -287,14 +302,19 @@ export function dangerRefusal(instruction: string) {
   return `Do not book this. ${instruction} Call alert_team_now if you have not already, then follow the danger rule.`;
 }
 
-export function availabilityReply(slots: Date[], timezone: string, note = "") {
-  const list = slots.map((at) => `${describeSlot(at, timezone)} [slot ${at.toISOString()}]`).join("; ");
-  return `${note}Open times, shop local time: ${list}. Offer at most two, in plain words, without the slot ids. When they pick one, call hold_appointment with that slot id.`;
+const IN_SPANISH = "The caller is speaking Spanish: say the times in Spanish exactly as written after \"en español\".";
+
+export function availabilityReply(slots: Date[], timezone: string, note = "", spanish = false) {
+  const list = slots
+    .map((at) => `${describeSlot(at, timezone)}${spanish ? ` (en español: ${describeSlotSpanish(at, timezone)})` : ""} [slot ${at.toISOString()}]`)
+    .join("; ");
+  return `${note}Open times, shop local time: ${list}. Offer at most two, in plain words, without the slot ids. When they pick one, call hold_appointment with that slot id.${spanish ? ` ${IN_SPANISH}` : ""}`;
 }
 
-export function heldReply(at: Date, timezone: string) {
+export function heldReply(at: Date, timezone: string, spanish = false) {
   const when = describeSlot(at, timezone);
-  return `Held ${when}. If the caller is a person, tell them "You're booked for ${when}." If the caller is an AI assistant booking for someone else, do not say the time is confirmed; the shop confirms with the customer. Do not promise a text.`;
+  const say = spanish ? `Ya está reservado para ${describeSlotSpanish(at, timezone)}.` : `You're booked for ${when}.`;
+  return `Held ${when}. If the caller is a person, tell them "${say}" If the caller is an AI assistant booking for someone else, do not say the time is confirmed; the shop confirms with the customer. Do not promise a text.`;
 }
 
 type BookingDetail = "name" | "service address" | "callback number";
@@ -326,9 +346,10 @@ export function missingDetailsReply(missing: BookingDetail[]) {
   return `Not held yet. Before a time is held you need their ${list}. Ask for it now without saying they are booked, then call hold_appointment again with the same slot.`;
 }
 
-export function heldNewTimeReply(at: Date, timezone: string) {
+export function heldNewTimeReply(at: Date, timezone: string, spanish = false) {
   const when = describeSlot(at, timezone);
-  return `Held ${when} as the new time for their existing visit. Tell the caller the visit is moved to ${when}. Do not book a second visit. Never say it is cancelled.`;
+  const say = spanish ? `"Su visita queda cambiada para ${describeSlotSpanish(at, timezone)}."` : `the visit is moved to ${when}`;
+  return `Held ${when} as the new time for their existing visit. Tell the caller ${say}. Do not book a second visit. Never say it is cancelled.`;
 }
 
 /*
