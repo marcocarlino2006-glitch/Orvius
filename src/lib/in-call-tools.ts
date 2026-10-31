@@ -6,6 +6,7 @@ import { displayPhone } from "@/lib/customer";
 import { trustedCallbackNumber } from "@/lib/callback-number";
 import { drainOwnerAlerts } from "@/lib/drain-owner-alerts";
 import { findOpenSlots } from "@/lib/job";
+import { getEffectivePlanId } from "@/lib/plan-features";
 import { getSchedulingPolicy, holdsForApproval } from "@/lib/scheduling-policy";
 import { recordAudit } from "@/lib/audit";
 import { logError, logInfo } from "@/lib/logger";
@@ -22,6 +23,8 @@ import {
   dangerRefusal,
   heldNewTimeReply,
   heldReply,
+  missingBookingDetails,
+  missingDetailsReply,
   NETWORK_OFFER_REPLY,
   NETWORK_UNAVAILABLE_REPLY,
   NO_ALT_NOTE,
@@ -64,7 +67,12 @@ import {
 const str = (value: unknown) => (typeof value === "string" && value.trim() ? value.trim() : null);
 
 type ShopForTools = Pick<Business, "id" | "hoursJson" | "timezone" | "trade" | "servicesJson" | "name"> & { jobLengthsJson?: string | null } &
-  Partial<Pick<Business, "ownerPhone" | "ownerEmail" | "transferPhone" | "networkOn" | "networkZip3" | "address" | "bookingMode" | "serviceZipsJson">>;
+  Partial<Pick<Business, "ownerPhone" | "ownerEmail" | "transferPhone" | "networkOn" | "networkZip3" | "address" | "bookingMode" | "serviceZipsJson">> &
+  Partial<Pick<Business, "billingStatus" | "billingPlan" | "pilotEndsAt" | "createdAt" | "pastDueSince" | "pauseStartsAt" | "pausedUntil" | "environment">>;
+
+/* The post-call booker holds every lead of a lapsed plan for the owner, so no time is offered that it would refuse. */
+const ownerSetsTimes = async (shop: ShopForTools) =>
+  shop.bookingMode === "alert" || getEffectivePlanId(shop) === "expired" || holdsForApproval(await getSchedulingPolicy(shop.id));
 
 type CallForTools = { id: string; vapiCallId?: string | null; callerPhone?: string | null };
 
@@ -90,7 +98,7 @@ async function checkAvailability(shop: ShopForTools, callId: string, args: Recor
   const outside = outsideScope(shop.trade, serviceType);
   if (outside) return outsideScopeReply(outside.label);
   if (playbook.urgency === "emergency") return URGENT_NO_BOOK_REPLY;
-  if (shop.bookingMode === "alert" || holdsForApproval(await getSchedulingPolicy(shop.id))) return OWNER_SETS_TIMES_REPLY;
+  if (await ownerSetsTimes(shop)) return OWNER_SETS_TIMES_REPLY;
   const base = {
     businessId: shop.id,
     urgency: playbook.urgency ?? urgency,
@@ -232,6 +240,7 @@ async function holdAppointment(
   args: Record<string, unknown>,
   intent: "new" | "reschedule" = "new",
   callerWords?: string | null,
+  callerPhone?: string | null,
 ) {
   const timezone = shop.timezone ?? "America/New_York";
   const raw = str(args.slot);
@@ -251,7 +260,19 @@ async function holdAppointment(
     return outsideAreaReply(farZip);
   }
   if (playbook.urgency === "emergency" && intent === "new") return URGENT_NO_BOOK_REPLY;
-  if (shop.bookingMode === "alert" || holdsForApproval(await getSchedulingPolicy(shop.id))) return OWNER_SETS_TIMES_REPLY;
+  if (await ownerSetsTimes(shop)) return OWNER_SETS_TIMES_REPLY;
+  if (intent === "new") {
+    const callback = trustedCallbackNumber({
+      extracted: str(args.callbackNumber),
+      callerId: callerPhone,
+      callerLines: callerLines(callerWords),
+    });
+    const missing = missingBookingDetails(args, { reachable: Boolean(callback.phone) });
+    if (missing.length) {
+      logInfo("in_call.hold_missing_details", { businessId: shop.id, callId, missing: missing.join(",") });
+      return missingDetailsReply(missing);
+    }
+  }
   const offered = await prisma.call.findUnique({ where: { id: callId }, select: { slotOfferJson: true } });
   if (!wasOffered(offered?.slotOfferJson, at)) {
     logInfo("in_call.hold_unoffered", { businessId: shop.id, callId });
@@ -461,7 +482,7 @@ export async function handleInCallToolCalls(params: {
           return { toolCallId: call.id, result: await checkAvailability(params.shop, params.callId, call.args, params.callerWords) };
         }
         if (call.name === "hold_appointment") {
-          return { toolCallId: call.id, result: await holdAppointment(params.shop, params.callId, call.args, "new", params.callerWords) };
+          return { toolCallId: call.id, result: await holdAppointment(params.shop, params.callId, call.args, "new", params.callerWords, params.call?.callerPhone) };
         }
         if (call.name === "pass_to_network") {
           return { toolCallId: call.id, result: await passToNetwork(params.shop, params.callId, call.args, params.callerWords) };

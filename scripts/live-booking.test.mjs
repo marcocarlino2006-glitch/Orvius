@@ -60,7 +60,8 @@ test("five callers holding the last technician's time at once: exactly one keeps
         handleInCallToolCalls({
           shop: shopForTools,
           callId: call.id,
-          toolCalls: [{ id: "h", name: "hold_appointment", args: { slot, serviceType: "Furnace blowing cold air" } }],
+          call: { id: call.id, callerPhone: "+15555550123" },
+          toolCalls: [{ id: "h", name: "hold_appointment", args: { slot, serviceType: "Furnace blowing cold air", callerName: "Dana Reyes", address: "12 Elm St, Springfield" } }],
         }).then(([r]) => r.result),
       ),
     );

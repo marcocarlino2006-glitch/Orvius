@@ -9,7 +9,7 @@ import { after, test } from "node:test";
 import { PrismaClient } from "@prisma/client";
 
 const { handleInCallToolCalls } = await import("../src/lib/in-call-tools.ts");
-const { UNOFFERED_SLOT_REPLY } = await import("../src/lib/in-call-tool-defs.ts");
+const { OWNER_SETS_TIMES_REPLY, UNOFFERED_SLOT_REPLY } = await import("../src/lib/in-call-tool-defs.ts");
 const { findOpenSlots } = await import("../src/lib/job.ts");
 
 const prisma = new PrismaClient();
@@ -28,11 +28,17 @@ async function setup() {
   await prisma.technician.create({ data: { businessId: shop.id, name: "Tech", phone: "+15550003333", skillsJson: "[]" } });
   const call = await prisma.call.create({ data: { businessId: shop.id, vapiCallId: `offer_${stamp}`, status: "in-progress" } });
   const tools = { id: shop.id, name: shop.name, hoursJson: shop.hoursJson, timezone: shop.timezone, trade: shop.trade, servicesJson: shop.servicesJson };
-  const ask = (name, args) => handleInCallToolCalls({ shop: tools, callId: call.id, toolCalls: [{ id: "t", name, args }] }).then(([r]) => r.result);
+  const ask = (name, args) => handleInCallToolCalls({
+      shop: tools,
+      callId: call.id,
+      call: { id: call.id, callerPhone: "+15555550123" },
+      toolCalls: [{ id: "t", name, args: name === "hold_appointment" ? { ...CALLER, ...args } : args }],
+    }).then(([r]) => r.result);
   return { shop, call, ask };
 }
 
 const SERVICE = "Furnace blowing cold air";
+const CALLER = { callerName: "Dana Reyes", address: "12 Elm St, Springfield" };
 
 test("an open time that was never offered holds nothing", async () => {
   const { shop, call, ask } = await setup();
@@ -70,4 +76,53 @@ test("an offered time holds once; an expired or replaced offer holds nothing", a
   const latest = JSON.parse((await prisma.call.findUnique({ where: { id: call.id } })).slotOfferJson).slots;
   const dropped = [first, second].find((s) => !latest.includes(s));
   if (dropped) assert.equal(await ask("hold_appointment", { slot: dropped, serviceType: SERVICE }), UNOFFERED_SLOT_REPLY, "replaced by a newer offer");
+});
+
+test("no time is held, and no 'You're booked' said, before the name, address and a reachable number", async () => {
+  const { call, shop } = await setup();
+  const tools = { id: shop.id, name: shop.name, hoursJson: shop.hoursJson, timezone: shop.timezone, trade: shop.trade, servicesJson: shop.servicesJson };
+  const run = (name, args, callerPhone, callerWords) =>
+    handleInCallToolCalls({ shop: tools, callId: call.id, call: { id: call.id, callerPhone }, callerWords, toolCalls: [{ id: "t", name, args }] }).then(
+      ([r]) => r.result,
+    );
+  const offer = await run("check_availability", { serviceType: SERVICE }, "+15555550123");
+  const [slot] = [...offer.matchAll(/\[slot ([^\]]+)\]/g)].map((m) => m[1]);
+
+  const bare = await run("hold_appointment", { slot, serviceType: SERVICE }, "+15555550123");
+  assert.match(bare, /^Not held yet\. .*their name and service address/);
+  assert.doesNotMatch(bare, /You're booked/);
+  assert.match(await run("hold_appointment", { slot, serviceType: SERVICE, callerName: "Dana", address: "Springfield" }, "+15555550123"), /service address/, "a town is not a street address");
+  assert.equal((await prisma.call.findUnique({ where: { id: call.id } })).heldSlotAt, null);
+
+  const withheld = await run("hold_appointment", { slot, serviceType: SERVICE, ...CALLER }, null);
+  assert.match(withheld, /callback number/, "a withheld caller ID needs a number the caller said");
+  const guessed = await run("hold_appointment", { slot, serviceType: SERVICE, ...CALLER, callbackNumber: "555-555-0199" }, null, "User: my furnace is blowing cold air");
+  assert.match(guessed, /callback number/, "a number the caller never said is not a callback");
+  const said = await run(
+    "hold_appointment",
+    { slot, serviceType: SERVICE, ...CALLER, callbackNumber: "555-555-0199" },
+    null,
+    "User: my furnace is blowing cold air\nUser: call me back at 555 555 0199",
+  );
+  assert.match(said, /^Held .*You're booked for/);
+});
+
+test("a shop whose plan has ended is never offered a time the booker would refuse", async () => {
+  const { call, shop } = await setup();
+  const lapsed = {
+    id: shop.id,
+    name: shop.name,
+    hoursJson: shop.hoursJson,
+    timezone: shop.timezone,
+    trade: shop.trade,
+    servicesJson: shop.servicesJson,
+    environment: "production",
+    billingStatus: "canceled",
+  };
+  const [reply] = await handleInCallToolCalls({
+    shop: lapsed,
+    callId: call.id,
+    toolCalls: [{ id: "c", name: "check_availability", args: { serviceType: SERVICE } }],
+  });
+  assert.equal(reply.result, OWNER_SETS_TIMES_REPLY);
 });

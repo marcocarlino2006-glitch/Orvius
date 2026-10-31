@@ -21,10 +21,10 @@ test("the sandbox offers real open times and holds one the caller picks, in prod
   assert.match(offer, /^(Nothing is open.*)?Open times, shop local time: /);
   const slot = offer.match(/\[slot ([^\]]+)\]/)?.[1];
   assert.ok(slot, offer);
-  assert.match(ask("hold_appointment", { slot, serviceType: "furnace tune-up" }), /^Held .*You're booked for/);
-  assert.match(ask("hold_appointment", { slot, serviceType: "furnace tune-up" }), /do not say the time is confirmed/);
+  assert.match(ask("hold_appointment", { slot, serviceType: "furnace tune-up", callerName: "Dana Reyes", address: "12 Elm St, Springfield" }), /^Held .*You're booked for/);
+  assert.match(ask("hold_appointment", { slot, serviceType: "furnace tune-up", callerName: "Dana Reyes", address: "12 Elm St, Springfield" }), /do not say the time is confirmed/);
   assert.equal(ask("hold_appointment", { slot: "tuesday-ish" }), BAD_SLOT_REPLY);
-  assert.match(ask("hold_appointment", { slot: "2026-09-27T03:00:00.000Z" }), /just taken/, "a Sunday 10pm slot is outside shop hours");
+  assert.match(ask("hold_appointment", { slot: "2026-09-27T03:00:00.000Z", callerName: "Dana Reyes", address: "12 Elm St, Springfield" }), /just taken/, "a Sunday 10pm slot is outside shop hours");
 });
 
 test("the sandbox refuses to book a danger call and answers the alert the way production does", () => {

@@ -82,7 +82,7 @@ async function caller(i) {
     const offered = [...offer.matchAll(/\[slot ([^\]]+)\]/g)].map((m) => m[1]).slice(0, 2);
     if (!offered.length) return { i, held: null, outcome: "no times offered" };
     const slot = offered[Math.floor(Math.random() * offered.length)];
-    const held = await tool(i, "hold_appointment", { slot, serviceType: SERVICE });
+    const held = await tool(i, "hold_appointment", { slot, serviceType: SERVICE, callerName: `Caller ${i}`, address: `${100 + i} Main St, Chicago IL 60601` });
     if (/^Held /.test(held)) return { i, held: slot, outcome: attempt ? "held after retry" : "held" };
     if (!/just taken/.test(held)) return { i, held: null, outcome: `refused: ${held.slice(0, 60)}` };
   }
