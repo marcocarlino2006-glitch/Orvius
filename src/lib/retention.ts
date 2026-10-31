@@ -1,4 +1,5 @@
 import { recordAudit } from "@/lib/audit";
+import { forgetCallReviews } from "@/lib/call-review";
 import { logInfo, logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
 import { getTwilioClient } from "@/lib/twilio-client";
@@ -122,6 +123,7 @@ export async function purgeExpiredCallContent(
         where: { id: call.id },
         data: { transcript: null, recordingUrl: null, ...(remoteGone ? { contentPurgedAt: now } : {}) },
       });
+      await forgetCallReviews([call.id]);
       if (remoteGone) purged += 1;
       else remotePending += 1;
       if (remoteGone && call.forgetRequestedAt && call.vapiCallId && call.businessId) {

@@ -1461,3 +1461,14 @@ CREATE TABLE IF NOT EXISTS "PlatformAuditEvent" (
 );
 CREATE INDEX IF NOT EXISTS "PlatformAuditEvent_createdAt_idx" ON "PlatformAuditEvent"("createdAt");
 CREATE INDEX IF NOT EXISTS "PlatformAuditEvent_businessId_createdAt_idx" ON "PlatformAuditEvent"("businessId", "createdAt");
+
+-- The post-call judge's verdict on each answered call, graded against the shop's trade. Removed with its call.
+CREATE TABLE IF NOT EXISTS "CallReview" (
+    "callId" TEXT NOT NULL PRIMARY KEY,
+    "businessId" TEXT NOT NULL,
+    "verdictJson" TEXT NOT NULL,
+    "failed" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "CallReview_callId_fkey" FOREIGN KEY ("callId") REFERENCES "Call" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+CREATE INDEX IF NOT EXISTS "CallReview_businessId_createdAt_idx" ON "CallReview"("businessId", "createdAt");

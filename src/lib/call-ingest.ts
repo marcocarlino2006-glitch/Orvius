@@ -1,4 +1,6 @@
 import { describeAssistantPromises, detectAssistantPromises } from "@/lib/assistant-promises";
+import { readJudgeVerdict } from "@/lib/call-judge";
+import { saveCallReview } from "@/lib/call-review";
 import { recordSetupMilestone } from "@/lib/workflow-events";
 import { costColumns } from "@/lib/call-cost";
 import { latencyColumns, latencyFromReport } from "@/lib/call-latency";
@@ -218,6 +220,7 @@ export async function captureEndOfCallReport(params: {
       return { call, lead };
     });
 
+    await saveCallReview(call.id, business.id, readJudgeVerdict(message.analysis?.structuredData));
     await completeWebhookEvent({ source: "vapi", externalId: vapiCallId, eventType, status: CAPTURED });
     if (!business.lineVerifiedAt) await recordSetupMilestone(business.id, "line_proven", new Date(), { callId: call.id }).catch((error: unknown) => logWarn("call_ingest.milestone_failed", { businessId: business.id, error: error instanceof Error ? error.message.slice(0, 300) : String(error).slice(0, 300) }));
     return { duplicate: false, business, vapiCallId, call, lead };

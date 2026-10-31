@@ -71,6 +71,7 @@ export function buildBusinessAssistantConfig(business: Business) {
     transferPhone,
     voiceId: resolveVoiceId(business.voiceId),
     inCallBooking: true,
+    trade: business.trade,
   });
 }
 

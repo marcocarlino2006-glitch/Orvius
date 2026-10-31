@@ -1,4 +1,5 @@
 import { personActor, recordAudit } from "@/lib/audit";
+import { forgetCallReviews } from "@/lib/call-review";
 import { normalizePhone } from "@/lib/customer";
 import { logWarn } from "@/lib/logger";
 import { prisma } from "@/lib/prisma";
@@ -128,6 +129,7 @@ export async function forgetCustomer(
   }
   const remotePending = calls.length - goneRemote.size + [...leadNotes.values()].filter((n) => n !== FORGOTTEN).length;
 
+  await forgetCallReviews(callIds);
   const texts = await prisma.$transaction(async (tx) => {
     const scrubCall = { transcript: null, recordingUrl: null, summary: FORGOTTEN, callerPhone: null, customerId: null, forgetRequestedAt: now };
     const gone = [...goneRemote];
