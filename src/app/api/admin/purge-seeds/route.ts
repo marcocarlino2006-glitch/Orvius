@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { isFounderEmail } from "@/lib/founder";
 import { looksLikeSeedProspect } from "@/lib/multi-b-mastery";
 import { prisma } from "@/lib/prisma";
+import { founderActor, recordPlatformAudit } from "@/lib/platform-audit";
 
 /**
  * Founder-only: delete waitlist rows that look like seed/example contacts.
@@ -33,6 +34,11 @@ export async function POST() {
 
   await prisma.waitlistEntry.deleteMany({
     where: { id: { in: seedIds } },
+  });
+  await recordPlatformAudit(founderActor(email), {
+    action: "admin.waitlist.seeds_purged",
+    summary: `Removed ${seedIds.length} seed prospect(s) from the waitlist`,
+    detail: { deleted: seedIds.length },
   });
 
   const remaining = await prisma.waitlistEntry.count();

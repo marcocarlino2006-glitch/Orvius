@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { pendingGalleryCalls, reviewGalleryCall } from "@/lib/call-gallery";
 import { verifyAdminRequest } from "@/lib/env";
 import { isFounderEmail } from "@/lib/founder";
+import { privilegedActor, recordPlatformAudit } from "@/lib/platform-audit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,5 +30,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Say which call and whether to list or remove it." }, { status: 400 });
   }
   const changed = await reviewGalleryCall(body.id, body.decision);
+  if (changed) {
+    await recordPlatformAudit(await privilegedActor(request), {
+      action: `admin.gallery.${body.decision}`,
+      summary: `${body.decision === "listed" ? "Listed" : "Removed"} call ${body.id} in the public gallery`,
+      detail: { galleryCallId: body.id },
+    });
+  }
   return NextResponse.json({ ok: changed });
 }

@@ -4,6 +4,7 @@ import { verifyAdminRequest } from "@/lib/env";
 import { PORT_STATUSES, updatePortRequest } from "@/lib/port-request";
 import { prisma } from "@/lib/prisma";
 import { openSecret } from "@/lib/secret-box";
+import { privilegedActor, recordPlatformAudit } from "@/lib/platform-audit";
 
 /** Open requests to file; `?id=` returns one with its PIN for filing. */
 export async function GET(request: NextRequest) {
@@ -37,5 +38,11 @@ export async function POST(request: NextRequest) {
   if (!parsed.success) return NextResponse.json({ error: parsed.error.errors.map((e) => e.message).join(", ") }, { status: 400 });
   const { portDate, ...rest } = parsed.data;
   const row = await updatePortRequest({ ...rest, portDate: portDate === undefined ? undefined : portDate ? new Date(portDate) : null });
+  await recordPlatformAudit(await privilegedActor(request), {
+    action: "admin.port_request.updated",
+    summary: `Number port marked ${row.status}`,
+    businessId: row.businessId,
+    detail: { portRequestId: row.id, status: row.status, portDate: portDate ?? null },
+  });
   return NextResponse.json({ ok: true, id: row.id, status: row.status });
 }

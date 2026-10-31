@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { isPrivilegedRequest } from "@/lib/admin-access";
 import { submitTollFreeVerification } from "@/lib/toll-free-submit";
+import { privilegedActor, recordPlatformAudit } from "@/lib/platform-audit";
 
 const bodySchema = z.object({
   ein: z.string().max(20),
@@ -22,6 +23,10 @@ export async function POST(request: NextRequest) {
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Fill in every field." }, { status: 400 });
   const result = await submitTollFreeVerification(parsed.data);
+  await recordPlatformAudit(await privilegedActor(request), {
+    action: result.ok ? "admin.toll_free.submitted" : "admin.toll_free.refused",
+    summary: result.ok ? "Filed toll-free texting verification" : `Toll-free verification refused: ${result.error}`,
+  });
   if (!result.ok) return NextResponse.json({ error: result.error }, { status: 400 });
   return NextResponse.json(result);
 }

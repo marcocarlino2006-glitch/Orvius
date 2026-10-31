@@ -5,6 +5,7 @@ import { OsShell } from "@/components/os-shell";
 import { ReceptionistScorecardCard } from "@/components/receptionist-scorecard-card";
 import { VendorAlarmCard } from "@/components/vendor-alarm-card";
 import { LineFallbackCard } from "@/components/line-fallback-card";
+import { PlatformAuditCard } from "@/components/platform-audit-card";
 import { TollFreeForm } from "@/components/toll-free-form";
 import { ProLead } from "@/components/pro-lead";
 import { LiveStatusBar } from "@/components/live-status-bar";
@@ -500,6 +501,7 @@ export default function AdminPage() {
       <ReceptionistScorecardCard />
       <VendorAlarmCard />
       <LineFallbackCard />
+      <PlatformAuditCard />
 
       <section className="card mb-8 p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">

@@ -4,6 +4,7 @@ import { parseProspectCsv } from "@/lib/prospect-csv";
 import { prisma } from "@/lib/prisma";
 import { verifyAdminRequest } from "@/lib/env";
 import { isFounderEmail } from "@/lib/founder";
+import { recordPlatformAudit, staffActor } from "@/lib/platform-audit";
 import { z } from "zod";
 
 function allowedEmails(): Set<string> {
@@ -89,6 +90,12 @@ export async function POST(request: NextRequest) {
         created++;
       }
     }
+
+    await recordPlatformAudit(await staffActor(request), {
+      action: "admin.waitlist.imported",
+      summary: `Imported prospects: ${created} new, ${updated} updated`,
+      detail: { created, updated, skipped: parsed.skipped, errors: parsed.errors.length },
+    });
 
     return NextResponse.json({
       ok: true,

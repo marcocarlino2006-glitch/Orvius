@@ -2312,3 +2312,27 @@ model SetupDraft {
   json      String
   updatedAt DateTime @updatedAt
 }
+
+/**
+ * Who did what from the founder console or with the admin key. No relation to
+ * Business, so the record of an action outlives the shop it touched.
+ */
+model PlatformAuditEvent {
+  id         String   @id @default(cuid())
+  /**
+   * Stable machine code, e.g. admin.port_request.updated.
+   */
+  action     String
+  /**
+   * founder (signed-in founder email) | admin_key (the ORVIUS_ADMIN_KEY header)
+   */
+  actorKind  String
+  actorEmail String?
+  businessId String?
+  summary    String
+  detailJson String?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([businessId, createdAt])
+}
