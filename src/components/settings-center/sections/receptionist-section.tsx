@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { aiAuthority } from "@/lib/ai-authority";
+import { hasSpanishLine, withSpanishLine } from "@/lib/greeting-lines";
 import { DEFAULT_VOICE_ID, RECEPTIONIST_VOICES } from "@/lib/voices";
 import { VoiceSampleButton } from "../settings-controls";
 import { dollars, type Business, type PatchFn } from "../settings-model";
@@ -49,6 +50,13 @@ export function ReceptionistSection({
             value={b.greeting ?? ""}
             placeholder={`Thank you for calling ${b.name}. How can I help you today?`}
             onCommit={(v) => patch({ greeting: v.trim() })}
+          />
+        </ScRow>
+        <ScRow label="Greet in Spanish too" hint={'Adds "Para español, hable en español." Spanish callers are answered and booked in Spanish either way.'}>
+          <ScSwitch
+            label="Greet in Spanish too"
+            checked={hasSpanishLine(b.greeting)}
+            onChange={(next) => void patch({ greeting: withSpanishLine(b.greeting, b.name, next) })}
           />
         </ScRow>
         <ScRow label="Voice" hint="Callers hear this voice. Changes apply to the next call.">
